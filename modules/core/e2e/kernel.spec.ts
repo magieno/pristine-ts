@@ -1,6 +1,7 @@
 import {Kernel} from "../src/kernel";
 import {ResolvedClassModel} from "./models/resolved-class.model";
 import {testModule} from "./test.module";
+import {PermissionManager} from "./managers/permission.manager";
 
 
 describe("Kernel.ts", () => {
@@ -9,7 +10,7 @@ describe("Kernel.ts", () => {
         await kernel.init(testModule);
 
         const resolvedClassModel = kernel.container.resolve<ResolvedClassModel>(ResolvedClassModel);
-        const resolvedClassModel2 = kernel.container.resolveAll("allo");
+        const permissionManager = kernel.container.resolveAll(PermissionManager)
 
         expect(resolvedClassModel.getRandomNumber()).toBeGreaterThan(0);
     })
