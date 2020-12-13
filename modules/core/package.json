@@ -9,8 +9,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/url-parse": "^1.4.3",
     "reflect-metadata": "^0.1.13",
-    "tsyringe": "^4.4.0"
+    "tsyringe": "^4.4.0",
+    "url-parse": "^1.4.7"
   },
   "devDependencies": {
     "@types/jest": "^26.0.18",

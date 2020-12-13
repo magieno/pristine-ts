@@ -1,8 +1,15 @@
-import {singleton} from "tsyringe";
+import {DependencyContainer, singleton} from "tsyringe";
 import {Route} from "./route";
 import {RouterNode} from "./router.node";
 import {PathRouterNode} from "./path-router.node";
 import {HttpMethod} from "../enums/http-method.enum";
+import {ControllerInstantiationOptions} from "../options/controller.instantiation-options";
+import {Request} from "./request";
+import {Response} from "./response";
+import {UrlUtil} from "../utils/url.util";
+import {NotFoundHttpError} from "../errors/not-found.http-error";
+import {MethodRouterNode} from "./method-router.node";
+const Url = require('url-parse');
 
 @singleton()
 export class Router {
@@ -11,39 +18,34 @@ export class Router {
     public constructor() {
     }
 
-    // todo, rename that parameter
-    public register(path: string, method: HttpMethod, objectToNameThatWillAllowUsToEasilyCallTheControllerMethodWithProperArguments: any) {
-        const splitPaths = this.splitPath(path);
+    public register(path: string, method: HttpMethod, controllerInstantiationOptions: ControllerInstantiationOptions) {
+        const splitPaths = UrlUtil.splitPath(path);
 
-        this.root.add(splitPaths, method);
+        this.root.add<ControllerInstantiationOptions>(splitPaths, method, controllerInstantiationOptions);
     }
 
-    private splitPath(path: string): string[] {
-        let buffer = "";
+    public execute(request: Request, container: DependencyContainer): Promise<Response> {
+        // Start by decomposing the URL. Set second parameter to true since we want to parse the query strings
+        const url = new Url(request.url, true);
 
-        let paths = [];
+        // Retrieve the node to have information about the controller
+        const methodNode: MethodRouterNode<ControllerInstantiationOptions> = this.root.find(UrlUtil.splitPath(url.pathname), HttpMethod.Get)as MethodRouterNode<ControllerInstantiationOptions>;
 
-        for (let i = 0; i < path.length; i++) {
-            if(path[i] === "/") {
-                paths.push("/" + buffer);
-                buffer = "";
-            }
-            else {
-                buffer += path[i]
-            }
+        // If node doesn't exist, throw a 404 error
+        if(methodNode === null) {
+            throw new NotFoundHttpError("No route found for path: '" + url.pathname + "'.");
         }
 
-        // Don't forget at the end to add the remaining buffer as the last path
-        if(buffer !== "") {
-            paths.push("/" + buffer);
-        }
+        // Instantiate the controller
+        const controller = container.resolve(methodNode.data.controllerInstanciationToken);
 
-        // We never want a trailing slash as an individual element so we have to remove it
-        if(paths[paths.length - 1] === "/") {
-            paths = paths.slice(0, paths.length - 1);
-        }
+        // Execute the method of the controller
 
-        return paths;
+        // Check the return of the method, if it's not a promise, promisify it
+
+        // If it's not a Response object, transform it into a response object
+
+        // Return the response
     }
 
 }

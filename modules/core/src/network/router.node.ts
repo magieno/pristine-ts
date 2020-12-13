@@ -23,6 +23,7 @@ export abstract class RouterNode {
      *
      * @param splitPaths
      * @param method
+     * @param data
      */
-    abstract add(splitPaths: string[], method: HttpMethod);
+    abstract add<T>(splitPaths: string[], method: HttpMethod, data?: T);
 }

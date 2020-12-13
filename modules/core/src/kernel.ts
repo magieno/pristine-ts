@@ -95,11 +95,13 @@ export class Kernel {
         // Start by creating a child container and we will use this container to instantiate the dependencies for this request
         const childContainer = this.container.createChildContainer();
 
+        // Execute all the request interceptors
 
-        // Return
+        const response = await this.router.execute(request, childContainer);
 
-        const response: Response = {request: undefined, status: 0}
+        // Execute all the response interceptors
 
+        // Return the response
         return response;
     }
 
