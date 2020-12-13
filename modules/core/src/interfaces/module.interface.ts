@@ -4,4 +4,6 @@ export interface ModuleInterface {
     importModules?: ModuleInterface[];
 
     providerRegistrations?: ProviderRegistration[];
+
+    controllers?: Function[];
 }
