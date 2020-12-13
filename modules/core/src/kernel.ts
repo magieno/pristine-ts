@@ -9,6 +9,7 @@ import {Request} from "./network/request";
 import {Router} from "./network/router";
 import {controllerRegistry} from "./decorators/controller.decorator";
 import {MethodDecoratorRoute} from "./interfaces/method-decorator-route.interface";
+import {RouteInformation} from "./network/route-information";
 const util = require('util');
 
 export class Kernel {
@@ -19,9 +20,16 @@ export class Kernel {
     public constructor() {}
 
     public async init(module: ModuleInterface) {
+        await this.initModule(module);
+
+        // Setup the router
+        this.setupRouter();
+    }
+
+    private async initModule(module: ModuleInterface) {
         // Start by recursively importing all the modules
         for (let importedModule of module.importModules) {
-            await this.init(importedModule)
+            await this.initModule(importedModule)
         }
 
         // Add all the providers to the container
@@ -43,12 +51,9 @@ export class Kernel {
                 throw new InitializationError("There was an error registering the following providerRegistration: " + util.inspect(providerRegistration, false, 4), e)
             }
         })
-
-        // Setup the router
-        this.setupRouter();
     }
 
-    public setupRouter() {
+    private setupRouter() {
         this.router = this.container.resolve(Router);
 
         // Init the controllers
@@ -59,10 +64,26 @@ export class Kernel {
                 basePath = basePath.slice(0, basePath.length-1);
             }
 
-            const controllerInstanciationToken = controller.constructor;
+            for (const methodPropertyKey in controller.__metadata__?.methods) {
+                if(controller.__metadata__?.methods?.hasOwnProperty(methodPropertyKey) === false) {
+                    continue;
+                }
 
-            controller.__metadata__?.routes?.forEach( (route: MethodDecoratorRoute) => {
+                const method = controller.__metadata__?.methods[methodPropertyKey];
 
+                if(method.hasOwnProperty("route") === false) {
+                    continue;
+                }
+
+                // Retrieve the "MethodDecoratorRoute" object assigned by the @route decorator at .route
+                const route: MethodDecoratorRoute = method.route;
+
+                // Build the RouteInformation object that will be used the the router to dispatch a request to
+                // the appropriate controller method
+                const routeInformation: RouteInformation = new RouteInformation(controller.constructor, route.propertyKey);
+                routeInformation.methodArguments = method.arguments ?? [];
+
+                // Build the proper path
                 let path = route.path;
 
                 // Clean the path by removing the first and trailing slashes.
@@ -77,8 +98,9 @@ export class Kernel {
                 // Build the proper path
                 const routePath = basePath + "/" + path;
 
-                this.router.register(routePath, route.method, {controllerInstanciationToken, propertyKey: route.propertyKey});
-            })
+                // Register the route
+                this.router.register(routePath, route.httpMethod, routeInformation);
+            }
         })
     }
 

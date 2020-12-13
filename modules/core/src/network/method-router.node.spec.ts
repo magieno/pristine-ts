@@ -3,7 +3,7 @@ import {PathRouterNode} from "./path-router.node";
 import {HttpMethod} from "../enums/http-method.enum";
 
 describe("Path Router Node tests", () => {
-    it("should instantiate with the appropriate parent and method", () => {
+    it("should instantiate with the appropriate parent and httpMethod", () => {
         const pathRouterNode = new PathRouterNode("/allo", null)
 
         const methodRouterNode = new MethodRouterNode(pathRouterNode, HttpMethod.Get);
@@ -15,7 +15,7 @@ describe("Path Router Node tests", () => {
         expect(methodRouterNode.method).toBe(HttpMethod.Get);
     })
 
-    it("should matches when it's defined with a certain http method", () => {
+    it("should matches when it's defined with a certain http httpMethod", () => {
         const pathRouterNode = new PathRouterNode("/allo", null)
 
         const methodRouterNode = new MethodRouterNode(pathRouterNode, HttpMethod.Get);
@@ -23,7 +23,7 @@ describe("Path Router Node tests", () => {
         expect(methodRouterNode.matches(HttpMethod.Get)).toBeTruthy();
     })
 
-    it("should not match when it's defined with a certain http method and passed with another", () => {
+    it("should not match when it's defined with a certain http httpMethod and passed with another", () => {
         const pathRouterNode = new PathRouterNode("/allo", null)
 
         const methodRouterNode = new MethodRouterNode(pathRouterNode, HttpMethod.Get);
@@ -31,7 +31,7 @@ describe("Path Router Node tests", () => {
         expect(methodRouterNode.matches(HttpMethod.Post)).toBeFalsy();
     })
 
-    it("should return the node when calling find if the method matches", () => {
+    it("should return the node when calling find if the httpMethod matches", () => {
         const pathRouterNode = new PathRouterNode("/allo", null)
 
         const methodRouterNode = new MethodRouterNode(pathRouterNode, HttpMethod.Get);
@@ -40,7 +40,7 @@ describe("Path Router Node tests", () => {
         expect(methodRouterNode.find([], HttpMethod.Get)).toBe(methodRouterNode);
     })
 
-    it("should return nul when calling find if the method doesn't match", () => {
+    it("should return nul when calling find if the httpMethod doesn't match", () => {
         const pathRouterNode = new PathRouterNode("/allo", null)
 
         const methodRouterNode = new MethodRouterNode(pathRouterNode, HttpMethod.Get);

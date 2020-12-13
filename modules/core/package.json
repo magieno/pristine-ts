@@ -9,12 +9,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/url-parse": "^1.4.3",
     "reflect-metadata": "^0.1.13",
     "tsyringe": "^4.4.0",
     "url-parse": "^1.4.7"
   },
   "devDependencies": {
+    "@types/url-parse": "^1.4.3",
     "@types/jest": "^26.0.18",
     "jest": "^26.6.3",
     "ts-jest": "^26.4.4"

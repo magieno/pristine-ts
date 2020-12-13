@@ -2,7 +2,8 @@ import {Kernel} from "../src/kernel";
 import {ResolvedClassModel} from "./models/resolved-class.model";
 import {testModule} from "./test.module";
 import {PermissionManager} from "./managers/permission.manager";
-import {TestController} from "./controllers/test.controller";
+import {HttpMethod} from "../src/enums/http-method.enum";
+import {Request} from "../src/network/request";
 
 
 describe("Kernel.ts", () => {
@@ -23,6 +24,19 @@ describe("Kernel.ts", () => {
         const kernel = new Kernel();
         await kernel.init(testModule);
 
-        kernel.setupRouter()
+        // await kernel.handleRequest({
+        //     url: "https://localhost:8080/api/2.0/services",
+        //     httpMethod: HttpMethod.Get,
+        // });
+
+        await kernel.handleRequest({
+            url: "https://localhost:8080/api/2.0/services/0a931a57-c238-4d07-ab5e-e51b10320997",
+            httpMethod: HttpMethod.Put,
+            body: {
+                specialBody: "body"
+            }
+        });
+
+        const a = 0;
     })
 })

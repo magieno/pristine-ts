@@ -142,7 +142,7 @@ describe("Path Router Node tests", () => {
         expect(pathRouterNode.find(["/hello"], HttpMethod.Get)).toBeNull();
     })
     
-    it("should return the method router node if it matches", () => {
+    it("should return the httpMethod router node if it matches", () => {
 
         expect(root.find(["/", "/api", "/1.0", "/dogs"], HttpMethod.Get) instanceof MethodRouterNode).toBeTruthy()
         expect(root.find(["/", "/api", "/1.0", "/dogs"], HttpMethod.Post) instanceof MethodRouterNode).toBeTruthy()

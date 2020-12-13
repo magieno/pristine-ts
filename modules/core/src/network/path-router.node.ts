@@ -16,7 +16,7 @@ export class PathRouterNode extends RouterNode {
         this.parent = parent;
     }
 
-    add<T>(splitPaths: string[], method: HttpMethod, data?: T) {
+    add<T>(splitPaths: string[], method: HttpMethod | string, data?: T) {
         // Check to make sure that the first split path matches the current node
         if (splitPaths.length < 1 || this.matches(splitPaths[0]) === false) {
             return;
@@ -24,7 +24,7 @@ export class PathRouterNode extends RouterNode {
 
         // If the splitPaths[0] matches the current node and the length is 1, we create the MethodRouterNode and add it as a children
         if (splitPaths.length === 1) {
-            // Make sure that for every MethodRouterNode children, this method doesn't already exist
+            // Make sure that for every MethodRouterNode children, this httpMethod doesn't already exist
             const matchedMethodRouterNodeChild = this.children.filter(child => child instanceof MethodRouterNode).find((child: MethodRouterNode<T>) => child.matches(method))
 
             if (matchedMethodRouterNodeChild !== undefined) {
@@ -38,9 +38,9 @@ export class PathRouterNode extends RouterNode {
         // Loop over our children that are of PathRouterNode and check if the next path matches
         const matchedChild = this.children.filter(child => child instanceof PathRouterNode).find((child: PathRouterNode) => child.matches(splitPaths[1]));
 
-        // If there's a matched child, call the add method on it and return.
+        // If there's a matched child, call the add httpMethod on it and return.
         if (matchedChild !== undefined) {
-            matchedChild.add(splitPaths.slice(1), method);
+            matchedChild.add(splitPaths.slice(1), method, data);
             return;
         }
 
@@ -49,7 +49,7 @@ export class PathRouterNode extends RouterNode {
         this.children.push(pathRouterNode);
 
         // Then, call add on the latest pathRouterNode child
-        pathRouterNode.add(splitPaths.slice(1), method);
+        pathRouterNode.add(splitPaths.slice(1), method, data);
         return;
     }
 
@@ -75,7 +75,7 @@ export class PathRouterNode extends RouterNode {
         return this.path === path;
     }
 
-    find(splitPaths: string[], method: HttpMethod): RouterNode | null {
+    find(splitPaths: string[], method: HttpMethod | string): RouterNode | null {
         // If splitPaths is 0 or if the first path doesn't match this current node, we return
         if (splitPaths.length < 1 || this.matches(splitPaths[0]) === false) {
             return null;
@@ -93,7 +93,7 @@ export class PathRouterNode extends RouterNode {
     }
 
     /**
-     * This method navigates the tree upwards
+     * This httpMethod navigates the tree upwards
      *
      * @param splitPaths
      */

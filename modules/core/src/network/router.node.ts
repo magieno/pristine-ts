@@ -17,7 +17,7 @@ export abstract class RouterNode {
      * @param splitPaths
      * @param method
      */
-    abstract find(splitPaths: string[], method: HttpMethod): RouterNode | null;
+    abstract find(splitPaths: string[], method: HttpMethod | string): RouterNode | null;
 
     /**
      *
@@ -25,5 +25,5 @@ export abstract class RouterNode {
      * @param method
      * @param data
      */
-    abstract add<T>(splitPaths: string[], method: HttpMethod, data?: T);
+    abstract add<T>(splitPaths: string[], method: HttpMethod | string, data?: T);
 }
