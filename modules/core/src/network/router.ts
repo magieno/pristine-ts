@@ -19,12 +19,27 @@ export class Router {
     public constructor() {
     }
 
+    /**
+     * This method registers a Route into the Route Tree maintained by the router.
+     *
+     * @param path
+     * @param method
+     * @param route
+     */
     public register(path: string, method: HttpMethod | string, route: RouteInformation) {
         const splitPaths = UrlUtil.splitPath(path);
 
         this.root.add<RouteInformation>(splitPaths, method, route);
     }
 
+    /**
+     * This method receives a Request object, identifies the "path" its trying to hit, navigates the internally
+     * maintained Route Tree, identifies the method in the controller that represents this "path", and calls the
+     * method with the specified parameters.
+     *
+     * @param request
+     * @param container
+     */
     public execute(request: Request, container: DependencyContainer): Promise<Response> {
         return new Promise<Response>((resolve, reject) => {
             // Start by decomposing the URL. Set second parameter to true since we want to parse the query strings
@@ -82,5 +97,4 @@ export class Router {
             }
         })
     }
-
 }

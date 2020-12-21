@@ -123,7 +123,7 @@ export class Kernel {
     }
 
     /**
-     * 
+     *
      * @param event
      */
     public async handleEvent(event: Event) {
