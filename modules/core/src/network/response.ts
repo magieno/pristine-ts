@@ -1,6 +1,6 @@
 import {Request} from "./request";
 
-export interface Response {
+export class Response {
     status: number;
     headers?: { [key: string]: string };
     body?: any;
