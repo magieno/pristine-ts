@@ -58,7 +58,7 @@ export class Router {
         // Call the controller with the resolved Method arguments
         const controllerResponse = controller[routeInformation.methodPropertyKey].apply(controller, resolvedMethodArguments);
 
-        // Check the return of the httpMethod, if it's not a promise, promisify it
+        // Check the return of the httpMethod, if it's not a promise, convert it direct
 
         // If it's not a Response object, transform it into a response object
 

@@ -11,16 +11,16 @@ export class ParameterDecoratorResolver {
 
         switch (methodArgument.type) {
             case "body":
-                return request.body;
+                return request.body ?? null;
 
             case "routeParam":
-                return routeParameters[methodArgument.routeParameterName];
+                return routeParameters[methodArgument.routeParameterName] ?? null;
 
             case "queryParam":
-                return url.query[methodArgument.queryParameterName];
+                return url.query[methodArgument.queryParameterName] ?? null;
 
             case "queryParams":
-                return url.query;
+                return url.query ?? null;
         }
     }
 }
