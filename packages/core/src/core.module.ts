@@ -6,6 +6,8 @@ export const CoreModule: ModuleInterface =  {
     providerRegistrations: [],
 }
 
+export * from "./kernel";
+
 export * from "./decorators/decorators";
 export * from "./enums/enums";
 export * from "./errors/errors";

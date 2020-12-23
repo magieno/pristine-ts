@@ -1,4 +1,5 @@
 import {DogsController} from "./controllers/dogs.controller";
+import {ExpressModule, RequestMapper, ResponseMapper} from "@pristine-ts/express";
 
 const express = require('express')
 const app = express()
