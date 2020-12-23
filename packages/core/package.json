@@ -5,7 +5,6 @@
   "main": "dist/core.module.js",
   "types": "dist/core.module.d.ts",
   "scripts": {
-    "prepublish": "tsc",
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -56,5 +55,5 @@
       "src/*.{js,ts}"
     ]
   },
-  "gitHead": "7189326631e92cc7ebead035301d343370680b55"
+  "gitHead": "076ea2f184c6419c1da465fd4d70a4a5ab8bf731"
 }
