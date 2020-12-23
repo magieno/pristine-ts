@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/core",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "",
   "main": "dist/lib/core.module.js",
   "types": "dist/types/core.module.d.ts",
