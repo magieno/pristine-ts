@@ -238,21 +238,24 @@ export class Kernel {
             try {
                 const interceptedRequest = await this.executeRequestInterceptors(request, childContainer);
 
-                this.router.execute(interceptedRequest, childContainer).then( async (response: Response) => {
-                    // Execute all the response interceptors
-                    const interceptedResponse = await this.executeResponseInterceptors(response, request, childContainer);
+                const response = await this.router.execute(interceptedRequest, childContainer);
 
-                    return resolve(interceptedResponse);
+                // Execute all the response interceptors
+                const interceptedResponse = await this.executeResponseInterceptors(response, request, childContainer);
 
-                }).catch(async (error) => {
-                    // Transform the error into a response object
-                    const errorResponse = await this.executeErrorResponseInterceptors(error, request, childContainer);
-
-                    // Execute all the response interceptors
-                    const interceptedResponse = await this.executeResponseInterceptors(errorResponse, request, childContainer);
-
-                    return resolve(interceptedResponse);
-                });
+                return resolve(interceptedResponse);
+                // .then( async (response: Response) => {
+                //
+                //
+                // }).catch(async (error) => {
+                //     // Transform the error into a response object
+                //     const errorResponse = await this.executeErrorResponseInterceptors(error, request, childContainer);
+                //
+                //     // Execute all the response interceptors
+                //     const interceptedResponse = await this.executeResponseInterceptors(errorResponse, request, childContainer);
+                //
+                //     return resolve(interceptedResponse);
+                // });
             } catch (error) {
                 const a = 0;
 

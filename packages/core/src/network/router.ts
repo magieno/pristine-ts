@@ -53,7 +53,7 @@ export class Router implements RouterInterface {
 
             // If node doesn't exist, throw a 404 error
             if(methodNode === null) {
-                throw new NotFoundHttpError("No route found for path: '" + url.pathname + "'.");
+                return reject(new NotFoundHttpError("No route found for path: '" + url.pathname + "'."));
             }
 
             // Get the route parameters
