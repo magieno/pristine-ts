@@ -1,9 +1,9 @@
 import {HttpMethod} from "../enums/http-method.enum";
-import {RouteInformation} from "../network/route-information";
 import {RequestInterface} from "./request.interface";
 import {DependencyContainer} from "tsyringe";
 import {Response} from "../network/response";
 import {Request} from "../network/request";
+import {Route} from "../models/route";
 
 /**
  * This method defines the interface that the router must implement.
@@ -17,7 +17,7 @@ export interface RouterInterface {
      * @param method
      * @param route
      */
-    register(path: string, method: HttpMethod | string, route: RouteInformation)
+    register(path: string, method: HttpMethod | string, route: Route)
 
     /**
      * This method executes the request passed as a parameter. A container must also be passed since we want each
