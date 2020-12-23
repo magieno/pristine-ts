@@ -183,6 +183,7 @@ export class Kernel {
     private async executeErrorResponseInterceptors(error: Error, request: Request, container: DependencyContainer): Promise<Response> {
         // Execute all the request interceptors
         let interceptedErrorResponse = new Response();
+        interceptedErrorResponse.request = request;
 
         if(error instanceof HttpError) {
             interceptedErrorResponse.status = error.httpStatus
@@ -191,7 +192,10 @@ export class Kernel {
             interceptedErrorResponse.status = 500;
         }
 
-        interceptedErrorResponse.body = error;
+        interceptedErrorResponse.body = {
+            name: error.name,
+            message: error.message,
+        };
 
         // Check first if there are any RequestInterceptors
         if(container.isRegistered(ServiceDefinitionTagEnum.ErrorResponseInterceptor, true)) {
@@ -244,25 +248,7 @@ export class Kernel {
                 const interceptedResponse = await this.executeResponseInterceptors(response, request, childContainer);
 
                 return resolve(interceptedResponse);
-                // .then( async (response: Response) => {
-                //
-                //
-                // }).catch(async (error) => {
-                //     // Transform the error into a response object
-                //     const errorResponse = await this.executeErrorResponseInterceptors(error, request, childContainer);
-                //
-                //     // Execute all the response interceptors
-                //     const interceptedResponse = await this.executeResponseInterceptors(errorResponse, request, childContainer);
-                //
-                //     return resolve(interceptedResponse);
-                // });
             } catch (error) {
-                const a = 0;
-
-                const b = (error instanceof HttpError);
-
-                console.log(b);
-
                 // Transform the error into a response object
                 const errorResponse = await this.executeErrorResponseInterceptors(error, request, childContainer);
 

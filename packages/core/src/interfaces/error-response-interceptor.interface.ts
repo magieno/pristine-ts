@@ -18,5 +18,5 @@ export interface ErrorResponseInterceptorInterface {
      * @param request
      * @param response
      */
-    interceptError(error: Error, request: Request, response?: Response): Promise<Response>;
+    interceptError(error: Error, request: Request, response: Response): Promise<Response>;
 }
