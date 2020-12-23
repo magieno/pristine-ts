@@ -1,3 +1,7 @@
+/**
+ * This class defines a basic HttpError. In your code, feel free to throw an HttpError to have this error returned via HTTP.
+ * If you throw this error when handling an Event, it won't be returned.
+ */
 export class HttpError extends Error {
     public constructor(public readonly httpStatus: number, readonly message: string) {
         super(message);

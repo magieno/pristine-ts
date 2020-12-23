@@ -1,9 +1,24 @@
+/**
+ * This class provides a bunch of utilities to deal with Urls.
+ */
 export class UrlUtil {
+    /**
+     * This method receives a path parameter (e.g. /api/2.0/dogs/id/puppies) and returns an array where each url segment is split:
+     * - /api
+     * - /2.0
+     * - /dogs
+     * - /id
+     * - /puppies
+     *
+     * @param path
+     */
     public static splitPath(path: string): string[] {
         let buffer = "";
 
         let paths: string[] = [];
 
+        // Loop over the entire path string and push the characters in a buffer string until you hit a "/". When you do,
+        // push the buffer string into a new array element and continue until the end of the string.
         for (let i = 0; i < path.length; i++) {
             if(path[i] === "/") {
                 paths.push("/" + buffer);
