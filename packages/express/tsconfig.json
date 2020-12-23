@@ -10,12 +10,13 @@
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "esModuleInterop": true,
     "declarationDir": "dist/types",
     "outDir": "dist/lib",
     "typeRoots": [
       "node_modules/@types"
-    ]
+    ],
+
+    "skipLibCheck": true
   },
   "include": [
     "src"
