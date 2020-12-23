@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/express",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "",
   "main": "express.module.js",
   "types": "express.module.d.ts",
