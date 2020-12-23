@@ -2,9 +2,10 @@
   "name": "@pristine-ts/express",
   "version": "0.0.10",
   "description": "",
-  "main": "express.module.js",
-  "types": "express.module.d.ts",
+  "main": "dist/express.module.js",
+  "types": "dist/express.module.d.ts",
   "scripts": {
+    "prepublish": "tsc",
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

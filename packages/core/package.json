@@ -2,9 +2,10 @@
   "name": "@pristine-ts/core",
   "version": "0.0.10",
   "description": "",
-  "main": "core.module.js",
-  "types": "core.module.d.ts",
+  "main": "dist/core.module.js",
+  "types": "dist/core.module.d.ts",
   "scripts": {
+    "prepublish": "tsc",
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
