@@ -5,8 +5,8 @@
   "main": "dist/lib/express.module.js",
   "types": "dist/types/express.module.d.ts",
   "scripts": {
-    "build": "tsc",
-    "prepublish": "tsc",
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
+    "prepublish": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "files": [

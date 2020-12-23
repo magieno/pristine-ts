@@ -10,8 +10,8 @@
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "declarationDir": "dist/types",
-    "outDir": "dist/lib",
+    "esModuleInterop": true,
+    "outDir": "dist/lib/esm",
     "typeRoots": [
       "node_modules/@types"
     ],
