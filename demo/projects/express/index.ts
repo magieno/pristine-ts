@@ -1,8 +1,4 @@
-import {Kernel} from "../../../packages/core/src/kernel";
-import {ExpressModule} from "../../../packages/express/src/express.module";
 import {DogsController} from "./controllers/dogs.controller";
-import {RequestMapper} from "../../../packages/express/src/mappers/request.mapper";
-import {ResponseMapper} from "../../../packages/express/src/mappers/response.mapper";
 
 const express = require('express')
 const app = express()

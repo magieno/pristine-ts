@@ -1,6 +1,5 @@
 import {injectable} from "tsyringe";
-// import {HttpMethod} from "@pristine-ts/core";
-import {HttpMethod} from "../../../core/src/enums/http-method.enum";
+import {HttpMethod} from "@pristine-ts/core";
 
 @injectable()
 export class MethodMapper {

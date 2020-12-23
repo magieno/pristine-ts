@@ -1,6 +1,5 @@
 import {Response as ExpressResponse} from "express";
 import {injectable} from "tsyringe";
-import {Response} from "../../../core/src/network/response";
 
 @injectable()
 export class ResponseMapper {

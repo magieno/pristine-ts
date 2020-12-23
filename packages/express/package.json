@@ -5,8 +5,8 @@
   "main": "dist/lib/express.module.js",
   "types": "dist/types/express.module.d.ts",
   "scripts": {
-    "prepublish": "tsc",
     "build": "tsc",
+    "prepublish": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "files": [
@@ -16,6 +16,7 @@
   "license": "ISC",
   "dependencies": {
     "@types/express": "^4.17.9",
+    "@pristine-ts/core": "~0.0.12",
     "express": "^4.17.1",
     "reflect-metadata": "^0.1.13",
     "tsyringe": "^4.4.0",
@@ -25,10 +26,8 @@
     "@types/jest": "^26.0.18",
     "@types/url-parse": "^1.4.3",
     "jest": "^26.6.3",
-    "ts-jest": "^26.4.4"
-  },
-  "peerDependencies": {
-    "@pristine-ts/core": "^0.0.1"
+    "ts-jest": "^26.4.4",
+    "typescript": "^4.1.2"
   },
   "jest": {
     "transform": {
