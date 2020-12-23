@@ -2,7 +2,8 @@ import {PathRouterNode} from "./path-router.node";
 import {HttpMethod} from "../enums/http-method.enum";
 import {MethodRouterNode} from "./method-router.node";
 import instance from "tsyringe/dist/typings/dependency-container";
-import {pathRouterNode} from "../test-fixtures/path-router.node.test-fixture.spec";
+import {pathRouterNode} from "../test-fixtures/path-router.node.test-fixture";
+import {Route} from "../models/route";
 
 describe("Path Router Node tests", () => {
     let root: PathRouterNode;
@@ -13,37 +14,37 @@ describe("Path Router Node tests", () => {
 
 
     it("should match if the path matches", () => {
-        const pathRouterNode = new PathRouterNode("/allo", null)
+        const pathRouterNode = new PathRouterNode("/allo", undefined)
         
         expect(pathRouterNode.matches("/allo")).toBeTruthy()
     })
     
     it("should match if the path doesn't match", () => {
-        const pathRouterNode = new PathRouterNode("/allo", null)
+        const pathRouterNode = new PathRouterNode("/allo", undefined)
         
         expect(pathRouterNode.matches("hello")).toBeFalsy();
     })
 
     it("should match if the path is a parameter path: '{id}'", () => {
-        const pathRouterNode = new PathRouterNode("/{id}", null)
+        const pathRouterNode = new PathRouterNode("/{id}", undefined)
 
         expect(pathRouterNode.matches("24a12cf7-8bc7-447c-9cb0-d97f5eb23fbb")).toBeTruthy();
     })
 
     it("should match if the path is a parameter path: ':id'", () => {
-        const pathRouterNode = new PathRouterNode("/:id", null)
+        const pathRouterNode = new PathRouterNode("/:id", undefined)
 
         expect(pathRouterNode.matches("24a12cf7-8bc7-447c-9cb0-d97f5eb23fbb")).toBeTruthy();
     })
     
     it("should return null if the split paths passed is less than 1", () => {
-        const pathRouterNode = new PathRouterNode("/allo", null)
+        const pathRouterNode = new PathRouterNode("/allo", undefined)
 
         expect(pathRouterNode.find([], HttpMethod.Get)).toBeNull();
     })
     
     it("should return null if the split paths[0] doesn't match", () => {
-        const pathRouterNode = new PathRouterNode("/allo", null)
+        const pathRouterNode = new PathRouterNode("/allo", undefined)
 
         expect(pathRouterNode.find(["/hello"], HttpMethod.Get)).toBeNull();
     })
@@ -89,29 +90,29 @@ describe("Path Router Node tests", () => {
     it("should retrieve the route parameters with the proper names and values", () => {
         const kittenSplitPaths = ["/", "/api", "/2.0", "/cats", "/137db2ad-e94f-4232-ba13-7910586fa43a", "/kittens", "/408ef3cf-f699-4179-a68a-2ea0071dc4fe"];
         const kittenNode = root.find(kittenSplitPaths, HttpMethod.Put);
-        const getKittenRouteParameters = (kittenNode.parent as PathRouterNode).getRouteParameter(kittenSplitPaths.reverse());
+        const getKittenRouteParameters = (kittenNode.parent as PathRouterNode).getRouteParameters(kittenSplitPaths.reverse());
 
         expect(getKittenRouteParameters.id).toBe("137db2ad-e94f-4232-ba13-7910586fa43a")
         expect(getKittenRouteParameters.kittenId).toBe("408ef3cf-f699-4179-a68a-2ea0071dc4fe")
 
         const puppySplitPaths = ["/", "/api", "/1.0", "/dogs", "/35d7f872-bc3e-4436-8c06-2d027878cefd", "/puppies", "/914db6ac-61b1-41a0-809b-f33758effdee"];
         const puppyNode = root.find(puppySplitPaths, HttpMethod.Get);
-        const getPuppyRouteParameters = (puppyNode.parent as PathRouterNode).getRouteParameter(puppySplitPaths.reverse());
+        const getPuppyRouteParameters = (puppyNode.parent as PathRouterNode).getRouteParameters(puppySplitPaths.reverse());
 
         expect(getPuppyRouteParameters.id).toBe("35d7f872-bc3e-4436-8c06-2d027878cefd")
         expect(getPuppyRouteParameters.puppyId).toBe("914db6ac-61b1-41a0-809b-f33758effdee")
     })
 
     it("should properly add and build the trees", () => {
-        const root = new PathRouterNode("/", null);
+        const root = new PathRouterNode("/", undefined);
 
-        root.add(["/", "/level1"], HttpMethod.Get);
-        root.add(["/", "/level1", "/a"], HttpMethod.Patch);
-        root.add(["/", "/level1", "/b"], HttpMethod.Put);
+        root.add(["/", "/level1"], HttpMethod.Get, new Route("controller", "key"));
+        root.add(["/", "/level1", "/a"], HttpMethod.Patch, new Route("controller", "key"));
+        root.add(["/", "/level1", "/b"], HttpMethod.Put, new Route("controller", "key"));
 
-        root.add(["/", "/level2"], HttpMethod.Get);
-        root.add(["/", "/level2", "/a"], HttpMethod.Post);
-        root.add(["/", "/level2", "/b"], HttpMethod.Delete);
+        root.add(["/", "/level2"], HttpMethod.Get, new Route("controller", "key"));
+        root.add(["/", "/level2", "/a"], HttpMethod.Post, new Route("controller", "key"));
+        root.add(["/", "/level2", "/b"], HttpMethod.Delete, new Route("controller", "key"));
 
         expect(root.find(["/", "/level1"], HttpMethod.Get)).toBeDefined()
 

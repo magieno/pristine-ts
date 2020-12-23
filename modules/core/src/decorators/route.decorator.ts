@@ -1,5 +1,5 @@
 import {HttpMethod} from "../enums/http-method.enum";
-import {MethodDecoratorRoute} from "../interfaces/method-decorator-route.interface";
+import {RouteMethodDecorator} from "../interfaces/route-method-decorator.interface";
 
 export const route = (httpMethod: HttpMethod | string, path: string) => {
     return (
@@ -19,9 +19,9 @@ export const route = (httpMethod: HttpMethod | string, path: string) => {
             target.constructor.prototype["__metadata__"]["methods"][propertyKey] = {}
         }
 
-        const route: MethodDecoratorRoute= {
+        const route: RouteMethodDecorator= {
             httpMethod,
-            propertyKey,
+            methodKeyname: propertyKey,
             path
         }
 

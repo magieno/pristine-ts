@@ -1,6 +1,6 @@
 import {RouteParameterDecoratorInterface} from "../interfaces/route-parameter-decorator.interface";
 
-export const routeParam = (name: string) => {
+export const routeParameter = (name: string) => {
     return (
         target: Object,
         propertyKey: string | symbol,
@@ -23,7 +23,7 @@ export const routeParam = (name: string) => {
         }
 
         const methodParameter: RouteParameterDecoratorInterface = {
-            type: "routeParam",
+            type: "routeParameter",
             routeParameterName: name,
         };
 

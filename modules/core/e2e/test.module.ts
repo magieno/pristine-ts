@@ -7,14 +7,12 @@ import {Voter2Model} from "./models/voter2.model";
 import {TestController} from "./controllers/test.controller";
 
 export const testModule: ModuleInterface = {
+    importServices: [TestController],
     importModules: [CoreModule],
     providerRegistrations: [
         {
             token: "voter",
             useToken: Voter1Model,
         }
-    ],
-    controllers: [
-        TestController,
     ]
 }

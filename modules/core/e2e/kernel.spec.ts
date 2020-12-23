@@ -3,21 +3,25 @@ import {ResolvedClassModel} from "./models/resolved-class.model";
 import {testModule} from "./test.module";
 import {PermissionManager} from "./managers/permission.manager";
 import {HttpMethod} from "../src/enums/http-method.enum";
-import {DependencyContainer, injectable} from "tsyringe";
+import {container, DependencyContainer, injectable} from "tsyringe";
 import {RequestInterceptorInterface} from "../src/interfaces/request-interceptor.interface";
-import {RequestInterface} from "../src/interfaces/request.interface";
 import {ModuleInterface} from "../src/interfaces/module.interface";
 import {ServiceDefinitionTagEnum} from "../src/enums/service-definition-tag.enum";
 import {RouterInterface} from "../src/interfaces/router.interface";
 import {Response} from "../src/network/response";
-import {RouteInformation} from "../src/network/route-information";
 import {Request} from "../src/network/request";
 import {ResponseInterceptorInterface} from "../src/interfaces/response-interceptor.interface";
 import {ErrorResponseInterceptorInterface} from "../src/interfaces/error-response-interceptor.interface";
 import {HttpError} from "../src/errors/http.error";
+import {Route} from "../src/models/route";
 
 
 describe("Kernel.ts", () => {
+    beforeEach(async () => {
+        // Very import to clear the instances in between executions.
+        container.clearInstances();
+    })
+
     it("should test the Kernel", async () => {
         const kernel = new Kernel();
         await kernel.init(testModule);
@@ -31,7 +35,7 @@ describe("Kernel.ts", () => {
         expect(resolvedClassModel.getRandomNumber()).toBeGreaterThan(0);
     })
 
-    it("should load the controllers", async() => {
+    it("should load the controllers", async () => {
         const kernel = new Kernel();
         await kernel.init(testModule);
 
@@ -62,6 +66,7 @@ describe("Kernel.ts", () => {
         }
 
         const module: ModuleInterface = {
+            importServices: [],
             providerRegistrations: [
                 {
                     token: ServiceDefinitionTagEnum.RequestInterceptor,
@@ -71,7 +76,7 @@ describe("Kernel.ts", () => {
         };
 
         const router: RouterInterface = {
-            register: (path: string, method: HttpMethod | string, route: RouteInformation) => {
+            register: (path: string, method: HttpMethod | string, route: Route) => {
             },
             execute: (request: Request, container: DependencyContainer): Promise<Response> => {
 
@@ -109,6 +114,7 @@ describe("Kernel.ts", () => {
         }
 
         const module: ModuleInterface = {
+            importServices: [],
             providerRegistrations: [
                 {
                     token: ServiceDefinitionTagEnum.ResponseInterceptor,
@@ -118,7 +124,7 @@ describe("Kernel.ts", () => {
         };
 
         const router: RouterInterface = {
-            register: (path: string, method: HttpMethod | string, route: RouteInformation) => {
+            register: (path: string, method: HttpMethod | string, route: Route) => {
             },
             execute: (request: Request, container: DependencyContainer): Promise<Response> => {
                 const response: Response = new Response();
@@ -146,7 +152,7 @@ describe("Kernel.ts", () => {
             interceptError(error: Error, request: Request, response?: Response): Promise<Response> {
                 const interceptedErrorResponse = new Response();
 
-                if(error instanceof HttpError) {
+                if (error instanceof HttpError) {
 
                     interceptedErrorResponse.status = error.httpStatus;
                     interceptedErrorResponse.body = {
@@ -161,6 +167,7 @@ describe("Kernel.ts", () => {
         }
 
         const module: ModuleInterface = {
+            importServices: [],
             providerRegistrations: [
                 {
                     token: ServiceDefinitionTagEnum.ErrorResponseInterceptor,
@@ -170,7 +177,7 @@ describe("Kernel.ts", () => {
         };
 
         const router: RouterInterface = {
-            register: (path: string, method: HttpMethod | string, route: RouteInformation) => {
+            register: (path: string, method: HttpMethod | string, route: Route) => {
             },
             execute: (request: Request, container: DependencyContainer): Promise<Response> => {
                 throw new HttpError(500, "Error Message")
@@ -196,7 +203,7 @@ describe("Kernel.ts", () => {
                 expect(response.body.message).toBeDefined();
                 expect(response.body.message).toBe("Error Message");
 
-                if(response.headers === undefined) {
+                if (response.headers === undefined) {
                     response.headers = {};
                 }
 
@@ -210,7 +217,7 @@ describe("Kernel.ts", () => {
             interceptError(error: Error, request: Request, response?: Response): Promise<Response> {
                 const interceptedErrorResponse = new Response();
 
-                if(error instanceof HttpError) {
+                if (error instanceof HttpError) {
 
                     interceptedErrorResponse.status = error.httpStatus;
                     interceptedErrorResponse.body = {
@@ -223,6 +230,7 @@ describe("Kernel.ts", () => {
         }
 
         const module: ModuleInterface = {
+            importServices: [],
             providerRegistrations: [
                 {
                     token: ServiceDefinitionTagEnum.ErrorResponseInterceptor,
@@ -236,7 +244,7 @@ describe("Kernel.ts", () => {
         };
 
         const router: RouterInterface = {
-            register: (path: string, method: HttpMethod | string, route: RouteInformation) => {
+            register: (path: string, method: HttpMethod | string, route: Route) => {
             },
             execute: (request: Request, container: DependencyContainer): Promise<Response> => {
                 throw new HttpError(500, "Error Message")

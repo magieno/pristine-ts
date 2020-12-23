@@ -6,19 +6,19 @@ export const body = () => {
         propertyKey: string | symbol,
         parameterIndex: number
     ) => {
-        if(target.constructor.prototype.hasOwnProperty("__metadata__") === false) {
+        if (target.constructor.prototype.hasOwnProperty("__metadata__") === false) {
             target.constructor.prototype["__metadata__"] = {}
         }
 
-        if(target.constructor.prototype["__metadata__"].hasOwnProperty("methods") === false) {
+        if (target.constructor.prototype["__metadata__"].hasOwnProperty("methods") === false) {
             target.constructor.prototype["__metadata__"]["methods"] = {}
         }
 
-        if(target.constructor.prototype["__metadata__"]["methods"].hasOwnProperty(propertyKey) === false) {
+        if (target.constructor.prototype["__metadata__"]["methods"].hasOwnProperty(propertyKey) === false) {
             target.constructor.prototype["__metadata__"]["methods"][propertyKey] = {}
         }
 
-        if(target.constructor.prototype["__metadata__"]["methods"][propertyKey].hasOwnProperty("arguments") === false) {
+        if (target.constructor.prototype["__metadata__"]["methods"][propertyKey].hasOwnProperty("arguments") === false) {
             target.constructor.prototype["__metadata__"]["methods"][propertyKey]["arguments"] = [];
         }
 

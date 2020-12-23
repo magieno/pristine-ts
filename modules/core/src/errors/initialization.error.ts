@@ -1,3 +1,6 @@
+/**
+ * This Error is thrown when there's an error that happens while the kernel or anything is being initialized.
+ */
 export class InitializationError extends Error {
     public previousError?: Error;
 

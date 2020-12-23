@@ -4,7 +4,7 @@ import {singleton} from "tsyringe";
 import {PermissionManager} from "../managers/permission.manager";
 import {HttpMethod} from "../../src/enums/http-method.enum";
 import {body} from "../../src/decorators/body.decorator";
-import {routeParam} from "../../src/decorators/route-param.decorator";
+import {routeParameter} from "../../src/decorators/route-parameter.decorator";
 
 @controller("/api/2.0")
 @singleton()
@@ -23,7 +23,7 @@ export class TestController {
     }
 
     @route(HttpMethod.Put, "/services/:id")
-    public update(@body() body: any, @routeParam("id") id: string) {
+    public update(@body() body: any, @routeParameter("id") id: string) {
         const a  = 0;
     }
 }

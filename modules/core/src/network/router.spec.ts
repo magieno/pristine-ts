@@ -1,15 +1,15 @@
 import "reflect-metadata";
-import {PathRouterNode} from "./path-router.node";
-import {pathRouterNode} from "../test-fixtures/path-router.node.test-fixture.spec";
+import {pathRouterNode} from "../test-fixtures/path-router.node.test-fixture";
 import {HttpMethod} from "../enums/http-method.enum";
-import {RouteInformation} from "./route-information";
 import {RouteParameterDecoratorInterface} from "../interfaces/route-parameter-decorator.interface";
-import {QueryParameterDecoratorInterface} from "../interfaces/query-parameter.decorator";
+import {QueryParameterDecoratorInterface} from "../interfaces/query-parameter-decorator.interface";
 import {QueryParametersDecoratorInterface} from "../interfaces/query-parameters-decorator.interface";
 import {BodyParameterDecoratorInterface} from "../interfaces/body-parameteter-decorator.interface";
 import {Router} from "./router";
 import {Request} from "./request";
-import {MethodRouterNode} from "./method-router.node";
+import {PathRouterNode} from "../nodes/path-router.node";
+import {MethodRouterNode} from "../nodes/method-router.node";
+import {Route} from "../models/route";
 
 describe("Router.spec", () => {
     let root: PathRouterNode;
@@ -26,7 +26,7 @@ describe("Router.spec", () => {
 
     beforeAll(() => {
         root = pathRouterNode();
-        const dog20PutMethodNode: MethodRouterNode<RouteInformation> = root.find(["/", "/api", "/1.0", "/dogs", "/caniche-royal"], HttpMethod.Put) as MethodRouterNode<RouteInformation>;
+        const dog20PutMethodNode: MethodRouterNode = root.find(["/", "/api", "/1.0", "/dogs", "/caniche-royal"], HttpMethod.Put) as MethodRouterNode;
 
         expect(dog20PutMethodNode).toBeDefined();
 
@@ -36,32 +36,32 @@ describe("Router.spec", () => {
             }
         };
 
-        const routeInformation = new RouteInformation("mockController", "route");
+        const route = new Route("mockController", "route");
 
         const routeIdParameter: RouteParameterDecoratorInterface = {
-            type: "routeParam",
+            type: "routeParameter",
             routeParameterName: "id"
         }
 
         const queryParameter: QueryParameterDecoratorInterface = {
-            type: "queryParam",
+            type: "queryParameter",
             queryParameterName: "query",
         }
 
         const sortQueryParameter: QueryParameterDecoratorInterface = {
-            type: "queryParam",
+            type: "queryParameter",
             queryParameterName: "sort",
         }
 
         const queryParameters: QueryParametersDecoratorInterface = {
-            type: "queryParams",
+            type: "queryParameters",
         }
 
         const bodyParameter: BodyParameterDecoratorInterface = {
             type: "body",
         }
 
-        routeInformation.methodArguments = [
+        route.methodArguments = [
             routeIdParameter,
             queryParameter,
             sortQueryParameter,
@@ -70,7 +70,7 @@ describe("Router.spec", () => {
         ];
 
         // @ts-ignore
-        dog20PutMethodNode["data"] = routeInformation;
+        dog20PutMethodNode["route"] = route;
 
         spyMethodController = jest.spyOn(mockController, "route");
 
@@ -87,13 +87,13 @@ describe("Router.spec", () => {
     })
 
     beforeEach(() => {
-        request = {
+        request = new Request({
             httpMethod: HttpMethod.Put,
             body: {
                 name: "name",
             },
             url: "",
-        }
+        });
     })
 
     it("PUT - https://ima-tech.ca/api/1.0/dogs/caniche-royal", () => {

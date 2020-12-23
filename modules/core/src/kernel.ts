@@ -8,8 +8,7 @@ import {Response} from "./network/response";
 import {Request} from "./network/request";
 import {Router} from "./network/router";
 import {controllerRegistry} from "./decorators/controller.decorator";
-import {MethodDecoratorRoute} from "./interfaces/method-decorator-route.interface";
-import {RouteInformation} from "./network/route-information";
+import {RouteMethodDecorator} from "./interfaces/route-method-decorator.interface";
 import {ServiceDefinitionTagEnum} from "./enums/service-definition-tag.enum";
 import {RuntimeError} from "./errors/runtime.error";
 import {RequestInterceptorInterface} from "./interfaces/request-interceptor.interface";
@@ -18,11 +17,22 @@ import {ErrorResponseInterceptorInterface} from "./interfaces/error-response-int
 import {HttpError} from "./errors/http.error";
 import {RequestInterface} from "./interfaces/request.interface";
 import {RouterInterface} from "./interfaces/router.interface";
+import {Route} from "./models/route";
 const util = require('util');
 
+/**
+ * This is the central class that manages the lifecyle of this library.
+ */
 export class Kernel {
-    public container: DependencyContainer = container;
+    /**
+     * Contains a reference to the root Dependency Injection Container.
+     */
+    public container: DependencyContainer = container.createChildContainer();
 
+    /**
+     * Contains a reference to the Router. It is undefined until this.setupRouter() is called.
+     * @private
+     */
     private router?: RouterInterface;
 
     public constructor() {}
@@ -77,70 +87,6 @@ export class Kernel {
         }
     }
 
-    /**
-     * This method loops through the all the classes decorated with @controller, loops through all the methods decorated
-     * with @route and builds the dependency tree of all the routes.
-     *
-     * @private
-     */
-    private setupRouter() {
-        this.router = this.container.resolve(Router);
-
-        // Init the controllers
-        controllerRegistry.forEach(controller => {
-            if(this.router === undefined) {
-                throw new InitializationError("The Router is undefined");
-            }
-
-            if(controller.hasOwnProperty("__metadata__") === false) {
-                return;
-            }
-
-            let basePath: string = controller.__metadata__?.controller?.basePath;
-
-            if(basePath.endsWith("/")) {
-                basePath = basePath.slice(0, basePath.length-1);
-            }
-
-            for (const methodPropertyKey in controller.__metadata__?.methods) {
-                if(controller.__metadata__?.methods?.hasOwnProperty(methodPropertyKey) === false) {
-                    continue;
-                }
-
-                const method = controller.__metadata__?.methods[methodPropertyKey];
-
-                if(method.hasOwnProperty("route") === false) {
-                    continue;
-                }
-
-                // Retrieve the "MethodDecoratorRoute" object assigned by the @route decorator at .route
-                const route: MethodDecoratorRoute = method.route;
-
-                // Build the RouteInformation object that will be used the the router to dispatch a request to
-                // the appropriate controller method
-                const routeInformation: RouteInformation = new RouteInformation(controller.constructor, route.propertyKey);
-                routeInformation.methodArguments = method.arguments ?? [];
-
-                // Build the proper path
-                let path = route.path;
-
-                // Clean the path by removing the first and trailing slashes.
-                if(path.startsWith("/")) {
-                    path = path.slice(1, path.length);
-                }
-
-                if(path.endsWith("/")) {
-                    path = path.slice(0, path.length-1);
-                }
-
-                // Build the proper path
-                const routePath = basePath + "/" + path;
-
-                // Register the route
-                this.router.register(routePath, route.httpMethod, routeInformation);
-            }
-        })
-    }
 
     /**
      *
@@ -156,6 +102,7 @@ export class Kernel {
     }
 
     /**
+     * This method executes all the RequestInterceptors and returns the request updated by the interceptors.
      *
      * @param request
      * @param container
@@ -190,6 +137,7 @@ export class Kernel {
     }
 
     /**
+     * This method executes all the response interceptors and returns the response updated by the interceptors.
      *
      * @param response
      * @param request
@@ -225,6 +173,7 @@ export class Kernel {
     }
 
     /**
+     * This method executes all the error response interceptors and returns the response updated by the interceptors.
      *
      * @param error
      * @param request
@@ -269,6 +218,8 @@ export class Kernel {
     }
 
     /**
+     * This method receives a requestInterface, calls the router to execute the request and returns the response. This method
+     * calls all the interceptors. This should be the only point with the outside world when dealing with requests.
      *
      * @param requestInterface
      */
@@ -320,4 +271,68 @@ export class Kernel {
         })
     }
 
+    /**
+     * This method loops through the all the classes decorated with @controller, loops through all the methods decorated
+     * with @route and builds the dependency tree of all the routes.
+     *
+     * @private
+     */
+    private setupRouter() {
+        this.router = this.container.resolve(Router);
+
+        // Init the controllers
+        controllerRegistry.forEach(controller => {
+            if(this.router === undefined) {
+                throw new InitializationError("The Router is undefined");
+            }
+
+            if(controller.hasOwnProperty("__metadata__") === false) {
+                return;
+            }
+
+            let basePath: string = controller.__metadata__?.controller?.basePath;
+
+            if(basePath.endsWith("/")) {
+                basePath = basePath.slice(0, basePath.length-1);
+            }
+
+            for (const methodPropertyKey in controller.__metadata__?.methods) {
+                if(controller.__metadata__?.methods?.hasOwnProperty(methodPropertyKey) === false) {
+                    continue;
+                }
+
+                const method = controller.__metadata__?.methods[methodPropertyKey];
+
+                if(method.hasOwnProperty("route") === false) {
+                    continue;
+                }
+
+                // Retrieve the "RouteMethodDecorator" object assigned by the @route decorator at .route
+                const routeMethodDecorator: RouteMethodDecorator = method.route;
+
+                // Build the Route object that will be used the the router to dispatch a request to
+                // the appropriate controller method
+                const route = new Route(controller.constructor, routeMethodDecorator.methodKeyname);
+                route.methodArguments = method.arguments ?? [];
+
+                // Build the proper path
+                let path = routeMethodDecorator.path;
+
+                // Clean the path by removing the first and trailing slashes.
+                if(path.startsWith("/")) {
+                    path = path.slice(1, path.length);
+                }
+
+                if(path.endsWith("/")) {
+                    path = path.slice(0, path.length-1);
+                }
+
+                // Build the proper path
+                const routePath = basePath + "/" + path;
+
+                // Register the route
+                this.router.register(routePath, routeMethodDecorator.httpMethod, route);
+            }
+        })
+    }
 }

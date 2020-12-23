@@ -1,7 +1,6 @@
-import {BodyParameterDecoratorInterface} from "../interfaces/body-parameteter-decorator.interface";
-import {QueryParameterDecoratorInterface} from "../interfaces/query-parameter.decorator";
+import {QueryParametersDecoratorInterface} from "../interfaces/query-parameters-decorator.interface";
 
-export const queryParam = (name: string) => {
+export const queryParameters = () => {
     return (
         target: Object,
         propertyKey: string | symbol,
@@ -23,9 +22,8 @@ export const queryParam = (name: string) => {
             target.constructor.prototype["__metadata__"]["methods"][propertyKey]["arguments"] = [];
         }
 
-        const methodParameter: QueryParameterDecoratorInterface = {
-            type: "queryParam",
-            queryParameterName: name,
+        const methodParameter: QueryParametersDecoratorInterface = {
+            type: "queryParameters",
         };
 
         target.constructor.prototype["__metadata__"]["methods"][propertyKey]["arguments"][parameterIndex] = methodParameter;

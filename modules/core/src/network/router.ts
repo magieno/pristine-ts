@@ -1,16 +1,15 @@
 import {DependencyContainer, singleton} from "tsyringe";
-import {RouteInformation} from "./route-information";
-import {RouterNode} from "./router.node";
-import {PathRouterNode} from "./path-router.node";
 import {HttpMethod} from "../enums/http-method.enum";
-import {ControllerInstantiationOptions} from "../options/controller.instantiation-options";
 import {Request} from "./request";
 import {Response} from "./response";
 import {UrlUtil} from "../utils/url.util";
 import {NotFoundHttpError} from "../errors/not-found.http-error";
-import {MethodRouterNode} from "./method-router.node";
 import {ParameterDecoratorResolver} from "../resolvers/parameter-decorator.resolver";
 import {RouterInterface} from "../interfaces/router.interface";
+import {RouterNode} from "../nodes/router.node";
+import {PathRouterNode} from "../nodes/path-router.node";
+import {Route} from "../models/route";
+import {MethodRouterNode} from "../nodes/method-router.node";
 const Url = require('url-parse');
 
 @singleton()
@@ -27,10 +26,10 @@ export class Router implements RouterInterface {
      * @param method
      * @param route
      */
-    public register(path: string, method: HttpMethod | string, route: RouteInformation) {
+    public register(path: string, method: HttpMethod | string, route: Route) {
         const splitPaths = UrlUtil.splitPath(path);
 
-        this.root.add<RouteInformation>(splitPaths, method, route);
+        this.root.add(splitPaths, method, route);
     }
 
     /**
@@ -50,7 +49,7 @@ export class Router implements RouterInterface {
             const splitPath = UrlUtil.splitPath(url.pathname);
 
             // Retrieve the node to have information about the controller
-            const methodNode: MethodRouterNode<RouteInformation> = this.root.find(splitPath, request.httpMethod) as MethodRouterNode<RouteInformation>;
+            const methodNode: MethodRouterNode = this.root.find(splitPath, request.httpMethod) as MethodRouterNode;
 
             // If node doesn't exist, throw a 404 error
             if(methodNode === null) {
@@ -58,23 +57,20 @@ export class Router implements RouterInterface {
             }
 
             // Get the route parameters
-            const routeParameters = (methodNode.parent as PathRouterNode).getRouteParameter(splitPath.reverse());
+            const routeParameters = (methodNode.parent as PathRouterNode).getRouteParameters(splitPath.reverse());
 
             // Instantiate the controller
-            const controller: any = container.resolve(methodNode.data.controllerInstantiationToken);
-
-            // Execute the httpMethod of the controller
-            const routeInformation = methodNode.data as RouteInformation;
+            const controller: any = container.resolve(methodNode.route.controllerInstantiationToken);
 
             const resolvedMethodArguments: any[] = [];
 
-            routeInformation.methodArguments.forEach(methodArgument => {
+            methodNode.route.methodArguments.forEach(methodArgument => {
                 resolvedMethodArguments.push(ParameterDecoratorResolver.resolve(methodArgument, request, routeParameters));
             });
 
             // Call the controller with the resolved Method arguments
             try {
-                const controllerResponse = controller[routeInformation.methodPropertyKey].apply(controller, resolvedMethodArguments);
+                const controllerResponse = controller[methodNode.route.methodPropertyKey].apply(controller, resolvedMethodArguments);
 
                 // This resolves the promise if it's a promise or promisifies the value
                 // https://stackoverflow.com/a/27760489/684101
