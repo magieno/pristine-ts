@@ -1,5 +1,6 @@
 import {Response as ExpressResponse} from "express";
 import {injectable} from "tsyringe";
+import {Response} from "@pristine-ts/core";
 
 @injectable()
 export class ResponseMapper {
