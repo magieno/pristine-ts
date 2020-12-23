@@ -55,5 +55,6 @@
     "collectCoverageFrom": [
       "src/*.{js,ts}"
     ]
-  }
+  },
+  "gitHead": "7189326631e92cc7ebead035301d343370680b55"
 }
