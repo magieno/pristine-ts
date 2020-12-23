@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/express",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "description": "",
   "main": "dist/lib/express.module.js",
   "types": "dist/types/express.module.d.ts",
@@ -15,7 +15,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@pristine-ts/core": "^0.0.17",
+    "@pristine-ts/core": "^0.0.18",
     "@types/express": "^4.17.9",
     "express": "^4.17.1",
     "reflect-metadata": "^0.1.13",
