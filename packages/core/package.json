@@ -2,7 +2,8 @@
   "name": "@pristine-ts/core",
   "version": "0.0.19",
   "description": "",
-  "main": "dist/lib/core.module.js",
+  "module": "dist/lib/esm/core.module.js",
+  "main": "dist/lib/cjs/core.module.js",
   "types": "dist/types/core.module.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
