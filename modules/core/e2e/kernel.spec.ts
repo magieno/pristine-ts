@@ -3,7 +3,18 @@ import {ResolvedClassModel} from "./models/resolved-class.model";
 import {testModule} from "./test.module";
 import {PermissionManager} from "./managers/permission.manager";
 import {HttpMethod} from "../src/enums/http-method.enum";
+import {DependencyContainer, injectable} from "tsyringe";
+import {RequestInterceptorInterface} from "../src/interfaces/request-interceptor.interface";
+import {RequestInterface} from "../src/interfaces/request.interface";
+import {ModuleInterface} from "../src/interfaces/module.interface";
+import {ServiceDefinitionTagEnum} from "../src/enums/service-definition-tag.enum";
+import {RouterInterface} from "../src/interfaces/router.interface";
+import {Response} from "../src/network/response";
+import {RouteInformation} from "../src/network/route-information";
 import {Request} from "../src/network/request";
+import {ResponseInterceptorInterface} from "../src/interfaces/response-interceptor.interface";
+import {ErrorResponseInterceptorInterface} from "../src/interfaces/error-response-interceptor.interface";
+import {HttpError} from "../src/errors/http.error";
 
 
 describe("Kernel.ts", () => {
@@ -38,5 +49,209 @@ describe("Kernel.ts", () => {
         });
 
         const a = 0;
+    })
+
+    it("should call the request interceptors and properly pass the intercepted request to the router", async (done) => {
+        @injectable()
+        class RequestInterceptor implements RequestInterceptorInterface {
+            interceptRequest(request: Request): Promise<Request> {
+                request.setHeader("test1", "test1");
+
+                return Promise.resolve(request);
+            }
+        }
+
+        const module: ModuleInterface = {
+            providerRegistrations: [
+                {
+                    token: ServiceDefinitionTagEnum.RequestInterceptor,
+                    useToken: RequestInterceptor,
+                }
+            ]
+        };
+
+        const router: RouterInterface = {
+            register: (path: string, method: HttpMethod | string, route: RouteInformation) => {
+            },
+            execute: (request: Request, container: DependencyContainer): Promise<Response> => {
+
+                expect(request.hasHeader("test1")).toBeTruthy()
+                expect(request.getHeader("test1")).toBe("test1");
+
+                done();
+
+                return Promise.resolve({
+                    status: 200,
+                    request,
+                })
+            }
+        }
+
+        const kernel = new Kernel();
+        await kernel.init(module);
+        // Force set the router
+        kernel["router"] = router;
+        await kernel.handleRequest({url: "", httpMethod: HttpMethod.Get});
+    })
+
+    it("should call the response interceptors and properly return the intercepted response", async (done) => {
+        @injectable()
+        class ResponseInterceptor implements ResponseInterceptorInterface {
+            interceptResponse(response: Response, request: Request): Promise<Response> {
+                response.status = 204;
+                response.body = {
+                    "test1": "test1",
+                }
+
+                done();
+                return Promise.resolve(response);
+            }
+        }
+
+        const module: ModuleInterface = {
+            providerRegistrations: [
+                {
+                    token: ServiceDefinitionTagEnum.ResponseInterceptor,
+                    useToken: ResponseInterceptor,
+                }
+            ]
+        };
+
+        const router: RouterInterface = {
+            register: (path: string, method: HttpMethod | string, route: RouteInformation) => {
+            },
+            execute: (request: Request, container: DependencyContainer): Promise<Response> => {
+                const response: Response = new Response();
+                response.status = 200;
+                response.body = {};
+
+                return Promise.resolve(response);
+            }
+        }
+
+        const kernel = new Kernel();
+        await kernel.init(module);
+        // Force set the router
+        kernel["router"] = router;
+        const response = await kernel.handleRequest({url: "", httpMethod: HttpMethod.Get});
+
+        expect(response.status).toBe(204);
+        expect(response.body.test1).toBeDefined();
+        expect(response.body.test1).toBe("test1");
+    })
+
+    it("should call the error response interceptors and properly return the intercepted error response", async (done) => {
+        @injectable()
+        class ErrorResponseInterceptor implements ErrorResponseInterceptorInterface {
+            interceptError(error: Error, request: Request, response?: Response): Promise<Response> {
+                const interceptedErrorResponse = new Response();
+
+                if(error instanceof HttpError) {
+
+                    interceptedErrorResponse.status = error.httpStatus;
+                    interceptedErrorResponse.body = {
+                        "message": error.message,
+                    }
+
+                    done();
+                }
+
+                return Promise.resolve(interceptedErrorResponse);
+            }
+        }
+
+        const module: ModuleInterface = {
+            providerRegistrations: [
+                {
+                    token: ServiceDefinitionTagEnum.ErrorResponseInterceptor,
+                    useToken: ErrorResponseInterceptor,
+                }
+            ]
+        };
+
+        const router: RouterInterface = {
+            register: (path: string, method: HttpMethod | string, route: RouteInformation) => {
+            },
+            execute: (request: Request, container: DependencyContainer): Promise<Response> => {
+                throw new HttpError(500, "Error Message")
+            }
+        }
+
+        const kernel = new Kernel();
+        await kernel.init(module);
+        // Force set the router
+        kernel["router"] = router;
+        const response = await kernel.handleRequest({url: "", httpMethod: HttpMethod.Get});
+
+        expect(response.status).toBe(500);
+        expect(response.body.message).toBeDefined();
+        expect(response.body.message).toBe("Error Message");
+    })
+
+    it("should call the response interceptors after the error response interceptors and properly return the intercepted response", async (done) => {
+        @injectable()
+        class ResponseInterceptor implements ResponseInterceptorInterface {
+            interceptResponse(response: Response, request: Request): Promise<Response> {
+                expect(response.status).toBe(500);
+                expect(response.body.message).toBeDefined();
+                expect(response.body.message).toBe("Error Message");
+
+                if(response.headers === undefined) {
+                    response.headers = {};
+                }
+
+                response.headers["test1"] = "test1";
+                return Promise.resolve(response);
+            }
+        }
+
+        @injectable()
+        class ErrorResponseInterceptor implements ErrorResponseInterceptorInterface {
+            interceptError(error: Error, request: Request, response?: Response): Promise<Response> {
+                const interceptedErrorResponse = new Response();
+
+                if(error instanceof HttpError) {
+
+                    interceptedErrorResponse.status = error.httpStatus;
+                    interceptedErrorResponse.body = {
+                        "message": error.message,
+                    }
+                }
+
+                return Promise.resolve(interceptedErrorResponse);
+            }
+        }
+
+        const module: ModuleInterface = {
+            providerRegistrations: [
+                {
+                    token: ServiceDefinitionTagEnum.ErrorResponseInterceptor,
+                    useToken: ErrorResponseInterceptor,
+                },
+                {
+                    token: ServiceDefinitionTagEnum.ResponseInterceptor,
+                    useToken: ResponseInterceptor,
+                }
+            ]
+        };
+
+        const router: RouterInterface = {
+            register: (path: string, method: HttpMethod | string, route: RouteInformation) => {
+            },
+            execute: (request: Request, container: DependencyContainer): Promise<Response> => {
+                throw new HttpError(500, "Error Message")
+            }
+        }
+
+        const kernel = new Kernel();
+        await kernel.init(module);
+        // Force set the router
+        kernel["router"] = router;
+        const response = await kernel.handleRequest({url: "", httpMethod: HttpMethod.Get});
+
+        // @ts-ignore
+        expect(response.headers.test1).toBe("test1");
+
+        done();
     })
 })

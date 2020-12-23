@@ -3,5 +3,5 @@ export interface Event {
 
     payload?: any;
 
-    identity?: ;
+    // identity?: ;
 }

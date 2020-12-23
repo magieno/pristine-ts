@@ -2,7 +2,7 @@ export class UrlUtil {
     public static splitPath(path: string): string[] {
         let buffer = "";
 
-        let paths = [];
+        let paths: string[] = [];
 
         for (let i = 0; i < path.length; i++) {
             if(path[i] === "/") {

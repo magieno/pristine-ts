@@ -3,7 +3,7 @@ import {HttpMethod} from "../enums/http-method.enum";
 import {PathRouterNode} from "./path-router.node";
 
 export class MethodRouterNode<T> extends RouterNode {
-    public constructor(parent: PathRouterNode, public readonly method: HttpMethod | string, public readonly data?: T) {
+    public constructor(parent: PathRouterNode, public readonly method: HttpMethod | string, public readonly data: T) {
         super();
 
         this.parent = parent;

@@ -10,11 +10,12 @@ import {UrlUtil} from "../utils/url.util";
 import {NotFoundHttpError} from "../errors/not-found.http-error";
 import {MethodRouterNode} from "./method-router.node";
 import {ParameterDecoratorResolver} from "../resolvers/parameter-decorator.resolver";
+import {RouterInterface} from "../interfaces/router.interface";
 const Url = require('url-parse');
 
 @singleton()
-export class Router {
-    private root: RouterNode = new PathRouterNode("/", null);;
+export class Router implements RouterInterface {
+    private root: RouterNode = new PathRouterNode("/");
 
     public constructor() {
     }
@@ -65,7 +66,7 @@ export class Router {
             // Execute the httpMethod of the controller
             const routeInformation = methodNode.data as RouteInformation;
 
-            const resolvedMethodArguments = [];
+            const resolvedMethodArguments: any[] = [];
 
             routeInformation.methodArguments.forEach(methodArgument => {
                 resolvedMethodArguments.push(ParameterDecoratorResolver.resolve(methodArgument, request, routeParameters));

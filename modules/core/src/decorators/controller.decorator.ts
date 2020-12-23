@@ -1,4 +1,4 @@
-export const controllerRegistry = [];
+export const controllerRegistry: any[] = [];
 
 export const controller = (basePath: string) => {
     return (constructor: Function) => {
