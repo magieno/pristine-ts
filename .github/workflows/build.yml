@@ -18,5 +18,5 @@
           with:
             node-version: ${{ matrix.node-version }}
         - run: npm ci
-        - run: lerna bootstrap
-        - run: lerna run npm test
+        - run: npm run bootstrap
+        - run: npm run test
