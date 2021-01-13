@@ -150,7 +150,7 @@ describe("Kernel.ts", () => {
 
                 if (error instanceof HttpError) {
 
-                    interceptedErrorResponse.status = error.httpStatus;
+                    interceptedErrorResponse.status = (error as HttpError).httpStatus;
                     interceptedErrorResponse.body = {
                         "message": error.message,
                     }
