@@ -129,9 +129,9 @@ describe("Configuration Parser", () => {
         const injectionTokens = await configurationParser.parse(ConfigurationDefinitionType, configurationDefinition, "TestModule");
 
         expect(injectionTokens.length).toBe(2);
-        expect(injectionTokens[0].token).toBe("%TestModule.testConfigurationParameter%");
-        expect(injectionTokens[0].useValue).toBe(-1200);
-        expect(injectionTokens[1].token).toBe("%TestModule.testConfigurationParameter2%");
-        expect(injectionTokens[1].useValue).toBe("notDefaultValue");
+        expect(injectionTokens[0].parameterName).toBe("%TestModule.testConfigurationParameter%");
+        expect(injectionTokens[0].value).toBe(-1200);
+        expect(injectionTokens[1].parameterName).toBe("%TestModule.testConfigurationParameter2%");
+        expect(injectionTokens[1].value).toBe("notDefaultValue");
     })
 });
