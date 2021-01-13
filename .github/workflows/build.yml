@@ -1,21 +1,30 @@
-  name: build
-  on: push
-  jobs:
-    build:
-      name: Build
-      # Set the type of machine to run on
-      runs-on: ubuntu-latest
+name: build
+on: push
+jobs:
+  build:
+    name: Build
+    # Set the type of machine to run on
+    runs-on: ubuntu-latest
 
-      strategy:
-        matrix:
-          node-version: [10.x, 12.x, 14.x, 15.x]
-          # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+    strategy:
+      matrix:
+        node-version: [ 10.x, 12.x, 14.x, 15.x ]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
-      steps:
-        - uses: actions/checkout@v2
-        - name: Use Node.js ${{ matrix.node-version }}
-          uses: actions/setup-node@v1
-          with:
-            node-version: ${{ matrix.node-version }}
-        - run: npm ci
-        - run: npm run bootstrap && npm run test
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm ci
+      - run: npm run bootstrap
+      - name: Archive using zip or tar
+        uses: NSCoder/archive-action@v1.0.0
+        run: zip -r artifact-${{ matrix.node-version }}.zip *
+      - name: Upload output file
+        uses: actions/upload-artifact@v1
+        with:
+          name: artifact
+          path: artifact-${{ matrix.node-version }}.zip
+      - run: npm run test
