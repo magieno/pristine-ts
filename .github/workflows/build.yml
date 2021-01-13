@@ -19,12 +19,13 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - run: npm ci
       - run: npm run bootstrap
-      - name: Archive using zip or tar
-        uses: NSCoder/archive-action@v1.0.0
-      - run: zip -r artifact-${{ matrix.node-version }}.zip *
-      - name: Upload output file
-        uses: actions/upload-artifact@v1
-        with:
-          name: artifact
-          path: artifact-${{ matrix.node-version }}.zip
+      - run: npm run build
+#      - name: Archive using zip or tar
+#        uses: NSCoder/archive-action@v1.0.0
+#      - run: zip -r artifact-${{ matrix.node-version }}.zip *
+#      - name: Upload output file
+#        uses: actions/upload-artifact@v1
+#        with:
+#          name: artifact
+#          path: artifact-${{ matrix.node-version }}.zip
       - run: npm run test

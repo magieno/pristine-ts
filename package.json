@@ -4,8 +4,9 @@
   "description": "The Pristine TS Framework.",
   "main": "index.js",
   "scripts": {
-    "test": "lerna run test",
-    "bootstrap": "lerna bootstrap"
+    "bootstrap": "lerna bootstrap",
+    "build": "lerna run build",
+    "test": "lerna run test"
   },
   "repository": {
     "type": "git",
