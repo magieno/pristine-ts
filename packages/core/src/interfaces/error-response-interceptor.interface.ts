@@ -1,5 +1,6 @@
-import {Request} from "../../../networking/src/models/request";
-import {Response} from "../../../networking/src/models/response";
+import {Request} from "@pristine-ts/networking";
+import {Response} from "@pristine-ts/networking";
+
 
 /**
  * The ErrorResponse Interceptor Interface defines the methods that an ErrorResponse Interceptor must implement. This

@@ -200,7 +200,7 @@ export class Kernel {
         interceptedErrorResponse.request = request;
 
         if(error instanceof HttpError) {
-            interceptedErrorResponse.status = error.httpStatus
+            interceptedErrorResponse.status = (error as HttpError).httpStatus
         }
         else {
             interceptedErrorResponse.status = 500;

@@ -2,19 +2,13 @@ import {Kernel} from "../src/kernel";
 import {ResolvedClassModel} from "./models/resolved-class.model";
 import {testModule} from "./test.module";
 import {PermissionManager} from "./managers/permission.manager";
-import {HttpMethod} from "../../networking/src/enums/http-method.enum";
 import {container, DependencyContainer, inject, injectable} from "tsyringe";
 import {RequestInterceptorInterface} from "../src/interfaces/request-interceptor.interface";
 import {ModuleInterface} from "../src/interfaces/module.interface";
 import {ServiceDefinitionTagEnum} from "../src/enums/service-definition-tag.enum";
-import {RouterInterface} from "../../networking/src/interfaces/router.interface";
-import {Response} from "../../networking/src/models/response";
-import {Request} from "../../networking/src/models/request";
 import {ResponseInterceptorInterface} from "../src/interfaces/response-interceptor.interface";
 import {ErrorResponseInterceptorInterface} from "../src/interfaces/error-response-interceptor.interface";
-import {HttpError} from "../../networking/src/errors/http.error";
-import {Route} from "../../networking/src/models/route";
-
+import {HttpMethod, Request, Response, Route, RouterInterface, HttpError} from "@pristine-ts/networking";
 
 describe("Kernel.ts", () => {
     beforeEach(async () => {
