@@ -8,6 +8,7 @@ export * from "./query-parameters-decorator.interface";
 export * from "./request.interface";
 export * from "./request-interceptor.interface";
 export * from "./response-interceptor.interface";
+export * from "./resolver.interface";
 export * from "./route-method-decorator.interface";
 export * from "./route-parameter-decorator.interface";
 export * from "./router.interface";

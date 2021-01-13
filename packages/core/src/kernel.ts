@@ -18,6 +18,8 @@ import {HttpError} from "./errors/http.error";
 import {RequestInterface} from "./interfaces/request.interface";
 import {RouterInterface} from "./interfaces/router.interface";
 import {Route} from "./models/route";
+import {ModuleConfiguration} from "./configurations/module.configuration";
+import {ConfigurationParser} from "./parsers/configuration.parser";
 const util = require('util');
 
 /**
@@ -37,8 +39,8 @@ export class Kernel {
 
     public constructor() {}
 
-    public async init(module: ModuleInterface) {
-        await this.initModule(module);
+    public async init(module: ModuleInterface, moduleConfigurations: ModuleConfiguration<any>[] = []) {
+        await this.initModule(module, moduleConfigurations);
 
         // Setup the router
         this.setupRouter();
@@ -51,13 +53,14 @@ export class Kernel {
      * This method also registers all the service definitions in the container.
      *
      * @param module
+     * @param moduleConfigurations
      * @private
      */
-    private async initModule(module: ModuleInterface) {
+    private async initModule(module: ModuleInterface, moduleConfigurations: ModuleConfiguration<any>[] = []) {
         if(module.importModules) {
             // Start by recursively importing all the packages
             for (let importedModule of module.importModules) {
-                await this.initModule(importedModule)
+                await this.initModule(importedModule, moduleConfigurations);
             }
         }
 
@@ -85,6 +88,26 @@ export class Kernel {
                 }
             })
         }
+
+        // Validate the configuration with this module. If the module doesn't specify a configuration definition, then return.
+        const configurationForCurrentModule = moduleConfigurations.find(moduleConfiguration => moduleConfiguration.moduleKeyname === module.keyname);
+
+        if(module.configurationDefinition === undefined) {
+            if(configurationForCurrentModule !== undefined) {
+                throw new InitializationError("You passed a configuration for module: '" + module.keyname + "', but it doesn't expose a configuration.")
+            }
+            return;
+        }
+
+        const configurationParser = this.container.resolve(ConfigurationParser);
+
+        const configurationParameterInjectionTokens = await configurationParser.parse(module.configurationDefinition, configurationForCurrentModule?.configuration ?? {}, module.keyname)
+
+        configurationParameterInjectionTokens.forEach(injectionToken => {
+           this.container.register(injectionToken.token, {
+               useValue: injectionToken.useValue,
+           });
+        });
     }
 
 

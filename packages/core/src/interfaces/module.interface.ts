@@ -6,6 +6,11 @@ import {ProviderRegistration} from "../types/provider-registration.type";
  */
 export interface ModuleInterface {
     /**
+     * This is a unique keyname that uniquely identifies the module.
+     */
+    keyname: string;
+
+    /**
      * TypeScript needs to have a reference to the classes in order to use them. Therefore, we provide this array
      * where you can list all your services (managers, repositories, controllers, etc..) so that they are accessible.
      */
@@ -22,4 +27,10 @@ export interface ModuleInterface {
      * to instantiate a specific class.
      */
     providerRegistrations?: ProviderRegistration[];
+
+    /**
+     * This property defines the configuration definition that allows the kernel to know if the provided configuration is sufficient
+     * for the module.
+     */
+    configurationDefinition?: { new(): object };
 }

@@ -21,7 +21,7 @@ function bootstrap () {
         await kernel.init({
             importModules: [ExpressModule],
             importServices: [DogsController],
-        })
+        });
 
         console.log(`Example app listening at http://localhost:${port}`)
     })

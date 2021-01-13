@@ -3,7 +3,7 @@ import {ResolvedClassModel} from "./models/resolved-class.model";
 import {testModule} from "./test.module";
 import {PermissionManager} from "./managers/permission.manager";
 import {HttpMethod} from "../src/enums/http-method.enum";
-import {container, DependencyContainer, injectable} from "tsyringe";
+import {container, DependencyContainer, inject, injectable} from "tsyringe";
 import {RequestInterceptorInterface} from "../src/interfaces/request-interceptor.interface";
 import {ModuleInterface} from "../src/interfaces/module.interface";
 import {ServiceDefinitionTagEnum} from "../src/enums/service-definition-tag.enum";
@@ -66,6 +66,7 @@ describe("Kernel.ts", () => {
         }
 
         const module: ModuleInterface = {
+            keyname: "test",
             importServices: [],
             providerRegistrations: [
                 {
@@ -114,6 +115,7 @@ describe("Kernel.ts", () => {
         }
 
         const module: ModuleInterface = {
+            keyname: "test",
             importServices: [],
             providerRegistrations: [
                 {
@@ -167,6 +169,7 @@ describe("Kernel.ts", () => {
         }
 
         const module: ModuleInterface = {
+            keyname: "test",
             importServices: [],
             providerRegistrations: [
                 {
@@ -230,6 +233,7 @@ describe("Kernel.ts", () => {
         }
 
         const module: ModuleInterface = {
+            keyname: "test",
             importServices: [],
             providerRegistrations: [
                 {
@@ -261,5 +265,74 @@ describe("Kernel.ts", () => {
         expect(response.headers.test1).toBe("test1");
 
         done();
+    })
+
+    it("should register all the parameters in the container", async () => {
+        interface ConfigurationDefinitionInterface {
+            test1Parameter: string;
+            test2Parameter?: string;
+        }
+
+        class ConfigurationDefinition implements ConfigurationDefinitionInterface{
+            test1Parameter: string = "test1";
+            test2Parameter: string = "test2";
+        }
+
+        const module: ModuleInterface = {
+            keyname: "test",
+            importServices: [],
+            providerRegistrations: [
+            ],
+            configurationDefinition: ConfigurationDefinition
+        };
+
+        const kernel = new Kernel();
+        await kernel.init(module, [{
+            moduleKeyname: "test",
+            configuration: {
+                test1Parameter: "NotDefault",
+            },
+        }]);
+
+        expect(kernel.container.resolve("%test.test1Parameter%")).toBe("NotDefault")
+        expect(kernel.container.resolve("%test.test2Parameter%")).toBe("test2")
+    })
+
+    it("should inject a configuration parameter in a class if you use the right token", async () => {
+        interface ConfigurationDefinitionInterface {
+            test1Parameter: string;
+            test2Parameter?: string;
+        }
+
+        class ConfigurationDefinition implements ConfigurationDefinitionInterface{
+            test1Parameter: string = "test1";
+            test2Parameter: string = "test2";
+        }
+
+        const module: ModuleInterface = {
+            keyname: "test",
+            importServices: [],
+            providerRegistrations: [
+            ],
+            configurationDefinition: ConfigurationDefinition
+        };
+
+        @injectable()
+        class TestConfigurationParameterInjectedInConstructor {
+            public constructor(@inject("%test.test1Parameter%") public readonly test1Parameter: string, @inject("%test.test2Parameter%") public readonly test2Parameter: string,) {
+            }
+        }
+
+        const kernel = new Kernel();
+        await kernel.init(module, [{
+            moduleKeyname: "test",
+            configuration: {
+                test1Parameter: "NotDefault",
+            },
+        }]);
+
+        const instance = kernel.container.resolve(TestConfigurationParameterInjectedInConstructor);
+        expect(instance.test1Parameter).toBe("NotDefault");
+        expect(instance.test2Parameter).toBe("test2");
     })
 })

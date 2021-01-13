@@ -7,6 +7,7 @@ import {Voter2Model} from "./models/voter2.model";
 import {TestController} from "./controllers/test.controller";
 
 export const testModule: ModuleInterface = {
+    keyname: "test",
     importServices: [TestController],
     importModules: [CoreModule],
     providerRegistrations: [

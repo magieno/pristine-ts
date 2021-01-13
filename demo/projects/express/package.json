@@ -10,8 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@pristine-ts/core": "0.0.21",
-    "@pristine-ts/express": "0.0.21",
+    "@pristine-ts/core": "0.0.22",
+    "@pristine-ts/express": "0.0.22",
     "@types/express": "^4.17.9",
     "express": "^4.17.1",
     "rollup": "^2.35.1",
