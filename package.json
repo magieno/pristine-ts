@@ -4,7 +4,7 @@
   "description": "The Pristine TS Framework.",
   "main": "index.js",
   "scripts": {
-    "test": "lerna run npm test",
+    "test": "lerna run test",
     "bootstrap": "lerna bootstrap"
   },
   "repository": {
@@ -18,7 +18,7 @@
   },
   "homepage": "https://github.com/ima-tech/pristine-ts#readme",
   "devDependencies": {
-    "@types/jest": "^26.0.18",
+    "@types/jest": "^26.0.20",
     "@types/url-parse": "^1.4.3",
     "jest": "^26.6.3",
     "lerna": "^3.22.1",
