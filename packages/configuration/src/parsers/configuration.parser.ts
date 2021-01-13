@@ -1,6 +1,6 @@
 import {ConfigurationValidationError} from "../errors/configuration-validation.error";
-import {ValueProviderRegistrationInterface} from "../interfaces/value-provider-registration.interface";
 import {injectable} from "tsyringe";
+import {ConfigurationParameterInterface} from "../interfaces/configuration-parameter.interface";
 
 @injectable()
 export class ConfigurationParser {
@@ -12,7 +12,7 @@ export class ConfigurationParser {
      * @param configuration
      * @param moduleKeyname
      */
-    async parse(configurationDefinitionType: { new(): object }, configuration: object, moduleKeyname: string): Promise<ValueProviderRegistrationInterface<any>[]> {
+    async parse(configurationDefinitionType: { new(): object }, configuration: object, moduleKeyname: string): Promise<ConfigurationParameterInterface<any>[]> {
         // Resolve all the properties of the configuration if they need to be resolved.
         await this.resolve(configuration);
 
@@ -20,7 +20,7 @@ export class ConfigurationParser {
         const interpolatedConfiguration = this.validateAndInterpolate(configurationDefinitionType, configuration, moduleKeyname);
 
         // Loop through all the configuration parameters and create the injection tokens that the kernel will inject in the container
-        const injectionTokens: ValueProviderRegistrationInterface<any>[] = [];
+        const injectionTokens: ConfigurationParameterInterface<any>[] = [];
 
         for (const key in interpolatedConfiguration) {
             if (interpolatedConfiguration.hasOwnProperty(key) === false) {
@@ -28,8 +28,8 @@ export class ConfigurationParser {
             }
 
             injectionTokens.push({
-                token: "%" + moduleKeyname + "." + key + "%",
-                useValue: interpolatedConfiguration[key],
+                parameterName: "%" + moduleKeyname + "." + key + "%",
+                value: interpolatedConfiguration[key],
             })
         }
 

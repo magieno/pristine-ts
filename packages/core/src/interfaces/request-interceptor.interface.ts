@@ -1,5 +1,5 @@
-import {Request} from "../network/request";
-import {RequestInterface} from "./request.interface";
+import {Request} from "../../../networking/src/models/request";
+import {RequestInterface} from "../../../networking/src/interfaces/request.interface";
 
 /**
  * The Request Interceptor Interface defines the methods that a Request Interceptor must implement. This

@@ -1,5 +1,5 @@
-import {Request} from "../network/request";
-import {Response} from "../network/response";
+import {Request} from "../../../networking/src/models/request";
+import {Response} from "../../../networking/src/models/response";
 
 /**
  * The Response Interceptor Interface defines the methods that a Response Interceptor must implement. This

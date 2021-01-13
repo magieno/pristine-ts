@@ -4,22 +4,13 @@ import {ModuleInterface} from "./interfaces/module.interface";
 import {ProviderRegistration} from "./types/provider-registration.type";
 import {InitializationError} from "./errors/initialization.error";
 import {Event} from "./interfaces/event.interface";
-import {Response} from "./network/response";
-import {Request} from "./network/request";
-import {Router} from "./network/router";
-import {controllerRegistry} from "./decorators/controller.decorator";
-import {RouteMethodDecorator} from "./interfaces/route-method-decorator.interface";
+import {Response, Request, Router, controllerRegistry, RouteMethodDecorator, RequestInterface, RouterInterface, Route, HttpError} from "@pristine-ts/networking";
+import {ModuleConfiguration, ConfigurationParser } from "@pristine-ts/configuration";
 import {ServiceDefinitionTagEnum} from "./enums/service-definition-tag.enum";
 import {RuntimeError} from "./errors/runtime.error";
 import {RequestInterceptorInterface} from "./interfaces/request-interceptor.interface";
 import {ResponseInterceptorInterface} from "./interfaces/response-interceptor.interface";
 import {ErrorResponseInterceptorInterface} from "./interfaces/error-response-interceptor.interface";
-import {HttpError} from "./errors/http.error";
-import {RequestInterface} from "./interfaces/request.interface";
-import {RouterInterface} from "./interfaces/router.interface";
-import {Route} from "./models/route";
-import {ModuleConfiguration} from "./configurations/module.configuration";
-import {ConfigurationParser} from "./parsers/configuration.parser";
 const util = require('util');
 
 /**
@@ -99,13 +90,13 @@ export class Kernel {
             return;
         }
 
-        const configurationParser = this.container.resolve(ConfigurationParser);
+        const configurationParser: ConfigurationParser = this.container.resolve(ConfigurationParser);
 
         const configurationParameterInjectionTokens = await configurationParser.parse(module.configurationDefinition, configurationForCurrentModule?.configuration ?? {}, module.keyname)
 
         configurationParameterInjectionTokens.forEach(injectionToken => {
-           this.container.register(injectionToken.token, {
-               useValue: injectionToken.useValue,
+           this.container.register(injectionToken.parameterName, {
+               useValue: injectionToken.value,
            });
         });
     }

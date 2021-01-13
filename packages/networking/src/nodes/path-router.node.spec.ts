@@ -2,7 +2,7 @@ import {PathRouterNode} from "./path-router.node";
 import {HttpMethod} from "../enums/http-method.enum";
 import {MethodRouterNode} from "./method-router.node";
 import instance from "tsyringe/dist/typings/dependency-container";
-import {pathRouterNode} from "../test-fixtures/path-router.node.test-fixture";
+import {pathRouterNode} from "../../test-fixtures/path-router.node.test-fixture";
 import {Route} from "../models/route";
 
 describe("Path Router Node tests", () => {

@@ -1,10 +1,10 @@
 {
-  "name": "@pristine-ts/express",
+  "name": "@pristine-ts/configuration",
   "version": "0.0.22",
   "description": "",
-  "module": "dist/lib/esm/express.module.js",
-  "main": "dist/lib/cjs/express.module.js",
-  "types": "dist/types/express.module.d.ts",
+  "module": "dist/lib/esm/configuration.module.js",
+  "main": "dist/lib/cjs/configuration.module.js",
+  "types": "dist/types/configuration.module.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
     "prepublish": "npm run build",
@@ -15,14 +15,6 @@
   ],
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "@pristine-ts/core": "file:../core",
-    "@types/express": "^4.17.9",
-    "express": "^4.17.1",
-    "reflect-metadata": "^0.1.13",
-    "tsyringe": "^4.4.0",
-    "url-parse": "^1.4.7"
-  },
   "jest": {
     "transform": {
       ".(ts|tsx)": "ts-jest"

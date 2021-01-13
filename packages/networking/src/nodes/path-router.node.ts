@@ -1,10 +1,8 @@
 import {RouterNode} from "./router.node";
 import {HttpMethod} from "../enums/http-method.enum";
-import {InitializationError} from "../errors/initialization.error";
-import instance from "tsyringe/dist/typings/dependency-container";
 import {MethodRouterNode} from "./method-router.node";
-import * as Path from "path";
 import {Route} from "../models/route";
+import {NetworkingInitializationError} from "../errors/networking-initialization.error";
 
 /**
  * This class represents a Path Node in the Router Node. It can never be a leaf node and will always have children.
@@ -14,7 +12,7 @@ export class PathRouterNode extends RouterNode {
         super();
 
         if (path.startsWith("/") === false) {
-            throw new InitializationError("The path must absolutely start with a '/', but you passed: '" + path + "'.");
+            throw new NetworkingInitializationError("The path must absolutely start with a '/', but you passed: '" + path + "'.");
         }
 
         this.parent = parent;
@@ -39,7 +37,7 @@ export class PathRouterNode extends RouterNode {
             const matchedMethodRouterNodeChild = this.children.filter(child => child instanceof MethodRouterNode).find((child: MethodRouterNode) => child.matches(method))
 
             if (matchedMethodRouterNodeChild !== undefined) {
-                throw new InitializationError("There is already an HTTP Method associated with this path. Path: '" + splitPaths.join("") + "', Method: '" + method + "'")
+                throw new NetworkingInitializationError("There is already an HTTP Method associated with this path. Path: '" + splitPaths.join("") + "', Method: '" + method + "'")
             }
 
             this.children.push(new MethodRouterNode(this, method, route));

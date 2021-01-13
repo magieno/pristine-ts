@@ -1,15 +1,15 @@
 import "reflect-metadata";
-import {pathRouterNode} from "../test-fixtures/path-router.node.test-fixture";
+import {pathRouterNode} from "../../test-fixtures/path-router.node.test-fixture";
 import {HttpMethod} from "../enums/http-method.enum";
 import {RouteParameterDecoratorInterface} from "../interfaces/route-parameter-decorator.interface";
 import {QueryParameterDecoratorInterface} from "../interfaces/query-parameter-decorator.interface";
 import {QueryParametersDecoratorInterface} from "../interfaces/query-parameters-decorator.interface";
 import {BodyParameterDecoratorInterface} from "../interfaces/body-parameteter-decorator.interface";
-import {Router} from "./router";
-import {Request} from "./request";
 import {PathRouterNode} from "../nodes/path-router.node";
 import {MethodRouterNode} from "../nodes/method-router.node";
-import {Route} from "../models/route";
+import {Router} from "../router";
+import {Request} from "./request";
+import {Route} from "./route";
 
 describe("Router.spec", () => {
     let root: PathRouterNode;

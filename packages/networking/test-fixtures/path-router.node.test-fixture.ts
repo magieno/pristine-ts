@@ -1,7 +1,7 @@
-import {HttpMethod} from "../enums/http-method.enum";
-import {PathRouterNode} from "../nodes/path-router.node";
-import {MethodRouterNode} from "../nodes/method-router.node";
-import {Route} from "../models/route";
+import {HttpMethod} from "../src/enums/http-method.enum";
+import {PathRouterNode} from "../src/nodes/path-router.node";
+import {MethodRouterNode} from "../src/nodes/method-router.node";
+import {Route} from "../src/models/route";
 
 export const pathRouterNode = (): PathRouterNode => {
 

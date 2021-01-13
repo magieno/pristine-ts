@@ -1,10 +1,10 @@
-import {controller} from "../../src/decorators/controller.decorator";
-import {route} from "../../src/decorators/route.decorator";
+import {controller} from "../../../networking/src/decorators/controller.decorator";
+import {route} from "../../../networking/src/decorators/route.decorator";
 import {singleton} from "tsyringe";
 import {PermissionManager} from "../managers/permission.manager";
-import {HttpMethod} from "../../src/enums/http-method.enum";
-import {body} from "../../src/decorators/body.decorator";
-import {routeParameter} from "../../src/decorators/route-parameter.decorator";
+import {HttpMethod} from "../../../networking/src/enums/http-method.enum";
+import {body} from "../../../networking/src/decorators/body.decorator";
+import {routeParameter} from "../../../networking/src/decorators/route-parameter.decorator";
 
 @controller("/api/2.0")
 @singleton()

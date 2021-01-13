@@ -2,7 +2,8 @@ import {BodyParameterDecoratorInterface} from "../interfaces/body-parameteter-de
 import {QueryParameterDecoratorInterface} from "../interfaces/query-parameter-decorator.interface";
 import {QueryParametersDecoratorInterface} from "../interfaces/query-parameters-decorator.interface";
 import {RouteParameterDecoratorInterface} from "../interfaces/route-parameter-decorator.interface";
-import {Request} from "../network/request";
+import {Request} from "../models/request";
+
 const Url = require('url-parse');
 
 /**

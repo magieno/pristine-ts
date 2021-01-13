@@ -1,15 +1,15 @@
 import {DependencyContainer, singleton} from "tsyringe";
-import {HttpMethod} from "../enums/http-method.enum";
-import {Request} from "./request";
-import {Response} from "./response";
-import {UrlUtil} from "../utils/url.util";
-import {NotFoundHttpError} from "../errors/not-found.http-error";
-import {ParameterDecoratorResolver} from "../resolvers/parameter-decorator.resolver";
-import {RouterInterface} from "../interfaces/router.interface";
-import {RouterNode} from "../nodes/router.node";
-import {PathRouterNode} from "../nodes/path-router.node";
-import {Route} from "../models/route";
-import {MethodRouterNode} from "../nodes/method-router.node";
+import {HttpMethod} from "./enums/http-method.enum";
+import {Request} from "./models/request";
+import {Response} from "./models/response";
+import {UrlUtil} from "./utils/url.util";
+import {NotFoundHttpError} from "./errors/not-found.http-error";
+import {ParameterDecoratorResolver} from "./resolvers/parameter-decorator.resolver";
+import {RouterInterface} from "./interfaces/router.interface";
+import {RouterNode} from "./nodes/router.node";
+import {PathRouterNode} from "./nodes/path-router.node";
+import {Route} from "./models/route";
+import {MethodRouterNode} from "./nodes/method-router.node";
 const Url = require('url-parse');
 
 @singleton()
