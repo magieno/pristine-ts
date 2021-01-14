@@ -23,7 +23,7 @@ describe("Kernel.ts", () => {
 
             console.log("Initialization time: " + timeElapsedInMiliseconds + "ms.");
             console.log("Number of services: " + perfModule.importServices.length + ".");
-            expect(timeElapsedInMiliseconds).toBeLessThan(50);
+            expect(timeElapsedInMiliseconds).toBeLessThan(100);
 
             // Verify that the routes are properly parsed.
             expect(kernel["router"].root.children[0].children[0].children.length).toBe(perfModule.importServices.length)
@@ -32,6 +32,6 @@ describe("Kernel.ts", () => {
         const averageElapsedTime = elapsedTimes.reduce((previousValue, currentValue) => previousValue + currentValue) / elapsedTimes.length;
 
         console.log("Average Elapsed time: " + averageElapsedTime + "ms.")
-        expect(averageElapsedTime).toBeLessThan(10)
+        expect(averageElapsedTime).toBeLessThan(50)
     })
 })
