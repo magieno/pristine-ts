@@ -40,3 +40,6 @@ dist/**/*
 
 # ignore yarn.lock
 yarn.lock
+
+
+tests/perf/generation/output/*

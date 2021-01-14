@@ -1,0 +1,33 @@
+import {singleton} from "tsyringe";
+import {controller, HttpMethod, route, body, routeParameter} from "@pristine-ts/networking";
+
+@controller("/api/1.0")
+@singleton()
+export class CaribouController {
+    constructor() {
+    }
+
+    @route(HttpMethod.Get, "/caribous")
+    public list() {
+    }
+
+    @route(HttpMethod.Post, "/caribous")
+    public add(@body() body: any) {
+    }
+
+    @route(HttpMethod.Get, "/caribous/:id")
+    public get(@routeParameter("id") id: string) {
+    }
+
+    @route(HttpMethod.Put, "/caribous/:id")
+    public update(@body() body: any, @routeParameter("id") id: string) {
+    }
+
+    @route(HttpMethod.Patch, "/caribous/:id")
+    public partialUpdate(@body() body: any, @routeParameter("id") id: string) {
+    }
+
+    @route(HttpMethod.Delete, "/caribous/:id")
+    public delete(@routeParameter("id") id: string) {
+    }
+}

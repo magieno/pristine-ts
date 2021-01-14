@@ -6,7 +6,9 @@
   "scripts": {
     "bootstrap": "lerna bootstrap",
     "build": "lerna run build",
-    "test": "lerna run test"
+    "test": "lerna run test",
+    "e2e": "cd tests/e2e && jest && cd ..",
+    "perf": "cd tests/perf && jest && cd .."
   },
   "repository": {
     "type": "git",

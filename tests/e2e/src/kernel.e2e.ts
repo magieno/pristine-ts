@@ -1,14 +1,10 @@
-import {Kernel} from "../src/kernel";
+import "reflect-metadata"
 import {ResolvedClassModel} from "./models/resolved-class.model";
 import {testModule} from "./test.module";
 import {PermissionManager} from "./managers/permission.manager";
 import {container, DependencyContainer, inject, injectable} from "tsyringe";
-import {RequestInterceptorInterface} from "../src/interfaces/request-interceptor.interface";
-import {ModuleInterface} from "../src/interfaces/module.interface";
-import {ServiceDefinitionTagEnum} from "../src/enums/service-definition-tag.enum";
-import {ResponseInterceptorInterface} from "../src/interfaces/response-interceptor.interface";
-import {ErrorResponseInterceptorInterface} from "../src/interfaces/error-response-interceptor.interface";
 import {HttpMethod, Request, Response, Route, RouterInterface, HttpError} from "@pristine-ts/networking";
+import {Kernel, RequestInterceptorInterface, ResponseInterceptorInterface, ErrorResponseInterceptorInterface, ModuleInterface, ServiceDefinitionTagEnum} from "@pristine-ts/core";
 
 describe("Kernel.ts", () => {
     beforeEach(async () => {

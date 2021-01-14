@@ -1,0 +1,33 @@
+import {singleton} from "tsyringe";
+import {controller, HttpMethod, route, body, routeParameter} from "@pristine-ts/networking";
+
+@controller("/api/1.0")
+@singleton()
+export class AntController {
+    constructor() {
+    }
+
+    @route(HttpMethod.Get, "/ants")
+    public list() {
+    }
+
+    @route(HttpMethod.Post, "/ants")
+    public add(@body() body: any) {
+    }
+
+    @route(HttpMethod.Get, "/ants/:id")
+    public get(@routeParameter("id") id: string) {
+    }
+
+    @route(HttpMethod.Put, "/ants/:id")
+    public update(@body() body: any, @routeParameter("id") id: string) {
+    }
+
+    @route(HttpMethod.Patch, "/ants/:id")
+    public partialUpdate(@body() body: any, @routeParameter("id") id: string) {
+    }
+
+    @route(HttpMethod.Delete, "/ants/:id")
+    public delete(@routeParameter("id") id: string) {
+    }
+}
