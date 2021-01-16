@@ -4,7 +4,8 @@ import {testModule} from "./test.module";
 import {PermissionManager} from "./managers/permission.manager";
 import {container, DependencyContainer, inject, injectable} from "tsyringe";
 import {HttpMethod, Request, Response, Route, RouterInterface, HttpError} from "@pristine-ts/networking";
-import {Kernel, RequestInterceptorInterface, ResponseInterceptorInterface, ErrorResponseInterceptorInterface, ModuleInterface, ServiceDefinitionTagEnum} from "@pristine-ts/core";
+import {ServiceDefinitionTagEnum} from "@pristine-ts/common";
+import {Kernel, RequestInterceptorInterface, ResponseInterceptorInterface, ErrorResponseInterceptorInterface, ModuleInterface} from "@pristine-ts/core";
 
 describe("Kernel.ts", () => {
     beforeEach(async () => {
