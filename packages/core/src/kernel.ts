@@ -6,11 +6,11 @@ import {InitializationError} from "./errors/initialization.error";
 import {Response, Request, Router, controllerRegistry, RouteMethodDecorator, RequestInterface, RouterInterface, Route, HttpError} from "@pristine-ts/networking";
 import {ModuleConfiguration, ConfigurationParser } from "@pristine-ts/configuration";
 import {Event } from "@pristine-ts/event";
-import {ServiceDefinitionTagEnum} from "../../common/src/enums/service-definition-tag.enum";
 import {RuntimeError} from "./errors/runtime.error";
 import {RequestInterceptorInterface} from "./interfaces/request-interceptor.interface";
 import {ResponseInterceptorInterface} from "./interfaces/response-interceptor.interface";
 import {ErrorResponseInterceptorInterface} from "./interfaces/error-response-interceptor.interface";
+import {ServiceDefinitionTagEnum} from "@pristine-ts/common";
 const util = require('util');
 
 /**
