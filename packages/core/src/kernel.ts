@@ -3,10 +3,10 @@ import {container, DependencyContainer, isClassProvider, ValueProvider} from "ts
 import {ModuleInterface} from "./interfaces/module.interface";
 import {ProviderRegistration} from "./types/provider-registration.type";
 import {InitializationError} from "./errors/initialization.error";
-import {Event} from "./interfaces/event.interface";
 import {Response, Request, Router, controllerRegistry, RouteMethodDecorator, RequestInterface, RouterInterface, Route, HttpError} from "@pristine-ts/networking";
 import {ModuleConfiguration, ConfigurationParser } from "@pristine-ts/configuration";
-import {ServiceDefinitionTagEnum} from "./enums/service-definition-tag.enum";
+import {Event } from "@pristine-ts/event";
+import {ServiceDefinitionTagEnum} from "../../common/src/enums/service-definition-tag.enum";
 import {RuntimeError} from "./errors/runtime.error";
 import {RequestInterceptorInterface} from "./interfaces/request-interceptor.interface";
 import {ResponseInterceptorInterface} from "./interfaces/response-interceptor.interface";

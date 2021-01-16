@@ -1,10 +1,10 @@
 {
-  "name": "@pristine-ts/core",
+  "name": "@pristine-ts/event",
   "version": "0.0.22",
   "description": "",
-  "module": "dist/lib/esm/core.module.js",
-  "main": "dist/lib/cjs/core.module.js",
-  "types": "dist/types/core.module.d.ts",
+  "module": "dist/lib/esm/event.module.js",
+  "main": "dist/lib/cjs/event.module.js",
+  "types": "dist/types/event.module.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
     "prepublish": "npm run build",
@@ -16,13 +16,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@pristine-ts/configuration": "file:../configuration",
-    "@pristine-ts/common": "file:../common",
-    "@pristine-ts/event": "file:../event",
-    "@pristine-ts/logging": "file:../logging",
-    "@pristine-ts/networking": "file:../networking",
-    "reflect-metadata": "^0.1.13",
-    "tsyringe": "^4.4.0"
+    "@pristine-ts/common": "file:../common"
   },
   "jest": {
     "transform": {
