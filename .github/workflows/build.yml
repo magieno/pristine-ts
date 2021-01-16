@@ -43,4 +43,4 @@ jobs:
       - run: npm ci
       - run: npm run bootstrap
       - run: npm run build
-      - run: npm run publish
+      - run: npm run publish-ci

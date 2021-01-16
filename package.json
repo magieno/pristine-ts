@@ -9,7 +9,7 @@
     "test": "lerna run test",
     "e2e": "cd tests/e2e && jest && cd ..",
     "perf": "cd tests/perf && jest && cd ..",
-    "publish": "lerna publish"
+    "publish-ci": "lerna publish --yes"
   },
   "repository": {
     "type": "git",
