@@ -11,6 +11,8 @@ import {RequestInterceptorInterface} from "./interfaces/request-interceptor.inte
 import {ResponseInterceptorInterface} from "./interfaces/response-interceptor.interface";
 import {ErrorResponseInterceptorInterface} from "./interfaces/error-response-interceptor.interface";
 import {ServiceDefinitionTagEnum} from "@pristine-ts/common";
+import {EventDispatcher} from "../../../dist/types/dispatchers/event.dispatcher";
+import {EventTransformer} from "../../../dist/types/transformers/event.transformer";
 const util = require('util');
 
 /**
@@ -99,20 +101,6 @@ export class Kernel {
                useValue: injectionToken.value,
            });
         });
-    }
-
-
-    /**
-     *
-     * @param event
-     */
-    public async handleEvent(event: Event) {
-        // Start by creating a child container and we will use this container to instantiate the dependencies for this event
-        const childContainer = this.container.createChildContainer();
-
-
-        // Return
-
     }
 
     /**
@@ -233,6 +221,26 @@ export class Kernel {
         }
 
         return interceptedErrorResponse;
+    }
+
+
+    /**
+     *  This method takes the raw Event, transforms it into an Event object and then dispatches it to the Event Listeners
+     *
+     * @param rawEvent
+     */
+    public async handleRawEvent(rawEvent: object): Promise<void> {
+        // Start by creating a child container and we will use this container to instantiate the dependencies for this event
+        const childContainer = this.container.createChildContainer();
+
+        const eventTransformer: EventTransformer = childContainer.resolve(EventTransformer);
+        const eventDispatcher: EventDispatcher = childContainer.resolve(EventDispatcher);
+
+        // Transform the raw event into an object
+        const event: Event = eventTransformer.transform(rawEvent);
+
+        // Dispatch the Event to the EventListeners
+        await eventDispatcher.dispatch(event);
     }
 
     /**
