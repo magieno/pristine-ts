@@ -3,7 +3,7 @@ import {container, DependencyContainer, isClassProvider, ValueProvider} from "ts
 import {ModuleInterface} from "./interfaces/module.interface";
 import {ProviderRegistration} from "./types/provider-registration.type";
 import {InitializationError} from "./errors/initialization.error";
-import {Response, Request, Router, controllerRegistry, RouteMethodDecorator, RequestInterface, RouterInterface, Route, HttpError} from "@pristine-ts/networking";
+import {Response, Request, Router, controllerRegistry, GuardInitializationError, RouteMethodDecorator, RequestInterface, RouterInterface, Route, HttpError} from "@pristine-ts/networking";
 import {ModuleConfiguration, ConfigurationParser } from "@pristine-ts/configuration";
 import {Event } from "@pristine-ts/event";
 import {RuntimeError} from "./errors/runtime.error";
@@ -11,8 +11,7 @@ import {RequestInterceptorInterface} from "./interfaces/request-interceptor.inte
 import {ResponseInterceptorInterface} from "./interfaces/response-interceptor.interface";
 import {ErrorResponseInterceptorInterface} from "./interfaces/error-response-interceptor.interface";
 import {ServiceDefinitionTagEnum} from "@pristine-ts/common";
-import {EventDispatcher} from "../../../dist/types/dispatchers/event.dispatcher";
-import {EventTransformer} from "../../../dist/types/transformers/event.transformer";
+import {EventTransformer, EventDispatcher} from "@pristine-ts/event";
 const util = require('util');
 
 /**
@@ -325,6 +324,27 @@ export class Kernel {
                 // the appropriate controller method
                 const route = new Route(controller.constructor, routeMethodDecorator.methodKeyname);
                 route.methodArguments = method.arguments ?? [];
+
+                // Setup the guards for this route
+                const guards: any[] = controller.__metadata__?.controller?.guards ?? [];
+                guards.push(...(method.guards ?? []));
+
+                // Loop through the guards and check to see if they need to be instantiated or if they already are
+                route.guards = guards.map(guard => {
+                    // Check if the guard needs to be instantiated
+                    let instantiatedGuard = guard;
+
+                    if(typeof guard === 'function') {
+                        instantiatedGuard = this.container.resolve(guard);
+                    }
+
+                    // Check again if the class as the isAuthorized method
+                    if(typeof instantiatedGuard.isAuthorized !== 'function') {
+                        throw new GuardInitializationError("The guard: '" + guard + "' doesn't implement the isAuthorized() method.");
+                    }
+
+                    return instantiatedGuard;
+                })
 
                 // Build the proper path
                 let path = routeMethodDecorator.path;

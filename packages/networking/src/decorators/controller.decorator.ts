@@ -6,7 +6,11 @@ export const controller = (basePath: string) => {
             constructor.prototype["__metadata__"] = {}
         }
 
-        constructor.prototype["__metadata__"]["controller"] = {}
+
+        if(constructor.prototype["__metadata__"].hasOwnProperty("controller") === false) {
+            constructor.prototype["__metadata__"]["controller"] = {}
+        }
+
         constructor.prototype["__metadata__"]["controller"]["basePath"] = basePath;
 
         controllerRegistry.push(constructor.prototype)

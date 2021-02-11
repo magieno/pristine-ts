@@ -10,6 +10,8 @@ import {RouterNode} from "./nodes/router.node";
 import {PathRouterNode} from "./nodes/path-router.node";
 import {Route} from "./models/route";
 import {MethodRouterNode} from "./nodes/method-router.node";
+import {GuardInterface} from "./interfaces/guard.interface";
+import {ForbiddenHttpError} from "./errors/forbidden.http-error";
 const Url = require('url-parse');
 
 @singleton()
@@ -41,7 +43,7 @@ export class Router implements RouterInterface {
      * @param container
      */
     public execute(request: Request, container: DependencyContainer): Promise<Response> {
-        return new Promise<Response>((resolve, reject) => {
+        return new Promise<Response>(async (resolve, reject) => {
             // Start by decomposing the URL. Set second parameter to true since we want to parse the query strings
             const url = new Url(request.url, false);
 
@@ -70,6 +72,21 @@ export class Router implements RouterInterface {
 
             // Call the controller with the resolved Method arguments
             try {
+                // Check if this controller method is to be protected by one or many guards
+                // If yes, call the guards and if one denies, return a HttpForbiddenException.
+                if(methodNode.route.guards && Array.isArray(methodNode.route.guards)) {
+                    for (let guard of methodNode.route.guards) {
+                        try {
+                            if(await guard.isAuthorized(request) === false) {
+                                return reject(new ForbiddenHttpError("The guard: '" + guard.keyname + "' denied access."));
+                            }
+                        }
+                        catch (e) {
+                            return reject(new ForbiddenHttpError("The guard: '" + guard.keyname + "' threw an error so we are denying access."));
+                        }
+                    }
+                }
+
                 const controllerResponse = controller[methodNode.route.methodPropertyKey].apply(controller, resolvedMethodArguments);
 
                 // This resolves the promise if it's a promise or promisifies the value

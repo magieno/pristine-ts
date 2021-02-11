@@ -5,6 +5,7 @@ import {InjectedClass} from "./models/injected-class.model";
 import {Voter1Model} from "./models/voter1.model";
 import {Voter2Model} from "./models/voter2.model";
 import {TestController} from "./controllers/test.controller";
+import {TestGuard} from "./guards/test.guard";
 
 export const testModule: ModuleInterface = {
     keyname: "test",
