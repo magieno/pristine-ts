@@ -1,10 +1,10 @@
 {
-  "name": "@pristine-ts/security",
+  "name": "@pristine-ts/jwt",
   "version": "0.0.25",
   "description": "",
-  "module": "dist/lib/esm/security.module.js",
-  "main": "dist/lib/cjs/security.module.js",
-  "types": "dist/types/security.module.d.ts",
+  "module": "dist/lib/esm/jwt.module.js",
+  "main": "dist/lib/cjs/jwt.module.js",
+  "types": "dist/types/jwt.module.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
     "prepublish": "npm run build",
@@ -15,6 +15,10 @@
   ],
   "author": "",
   "license": "ISC",
+  "dependencies": {
+    "@pristine-ts/common": "file:../common",
+    "@pristine-ts/networking": "file:../networking"
+  },
   "jest": {
     "transform": {
       ".(ts|tsx)": "ts-jest"
