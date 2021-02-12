@@ -5,6 +5,7 @@
  * resolve all the voters by requesting the VOTER token and asking the container for a resolveAll.
  */
 export enum ServiceDefinitionTagEnum {
+    MethodParameterDecoratorResolver = "METHOD_PARAMETER_DECORATOR_RESOLVER",
     RequestInterceptor = "REQUEST_INTERCEPTOR",
     ResponseInterceptor = "RESPONSE_INTERCEPTOR",
     ErrorResponseInterceptor = "ERROR_RESPONSE_INTERCEPTOR",

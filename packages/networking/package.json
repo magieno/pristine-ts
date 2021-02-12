@@ -16,7 +16,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "url-parse": "^1.4.7"
+    "url-parse": "^1.4.7",
+    "@pristine-ts/common": "file:../common"
   },
   "jest": {
     "transform": {

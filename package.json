@@ -38,6 +38,6 @@
     "@pristine-ts/express": "file:packages/express",
     "@pristine-ts/logging": "file:packages/logging",
     "@pristine-ts/networking": "file:packages/networking",
-    "@pristine-ts/security": "file:packages/security"
+    "@pristine-ts/jwt": "file:packages/jwt"
   }
 }

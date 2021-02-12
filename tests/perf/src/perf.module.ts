@@ -1,5 +1,5 @@
 import {CoreModule} from "../../../packages/core/src/core.module";
-import {ModuleInterface} from "../../../packages/core/src/interfaces/module.interface";
+import {ModuleInterface} from "../../../packages/common/src/interfaces/module.interface";
 import {AardvarkController} from "./controllers/aardvark.controller";
 import {AlbatrossController} from "./controllers/albatross.controller";
 import {AlligatorController} from "./controllers/alligator.controller";

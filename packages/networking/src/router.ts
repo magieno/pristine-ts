@@ -4,21 +4,20 @@ import {Request} from "./models/request";
 import {Response} from "./models/response";
 import {UrlUtil} from "./utils/url.util";
 import {NotFoundHttpError} from "./errors/not-found.http-error";
-import {ParameterDecoratorResolver} from "./resolvers/parameter-decorator.resolver";
 import {RouterInterface} from "./interfaces/router.interface";
 import {RouterNode} from "./nodes/router.node";
 import {PathRouterNode} from "./nodes/path-router.node";
 import {Route} from "./models/route";
 import {MethodRouterNode} from "./nodes/method-router.node";
-import {GuardInterface} from "./interfaces/guard.interface";
 import {ForbiddenHttpError} from "./errors/forbidden.http-error";
+import {ControllerMethodParameterDecoratorResolver} from "./resolvers/controller-method-parameter-decorator.resolver";
 const Url = require('url-parse');
 
 @singleton()
 export class Router implements RouterInterface {
     private root: RouterNode = new PathRouterNode("/");
 
-    public constructor() {
+    public constructor(private readonly controllerMethodParameterDecoratorResolver: ControllerMethodParameterDecoratorResolver) {
     }
 
     /**
@@ -67,7 +66,7 @@ export class Router implements RouterInterface {
             const resolvedMethodArguments: any[] = [];
 
             methodNode.route.methodArguments.forEach(methodArgument => {
-                resolvedMethodArguments.push(ParameterDecoratorResolver.resolve(methodArgument, request, routeParameters));
+                resolvedMethodArguments.push(this.controllerMethodParameterDecoratorResolver.resolve(methodArgument, request, routeParameters));
             });
 
             // Call the controller with the resolved Method arguments

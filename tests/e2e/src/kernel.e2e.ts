@@ -10,6 +10,7 @@ import {
     Route,
     RouterInterface,
     HttpError,
+    NetworkingModule,
 } from "@pristine-ts/networking";
 import {ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {
@@ -18,6 +19,7 @@ import {
     ResponseInterceptorInterface,
     ErrorResponseInterceptorInterface,
     ModuleInterface,
+    CoreModule,
 } from "@pristine-ts/core";
 import {TestGuard} from "./guards/test.guard";
 
@@ -72,6 +74,9 @@ describe("Kernel.ts", () => {
 
         const module: ModuleInterface = {
             keyname: "test",
+            importModules: [
+                CoreModule,
+            ],
             importServices: [],
             providerRegistrations: [
                 {
@@ -122,6 +127,9 @@ describe("Kernel.ts", () => {
         const module: ModuleInterface = {
             keyname: "test",
             importServices: [],
+            importModules: [
+                CoreModule,
+            ],
             providerRegistrations: [
                 {
                     token: ServiceDefinitionTagEnum.ResponseInterceptor,
@@ -176,6 +184,9 @@ describe("Kernel.ts", () => {
         const module: ModuleInterface = {
             keyname: "test",
             importServices: [],
+            importModules: [
+                CoreModule,
+            ],
             providerRegistrations: [
                 {
                     token: ServiceDefinitionTagEnum.ErrorResponseInterceptor,
@@ -240,6 +251,9 @@ describe("Kernel.ts", () => {
         const module: ModuleInterface = {
             keyname: "test",
             importServices: [],
+            importModules: [
+                CoreModule,
+            ],
             providerRegistrations: [
                 {
                     token: ServiceDefinitionTagEnum.ErrorResponseInterceptor,
@@ -286,6 +300,9 @@ describe("Kernel.ts", () => {
         const module: ModuleInterface = {
             keyname: "test",
             importServices: [],
+            importModules: [
+                CoreModule,
+            ],
             providerRegistrations: [
             ],
             configurationDefinition: ConfigurationDefinition
@@ -317,6 +334,10 @@ describe("Kernel.ts", () => {
         const module: ModuleInterface = {
             keyname: "test",
             importServices: [],
+
+            importModules: [
+                CoreModule,
+            ],
             providerRegistrations: [
             ],
             configurationDefinition: ConfigurationDefinition

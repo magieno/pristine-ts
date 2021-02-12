@@ -1,6 +1,6 @@
 import {ResolvedClassModel} from "./models/resolved-class.model";
 import {CoreModule} from "../../../packages/core/src/core.module";
-import {ModuleInterface} from "../../../packages/core/src/interfaces/module.interface";
+import {ModuleInterface} from "../../../packages/common/src/interfaces/module.interface";
 import {InjectedClass} from "./models/injected-class.model";
 import {Voter1Model} from "./models/voter1.model";
 import {Voter2Model} from "./models/voter2.model";

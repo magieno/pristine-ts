@@ -1,7 +1,5 @@
 import "reflect-metadata";
 import {container, DependencyContainer, isClassProvider, ValueProvider} from "tsyringe";
-import {ModuleInterface} from "./interfaces/module.interface";
-import {ProviderRegistration} from "./types/provider-registration.type";
 import {InitializationError} from "./errors/initialization.error";
 import {Response, Request, Router, controllerRegistry, GuardInitializationError, RouteMethodDecorator, RequestInterface, RouterInterface, Route, HttpError} from "@pristine-ts/networking";
 import {ModuleConfiguration, ConfigurationParser } from "@pristine-ts/configuration";
@@ -10,7 +8,7 @@ import {RuntimeError} from "./errors/runtime.error";
 import {RequestInterceptorInterface} from "./interfaces/request-interceptor.interface";
 import {ResponseInterceptorInterface} from "./interfaces/response-interceptor.interface";
 import {ErrorResponseInterceptorInterface} from "./interfaces/error-response-interceptor.interface";
-import {ServiceDefinitionTagEnum} from "@pristine-ts/common";
+import {ServiceDefinitionTagEnum, ModuleInterface, ProviderRegistration} from "@pristine-ts/common";
 import {EventTransformer, EventDispatcher} from "@pristine-ts/event";
 const util = require('util');
 

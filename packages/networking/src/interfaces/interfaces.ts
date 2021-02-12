@@ -1,4 +1,5 @@
 export * from "./body-parameteter-decorator.interface";
+export * from "./controller-method-parameter-decorator-resolver.interface";
 export * from "./guard.interface";
 export * from "./query-parameter-decorator.interface";
 export * from "./query-parameters-decorator.interface";

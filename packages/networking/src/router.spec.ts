@@ -1,15 +1,20 @@
 import "reflect-metadata";
-import {pathRouterNode} from "../../test-fixtures/path-router.node.test-fixture";
-import {HttpMethod} from "../enums/http-method.enum";
-import {RouteParameterDecoratorInterface} from "../interfaces/route-parameter-decorator.interface";
-import {QueryParameterDecoratorInterface} from "../interfaces/query-parameter-decorator.interface";
-import {QueryParametersDecoratorInterface} from "../interfaces/query-parameters-decorator.interface";
-import {BodyParameterDecoratorInterface} from "../interfaces/body-parameteter-decorator.interface";
-import {PathRouterNode} from "../nodes/path-router.node";
-import {MethodRouterNode} from "../nodes/method-router.node";
-import {Router} from "../router";
-import {Request} from "./request";
-import {Route} from "./route";
+import {pathRouterNode} from "../test-fixtures/path-router.node.test-fixture";
+import {HttpMethod} from "./enums/http-method.enum";
+import {RouteParameterDecoratorInterface} from "./interfaces/route-parameter-decorator.interface";
+import {QueryParameterDecoratorInterface} from "./interfaces/query-parameter-decorator.interface";
+import {QueryParametersDecoratorInterface} from "./interfaces/query-parameters-decorator.interface";
+import {BodyParameterDecoratorInterface} from "./interfaces/body-parameteter-decorator.interface";
+import {PathRouterNode} from "./nodes/path-router.node";
+import {MethodRouterNode} from "./nodes/method-router.node";
+import {Router} from "./router";
+import {Request} from "./models/request";
+import {Route} from "./models/route";
+import {ControllerMethodParameterDecoratorResolver} from "./resolvers/controller-method-parameter-decorator.resolver";
+import {BodyParameterDecoratorResolver} from "./resolvers/body-parameter-decorator.resolver";
+import {QueryParameterDecoratorResolver} from "./resolvers/query-parameter-decorator.resolver";
+import {QueryParametersDecoratorResolver} from "./resolvers/query-parameters-decorator.resolver";
+import {RouteParameterDecoratorResolver} from "./resolvers/route-parameter-decorator.resolver";
 
 describe("Router.spec", () => {
     let root: PathRouterNode;
@@ -75,7 +80,13 @@ describe("Router.spec", () => {
         spyMethodController = jest.spyOn(mockController, "route");
 
         // Force the node as the root node
-        router = new Router();
+        router = new Router(new ControllerMethodParameterDecoratorResolver([
+            new BodyParameterDecoratorResolver(),
+            new QueryParameterDecoratorResolver(),
+            new QueryParametersDecoratorResolver(),
+            new RouteParameterDecoratorResolver(),
+        ]));
+
         router["root"] = root;
 
         // Create the MockContainer
