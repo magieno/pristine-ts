@@ -1,6 +1,6 @@
 import "reflect-metadata"
 import {container, DependencyContainer, inject, injectable} from "tsyringe";
-import {Kernel} from "../../../packages/core/src/kernel";
+import {Kernel} from "@pristine-ts/core";
 import {perfModule} from "./perf.module";
 
 describe("Kernel.ts", () => {
