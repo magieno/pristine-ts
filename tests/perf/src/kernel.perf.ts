@@ -26,6 +26,7 @@ describe("Kernel.ts", () => {
             expect(timeElapsedInMiliseconds).toBeLessThan(150);
 
             // Verify that the routes are properly parsed.
+            // @ts-ignore
             expect(kernel["router"].root.children[0].children[0].children.length).toBe(perfModule.importServices.length)
         }
 
