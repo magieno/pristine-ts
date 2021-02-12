@@ -1,5 +1,5 @@
 import {injectable} from "tsyringe";
-import {HttpMethod} from "@pristine-ts/core";
+import {HttpMethod} from "@pristine-ts/networking";
 
 @injectable()
 export class MethodMapper {

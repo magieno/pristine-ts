@@ -234,7 +234,7 @@ export class Kernel {
         const eventDispatcher: EventDispatcher = childContainer.resolve(EventDispatcher);
 
         // Transform the raw event into an object
-        const event: Event = eventTransformer.transform(rawEvent);
+        const event: Event<any> = eventTransformer.transform(rawEvent);
 
         // Dispatch the Event to the EventListeners
         await eventDispatcher.dispatch(event);
