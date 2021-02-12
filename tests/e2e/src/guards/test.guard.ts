@@ -1,7 +1,6 @@
 import {injectable} from "tsyringe";
 import {GuardInterface, RequestInterface} from "@pristine-ts/networking";
 
-@injectable()
 export class TestGuard implements GuardInterface {
     public keyname = "testGuard"
 
