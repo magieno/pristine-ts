@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "dependencies": {
     "@pristine-ts/core": "0.0.22",
+    "@pristine-ts/common": "0.0.22",
     "@pristine-ts/express": "0.0.22",
     "@pristine-ts/networking": "0.0.22"
   },

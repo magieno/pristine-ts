@@ -12,13 +12,12 @@ import {
     HttpError,
     NetworkingModule,
 } from "@pristine-ts/networking";
-import {ServiceDefinitionTagEnum} from "@pristine-ts/common";
+import {ServiceDefinitionTagEnum, ModuleInterface} from "@pristine-ts/common";
 import {
     Kernel,
     RequestInterceptorInterface,
     ResponseInterceptorInterface,
     ErrorResponseInterceptorInterface,
-    ModuleInterface,
     CoreModule,
 } from "@pristine-ts/core";
 import {TestGuard} from "./guards/test.guard";
