@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/networking",
-  "version": "0.0.24",
+  "version": "0.0.25",
   "description": "",
   "module": "dist/lib/esm/networking.module.js",
   "main": "dist/lib/cjs/networking.module.js",
@@ -16,8 +16,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "url-parse": "^1.4.7",
-    "@pristine-ts/common": "file:../common"
+    "@pristine-ts/common": "file:../common",
+    "url-parse": "^1.4.7"
   },
   "jest": {
     "transform": {
