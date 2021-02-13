@@ -1,7 +1,6 @@
 import {JwtManager} from "./jwt.manager";
 import {HttpMethod, RequestInterface} from "@pristine-ts/networking";
 import {JWTKeys} from "../tests/jwt.keys";
-import {InvalidJwtError} from "../errors/invalid-jwt.error";
 
 describe("JWT Manager", () => {
 

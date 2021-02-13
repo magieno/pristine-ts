@@ -7,8 +7,8 @@ import {Request} from "../models/request";
 export class BodyParameterDecoratorResolver implements ControllerMethodParameterDecoratorResolverInterface {
     resolve(methodArgument: any,
             request: Request,
-            routeParameters: { [p: string]: string }): any {
-        return request.body ?? null;
+            routeParameters: { [p: string]: string }): Promise<any> {
+        return Promise.resolve(request.body ?? null);
     }
 
     supports(methodArgument: any): boolean {

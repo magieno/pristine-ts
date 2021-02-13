@@ -7,10 +7,10 @@ const Url = require('url-parse');
 export class QueryParametersDecoratorResolver implements ControllerMethodParameterDecoratorResolverInterface {
     resolve(methodArgument: any,
             request: Request,
-            routeParameters: { [p: string]: string }): any {
+            routeParameters: { [p: string]: string }):  Promise<any> {
         const url = new Url(request.url, true);
 
-        return url.query ?? null;
+        return Promise.resolve(url.query ?? null);
     }
 
     supports(methodArgument: any): boolean {

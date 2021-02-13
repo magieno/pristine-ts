@@ -5,5 +5,5 @@ export interface ControllerMethodParameterDecoratorResolverInterface {
 
     resolve(methodArgument: any,
             request: Request,
-            routeParameters: { [key: string]: string }): any;
+            routeParameters: { [key: string]: string }): Promise<any>;
 }

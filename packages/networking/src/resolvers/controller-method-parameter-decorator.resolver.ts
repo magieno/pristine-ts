@@ -14,7 +14,7 @@ export class ControllerMethodParameterDecoratorResolver {
 
     public resolve(methodArgument: BodyParameterDecoratorInterface | QueryParameterDecoratorInterface | QueryParametersDecoratorInterface | RouteParameterDecoratorInterface,
                    request: Request,
-                   routeParameters: { [key: string]: string }): any {
+                   routeParameters: { [key: string]: string }): Promise<any> {
 
         for (let methodParameterDecoratorResolver of this.methodParameterDecoratorResolvers) {
             if(methodParameterDecoratorResolver.supports(methodArgument)) {
@@ -22,6 +22,6 @@ export class ControllerMethodParameterDecoratorResolver {
             }
         }
 
-        return null;
+        return Promise.resolve(null);
     }
 }
