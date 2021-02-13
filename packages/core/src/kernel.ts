@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import {container, DependencyContainer, isClassProvider, ValueProvider} from "tsyringe";
+import {container, DependencyContainer, isClassProvider, ValueProvider, instanceCachingFactory} from "tsyringe";
 import {InitializationError} from "./errors/initialization.error";
 import {Response, Request, Router, controllerRegistry, GuardInitializationError, RouteMethodDecorator, RequestInterface, RouterInterface, Route, HttpError} from "@pristine-ts/networking";
 import {ModuleConfiguration, ConfigurationParser } from "@pristine-ts/configuration";
@@ -20,6 +20,8 @@ export class Kernel {
      * Contains a reference to the root Dependency Injection Container.
      */
     public container: DependencyContainer = container.createChildContainer();
+
+    private instantiatedModules: {[id: string]: ModuleInterface} = {};
 
     /**
      * Contains a reference to the Router. It is undefined until this.setupRouter() is called.
@@ -54,6 +56,11 @@ export class Kernel {
             }
         }
 
+        if(this.instantiatedModules.hasOwnProperty(module.keyname)) {
+            // module already instantiated, we return
+            return;
+        }
+
         // Add all the providers to the container
         if(module.providerRegistrations) {
             module.providerRegistrations.forEach( (providerRegistration: ProviderRegistration) => {
@@ -86,6 +93,9 @@ export class Kernel {
             if(configurationForCurrentModule !== undefined) {
                 throw new InitializationError("You passed a configuration for module: '" + module.keyname + "', but it doesn't expose a configuration.")
             }
+
+            this.instantiatedModules[module.keyname] = module;
+
             return;
         }
 
@@ -95,9 +105,11 @@ export class Kernel {
 
         configurationParameterInjectionTokens.forEach(injectionToken => {
            this.container.register(injectionToken.parameterName, {
-               useValue: injectionToken.value,
+               useFactory: instanceCachingFactory(() => injectionToken.value),
            });
         });
+
+        this.instantiatedModules[module.keyname] = module;
     }
 
     /**

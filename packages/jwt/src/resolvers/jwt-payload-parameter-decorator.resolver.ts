@@ -25,6 +25,6 @@ export class JwtPayloadParameterDecoratorResolver implements ControllerMethodPar
     }
 
     supports(methodArgument: any): boolean {
-        return methodArgument && methodArgument.hasOwnProperty("type") && methodArgument.type === "body";
+        return methodArgument && methodArgument.hasOwnProperty("type") && methodArgument.type === "jwtPayload";
     }
 }
