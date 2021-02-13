@@ -107,386 +107,386 @@ describe("Router.spec", () => {
         });
     })
 
-    it("PUT - https://ima-tech.ca/api/1.0/dogs/caniche-royal", () => {
+    it("PUT - https://ima-tech.ca/api/1.0/dogs/caniche-royal", async () => {
         request.url = "https://ima-tech.ca/api/1.0/dogs/caniche-royal";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
     })
 
-    it("PUT - https://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm", () => {
+    it("PUT - https://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm", async () => {
         request.url = "https://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
-    it("PUT - https://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC", () => {
+    it("PUT - https://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC", async () => {
         request.url = "https://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
-    it("PUT - https://ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink", () => {
+    it("PUT - https://ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink", async () => {
         request.url = "https://ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
     })
 
-    it("PUT - https://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink", () => {
+    it("PUT - https://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink", async () => {
         request.url = "https://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
-    it("PUT - https://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink", () => {
+    it("PUT - https://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink", async () => {
         request.url = "https://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
-    it("PUT - http://ima-tech.ca/api/1.0/dogs/caniche-royal", () => {
+    it("PUT - http://ima-tech.ca/api/1.0/dogs/caniche-royal", async () => {
         request.url = "http://ima-tech.ca/api/1.0/dogs/caniche-royal";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
     })
 
-    it("PUT - http://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm", () => {
+    it("PUT - http://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm", async () => {
         request.url = "http://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
-    it("PUT - http://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC", () => {
+    it("PUT - http://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC", async () => {
         request.url = "http://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
-    it("PUT - http://ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink", () => {
+    it("PUT - http://ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink", async () => {
         request.url = "http://ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
     })
 
-    it("PUT - http://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink", () => {
+    it("PUT - http://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink", async () => {
         request.url = "http://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
-    it("PUT - http://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink", () => {
+    it("PUT - http://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink", async () => {
         request.url = "http://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
-    it("PUT - https://www.ima-tech.ca/api/1.0/dogs/caniche-royal", () => {
+    it("PUT - https://www.ima-tech.ca/api/1.0/dogs/caniche-royal", async () => {
         request.url = "https://www.ima-tech.ca/api/1.0/dogs/caniche-royal";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
     })
 
-    it("PUT - https://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm", () => {
+    it("PUT - https://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm", async () => {
         request.url = "https://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
-    it("PUT - https://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC", () => {
+    it("PUT - https://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC", async () => {
         request.url = "https://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
-    it("PUT - https://www.ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink", () => {
+    it("PUT - https://www.ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink", async () => {
         request.url = "https://www.ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
     })
 
-    it("PUT - https://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink", () => {
+    it("PUT - https://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink", async () => {
         request.url = "https://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
-    it("PUT - https://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink", () => {
+    it("PUT - https://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink", async () => {
         request.url = "https://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
-    it("PUT - http://www.ima-tech.ca/api/1.0/dogs/caniche-royal", () => {
+    it("PUT - http://www.ima-tech.ca/api/1.0/dogs/caniche-royal", async () => {
         request.url = "http://www.ima-tech.ca/api/1.0/dogs/caniche-royal";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
     })
 
-    it("PUT - http://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm", () => {
+    it("PUT - http://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm", async () => {
         request.url = "http://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
-    it("PUT - http://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC", () => {
+    it("PUT - http://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC", async () => {
         request.url = "http://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
-    it("PUT - http://www.ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink", () => {
+    it("PUT - http://www.ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink", async () => {
         request.url = "http://www.ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
     })
 
-    it("PUT - http://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink", () => {
+    it("PUT - http://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink", async () => {
         request.url = "http://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
-    it("PUT - http://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink", () => {
+    it("PUT - http://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink", async () => {
         request.url = "http://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
-    it("PUT - https://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal", () => {
+    it("PUT - https://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal", async () => {
         request.url = "https://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
     })
 
-    it("PUT - https://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm", () => {
+    it("PUT - https://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm", async () => {
         request.url = "https://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
-    it("PUT - https://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC", () => {
+    it("PUT - https://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC", async () => {
         request.url = "https://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
-    it("PUT - https://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink", () => {
+    it("PUT - https://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink", async () => {
         request.url = "https://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
     })
 
-    it("PUT - https://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink", () => {
+    it("PUT - https://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink", async () => {
         request.url = "https://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
-    it("PUT - https://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink", () => {
+    it("PUT - https://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink", async () => {
         request.url = "https://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
-    it("PUT - http://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal", () => {
+    it("PUT - http://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal", async () => {
         request.url = "http://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
     })
 
-    it("PUT - http://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm", () => {
+    it("PUT - http://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm", async () => {
         request.url = "http://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
-    it("PUT - http://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC", () => {
+    it("PUT - http://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC", async () => {
         request.url = "http://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
-    it("PUT - http://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink", () => {
+    it("PUT - http://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink", async () => {
         request.url = "http://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
     })
 
-    it("PUT - http://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink", () => {
+    it("PUT - http://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink", async () => {
         request.url = "http://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
-    it("PUT - http://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink", () => {
+    it("PUT - http://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink", async () => {
         request.url = "http://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
-    it("PUT - https://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal", () => {
+    it("PUT - https://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal", async () => {
         request.url = "https://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
     })
 
-    it("PUT - https://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm", () => {
+    it("PUT - https://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm", async () => {
         request.url = "https://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
-    it("PUT - https://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC", () => {
+    it("PUT - https://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC", async () => {
         request.url = "https://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
-    it("PUT - https://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink", () => {
+    it("PUT - https://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink", async () => {
         request.url = "https://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
     })
 
-    it("PUT - https://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink", () => {
+    it("PUT - https://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink", async () => {
         request.url = "https://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
-    it("PUT - https://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink", () => {
+    it("PUT - https://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink", async () => {
         request.url = "https://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
-    it("PUT - http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal", () => {
+    it("PUT - http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal", async () => {
         request.url = "http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
     })
 
-    it("PUT - http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm", () => {
+    it("PUT - http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm", async () => {
         request.url = "http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
-    it("PUT - http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC", () => {
+    it("PUT - http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC", async () => {
         request.url = "http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
-    it("PUT - http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink", () => {
+    it("PUT - http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink", async () => {
         request.url = "http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
     })
 
-    it("PUT - http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink", () => {
+    it("PUT - http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink", async () => {
         request.url = "http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
-    it("PUT - http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink", () => {
+    it("PUT - http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink", async () => {
         request.url = "http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink";
 
-        const response = router.execute(request, mockContainer);
+        const response = await router.execute(request, mockContainer);
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })

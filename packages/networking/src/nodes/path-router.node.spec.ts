@@ -90,14 +90,14 @@ describe("Path Router Node tests", () => {
     it("should retrieve the route parameters with the proper names and values", () => {
         const kittenSplitPaths = ["/", "/api", "/2.0", "/cats", "/137db2ad-e94f-4232-ba13-7910586fa43a", "/kittens", "/408ef3cf-f699-4179-a68a-2ea0071dc4fe"];
         const kittenNode = root.find(kittenSplitPaths, HttpMethod.Put);
-        const getKittenRouteParameters = (kittenNode.parent as PathRouterNode).getRouteParameters(kittenSplitPaths.reverse());
+        const getKittenRouteParameters = (kittenNode!.parent as PathRouterNode).getRouteParameters(kittenSplitPaths.reverse());
 
         expect(getKittenRouteParameters.id).toBe("137db2ad-e94f-4232-ba13-7910586fa43a")
         expect(getKittenRouteParameters.kittenId).toBe("408ef3cf-f699-4179-a68a-2ea0071dc4fe")
 
         const puppySplitPaths = ["/", "/api", "/1.0", "/dogs", "/35d7f872-bc3e-4436-8c06-2d027878cefd", "/puppies", "/914db6ac-61b1-41a0-809b-f33758effdee"];
         const puppyNode = root.find(puppySplitPaths, HttpMethod.Get);
-        const getPuppyRouteParameters = (puppyNode.parent as PathRouterNode).getRouteParameters(puppySplitPaths.reverse());
+        const getPuppyRouteParameters = (puppyNode!.parent as PathRouterNode).getRouteParameters(puppySplitPaths.reverse());
 
         expect(getPuppyRouteParameters.id).toBe("35d7f872-bc3e-4436-8c06-2d027878cefd")
         expect(getPuppyRouteParameters.puppyId).toBe("914db6ac-61b1-41a0-809b-f33758effdee")

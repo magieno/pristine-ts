@@ -65,9 +65,9 @@ export class Router implements RouterInterface {
 
             const resolvedMethodArguments: any[] = [];
 
-            methodNode.route.methodArguments.forEach(methodArgument => {
-                resolvedMethodArguments.push(this.controllerMethodParameterDecoratorResolver.resolve(methodArgument, request, routeParameters));
-            });
+            for (const methodArgument of methodNode.route.methodArguments) {
+                resolvedMethodArguments.push(await this.controllerMethodParameterDecoratorResolver.resolve(methodArgument, request, routeParameters));
+            }
 
             // Call the controller with the resolved Method arguments
             try {
