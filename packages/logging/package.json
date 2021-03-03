@@ -10,6 +10,9 @@
     "prepublish": "npm run build",
     "test": "jest"
   },
+  "dependencies": {
+    "@pristine-ts/common": "file:../common"
+  },
   "files": [
     "dist"
   ],
