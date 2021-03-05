@@ -1,14 +1,14 @@
-import {container, DependencyContainer, inject, injectable, singleton} from "tsyringe";
+import {inject, injectable} from "tsyringe";
 import {SeverityEnum} from "../enums/severity.enum";
 import {LogModel} from "../models/log.model";
 import {WriterInterface} from "../interfaces/writer.interface";
-import {Readable, Writable} from "stream";
+import {Readable} from "stream";
 import * as util from "util";
 
 @injectable()
 export class ConsoleWriter implements WriterInterface {
   public readableStream: Readable;
-  public writableStream: Writable;
+  private stackedLogs: LogModel[] = [];
 
   public constructor(@inject("%pristine.logging.numberOfStackedLogs%") private readonly numberOfStackedLogs: number,
                      @inject("%pristine.logging.logSeverityLevelConfiguration%") private readonly logSeverityLevelConfiguration: number,
@@ -16,23 +16,38 @@ export class ConsoleWriter implements WriterInterface {
                      @inject("%pristine.logging.logInfoDepthConfiguration%") private readonly logInfoDepthConfiguration: number,
                      @inject("%pristine.logging.logWarningDepthConfiguration%") private readonly logWarningDepthConfiguration: number,
                      @inject("%pristine.logging.logErrorDepthConfiguration%") private readonly logErrorDepthConfiguration: number,
-                     @inject("%pristine.logging.logCriticalLevelConfiguration%") private readonly logCriticalLevelConfiguration: number,
+                     @inject("%pristine.logging.logCriticalDepthConfiguration%") private readonly logCriticalDepthConfiguration: number,
+                     @inject("%pristine.logging.consoleWriterActivated%") private readonly consoleWriterActivated: boolean,
                      ) {
-    this.readableStream = new Readable({objectMode: true});
-    this.writableStream = new Writable({objectMode: true});
-    this.readableStream.on('data', chunk => {
-      this.log(chunk);
-    });
+    this.initialize();
   }
 
-  public log(log: LogModel): void {
+  private initialize(){
+    if(this.isActive()) {
+      this.readableStream = new Readable({
+        objectMode: true,
+        read(size: number) {
+          return true;
+        }
+      });
+      this.readableStream.on('data', chunk => {
+        this.captureLog(chunk);
+      });
+    }
+  }
+
+  public isActive(): boolean {
+    return this.consoleWriterActivated;
+  }
+
+  private log(log: LogModel): void {
     switch (log.severity) {
       case SeverityEnum.Debug:
         console.debug(log.message + " - Extra: " + util.inspect(log.extra, false, this.logDebugDepthConfiguration));
         break;
 
       case SeverityEnum.Info:
-        console.log(log.message + " - Extra: " + util.inspect(log.extra, false, this.logInfoDepthConfiguration));
+        console.info(log.message + " - Extra: " + util.inspect(log.extra, false, this.logInfoDepthConfiguration));
         break;
 
       case SeverityEnum.Warning:
@@ -44,8 +59,43 @@ export class ConsoleWriter implements WriterInterface {
         break;
 
       case SeverityEnum.Critical:
-        console.error(log.message + " - Extra: " + util.inspect(log.extra, false, this.logCriticalLevelConfiguration));
+        console.error(log.message + " - Extra: " + util.inspect(log.extra, false, this.logCriticalDepthConfiguration));
         break;
     }
+  }
+
+  private captureLog(log: LogModel): void {
+    if (log.severity < this.logSeverityLevelConfiguration) {
+      // We still add a log to the stack to ensure that when there's an error, we log everything.
+      this.addStackedLog(log);
+
+      return;
+    }
+
+    //todo do we really want to always print the stacked logs ?
+    this.outputStackedLogs();
+    this.log(log);
+  }
+
+  private addStackedLog(log: LogModel) {
+    // Push the log at the end of the array
+    this.stackedLogs.push(log);
+
+    // If the stacked logs is already at the maximum number of logs, we delete the first log.
+    if (this.stackedLogs.length >= this.numberOfStackedLogs) {
+      this.stackedLogs.shift();
+    }
+  }
+
+  private outputStackedLogs() {
+    for(const log of this.stackedLogs){
+      this.log(log);
+    }
+
+    this.clearStackedLogs();
+  }
+
+  private clearStackedLogs() {
+    this.stackedLogs = [];
   }
 }

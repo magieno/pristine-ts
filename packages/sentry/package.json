@@ -1,0 +1,58 @@
+{
+  "name": "@pristine-ts/sentry",
+  "version": "0.0.29",
+  "description": "",
+  "module": "dist/lib/esm/sentry.module.js",
+  "main": "dist/lib/cjs/sentry.module.js",
+  "types": "dist/types/sentry.module.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
+    "prepublish": "npm run build",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@pristine-ts/common": "file:../common",
+    "@pristine-ts/logging": "file:../logging",
+    "@sentry/node": "^6.2.1"
+  },
+  "files": [
+    "dist"
+  ],
+  "author": "",
+  "license": "ISC",
+  "jest": {
+    "transform": {
+      ".(ts|tsx)": "ts-jest"
+    },
+    "globals": {
+      "ts-jest": {
+        "tsconfig": {
+          "strictNullChecks": false
+        }
+      }
+    },
+    "testEnvironment": "node",
+    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/test/"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 90,
+        "functions": 95,
+        "lines": 95,
+        "statements": 95
+      }
+    },
+    "collectCoverageFrom": [
+      "src/*.{js,ts}"
+    ]
+  },
+  "gitHead": "112f715bf4ac6467192d416aa6e419f772b77c58"
+}

@@ -1,23 +1,20 @@
 import {ModuleInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
-import {ConsoleWriter} from "./writers/console.writer";
+import {SentryWriter} from "./writers/sentry.writer";
 import {ConfigurationDefinition} from "./configurations/configuration.definition";
 
 export * from "./configurations/configurations";
-export * from "./enums/enums";
-export * from "./handlers/handlers";
 export * from "./interfaces/interfaces";
-export * from "./models/models";
 export * from "./writers/writers";
 
-export const LoggingModule: ModuleInterface = {
-    keyname: "pristine.logging",
+export const SentryModule: ModuleInterface = {
+    keyname: "pristine.sentry",
     configurationDefinition: ConfigurationDefinition,
     importServices: [],
     importModules: [],
     providerRegistrations: [
         {
             token: ServiceDefinitionTagEnum.Writer,
-            useToken: ConsoleWriter,
+            useToken: SentryWriter,
         }
     ]
 }

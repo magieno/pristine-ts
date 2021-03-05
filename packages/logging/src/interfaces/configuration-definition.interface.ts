@@ -5,5 +5,6 @@ export interface ConfigurationDefinitionInterface {
     logInfoDepthConfiguration?: number,
     logWarningDepthConfiguration?: number,
     logErrorDepthConfiguration?: number,
-    logCriticalLevelConfiguration?: number,
+    logCriticalDepthConfiguration?: number,
+    consoleWriterActivated?: boolean,
 }

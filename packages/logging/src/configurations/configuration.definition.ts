@@ -7,5 +7,6 @@ export class ConfigurationDefinition implements ConfigurationDefinitionInterface
     logInfoDepthConfiguration?: number = 10;
     logWarningDepthConfiguration?: number = 10;
     logErrorDepthConfiguration?: number = 10;
-    logCriticalLevelConfiguration?: number = 10;
+    logCriticalDepthConfiguration?: number = 10;
+    consoleWriterActivated?: boolean = false;
 }

@@ -5,6 +5,14 @@ import {controller, guards, HttpMethod, NetworkingModule, RequestInterface, rout
 import {CoreModule} from "@pristine-ts/core";
 import {LoggingModule, LogHandler, ConfigurationDefinitionInterface} from "@pristine-ts/logging";
 
+
+// @ts-ignore
+global.console = {
+    info: jest.fn(),
+    debug: jest.fn(),
+    error: jest.fn()
+}
+
 describe("Logging Module instantiation in the Kernel", () => {
 
     beforeEach(async () => {
@@ -20,7 +28,7 @@ describe("Logging Module instantiation in the Kernel", () => {
             logInfoDepthConfiguration: 10,
             logWarningDepthConfiguration: 10,
             logErrorDepthConfiguration: 10,
-            logCriticalLevelConfiguration: 10,
+            logCriticalDepthConfiguration: 10,
         }
         const kernel = new Kernel();
         await kernel.init({
@@ -33,10 +41,16 @@ describe("Logging Module instantiation in the Kernel", () => {
             configuration: loggingConfiguration,
         }]);
 
-
         const logHandler: LogHandler = await kernel.container.resolve(LogHandler);
 
-        logHandler.info("Allo");
+        logHandler.info("Allo", {al:{bob:12}});
+
+        await new Promise(res => setTimeout(res, 1000));
+
+        expect(global.console.log).toHaveBeenCalledWith(
+            "Allo - Extra: { al: { bob: 12 } }"
+        );
+
     })
 
 })
