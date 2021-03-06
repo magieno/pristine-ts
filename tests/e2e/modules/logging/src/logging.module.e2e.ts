@@ -47,9 +47,7 @@ describe("Logging Module instantiation in the Kernel", () => {
 
         await new Promise(res => setTimeout(res, 1000));
 
-        expect(global.console.log).toHaveBeenCalledWith(
-            "Allo - Extra: { al: { bob: 12 } }"
-        );
+        expect(global.console.log).toHaveBeenCalledWith("Allo - Extra: { al: { bob: 12 } }");
 
     })
 
