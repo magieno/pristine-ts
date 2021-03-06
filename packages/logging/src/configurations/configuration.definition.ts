@@ -9,4 +9,6 @@ export class ConfigurationDefinition implements ConfigurationDefinitionInterface
     logErrorDepthConfiguration?: number = 10;
     logCriticalDepthConfiguration?: number = 10;
     consoleWriterActivated?: boolean = false;
+    fileWriterActivated?: boolean = false;
+    filePath?: string = "./logs.txt";
 }
