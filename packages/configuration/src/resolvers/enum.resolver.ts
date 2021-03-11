@@ -4,9 +4,9 @@ import {ConfigurationResolverError} from "../errors/configuration-resolver.error
 /**
  * This class takes either another resolver or a scalar (number or string) and returns an enum value.
  */
-export class EnumResolver implements ResolverInterface<number | string> {
+export class EnumResolver<E> implements ResolverInterface<E> {
     public constructor(
-        private readonly valueOrResolver: string | number | ResolverInterface<string> | ResolverInterface<number> | ResolverInterface<number | string>,
+        private readonly valueOrResolver: string | number | ResolverInterface<string> | ResolverInterface<number>,
         private readonly enumClass: any,
     ) {
     }
@@ -18,7 +18,7 @@ export class EnumResolver implements ResolverInterface<number | string> {
      * @param enumClass
      * @private
      */
-    private resolveString (value: string, enumClass: any): number | string {
+    private resolveString (value: string, enumClass: any): E{
         const normalizedValue = value.toLowerCase();
 
         const keys = Object.keys(enumClass).filter(key => isNaN(Number(key)));
@@ -39,7 +39,7 @@ export class EnumResolver implements ResolverInterface<number | string> {
      * @param enumClass
      * @private
      */
-    private resolveNumber (value: number, enumClass: any): number | string {
+    private resolveNumber (value: number, enumClass: any): E {
         const keys = Object.keys(enumClass);
         for(const key of keys){
             if (enumClass[key] === value){
@@ -57,7 +57,7 @@ export class EnumResolver implements ResolverInterface<number | string> {
      * @param enumClass
      * @private
      */
-    private async resolveValueOrResolver(value:  string | number | ResolverInterface<string> | ResolverInterface<number> | ResolverInterface<number | string>, enumClass: any): Promise<number | string> {
+    private async resolveValueOrResolver(value:  string | number | ResolverInterface<string> | ResolverInterface<number>, enumClass: any): Promise<E> {
         value = !isNaN(+value) && typeof value !== "object" ? +value : value;
         if(typeof value === "string") {
             return this.resolveString(value, enumClass);
@@ -77,7 +77,7 @@ export class EnumResolver implements ResolverInterface<number | string> {
     /**
      * This method resolve the value whether it's a scalar or a Resolver.
      */
-    async resolve(): Promise<number | string> {
+    async resolve(): Promise<E> {
         return this.resolveValueOrResolver(this.valueOrResolver, this.enumClass);
     }
 
