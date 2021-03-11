@@ -1,12 +1,12 @@
 import {inject, injectable} from "tsyringe";
 import {SeverityEnum} from "../enums/severity.enum";
 import {LogModel} from "../models/log.model";
-import {WriterInterface} from "../interfaces/writer.interface";
+import {LoggerInterface} from "../interfaces/logger.interface";
 import {Readable} from "stream";
 import * as util from "util";
 
 @injectable()
-export class ConsoleWriter implements WriterInterface {
+export class ConsoleLogger implements LoggerInterface {
   public readableStream: Readable;
   private stackedLogs: LogModel[] = [];
 

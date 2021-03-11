@@ -1,8 +1,8 @@
 import "reflect-metadata"
-import {ConsoleWriter} from "./console.writer";
+import {ConsoleLogger} from "./console.writer";
 import {SeverityEnum} from "../enums/severity.enum";
 import {LogModel} from "../models/log.model";
-import {FileWriter} from "./file.writer";
+import {FileLogger} from "./file.writer";
 const fs = require('fs');
 
 
@@ -13,7 +13,7 @@ describe("File writer", () => {
     })
 
     it("should log if configuration level is info and severity is higher", async () => {
-        const fileWriter = new FileWriter(
+        const fileWriter = new FileLogger(
             0,
             SeverityEnum.Info,
             3,
@@ -84,7 +84,7 @@ describe("File writer", () => {
     });
 
     it("should log if configuration level is debug and severity is higher", async () => {
-        const fileWriter = new FileWriter(
+        const fileWriter = new FileLogger(
             0,
             SeverityEnum.Debug,
             3,
@@ -153,7 +153,7 @@ describe("File writer", () => {
     });
 
     it("should log if configuration level is warning and severity is higher", async () => {
-        const fileWriter = new FileWriter(
+        const fileWriter = new FileLogger(
             0,
             SeverityEnum.Warning,
             3,
@@ -221,7 +221,7 @@ describe("File writer", () => {
     });
 
     it("should log if configuration level is error and severity is higher", async () => {
-        const fileWriter = new FileWriter(
+        const fileWriter = new FileLogger(
             0,
             SeverityEnum.Error,
             3,
@@ -289,7 +289,7 @@ describe("File writer", () => {
 
 
     it("should log if configuration level is critical and severity is higher", async () => {
-        const fileWriter = new FileWriter(
+        const fileWriter = new FileLogger(
             0,
             SeverityEnum.Critical,
             3,
@@ -355,7 +355,7 @@ describe("File writer", () => {
     });
 
     it("should log stacked logs if log something", async () => {
-        const fileWriter = new FileWriter(
+        const fileWriter = new FileLogger(
             5,
             SeverityEnum.Critical,
             3,

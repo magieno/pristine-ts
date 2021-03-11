@@ -1,13 +1,13 @@
 import {inject, injectable} from "tsyringe";
 import {SeverityEnum} from "../enums/severity.enum";
 import {LogModel} from "../models/log.model";
-import {WriterInterface} from "../interfaces/writer.interface";
+import {LoggerInterface} from "../interfaces/logger.interface";
 import {Readable, Writable} from "stream";
 import * as util from "util";
 const fs = require('fs');
 
 @injectable()
-export class FileWriter implements WriterInterface {
+export class FileLogger implements LoggerInterface {
   public readableStream: Readable;
   public writableStream: Writable;
   private stackedLogs: LogModel[] = [];
