@@ -1,5 +1,5 @@
 import {ModuleInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
-import {ConsoleWriter} from "./writers/console.writer";
+import {ConsoleLogger} from "./loggers/console.logger";
 import {ConfigurationDefinition} from "./configurations/configuration.definition";
 
 export * from "./configurations/configurations";
@@ -7,7 +7,7 @@ export * from "./enums/enums";
 export * from "./handlers/handlers";
 export * from "./interfaces/interfaces";
 export * from "./models/models";
-export * from "./writers/writers";
+export * from "./loggers/loggers";
 
 export const LoggingModule: ModuleInterface = {
     keyname: "pristine.logging",
@@ -16,8 +16,8 @@ export const LoggingModule: ModuleInterface = {
     importModules: [],
     providerRegistrations: [
         {
-            token: ServiceDefinitionTagEnum.Writer,
-            useToken: ConsoleWriter,
+            token: ServiceDefinitionTagEnum.Logger,
+            useToken: ConsoleLogger,
         }
     ]
 }

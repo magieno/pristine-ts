@@ -1,10 +1,10 @@
 import {ModuleInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
-import {SentryWriter} from "./writers/sentry.writer";
+import {SentryLogger} from "./loggers/sentry.logger";
 import {ConfigurationDefinition} from "./configurations/configuration.definition";
 
 export * from "./configurations/configurations";
 export * from "./interfaces/interfaces";
-export * from "./writers/writers";
+export * from "./loggers/loggers";
 
 export const SentryModule: ModuleInterface = {
     keyname: "pristine.sentry",
@@ -13,8 +13,8 @@ export const SentryModule: ModuleInterface = {
     importModules: [],
     providerRegistrations: [
         {
-            token: ServiceDefinitionTagEnum.Writer,
-            useToken: SentryWriter,
+            token: ServiceDefinitionTagEnum.Logger,
+            useToken: SentryLogger,
         }
     ]
 }

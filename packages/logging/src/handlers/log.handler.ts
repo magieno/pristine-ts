@@ -1,43 +1,42 @@
 import {injectable, injectAll} from "tsyringe";
 import {SeverityEnum} from "../enums/severity.enum";
 import {LogModel} from "../models/log.model";
-import {WriterInterface} from "../interfaces/writer.interface";
+import {LoggerInterface} from "../interfaces/logger.interface";
 import {ServiceDefinitionTagEnum} from "@pristine-ts/common";
 
 @injectable()
 export class LogHandler {
 
-  public constructor(@injectAll(ServiceDefinitionTagEnum.Writer) private readonly writers: WriterInterface[]) {
+  public constructor(@injectAll(ServiceDefinitionTagEnum.Logger) private readonly loggers: LoggerInterface[]) {
   }
 
-  public error(message: string, extra?: any, identity?: any): void {
-    return this.log(message, SeverityEnum.Error, extra, identity);
+  public error(message: string, extra?: any): void {
+    return this.log(message, SeverityEnum.Error, extra);
   }
 
-  public critical(message: string, extra?: any, identity?: any): void {
-    return this.log(message, SeverityEnum.Critical, extra, identity);
+  public critical(message: string, extra?: any): void {
+    return this.log(message, SeverityEnum.Critical, extra);
   }
 
-  public debug(message: string, extra?: any, identity?: any): void {
-    return this.log(message, SeverityEnum.Debug, extra, identity);
+  public debug(message: string, extra?: any): void {
+    return this.log(message, SeverityEnum.Debug, extra);
   }
 
-  public info(message: string, extra?: any, identity?: any): void {
-    return this.log(message, SeverityEnum.Info, extra, identity);
+  public info(message: string, extra?: any): void {
+    return this.log(message, SeverityEnum.Info, extra);
   }
 
-  public warning(message: string, extra?: any, identity?: any): void {
-    return this.log(message, SeverityEnum.Warning, extra, identity);
+  public warning(message: string, extra?: any): void {
+    return this.log(message, SeverityEnum.Warning, extra);
   }
 
-  public log(message: string, severity: SeverityEnum = SeverityEnum.Error, extra?: any, identity?: any): void {
+  public log(message: string, severity: SeverityEnum = SeverityEnum.Error, extra?: any): void {
     const log = new LogModel();
     log.extra = extra;
     log.severity = severity;
-    log.identity = identity;
     log.message = message;
 
-    for(const writer of this.writers){
+    for(const writer of this.loggers){
       if(writer.isActive()) {
         writer.readableStream.push(log);
       }

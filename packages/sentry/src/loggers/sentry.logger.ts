@@ -2,10 +2,10 @@ import {injectable, inject} from "tsyringe";
 import * as Sentry from "@sentry/node";
 import {Severity as SentrySeverity} from "@sentry/node";
 import {Readable, Writable} from "stream";
-import {LogModel, SeverityEnum, WriterInterface} from "@pristine-ts/logging";
+import {LogModel, SeverityEnum, LoggerInterface} from "@pristine-ts/logging";
 
 @injectable()
-export class SentryWriter implements WriterInterface {
+export class SentryLogger implements LoggerInterface {
     public readableStream: Readable;
 
     constructor(@inject("%pristine.sentry.sentryDsn%") private readonly sentryDsn: string,
@@ -73,7 +73,7 @@ export class SentryWriter implements WriterInterface {
                     }
 
                     Sentry.captureMessage(log.message, {
-                        user: log.identity,
+                        // user: log.extra.identity,
                         extra: log.extra,
                         level: SentrySeverity.Error,
                     });
@@ -82,7 +82,7 @@ export class SentryWriter implements WriterInterface {
                 case SeverityEnum.Critical:
                     // We always send to Sentry a Critical error
                     Sentry.captureMessage(log.message, {
-                        user: log.identity,
+                        // user: log.extra.identity,
                         extra: log.extra,
                         level: SentrySeverity.Critical,
                     });
