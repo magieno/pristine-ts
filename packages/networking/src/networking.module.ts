@@ -26,21 +26,5 @@ export const NetworkingModule: ModuleInterface = {
      * to instantiate a specific class.
      */
     providerRegistrations: [
-        {
-            token: ServiceDefinitionTagEnum.MethodParameterDecoratorResolver,
-            useToken: BodyParameterDecoratorResolver,
-        },
-        {
-            token: ServiceDefinitionTagEnum.MethodParameterDecoratorResolver,
-            useToken: QueryParameterDecoratorResolver,
-        },
-        {
-            token: ServiceDefinitionTagEnum.MethodParameterDecoratorResolver,
-            useToken: QueryParametersDecoratorResolver,
-        },
-        {
-            token: ServiceDefinitionTagEnum.MethodParameterDecoratorResolver,
-            useToken: RouteParameterDecoratorResolver,
-        },
     ],
 }

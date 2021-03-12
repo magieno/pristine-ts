@@ -23,9 +23,5 @@ export const JwtModule: ModuleInterface = {
     providerRegistrations: [{
         token: "JwtManagerInterface",
         useToken: JwtManager,
-    },
-        {
-            token: ServiceDefinitionTagEnum.MethodParameterDecoratorResolver,
-            useToken: JwtPayloadParameterDecoratorResolver,
-        }]
+    }]
 }

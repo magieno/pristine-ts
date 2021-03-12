@@ -2,7 +2,7 @@ import "reflect-metadata"
 import {ResolvedClassModel} from "./models/resolved-class.model";
 import {testModule} from "./test.module";
 import {PermissionManager} from "./managers/permission.manager";
-import {container, DependencyContainer, inject, injectable, singleton} from "tsyringe";
+import {container, DependencyContainer, inject, injectAll, injectable, singleton} from "tsyringe";
 import {
     HttpMethod,
     Request,
@@ -12,7 +12,7 @@ import {
     HttpError,
     NetworkingModule,
 } from "@pristine-ts/networking";
-import {ServiceDefinitionTagEnum, ModuleInterface} from "@pristine-ts/common";
+import {ServiceDefinitionTagEnum, ModuleInterface, tag} from "@pristine-ts/common";
 import {
     Kernel,
     RequestInterceptorInterface,
@@ -359,5 +359,54 @@ describe("Kernel.ts", () => {
         const instance = kernel.container.resolve(TestConfigurationParameterInjectedInConstructor);
         expect(instance.test1Parameter).toBe("NotDefault");
         expect(instance.test2Parameter).toBe("test2");
+    })
+
+
+    it("should inject all the services that are tagged with the tag decorator", async () => {
+        @tag("taggedClass")
+        @injectable()
+        class FirstClassToBeInjected {
+            public element: string;
+
+            public constructor() {
+                this.element = "Injected";
+            }
+        }
+
+        @tag("taggedClass")
+        @injectable()
+        class SecondClassToBeInjected {
+            public element: string;
+
+            public constructor() {
+                this.element = "Injected";
+            }
+        }
+
+        @injectable()
+        class ClassThatHasAllTheOthersInjected {
+            public constructor(@injectAll("taggedClass") public readonly taggedClasses) {
+            }
+        }
+
+        const module: ModuleInterface = {
+            keyname: "test",
+            importServices: [
+            ],
+
+            importModules: [
+                CoreModule,
+            ],
+            providerRegistrations: [
+            ],
+        };
+
+
+        const kernel = new Kernel();
+
+        await kernel.init(module);
+
+        const classThatHasAllTheOthersInjected = kernel.container.resolve(ClassThatHasAllTheOthersInjected);
+        expect(classThatHasAllTheOthersInjected.taggedClasses.length).toBe(2);
     })
 })

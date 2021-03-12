@@ -1,5 +1,5 @@
 import {injectable,  injectAll} from "tsyringe";
-import {ServiceDefinitionTagEnum} from "@pristine-ts/common";
+import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {ControllerMethodParameterDecoratorResolverInterface} from "../interfaces/controller-method-parameter-decorator-resolver.interface";
 import {BodyParameterDecoratorInterface} from "../interfaces/body-parameteter-decorator.interface";
 import {QueryParameterDecoratorInterface} from "../interfaces/query-parameter-decorator.interface";
@@ -7,6 +7,7 @@ import {QueryParametersDecoratorInterface} from "../interfaces/query-parameters-
 import {RouteParameterDecoratorInterface} from "../interfaces/route-parameter-decorator.interface";
 import {Request} from "../models/request";
 
+@tag(ServiceDefinitionTagEnum.MethodParameterDecoratorResolver)
 @injectable()
 export class ControllerMethodParameterDecoratorResolver {
     constructor(@injectAll(ServiceDefinitionTagEnum.MethodParameterDecoratorResolver) private readonly methodParameterDecoratorResolvers: ControllerMethodParameterDecoratorResolverInterface[]) {
