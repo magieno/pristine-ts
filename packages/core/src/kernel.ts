@@ -1,15 +1,32 @@
 import "reflect-metadata";
 import {container, DependencyContainer, isClassProvider, ValueProvider, instanceCachingFactory} from "tsyringe";
 import {InitializationError} from "./errors/initialization.error";
-import {Response, Request, Router, controllerRegistry, GuardInitializationError, RouteMethodDecorator, RequestInterface, RouterInterface, Route, HttpError} from "@pristine-ts/networking";
-import {ModuleConfiguration, ConfigurationParser } from "@pristine-ts/configuration";
-import {Event } from "@pristine-ts/event";
+import {
+    Response,
+    Request,
+    Router,
+    controllerRegistry,
+    GuardInitializationError,
+    RouteMethodDecorator,
+    RequestInterface,
+    RouterInterface,
+    Route,
+    HttpError
+} from "@pristine-ts/networking";
+import {ModuleConfiguration, ConfigurationParser} from "@pristine-ts/configuration";
+import {Event} from "@pristine-ts/event";
 import {RuntimeError} from "./errors/runtime.error";
 import {RequestInterceptorInterface} from "./interfaces/request-interceptor.interface";
 import {ResponseInterceptorInterface} from "./interfaces/response-interceptor.interface";
 import {ErrorResponseInterceptorInterface} from "./interfaces/error-response-interceptor.interface";
-import {ServiceDefinitionTagEnum, ModuleInterface, ProviderRegistration} from "@pristine-ts/common";
+import {
+    ServiceDefinitionTagEnum,
+    ModuleInterface,
+    ProviderRegistration,
+    taggedProviderRegistrationsRegistry
+} from "@pristine-ts/common";
 import {EventTransformer, EventDispatcher} from "@pristine-ts/event";
+
 const util = require('util');
 
 /**
@@ -21,7 +38,7 @@ export class Kernel {
      */
     public container: DependencyContainer = container.createChildContainer();
 
-    private instantiatedModules: {[id: string]: ModuleInterface} = {};
+    private instantiatedModules: { [id: string]: ModuleInterface } = {};
 
     /**
      * Contains a reference to the Router. It is undefined until this.setupRouter() is called.
@@ -29,13 +46,43 @@ export class Kernel {
      */
     private router?: RouterInterface;
 
-    public constructor() {}
+    public constructor() {
+    }
 
     public async init(module: ModuleInterface, moduleConfigurations: ModuleConfiguration<any>[] = []) {
         await this.initModule(module, moduleConfigurations);
 
+        // Register all the service tags in the container.
+        await this.registerServiceTags();
+
         // Setup the router
         this.setupRouter();
+    }
+
+    /**
+     * Register the provider registration in the container.
+     * @param providerRegistration
+     * @private
+     */
+    private registerProviderRegistration(providerRegistration: ProviderRegistration) {
+        const args = [
+            providerRegistration.token,
+            providerRegistration,
+        ];
+
+        if (providerRegistration.hasOwnProperty("options")) {
+            // Ignore this since even if we check for the property to exist, it complains.
+            // @ts-ignore
+            args.push(providerRegistration.options);
+        }
+
+        try {
+            // Register the provider in the container
+            // @ts-ignore
+            this.container.register.apply(this.container, args);
+        } catch (e) {
+            throw new InitializationError("There was an error registering the following providerRegistration: " + util.inspect(providerRegistration, false, 4), e)
+        }
     }
 
     /**
@@ -49,48 +96,30 @@ export class Kernel {
      * @private
      */
     private async initModule(module: ModuleInterface, moduleConfigurations: ModuleConfiguration<any>[] = []) {
-        if(module.importModules) {
+        if (module.importModules) {
             // Start by recursively importing all the packages
             for (let importedModule of module.importModules) {
                 await this.initModule(importedModule, moduleConfigurations);
             }
         }
 
-        if(this.instantiatedModules.hasOwnProperty(module.keyname)) {
+        if (this.instantiatedModules.hasOwnProperty(module.keyname)) {
             // module already instantiated, we return
             return;
         }
 
         // Add all the providers to the container
-        if(module.providerRegistrations) {
-            module.providerRegistrations.forEach( (providerRegistration: ProviderRegistration) => {
-                const args = [
-                    providerRegistration.token,
-                    providerRegistration,
-                ];
-
-                if(providerRegistration.hasOwnProperty("options")) {
-                    // Ignore this since even if we check for the property to exist, it complains.
-                    // @ts-ignore
-                    args.push(providerRegistration.options);
-                }
-
-                try {
-                    // Register the provider in the container
-                    // @ts-ignore
-                    this.container.register.apply(this.container, args);
-                }
-                catch (e) {
-                    throw new InitializationError("There was an error registering the following providerRegistration: " + util.inspect(providerRegistration, false, 4), e)
-                }
+        if (module.providerRegistrations) {
+            module.providerRegistrations.forEach((providerRegistration: ProviderRegistration) => {
+               this.registerProviderRegistration(providerRegistration);
             })
         }
 
         // Validate the configuration with this module. If the module doesn't specify a configuration definition, then return.
         const configurationForCurrentModule = moduleConfigurations.find(moduleConfiguration => moduleConfiguration.moduleKeyname === module.keyname);
 
-        if(module.configurationDefinition === undefined) {
-            if(configurationForCurrentModule !== undefined) {
+        if (module.configurationDefinition === undefined) {
+            if (configurationForCurrentModule !== undefined) {
                 throw new InitializationError("You passed a configuration for module: '" + module.keyname + "', but it doesn't expose a configuration.")
             }
 
@@ -104,9 +133,9 @@ export class Kernel {
         const configurationParameterInjectionTokens = await configurationParser.parse(module.configurationDefinition, configurationForCurrentModule?.configuration ?? {}, module.keyname)
 
         configurationParameterInjectionTokens.forEach(injectionToken => {
-           this.container.register(injectionToken.parameterName, {
-               useFactory: instanceCachingFactory(() => injectionToken.value),
-           });
+            this.container.register(injectionToken.parameterName, {
+                useFactory: instanceCachingFactory(() => injectionToken.value),
+            });
         });
 
         this.instantiatedModules[module.keyname] = module;
@@ -124,21 +153,20 @@ export class Kernel {
         let interceptedRequest = request;
 
         // Check first if there are any RequestInterceptors
-        if(container.isRegistered(ServiceDefinitionTagEnum.RequestInterceptor, true)) {
+        if (container.isRegistered(ServiceDefinitionTagEnum.RequestInterceptor, true)) {
             const interceptors: any[] = container.resolveAll(ServiceDefinitionTagEnum.RequestInterceptor);
 
             for (const interceptor of interceptors) {
                 // We don't have a guarantee that the request interceptors will implement the Interface, even though we specify it should.
                 // So, we have to verify that the method exists, and if it doesn't we throw
-                if(typeof interceptor.interceptRequest === "undefined") {
+                if (typeof interceptor.interceptRequest === "undefined") {
                     throw new RuntimeError("The Request Interceptor named: '" + interceptor.constructor.name + "' doesn't have the 'interceptRequest' method. RequestInterceptors should implement the RequestInterceptor interface.")
                 }
 
                 try {
                     // https://stackoverflow.com/a/27760489/684101
                     interceptedRequest = await Promise.resolve((interceptor as RequestInterceptorInterface).interceptRequest(interceptedRequest));
-                }
-                catch (e) {
+                } catch (e) {
                     throw new RuntimeError("There was an exception thrown while executing the 'interceptRequest' method of the RequestInterceptor named: '" + interceptor.constructor.name + "'. Error thrown is: '" + e + "'.");
                 }
             }
@@ -155,26 +183,25 @@ export class Kernel {
      * @param container
      * @private
      */
-    private async executeResponseInterceptors(response: Response, request: Request, container: DependencyContainer ): Promise<Response> {
+    private async executeResponseInterceptors(response: Response, request: Request, container: DependencyContainer): Promise<Response> {
         // Execute all the request interceptors
         let interceptedResponse = response;
 
         // Check first if there are any RequestInterceptors
-        if(container.isRegistered(ServiceDefinitionTagEnum.ResponseInterceptor, true)) {
+        if (container.isRegistered(ServiceDefinitionTagEnum.ResponseInterceptor, true)) {
             const interceptors: any[] = container.resolveAll(ServiceDefinitionTagEnum.ResponseInterceptor);
 
             for (const interceptor of interceptors) {
                 // We don't have a guarantee that the request interceptors will implement the Interface, even though we specify it should.
                 // So, we have to verify that the method exists, and if it doesn't we throw
-                if(typeof interceptor.interceptResponse === "undefined") {
+                if (typeof interceptor.interceptResponse === "undefined") {
                     throw new RuntimeError("The Response Interceptor named: '" + interceptor.constructor.name + "' doesn't have the 'interceptResponse' method. ResponseInterceptors should implement the ResponseInterceptor interface.")
                 }
 
                 try {
                     // https://stackoverflow.com/a/27760489/684101
                     interceptedResponse = await Promise.resolve((interceptor as ResponseInterceptorInterface).interceptResponse(interceptedResponse, request));
-                }
-                catch (e) {
+                } catch (e) {
                     throw new RuntimeError("There was an exception thrown while executing the 'interceptResponse' method of the ResponseInterceptor named: '" + interceptor.constructor.name + "'. Error thrown is: '" + e + "'.");
                 }
             }
@@ -196,10 +223,9 @@ export class Kernel {
         let interceptedErrorResponse = new Response();
         interceptedErrorResponse.request = request;
 
-        if(error instanceof HttpError) {
+        if (error instanceof HttpError) {
             interceptedErrorResponse.status = (error as HttpError).httpStatus
-        }
-        else {
+        } else {
             interceptedErrorResponse.status = 500;
         }
 
@@ -209,21 +235,20 @@ export class Kernel {
         };
 
         // Check first if there are any RequestInterceptors
-        if(container.isRegistered(ServiceDefinitionTagEnum.ErrorResponseInterceptor, true)) {
+        if (container.isRegistered(ServiceDefinitionTagEnum.ErrorResponseInterceptor, true)) {
             const interceptors: any[] = container.resolveAll(ServiceDefinitionTagEnum.ErrorResponseInterceptor);
 
             for (const interceptor of interceptors) {
                 // We don't have a guarantee that the request interceptors will implement the Interface, even though we specify it should.
                 // So, we have to verify that the method exists, and if it doesn't we throw
-                if(typeof interceptor.interceptError === "undefined") {
+                if (typeof interceptor.interceptError === "undefined") {
                     throw new RuntimeError("The Error Response Interceptor named: '" + interceptor.constructor.name + "' doesn't have the 'interceptError' method. ErrorResponseInterceptors should implement the ErrorResponseInterceptor interface.")
                 }
 
                 try {
                     // https://stackoverflow.com/a/27760489/684101
                     interceptedErrorResponse = await Promise.resolve((interceptor as ErrorResponseInterceptorInterface).interceptError(error, request, interceptedErrorResponse));
-                }
-                catch (e) {
+                } catch (e) {
                     throw new RuntimeError("There was an exception thrown while executing the 'interceptError' method of the ErrorResponseInterceptors named: '" + interceptor.constructor.name + "'. Error thrown is: '" + e + "'.");
                 }
             }
@@ -263,7 +288,7 @@ export class Kernel {
 
         return new Promise(async (resolve) => {
             // Check for the router to not be undefined.
-            if(this.router === undefined) {
+            if (this.router === undefined) {
                 throw new InitializationError("The Router is undefined");
             }
 
@@ -302,28 +327,28 @@ export class Kernel {
 
         // Init the controllers
         controllerRegistry.forEach(controller => {
-            if(this.router === undefined) {
+            if (this.router === undefined) {
                 throw new InitializationError("The Router is undefined");
             }
 
-            if(controller.hasOwnProperty("__metadata__") === false) {
+            if (controller.hasOwnProperty("__metadata__") === false) {
                 return;
             }
 
             let basePath: string = controller.__metadata__?.controller?.basePath;
 
-            if(basePath.endsWith("/")) {
-                basePath = basePath.slice(0, basePath.length-1);
+            if (basePath.endsWith("/")) {
+                basePath = basePath.slice(0, basePath.length - 1);
             }
 
             for (const methodPropertyKey in controller.__metadata__?.methods) {
-                if(controller.__metadata__?.methods?.hasOwnProperty(methodPropertyKey) === false) {
+                if (controller.__metadata__?.methods?.hasOwnProperty(methodPropertyKey) === false) {
                     continue;
                 }
 
                 const method = controller.__metadata__?.methods[methodPropertyKey];
 
-                if(method.hasOwnProperty("route") === false) {
+                if (method.hasOwnProperty("route") === false) {
                     continue;
                 }
 
@@ -344,12 +369,12 @@ export class Kernel {
                     // Check if the guard needs to be instantiated
                     let instantiatedGuard = guard;
 
-                    if(typeof guard === 'function') {
+                    if (typeof guard === 'function') {
                         instantiatedGuard = this.container.resolve(guard);
                     }
 
                     // Check again if the class as the isAuthorized method
-                    if(typeof instantiatedGuard.isAuthorized !== 'function') {
+                    if (typeof instantiatedGuard.isAuthorized !== 'function') {
                         throw new GuardInitializationError("The guard: '" + guard + "' doesn't implement the isAuthorized() method.");
                     }
 
@@ -360,12 +385,12 @@ export class Kernel {
                 let path = routeMethodDecorator.path;
 
                 // Clean the path by removing the first and trailing slashes.
-                if(path.startsWith("/")) {
+                if (path.startsWith("/")) {
                     path = path.slice(1, path.length);
                 }
 
-                if(path.endsWith("/")) {
-                    path = path.slice(0, path.length-1);
+                if (path.endsWith("/")) {
+                    path = path.slice(0, path.length - 1);
                 }
 
                 // Build the proper path
@@ -374,6 +399,17 @@ export class Kernel {
                 // Register the route
                 this.router.register(routePath, routeMethodDecorator.httpMethod, route);
             }
+        })
+    }
+
+    /**
+     * This method loops through the service tag decorators defined in the taggedProviderRegistrationsRegistry and simply add
+     * all the entry to the container.
+     * @private
+     */
+    private registerServiceTags() {
+        taggedProviderRegistrationsRegistry.forEach( (providerRegistration: ProviderRegistration) => {
+            this.registerProviderRegistration(providerRegistration);
         })
     }
 }

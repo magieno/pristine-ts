@@ -2,7 +2,9 @@ import "reflect-metadata"
 import {injectable} from "tsyringe";
 import {ControllerMethodParameterDecoratorResolverInterface} from "../interfaces/controller-method-parameter-decorator-resolver.interface";
 import {Request} from "../models/request";
+import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 
+@tag(ServiceDefinitionTagEnum.MethodParameterDecoratorResolver)
 @injectable()
 export class BodyParameterDecoratorResolver implements ControllerMethodParameterDecoratorResolverInterface {
     resolve(methodArgument: any,
