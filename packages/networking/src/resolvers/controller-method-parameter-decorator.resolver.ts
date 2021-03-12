@@ -7,7 +7,6 @@ import {QueryParametersDecoratorInterface} from "../interfaces/query-parameters-
 import {RouteParameterDecoratorInterface} from "../interfaces/route-parameter-decorator.interface";
 import {Request} from "../models/request";
 
-@tag(ServiceDefinitionTagEnum.MethodParameterDecoratorResolver)
 @injectable()
 export class ControllerMethodParameterDecoratorResolver {
     constructor(@injectAll(ServiceDefinitionTagEnum.MethodParameterDecoratorResolver) private readonly methodParameterDecoratorResolvers: ControllerMethodParameterDecoratorResolverInterface[]) {
