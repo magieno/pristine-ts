@@ -1,6 +1,6 @@
 export class Utils {
 
-    static flatTypes = [String, Number, Boolean]
+    static flatTypes = [String, Number, Boolean, Date]
 
     public static isDefined(val){
         return val !== null && val !== undefined;
