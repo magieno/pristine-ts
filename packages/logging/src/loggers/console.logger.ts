@@ -5,7 +5,9 @@ import {LoggerInterface} from "../interfaces/logger.interface";
 import {Readable} from "stream";
 import * as util from "util";
 import {Utils} from "../utils/utils";
+import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 
+@tag(ServiceDefinitionTagEnum.Logger)
 @injectable()
 export class ConsoleLogger implements LoggerInterface {
   public readableStream: Readable;

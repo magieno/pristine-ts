@@ -5,8 +5,10 @@ import {LoggerInterface} from "../interfaces/logger.interface";
 import {Readable, Writable} from "stream";
 import * as util from "util";
 import {Utils} from "../utils/utils";
+import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 const fs = require('fs');
 
+@tag(ServiceDefinitionTagEnum.Logger)
 @injectable()
 export class FileLogger implements LoggerInterface {
   public readableStream: Readable;
