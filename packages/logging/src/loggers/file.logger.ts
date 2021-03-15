@@ -4,6 +4,7 @@ import {LogModel} from "../models/log.model";
 import {LoggerInterface} from "../interfaces/logger.interface";
 import {Readable, Writable} from "stream";
 import * as util from "util";
+import {Utils} from "../utils/utils";
 const fs = require('fs');
 
 @injectable()
@@ -19,8 +20,9 @@ export class FileLogger implements LoggerInterface {
                      @inject("%pristine.logging.logWarningDepthConfiguration%") private readonly logWarningDepthConfiguration: number,
                      @inject("%pristine.logging.logErrorDepthConfiguration%") private readonly logErrorDepthConfiguration: number,
                      @inject("%pristine.logging.logCriticalDepthConfiguration%") private readonly logCriticalDepthConfiguration: number,
-                     @inject("%pristine.logging.fileWriterActivated%") private readonly fileWriterActivated: boolean,
+                     @inject("%pristine.logging.fileLoggerActivated%") private readonly fileLoggerActivated: boolean,
                      @inject("%pristine.logging.filePath%") private readonly filePath: string,
+                     @inject("%pristine.logging.fileLoggerPretty%") private readonly fileLoggerPretty: boolean,
                      ) {
     this.initialize();
   }
@@ -41,29 +43,29 @@ export class FileLogger implements LoggerInterface {
   }
 
   public isActive(): boolean {
-    return this.fileWriterActivated;
+    return this.fileLoggerActivated;
   }
 
   private log(log: LogModel): void {
     switch (log.severity) {
       case SeverityEnum.Debug:
-        this.writableStream.write(log.message + " - Extra: " + util.inspect(log.extra, false, this.logDebugDepthConfiguration) + "\n");
+        this.writableStream.write(JSON.stringify(Utils.truncate(log, this.logDebugDepthConfiguration),null, this.fileLoggerPretty ? 2 : 0) + ";\n" );
         break;
 
       case SeverityEnum.Info:
-        this.writableStream.write(log.message + " - Extra: " + util.inspect(log.extra, false, this.logInfoDepthConfiguration) + "\n");
+        this.writableStream.write(JSON.stringify(Utils.truncate(log, this.logInfoDepthConfiguration),null, this.fileLoggerPretty ? 2 : 0)+ ";\n" );
         break;
 
       case SeverityEnum.Warning:
-        this.writableStream.write(log.message + " - Extra: " + util.inspect(log.extra, false, this.logWarningDepthConfiguration) + "\n");
+        this.writableStream.write(JSON.stringify(Utils.truncate(log, this.logWarningDepthConfiguration),null, this.fileLoggerPretty ? 2 : 0)+ ";\n" );
         break;
 
       case SeverityEnum.Error:
-        this.writableStream.write(log.message + " - Extra: " + util.inspect(log.extra, false, this.logErrorDepthConfiguration) + "\n");
+        this.writableStream.write(JSON.stringify(Utils.truncate(log, this.logErrorDepthConfiguration),null, this.fileLoggerPretty ? 2 : 0)+ ";\n" );
         break;
 
       case SeverityEnum.Critical:
-        this.writableStream.write(log.message + " - Extra: " + util.inspect(log.extra, false, this.logCriticalDepthConfiguration) + "\n");
+        this.writableStream.write(JSON.stringify(Utils.truncate(log, this.logCriticalDepthConfiguration),null, this.fileLoggerPretty ? 2 : 0)+ ";\n" );
         break;
     }
   }

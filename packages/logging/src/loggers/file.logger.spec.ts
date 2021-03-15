@@ -1,8 +1,7 @@
 import "reflect-metadata"
-import {ConsoleLogger} from "./console.writer";
 import {SeverityEnum} from "../enums/severity.enum";
 import {LogModel} from "../models/log.model";
-import {FileLogger} from "./file.writer";
+import {FileLogger} from "./file.logger";
 const fs = require('fs');
 
 
@@ -23,6 +22,7 @@ describe("File writer", () => {
             3,
             true,
             "./logs.txt",
+            false,
         );
 
         const logInfo = new LogModel();
@@ -31,7 +31,6 @@ describe("File writer", () => {
         logInfo.extra = {
             extra: "extra 1"
         };
-        logInfo.identity = "1234567890"
         fileWriter.readableStream.push(logInfo);
 
         const logDebug = new LogModel();
@@ -40,7 +39,6 @@ describe("File writer", () => {
         logDebug.extra = {
             extra: "extra 1"
         };
-        logDebug.identity = "1234567890"
         fileWriter.readableStream.push(logDebug);
 
         const logWarning = new LogModel();
@@ -49,7 +47,6 @@ describe("File writer", () => {
         logWarning.extra = {
             extra: "extra 1"
         };
-        logWarning.identity = "1234567890"
         fileWriter.readableStream.push(logWarning);
 
         const logError = new LogModel();
@@ -58,7 +55,6 @@ describe("File writer", () => {
         logError.extra = {
             extra: "extra 1"
         };
-        logError.identity = "1234567890"
         fileWriter.readableStream.push(logError);
 
         const logCritical = new LogModel();
@@ -67,19 +63,18 @@ describe("File writer", () => {
         logCritical.extra = {
             extra: "extra 1"
         };
-        logCritical.identity = "1234567890"
         fileWriter.readableStream.push(logCritical);
 
         await new Promise(res => setTimeout(res, 1000));
 
         const file = fs.readFileSync("./logs.txt", {encoding: "utf-8"});
-        const lines = file.split("\n");
+        const logs = file.split(";\n");
 
-        expect(lines[0]).toEqual("Log info - Extra: { extra: 'extra 1' }");
-        expect(lines[1]).toEqual("Log debug - Extra: { extra: 'extra 1' }");
-        expect(lines[2]).toEqual("Log warning - Extra: { extra: 'extra 1' }");
-        expect(lines[3]).toEqual("Log error - Extra: { extra: 'extra 1' }");
-        expect(lines[4]).toEqual("Log critical - Extra: { extra: 'extra 1' }");
+        expect(JSON.parse(logs[0])).toEqual(logInfo);
+        expect(JSON.parse(logs[1])).toEqual(logDebug);
+        expect(JSON.parse(logs[2])).toEqual(logWarning);
+        expect(JSON.parse(logs[3])).toEqual(logError);
+        expect(JSON.parse(logs[4])).toEqual(logCritical);
 
     });
 
@@ -94,6 +89,7 @@ describe("File writer", () => {
             3,
             true,
             "./logs.txt",
+            false,
         );
 
         const logInfo = new LogModel();
@@ -102,7 +98,6 @@ describe("File writer", () => {
         logInfo.extra = {
             extra: "extra 1"
         };
-        logInfo.identity = "1234567890"
         fileWriter.readableStream.push(logInfo);
 
         const logDebug = new LogModel();
@@ -111,7 +106,6 @@ describe("File writer", () => {
         logDebug.extra = {
             extra: "extra 1"
         };
-        logDebug.identity = "1234567890"
         fileWriter.readableStream.push(logDebug);
 
         const logWarning = new LogModel();
@@ -120,7 +114,6 @@ describe("File writer", () => {
         logWarning.extra = {
             extra: "extra 1"
         };
-        logWarning.identity = "1234567890"
         fileWriter.readableStream.push(logWarning);
 
         const logError = new LogModel();
@@ -129,7 +122,6 @@ describe("File writer", () => {
         logError.extra = {
             extra: "extra 1"
         };
-        logError.identity = "1234567890"
         fileWriter.readableStream.push(logError);
 
         const logCritical = new LogModel();
@@ -138,18 +130,17 @@ describe("File writer", () => {
         logCritical.extra = {
             extra: "extra 1"
         };
-        logCritical.identity = "1234567890"
         fileWriter.readableStream.push(logCritical);
 
         await new Promise(res => setTimeout(res, 1000));
 
         const file = fs.readFileSync("./logs.txt", {encoding: "utf-8"});
-        const lines = file.split("\n");
+        const logs = file.split(";\n");
 
-        expect(lines[0]).toEqual("Log debug - Extra: { extra: 'extra 1' }");
-        expect(lines[1]).toEqual("Log warning - Extra: { extra: 'extra 1' }");
-        expect(lines[2]).toEqual("Log error - Extra: { extra: 'extra 1' }");
-        expect(lines[3]).toEqual("Log critical - Extra: { extra: 'extra 1' }");
+        expect(JSON.parse(logs[0])).toEqual(logDebug);
+        expect(JSON.parse(logs[1])).toEqual(logWarning);
+        expect(JSON.parse(logs[2])).toEqual(logError);
+        expect(JSON.parse(logs[3])).toEqual(logCritical);
     });
 
     it("should log if configuration level is warning and severity is higher", async () => {
@@ -163,6 +154,7 @@ describe("File writer", () => {
             3,
             true,
             "./logs.txt",
+            false,
         );
 
         const logInfo = new LogModel();
@@ -171,7 +163,6 @@ describe("File writer", () => {
         logInfo.extra = {
             extra: "extra 1"
         };
-        logInfo.identity = "1234567890"
         fileWriter.readableStream.push(logInfo);
 
         const logDebug = new LogModel();
@@ -180,7 +171,6 @@ describe("File writer", () => {
         logDebug.extra = {
             extra: "extra 1"
         };
-        logDebug.identity = "1234567890"
         fileWriter.readableStream.push(logDebug);
 
         const logWarning = new LogModel();
@@ -189,7 +179,6 @@ describe("File writer", () => {
         logWarning.extra = {
             extra: "extra 1"
         };
-        logWarning.identity = "1234567890"
         fileWriter.readableStream.push(logWarning);
 
         const logError = new LogModel();
@@ -198,7 +187,6 @@ describe("File writer", () => {
         logError.extra = {
             extra: "extra 1"
         };
-        logError.identity = "1234567890"
         fileWriter.readableStream.push(logError);
 
         const logCritical = new LogModel();
@@ -207,17 +195,16 @@ describe("File writer", () => {
         logCritical.extra = {
             extra: "extra 1"
         };
-        logCritical.identity = "1234567890"
         fileWriter.readableStream.push(logCritical);
 
         await new Promise(res => setTimeout(res, 1000));
 
         const file = fs.readFileSync("./logs.txt", {encoding: "utf-8"});
-        const lines = file.split("\n");
+        const logs = file.split(";\n");
 
-        expect(lines[0]).toEqual("Log warning - Extra: { extra: 'extra 1' }");
-        expect(lines[1]).toEqual("Log error - Extra: { extra: 'extra 1' }");
-        expect(lines[2]).toEqual("Log critical - Extra: { extra: 'extra 1' }");
+        expect(JSON.parse(logs[0])).toEqual(logWarning);
+        expect(JSON.parse(logs[1])).toEqual(logError);
+        expect(JSON.parse(logs[2])).toEqual(logCritical);
     });
 
     it("should log if configuration level is error and severity is higher", async () => {
@@ -231,6 +218,7 @@ describe("File writer", () => {
             3,
             true,
             "./logs.txt",
+            false,
         );
 
         const logInfo = new LogModel();
@@ -239,7 +227,6 @@ describe("File writer", () => {
         logInfo.extra = {
             extra: "extra 1"
         };
-        logInfo.identity = "1234567890"
         fileWriter.readableStream.push(logInfo);
 
         const logDebug = new LogModel();
@@ -248,7 +235,6 @@ describe("File writer", () => {
         logDebug.extra = {
             extra: "extra 1"
         };
-        logDebug.identity = "1234567890"
         fileWriter.readableStream.push(logDebug);
 
         const logWarning = new LogModel();
@@ -257,7 +243,6 @@ describe("File writer", () => {
         logWarning.extra = {
             extra: "extra 1"
         };
-        logWarning.identity = "1234567890"
         fileWriter.readableStream.push(logWarning);
 
         const logError = new LogModel();
@@ -266,7 +251,6 @@ describe("File writer", () => {
         logError.extra = {
             extra: "extra 1"
         };
-        logError.identity = "1234567890"
         fileWriter.readableStream.push(logError);
 
         const logCritical = new LogModel();
@@ -275,16 +259,15 @@ describe("File writer", () => {
         logCritical.extra = {
             extra: "extra 1"
         };
-        logCritical.identity = "1234567890"
         fileWriter.readableStream.push(logCritical);
 
         await new Promise(res => setTimeout(res, 1000));
 
         const file = fs.readFileSync("./logs.txt", {encoding: "utf-8"});
-        const lines = file.split("\n");
+        const logs = file.split(";\n");
 
-        expect(lines[0]).toEqual("Log error - Extra: { extra: 'extra 1' }");
-        expect(lines[1]).toEqual("Log critical - Extra: { extra: 'extra 1' }");
+        expect(JSON.parse(logs[0])).toEqual(logError);
+        expect(JSON.parse(logs[1])).toEqual(logCritical);
     });
 
 
@@ -299,6 +282,7 @@ describe("File writer", () => {
             3,
             true,
             "./logs.txt",
+            false,
         );
 
         const logInfo = new LogModel();
@@ -307,7 +291,6 @@ describe("File writer", () => {
         logInfo.extra = {
             extra: "extra 1"
         };
-        logInfo.identity = "1234567890"
         fileWriter.readableStream.push(logInfo);
 
         const logDebug = new LogModel();
@@ -316,7 +299,6 @@ describe("File writer", () => {
         logDebug.extra = {
             extra: "extra 1"
         };
-        logDebug.identity = "1234567890"
         fileWriter.readableStream.push(logDebug);
 
         const logWarning = new LogModel();
@@ -325,7 +307,6 @@ describe("File writer", () => {
         logWarning.extra = {
             extra: "extra 1"
         };
-        logWarning.identity = "1234567890"
         fileWriter.readableStream.push(logWarning);
 
         const logError = new LogModel();
@@ -334,7 +315,6 @@ describe("File writer", () => {
         logError.extra = {
             extra: "extra 1"
         };
-        logError.identity = "1234567890"
         fileWriter.readableStream.push(logError);
 
         const logCritical = new LogModel();
@@ -343,15 +323,14 @@ describe("File writer", () => {
         logCritical.extra = {
             extra: "extra 1"
         };
-        logCritical.identity = "1234567890"
         fileWriter.readableStream.push(logCritical);
 
         await new Promise(res => setTimeout(res, 1000));
 
         const file = fs.readFileSync("./logs.txt", {encoding: "utf-8"});
-        const lines = file.split("\n");
+        const logs = file.split(";\n");
 
-        expect(lines[0]).toEqual("Log critical - Extra: { extra: 'extra 1' }");
+        expect(JSON.parse(logs[0])).toEqual(logCritical);
     });
 
     it("should log stacked logs if log something", async () => {
@@ -365,6 +344,7 @@ describe("File writer", () => {
             3,
             true,
             "./logs.txt",
+            false,
         );
 
         const logInfo = new LogModel();
@@ -373,7 +353,6 @@ describe("File writer", () => {
         logInfo.extra = {
             extra: "extra 1"
         };
-        logInfo.identity = "1234567890"
         fileWriter.readableStream.push(logInfo);
 
         const logDebug = new LogModel();
@@ -382,7 +361,6 @@ describe("File writer", () => {
         logDebug.extra = {
             extra: "extra 1"
         };
-        logDebug.identity = "1234567890"
         fileWriter.readableStream.push(logDebug);
 
         const logWarning = new LogModel();
@@ -391,7 +369,6 @@ describe("File writer", () => {
         logWarning.extra = {
             extra: "extra 1"
         };
-        logWarning.identity = "1234567890"
         fileWriter.readableStream.push(logWarning);
 
         const logError = new LogModel();
@@ -400,7 +377,6 @@ describe("File writer", () => {
         logError.extra = {
             extra: "extra 1"
         };
-        logError.identity = "1234567890"
         fileWriter.readableStream.push(logError);
 
         const logCritical = new LogModel();
@@ -409,19 +385,18 @@ describe("File writer", () => {
         logCritical.extra = {
             extra: "extra 1"
         };
-        logCritical.identity = "1234567890"
         fileWriter.readableStream.push(logCritical);
 
         await new Promise(res => setTimeout(res, 1000));
 
         const file = fs.readFileSync("./logs.txt", {encoding: "utf-8"});
-        const lines = file.split("\n");
+        const logs = file.split(";\n");
 
-        expect(lines[0]).toEqual("Log info - Extra: { extra: 'extra 1' }");
-        expect(lines[1]).toEqual("Log debug - Extra: { extra: 'extra 1' }");
-        expect(lines[2]).toEqual("Log warning - Extra: { extra: 'extra 1' }");
-        expect(lines[3]).toEqual("Log error - Extra: { extra: 'extra 1' }");
-        expect(lines[4]).toEqual("Log critical - Extra: { extra: 'extra 1' }");
+        expect(JSON.parse(logs[0])).toEqual(logInfo);
+        expect(JSON.parse(logs[1])).toEqual(logDebug);
+        expect(JSON.parse(logs[2])).toEqual(logWarning);
+        expect(JSON.parse(logs[3])).toEqual(logError);
+        expect(JSON.parse(logs[4])).toEqual(logCritical);
     });
 
 });

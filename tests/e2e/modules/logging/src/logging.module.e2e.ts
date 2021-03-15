@@ -10,6 +10,7 @@ import {LoggingModule, LogHandler, ConfigurationDefinitionInterface} from "@pris
 global.console = {
     info: jest.fn(),
     debug: jest.fn(),
+    warn: jest.fn(),
     error: jest.fn()
 }
 
@@ -29,6 +30,9 @@ describe("Logging Module instantiation in the Kernel", () => {
             logWarningDepthConfiguration: 10,
             logErrorDepthConfiguration: 10,
             logCriticalDepthConfiguration: 10,
+            consoleLoggerActivated: true,
+            fileLoggerActivated: false,
+            fileLoggerPretty:false,
         }
         const kernel = new Kernel();
         await kernel.init({
@@ -47,7 +51,7 @@ describe("Logging Module instantiation in the Kernel", () => {
 
         await new Promise(res => setTimeout(res, 1000));
 
-        expect(global.console.log).toHaveBeenCalledWith("Allo - Extra: { al: { bob: 12 } }");
+        expect(global.console.info).toHaveBeenCalledWith({"extra": {"al": {"bob": 12}}, "message": "Allo", "severity": 0});
 
     })
 

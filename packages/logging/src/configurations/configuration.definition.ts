@@ -8,7 +8,8 @@ export class ConfigurationDefinition implements ConfigurationDefinitionInterface
     logWarningDepthConfiguration?: number = 10;
     logErrorDepthConfiguration?: number = 10;
     logCriticalDepthConfiguration?: number = 10;
-    consoleWriterActivated?: boolean = false;
-    fileWriterActivated?: boolean = false;
+    consoleLoggerActivated?: boolean = false;
+    fileLoggerActivated?: boolean = false;
     filePath?: string = "./logs.txt";
+    fileLoggerPretty?: boolean = false;
 }
