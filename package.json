@@ -25,6 +25,7 @@
   "devDependencies": {
     "@types/jest": "^26.0.20",
     "@types/url-parse": "^1.4.3",
+    "@types/node": "^14.14.31",
     "jest": "^26.6.3",
     "lerna": "^3.22.1",
     "ts-jest": "^26.4.4",
@@ -37,6 +38,7 @@
     "@pristine-ts/event": "file:packages/event",
     "@pristine-ts/express": "file:packages/express",
     "@pristine-ts/logging": "file:packages/logging",
+    "@pristine-ts/sentry": "file:packages/sentry",
     "@pristine-ts/networking": "file:packages/networking",
     "@pristine-ts/jwt": "file:packages/jwt"
   }

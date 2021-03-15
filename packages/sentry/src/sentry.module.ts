@@ -1,19 +1,20 @@
-import {ModuleInterface} from "@pristine-ts/common";
+import {ModuleInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
+import {SentryLogger} from "./loggers/sentry.logger";
 import {ConfigurationDefinition} from "./configurations/configuration.definition";
 
 export * from "./configurations/configurations";
-export * from "./enums/enums";
-export * from "./handlers/handlers";
 export * from "./interfaces/interfaces";
-export * from "./models/models";
 export * from "./loggers/loggers";
-export * from "./utils/utils";
 
-export const LoggingModule: ModuleInterface = {
-    keyname: "pristine.logging",
+export const SentryModule: ModuleInterface = {
+    keyname: "pristine.sentry",
     configurationDefinition: ConfigurationDefinition,
     importServices: [],
     importModules: [],
     providerRegistrations: [
+        {
+            token: ServiceDefinitionTagEnum.Logger,
+            useToken: SentryLogger,
+        }
     ]
 }
