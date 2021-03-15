@@ -8,6 +8,7 @@ export * from "./handlers/handlers";
 export * from "./interfaces/interfaces";
 export * from "./models/models";
 export * from "./loggers/loggers";
+export * from "./utils/utils";
 
 export const LoggingModule: ModuleInterface = {
     keyname: "pristine.logging",

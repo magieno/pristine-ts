@@ -4,6 +4,7 @@ import {LogModel} from "../models/log.model";
 import {LoggerInterface} from "../interfaces/logger.interface";
 import {Readable} from "stream";
 import * as util from "util";
+import {Utils} from "../utils/utils";
 
 @injectable()
 export class ConsoleLogger implements LoggerInterface {
@@ -17,7 +18,7 @@ export class ConsoleLogger implements LoggerInterface {
                      @inject("%pristine.logging.logWarningDepthConfiguration%") private readonly logWarningDepthConfiguration: number,
                      @inject("%pristine.logging.logErrorDepthConfiguration%") private readonly logErrorDepthConfiguration: number,
                      @inject("%pristine.logging.logCriticalDepthConfiguration%") private readonly logCriticalDepthConfiguration: number,
-                     @inject("%pristine.logging.consoleWriterActivated%") private readonly consoleWriterActivated: boolean,
+                     @inject("%pristine.logging.consoleLoggerActivated%") private readonly consoleLoggerActivated: boolean,
                      ) {
     this.initialize();
   }
@@ -37,29 +38,29 @@ export class ConsoleLogger implements LoggerInterface {
   }
 
   public isActive(): boolean {
-    return this.consoleWriterActivated;
+    return this.consoleLoggerActivated;
   }
 
   private log(log: LogModel): void {
     switch (log.severity) {
       case SeverityEnum.Debug:
-        console.debug(log.message + " - Extra: " + util.inspect(log.extra, false, this.logDebugDepthConfiguration));
+        console.debug(Utils.truncate(log,  this.logDebugDepthConfiguration));
         break;
 
       case SeverityEnum.Info:
-        console.info(log.message + " - Extra: " + util.inspect(log.extra, false, this.logInfoDepthConfiguration));
+        console.info(Utils.truncate(log,  this.logInfoDepthConfiguration));
         break;
 
       case SeverityEnum.Warning:
-        console.warn(log.message + " - Extra: " + util.inspect(log.extra, false, this.logWarningDepthConfiguration));
+        console.warn(Utils.truncate(log,  this.logWarningDepthConfiguration));
         break;
 
       case SeverityEnum.Error:
-        console.error(log.message + " - Extra: " + util.inspect(log.extra, false, this.logErrorDepthConfiguration));
+        console.error(Utils.truncate(log,  this.logErrorDepthConfiguration));
         break;
 
       case SeverityEnum.Critical:
-        console.error(log.message + " - Extra: " + util.inspect(log.extra, false, this.logCriticalDepthConfiguration));
+        console.error(Utils.truncate(log,  this.logCriticalDepthConfiguration));
         break;
     }
   }

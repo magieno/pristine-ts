@@ -6,8 +6,9 @@ export interface ConfigurationDefinitionInterface {
     logWarningDepthConfiguration?: number,
     logErrorDepthConfiguration?: number,
     logCriticalDepthConfiguration?: number,
-    consoleWriterActivated?: boolean,
-    fileWriterActivated?: boolean,
+    consoleLoggerActivated?: boolean,
+    fileLoggerActivated?: boolean,
     filePath?: string,
+    fileLoggerPretty?: boolean,
 
 }
