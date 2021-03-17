@@ -26,6 +26,6 @@ export class EventDispatcher {
             }
         });
 
-        await Promise.all(promises);
+        await Promise.allSettled(promises);
     }
 }
