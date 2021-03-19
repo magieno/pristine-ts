@@ -7,6 +7,7 @@ export * from "./enums/enums";
 export * from "./event-parsers/event-parsers";
 export * from "./event-payloads/event-payloads";
 export * from "./interfaces/interfaces";
+export * from "./models/models";
 
 export const AwsModule: ModuleInterface = {
     keyname: "pristine.aws",
