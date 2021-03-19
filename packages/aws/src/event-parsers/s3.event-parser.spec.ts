@@ -2,7 +2,7 @@ import "reflect-metadata"
 import {S3EventPayload} from "../event-payloads/s3.event-payload";
 import {S3EventParser} from "./s3.event-parser";
 import {Event} from "@pristine-ts/event";
-import {EventType} from "../enums/event-type.enum";
+import {S3EventType} from "../enums/s3-event-type.enum";
 
 describe("S3 event parser", () => {
     const rawEvent = {
@@ -52,7 +52,7 @@ describe("S3 event parser", () => {
         const s3EventParser = new S3EventParser();
 
         const s3Event: Event<S3EventPayload> = {
-            type: EventType.S3Event,
+            type: S3EventType.ObjectCreatedPut,
             payload: {
                 "eventVersion":"2.1",
                 "eventSource":"aws:s3",
