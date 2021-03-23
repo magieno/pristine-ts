@@ -38,6 +38,7 @@
     "@pristine-ts/event": "file:packages/event",
     "@pristine-ts/express": "file:packages/express",
     "@pristine-ts/logging": "file:packages/logging",
+    "@pristine-ts/telemetry": "file:packages/telemetry",
     "@pristine-ts/sentry": "file:packages/sentry",
     "@pristine-ts/networking": "file:packages/networking",
     "@pristine-ts/jwt": "file:packages/jwt"
