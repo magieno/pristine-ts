@@ -1,14 +1,6 @@
 import {Event, EventParserInterface} from "@pristine-ts/event";
-import {S3EventPayload} from "../event-payloads/s3.event-payload";
 import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
-import { injectable } from "tsyringe";
-import {S3EventType} from "../enums/s3-event-type.enum";
-import {IdentityModel} from "../models/identity.model";
-import {RequestParametersModel} from "../models/request-parameters.model";
-import {ResponseElementsModel} from "../models/response-elements.model";
-import {S3Model} from "../models/s3.model";
-import {S3BucketModel} from "../models/s3-bucket.model";
-import {S3ObjectModel} from "../models/s3-object.model";
+import {injectable} from "tsyringe";
 import {DynamodbEventType} from "../enums/dynamodb-event-type.enum";
 import {DynamodbEventPayload} from "../event-payloads/dynamodb.event-payload";
 import {DynamodbModel} from "../models/dynamodb.model";
@@ -22,7 +14,7 @@ export class DynamodbEventParser implements EventParserInterface<DynamodbEventPa
         const keys = Object.keys(DynamodbEventType).filter(key => isNaN(Number(key)));
         for(const key of keys){
             if (DynamodbEventType[key] === eventName){
-                return S3EventType[key];
+                return DynamodbEventType[key];
             }
         }
         return DynamodbEventType.UnknownDynamoDbEvent;
@@ -68,8 +60,8 @@ export class DynamodbEventParser implements EventParserInterface<DynamodbEventPa
             event.payload.dynamodb.parsedNewImage = this.parseKeys(rawEvent.dynamodb.NewImage)
         }
         if(rawEvent.dynamodb.OldImage){
-            event.payload.dynamodb.newImage = rawEvent.dynamodb.OldImage;
-            event.payload.dynamodb.parsedNewImage = this.parseKeys(rawEvent.dynamodb.OldImage)
+            event.payload.dynamodb.oldImage = rawEvent.dynamodb.OldImage;
+            event.payload.dynamodb.parsedOldImage = this.parseKeys(rawEvent.dynamodb.OldImage)
         }
         event.payload.dynamodb.tableName = rawEvent.eventSourceARN.split("/")[1];
 

@@ -1,8 +1,5 @@
 import "reflect-metadata"
-import {S3EventPayload} from "../event-payloads/s3.event-payload";
-import {S3EventParser} from "./s3.event-parser";
 import {Event} from "@pristine-ts/event";
-import {S3EventType} from "../enums/s3-event-type.enum";
 import {DynamodbEventParser} from "./dynamodb.event-parser";
 import {DynamodbEventPayload} from "../event-payloads/dynamodb.event-payload";
 import {DynamodbEventType} from "../enums/dynamodb-event-type.enum";
@@ -28,11 +25,19 @@ describe("Dynamodb event parser", () => {
                     "N":"101"
                 }
             },
+            "OldImage":{
+                "Message":{
+                    "S":"New item!"
+                },
+                "Id":{
+                    "N":"102"
+                }
+            },
             "SequenceNumber":"111",
             "SizeBytes":26,
             "StreamViewType":"NEW_AND_OLD_IMAGES"
         },
-        "eventSourceARN":"stream-ARN"
+        "eventSourceARN":"arn:dynamodb/table-name"
     };
 
     it("should support an event from dynamodb", () => {
@@ -86,12 +91,32 @@ describe("Dynamodb event parser", () => {
                             keyValue: "101"
                         }
                     ],
-                    tableName: ""
+                    "oldImage":{
+                        "Message":{
+                            "S":"New item!"
+                        },
+                        "Id":{
+                            "N":"102"
+                        }
+                    },
+                    parsedOldImage: [
+                        {
+                            keyName: "Message",
+                            keyType: "S",
+                            keyValue: "New item!"
+                        },
+                        {
+                            keyName: "Id",
+                            keyType: "N",
+                            keyValue: "102"
+                        }
+                    ],
+                    tableName: "table-name",
                     "sequenceNumber":"111",
                     "sizeBytes":26,
                     "streamViewType":"NEW_AND_OLD_IMAGES"
                 },
-                "eventSourceArn":"stream-ARN"
+                "eventSourceArn":"arn:dynamodb/table-name"
             }
         }
         expect(dynamodbEventParser.parse(rawEvent)).toEqual(dynamodbEvent);
