@@ -16,7 +16,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@pristine-ts/common": "file:../common"
+    "@pristine-ts/common": "file:../common",
+    "@pristine-ts/event": "file:../event"
   },
   "jest": {
     "transform": {
