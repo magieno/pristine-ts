@@ -6,7 +6,7 @@ export class SqsAttributesModel {
     approximateFirstReceiveTime: Date;
 
     // For fifo queues
-    sequenceNumber?: number;
+    sequenceNumber?: string;
     messageGroupId?: string;
     messageDeduplicationId?: string;
 }

@@ -50,9 +50,9 @@ describe("Sqs event parser", () => {
                 attributes: {
                     approximateReceiveCount: 1,
                     senderId: "AIDAIENQZJOLO23YVJ4VO",
-                    sentTime: new Date("1545082649183"),
-                    approximateFirstReceiveTime: new Date("1545082649185"),
-                    sequenceNumber: 18849496460467696128,
+                    sentTime: new Date(1545082649183),
+                    approximateFirstReceiveTime: new Date(1545082649185),
+                    sequenceNumber: "18849496460467696128",
                     messageDeduplicationId: "1",
                     messageGroupId: "1"
                 }

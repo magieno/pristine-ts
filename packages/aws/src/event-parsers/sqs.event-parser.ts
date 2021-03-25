@@ -25,14 +25,18 @@ export class SqsEventParser implements EventParserInterface<SqsEventPayload>{
 
         if(rawEvent.attributes) {
             event.payload.attributes = new SqsAttributesModel();
-            event.payload.attributes.approximateFirstReceiveTime = new Date(rawEvent.attributes.ApproximateFirstReceiveTimestamp);
-            event.payload.attributes.sentTime = new Date(rawEvent.attributes.SentTimestamp);
+            if(isNaN(+rawEvent.attributes.ApproximateFirstReceiveTimestamp) === false){
+                event.payload.attributes.approximateFirstReceiveTime = new Date(+rawEvent.attributes.ApproximateFirstReceiveTimestamp);
+            }
+            if(isNaN(+rawEvent.attributes.SentTimestamp) === false) {
+                event.payload.attributes.sentTime = new Date(+rawEvent.attributes.SentTimestamp);
+            }
             event.payload.attributes.senderId = rawEvent.attributes.SenderId;
             event.payload.attributes.approximateReceiveCount = isNaN(+rawEvent.attributes.ApproximateReceiveCount) ? undefined : +rawEvent.attributes.ApproximateReceiveCount;
 
             event.payload.attributes.messageGroupId = rawEvent.attributes.MessageGroupId;
             event.payload.attributes.messageDeduplicationId = rawEvent.attributes.MessageDeduplicationId;
-            event.payload.attributes.sequenceNumber = isNaN(+rawEvent.attributes.SequenceNumber) ? undefined : +rawEvent.attributes.SequenceNumber;
+            event.payload.attributes.sequenceNumber = rawEvent.attributes.SequenceNumber;
         }
         return event;
     }
