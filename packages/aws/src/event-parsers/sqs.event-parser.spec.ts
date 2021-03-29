@@ -3,7 +3,6 @@ import {Event} from "@pristine-ts/event";
 import {SqsEventParser} from "./sqs.event-parser";
 import {SqsEventType} from "../enums/sqs-event-type.enum";
 import {SqsEventPayload} from "../event-payloads/sqs.event-payload";
-import * as util from "util";
 
 describe("Sqs event parser", () => {
     const rawEvent = {

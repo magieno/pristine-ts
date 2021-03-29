@@ -10,7 +10,7 @@ export class DynamodbModel {
 
     // Properties added to facilitate the manipulation
     tableName: string;
-    parsedKeys: DynamodbKeysModel[];
+    parsedKeys: DynamodbKeysModel[] = [];
     parsedNewImage?: DynamodbKeysModel[];
     parsedOldImage?: DynamodbKeysModel[];
 }

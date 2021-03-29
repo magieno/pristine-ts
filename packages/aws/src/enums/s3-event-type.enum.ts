@@ -1,5 +1,5 @@
 export enum S3EventType {
-    UnknownS3Event = "Unknown",
+    UnknownS3Event = "UnknownS3Event",
     ObjectCreatedPut = "ObjectCreated:Put",
     ObjectCreatedPost ="ObjectCreated:Post",
     ObjectCreatedCopy ="ObjectCreated:Copy",

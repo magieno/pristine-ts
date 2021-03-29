@@ -6,4 +6,6 @@ export * from "./response-elements.model";
 export * from "./s3.model";
 export * from "./s3-bucket.model";
 export * from "./s3-object.model";
+export * from "./sns.model";
+export * from "./sns-message-attribute.model";
 export * from "./sqs-attributes.model";
