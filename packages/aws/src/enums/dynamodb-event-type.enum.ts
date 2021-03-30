@@ -1,5 +1,5 @@
 export enum DynamodbEventType {
-    UnknownDynamoDbEvent = "Unknown",
+    UnknownDynamoDbEvent = "UnknownDynamoDbEvent",
     Insert = "INSERT",
     Modify = "MODIFY",
     Remove = "REMOVE"
