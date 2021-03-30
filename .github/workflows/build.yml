@@ -1,8 +1,8 @@
 name: build
 on:
   push:
-    branches:
-      - master
+#    branches:
+#      - master
   pull_request:
     branches:
       - master
@@ -51,3 +51,5 @@ jobs:
       - run: git config --global user.email 'ima-bot@ima-tech.ca'
       - run: npm run bump-patch
       - run: npm run publish-ci
+        with:
+          NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
