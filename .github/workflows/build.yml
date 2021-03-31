@@ -39,7 +39,7 @@ jobs:
 
   publish:
     name: Publish
-    needs: build
+    #needs: build
 #    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
 
     # Set the type of machine to run on
@@ -61,11 +61,10 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - run: npm run build
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - run: git config --global user.name 'ima-bot'
       - run: git config --global user.email 'ima-bot@ima-tech.ca'
       - run: npm run bump-patch
+      - run: npm whoami
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - run: npm run publish-ci
