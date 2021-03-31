@@ -15,6 +15,9 @@
   ],
   "author": "",
   "license": "ISC",
+  "publishConfig": {
+    "access": "public"
+  },
   "jest": {
     "transform": {
       ".(ts|tsx)": "ts-jest"

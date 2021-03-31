@@ -19,6 +19,9 @@
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/event": "file:../event"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "jest": {
     "transform": {
       ".(ts|tsx)": "ts-jest"
