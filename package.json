@@ -16,6 +16,9 @@
     "type": "git",
     "url": "git+https://ima-tech@github.com/ima-tech/pristine-ts.git"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "author": "",
   "license": "ISC",
   "bugs": {
