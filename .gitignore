@@ -44,3 +44,4 @@ yarn.lock
 
 tests/perf/generation/output/*
 
+.npmrc
