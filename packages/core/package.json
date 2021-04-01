@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/core",
-  "version": "0.0.31",
+  "version": "0.0.45",
   "description": "",
   "module": "dist/lib/esm/core.module.js",
   "main": "dist/lib/cjs/core.module.js",
@@ -15,6 +15,9 @@
   ],
   "author": "",
   "license": "ISC",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/configuration": "file:../configuration",
