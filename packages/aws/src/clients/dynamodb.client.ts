@@ -132,7 +132,7 @@ export class DynamodbClient {
     private createFilterConditions(filterKeysAndValues: { [key: string]: string | number | boolean | string[] | number[]}): ConditionExpression[]{
         const conditions: ConditionExpression[] =  [];
 
-        // Every key represents an AND condition.
+        // Every key will represent an AND condition when merged with the expires at filter.
         for (const key in filterKeysAndValues) {
             if (filterKeysAndValues.hasOwnProperty(key)) {
 
@@ -220,11 +220,6 @@ export class DynamodbClient {
     private createItemOfClassWithPrimaryKey<T extends StringToAnyObjectMap>(classType: ZeroArgumentsConstructor<T>, primaryKeyAndValue: {[key: string]: string}): T {
         const item: T = new classType();
         const primaryKeyName: string = Object.keys(primaryKeyAndValue)[0];
-
-        if (primaryKeyAndValue.hasOwnProperty(primaryKeyName) === false) {
-            // todo throw an error
-        }
-
         // @ts-ignore
         item[primaryKeyName] = primaryKeyAndValue[primaryKeyName];
 

@@ -3,7 +3,7 @@
  * This Error represents a 404 error.
  */
 export class DynamodbError extends Error {
-    public constructor(message: string) {
+    public constructor(message?: string) {
         super(message);
 
         // Set the prototype explicitly.
