@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/common",
-  "version": "0.0.43",
+  "version": "0.0.44",
   "description": "",
   "module": "dist/lib/esm/common.module.js",
   "main": "dist/lib/cjs/common.module.js",
