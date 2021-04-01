@@ -41,10 +41,12 @@ export class DynamodbClient {
         try {
             let item = this.createItemOfClassWithPrimaryKey(classType, primaryKeyAndValue);
             item = await (await this.getMapperClient()).get(item);
-            this.logHandler.debug("Got item", {item});
+            this.logHandler.debug("DYNAMODB CLIENT - Got item", {item});
             return item;
-        } catch (exception) {
-            throw this.convertError(exception);
+        } catch (error) {
+            error = this.convertError(error);
+            this.logHandler.error("DYNAMODB CLIENT - Error getting", {error, classType, primaryKeyAndValue})
+            throw error;
         }
     }
 
@@ -56,11 +58,13 @@ export class DynamodbClient {
             for await (const item of iterator) {
                 items.push(item);
             }
-            this.logHandler.debug("List items", {items});
+            this.logHandler.debug("DYNAMODB CLIENT - List items", {items});
 
             return items;
-        } catch (e) {
-            throw this.convertError(e);
+        } catch (error) {
+            error = this.convertError(error);
+            this.logHandler.error("DYNAMODB CLIENT - Error listing", {error, classType})
+            throw error;
         }
     }
 
@@ -74,7 +78,7 @@ export class DynamodbClient {
             if (error instanceof DynamodbItemNotFoundError) {
                 try {
                     item = await (await this.getMapperClient()).put(item);
-                    this.logHandler.debug("Created item", {item});
+                    this.logHandler.debug("DYNAMODB CLIENT - Created item", {item});
 
                     return item;
                 } catch (e) {
@@ -89,11 +93,13 @@ export class DynamodbClient {
     public async update<T extends StringToAnyObjectMap>(item: T): Promise<T> {
         try {
             item = await (await this.getMapperClient()).update(item);
-            this.logHandler.debug("Updated item", {item});
+            this.logHandler.debug("DYNAMODB CLIENT - Updated item", {item});
 
             return item;
-        } catch (err) {
-            throw this.convertError(err);
+        } catch (error) {
+            error = this.convertError(error);
+            this.logHandler.error("DYNAMODB CLIENT - Error updating", {error, item})
+            throw error;
         }
     }
 
@@ -103,11 +109,13 @@ export class DynamodbClient {
     public async put<T extends StringToAnyObjectMap>(item: T): Promise<T> {
         try {
             item = await (await this.getMapperClient()).put(item);
-            this.logHandler.debug("Put item", {item});
+            this.logHandler.debug("DYNAMODB CLIENT - Put item", {item});
 
             return item;
-        } catch (err) {
-            throw this.convertError(err);
+        } catch (error) {
+            error = this.convertError(error);
+            this.logHandler.error("DYNAMODB CLIENT - Error putting", {error, item})
+            throw error;
         }
     }
 
@@ -115,11 +123,13 @@ export class DynamodbClient {
         try {
             const item = this.createItemOfClassWithPrimaryKey(classType, primaryKeyAndValue);
             await (await this.getMapperClient()).delete(item);
-            this.logHandler.debug("Deleted item", {item});
+            this.logHandler.debug("DYNAMODB CLIENT - Deleted item", {item});
 
             return;
-        } catch (e) {
-            throw this.convertError(e);
+        } catch (error) {
+            error = this.convertError(error);
+            this.logHandler.error("DYNAMODB CLIENT - Error deleting", {error, classType, primaryKeyAndValue})
+            throw error;
         }
     }
 
@@ -129,18 +139,20 @@ export class DynamodbClient {
 
             const queryOptions: QueryOptions = {indexName: secondaryIndexName, filter: filterExpression};
 
-            this.logHandler.debug("Querying with options", {queryOptions});
+            this.logHandler.debug("DYNAMODB CLIENT - Querying with options", {queryOptions});
             const iterator = (await this.getMapperClient()).query(classType, keyCondition, queryOptions);
             const items: T[] = [];
 
             for await (const item of iterator) {
                 items.push(item);
             }
-            this.logHandler.debug("Found items", {items});
+            this.logHandler.debug("DYNAMODB CLIENT - Found items", {items});
 
             return items;
-        } catch (e) {
-            throw this.convertError(e);
+        } catch (error) {
+            error = this.convertError(error);
+            this.logHandler.error("DYNAMODB CLIENT - Error finding by secondary index", {error, classType, keyCondition, secondaryIndexName, filterKeysAndValues, expiresAtFilter})
+            throw error;
         }
     }
 
