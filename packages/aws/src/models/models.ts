@@ -1,3 +1,4 @@
+export * from "./dynamic-table-name.model";
 export * from "./dynamodb.model";
 export * from "./dynamodb-keys.model";
 export * from "./identity.model";
