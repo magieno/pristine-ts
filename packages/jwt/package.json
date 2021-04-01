@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/jwt",
-  "version": "0.0.32",
+  "version": "0.0.45",
   "description": "",
   "module": "dist/lib/esm/jwt.module.js",
   "main": "dist/lib/cjs/jwt.module.js",
@@ -15,6 +15,9 @@
   ],
   "author": "",
   "license": "ISC",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/networking": "file:../networking",

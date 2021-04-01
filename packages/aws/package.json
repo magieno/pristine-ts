@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/aws",
-  "version": "0.0.32",
+  "version": "0.0.45",
   "description": "",
   "module": "dist/lib/esm/aws.module.js",
   "main": "dist/lib/cjs/aws.module.js",
@@ -22,6 +22,9 @@
     "@aws/dynamodb-data-mapper": "^0.7.3",
     "@aws/dynamodb-data-marshaller": "^0.7.3",
     "@aws/dynamodb-expressions": "^0.7.3"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "jest": {
     "transform": {
