@@ -40,6 +40,8 @@ export class Kernel {
 
     private instantiatedModules: { [id: string]: ModuleInterface } = {};
 
+    private afterInstantiatedModules: { [id: string]: ModuleInterface } = {};
+
     /**
      * Contains a reference to the Router. It is undefined until this.setupRouter() is called.
      * @private
@@ -57,6 +59,8 @@ export class Kernel {
 
         // Setup the router
         this.setupRouter();
+
+        await this.afterInitModule(module);
     }
 
     /**
@@ -138,7 +142,39 @@ export class Kernel {
             });
         });
 
+        if(module.onInit) {
+            await module.onInit(this.container);
+        }
+
         this.instantiatedModules[module.keyname] = module;
+    }
+
+    /**
+     * This method receives a module and recursively calls back this method with the module dependencies
+     * specified as imported by the module.
+     *
+     *
+     * @param module
+     * @private
+     */
+    private async afterInitModule(module: ModuleInterface) {
+        if (module.importModules) {
+            // Start by recursively importing all the packages
+            for (let importedModule of module.importModules) {
+                await this.afterInitModule(importedModule);
+            }
+        }
+
+        if (this.afterInstantiatedModules.hasOwnProperty(module.keyname)) {
+            // module already instantiated, we return
+            return;
+        }
+
+        if(module.afterInit) {
+            await module.afterInit(this.container);
+        }
+
+        this.afterInstantiatedModules[module.keyname] = module;
     }
 
     /**

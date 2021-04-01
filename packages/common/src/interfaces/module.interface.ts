@@ -1,4 +1,5 @@
 import {ProviderRegistration} from "../types/provider-registration.type";
+import {DependencyContainer} from "tsyringe";
 
 /**
  * The ModuleInterface is the entry point that groups all the classes that you want to handle in your module.
@@ -14,7 +15,7 @@ export interface ModuleInterface {
      * TypeScript needs to have a reference to the classes in order to use them. Therefore, we provide this array
      * where you can list all your services (managers, repositories, controllers, etc..) so that they are accessible.
      */
-    importServices: Function[];
+    importServices?: Function[];
 
     /**
      * The packages to import before to initialize this module. This module might need other packages to be initialized
@@ -33,4 +34,16 @@ export interface ModuleInterface {
      * for the module.
      */
     configurationDefinition?: { new(): object };
+
+    /**
+     * This function lets you run code on the module initialization. Be careful the tags and the router are not created yet.
+     * @param container
+     */
+    onInit?(container: DependencyContainer): Promise<void>;
+
+    /**
+     * This function lets you run code on the module initialization after the tags and the router are created.
+     * @param container
+     */
+    afterInit?(container: DependencyContainer): Promise<void>;
 }
