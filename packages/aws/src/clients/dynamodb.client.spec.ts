@@ -5,10 +5,11 @@ import {DynamodbItemNotFoundError} from "../errors/dynamodb-item-not-found.error
 import {DynamodbItemAlreadyExistsError} from "../errors/dynamodb-item-already-exists.error";
 import {DynamodbTableNotFoundError} from "../errors/dynamodb-table-not-found.error";
 import {DynamodbValidationError} from "../errors/dynamodb-validation.error";
+import {ConsoleLogger, LogHandler} from "@pristine-ts/logging";
 
 describe("Dynamodb client", () => {
 
-    const client = new DynamodbClient("us-east-1");
+    const client = new DynamodbClient(new LogHandler([]),"us-east-1");
 
     describe("createFilterConditions", () => {
         it("should create a simple filter condition for a string.", () => {

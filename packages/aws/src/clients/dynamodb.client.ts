@@ -9,6 +9,7 @@ import {DynamodbItemAlreadyExistsError} from "../errors/dynamodb-item-already-ex
 import {DynamodbTableNotFoundError} from "../errors/dynamodb-table-not-found.error";
 import {DynamodbValidationError} from "../errors/dynamodb-validation.error";
 import {DynamodbError} from "../errors/dynamodb.error";
+import {LogHandler} from "@pristine-ts/logging";
 
 
 @injectable()
@@ -19,6 +20,7 @@ export class DynamodbClient {
     private mapperClient: any;
 
     constructor(
+        private readonly logHandler: LogHandler,
         @inject("%pristine.aws.region%") private readonly region: string,
     ) {
     }
@@ -39,6 +41,7 @@ export class DynamodbClient {
         try {
             let item = this.createItemOfClassWithPrimaryKey(classType, primaryKeyAndValue);
             item = await (await this.getMapperClient()).get(item);
+            this.logHandler.debug("Got item", {item});
             return item;
         } catch (exception) {
             throw this.convertError(exception);
@@ -53,6 +56,7 @@ export class DynamodbClient {
             for await (const item of iterator) {
                 items.push(item);
             }
+            this.logHandler.debug("List items", {items});
 
             return items;
         } catch (e) {
@@ -70,6 +74,8 @@ export class DynamodbClient {
             if (error instanceof DynamodbItemNotFoundError) {
                 try {
                     item = await (await this.getMapperClient()).put(item);
+                    this.logHandler.debug("Created item", {item});
+
                     return item;
                 } catch (e) {
                     throw this.convertError(e);
@@ -83,6 +89,8 @@ export class DynamodbClient {
     public async update<T extends StringToAnyObjectMap>(item: T): Promise<T> {
         try {
             item = await (await this.getMapperClient()).update(item);
+            this.logHandler.debug("Updated item", {item});
+
             return item;
         } catch (err) {
             throw this.convertError(err);
@@ -95,6 +103,8 @@ export class DynamodbClient {
     public async put<T extends StringToAnyObjectMap>(item: T): Promise<T> {
         try {
             item = await (await this.getMapperClient()).put(item);
+            this.logHandler.debug("Put item", {item});
+
             return item;
         } catch (err) {
             throw this.convertError(err);
@@ -105,6 +115,8 @@ export class DynamodbClient {
         try {
             const item = this.createItemOfClassWithPrimaryKey(classType, primaryKeyAndValue);
             await (await this.getMapperClient()).delete(item);
+            this.logHandler.debug("Deleted item", {item});
+
             return;
         } catch (e) {
             throw this.convertError(e);
@@ -117,12 +129,15 @@ export class DynamodbClient {
 
             const queryOptions: QueryOptions = {indexName: secondaryIndexName, filter: filterExpression};
 
+            this.logHandler.debug("Querying with options", {queryOptions});
             const iterator = (await this.getMapperClient()).query(classType, keyCondition, queryOptions);
             const items: T[] = [];
 
             for await (const item of iterator) {
                 items.push(item);
             }
+            this.logHandler.debug("Found items", {items});
+
             return items;
         } catch (e) {
             throw this.convertError(e);

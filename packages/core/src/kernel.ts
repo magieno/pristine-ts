@@ -127,6 +127,10 @@ export class Kernel {
                 throw new InitializationError("You passed a configuration for module: '" + module.keyname + "', but it doesn't expose a configuration.")
             }
 
+            if(module.onInit) {
+                await module.onInit(this.container);
+            }
+
             this.instantiatedModules[module.keyname] = module;
 
             return;
@@ -152,7 +156,6 @@ export class Kernel {
     /**
      * This method receives a module and recursively calls back this method with the module dependencies
      * specified as imported by the module.
-     *
      *
      * @param module
      * @private

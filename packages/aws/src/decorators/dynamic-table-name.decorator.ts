@@ -5,7 +5,7 @@ export const dynamicTableNameRegistry: DynamicTableNameModel[] = [];
 export const dynamicTableName = (name: string) => {
     return (constructor: any) => {
         dynamicTableNameRegistry.push({
-            name,
+            tokenName: name,
             classConstructor: constructor,
         });
     }

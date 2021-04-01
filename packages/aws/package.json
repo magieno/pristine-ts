@@ -18,6 +18,7 @@
   "dependencies": {
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/event": "file:../event",
+    "@pristine-ts/logging": "file:../logging",
     "aws-sdk": "^2.877.0",
     "@aws/dynamodb-data-mapper": "^0.7.3",
     "@aws/dynamodb-data-marshaller": "^0.7.3",
