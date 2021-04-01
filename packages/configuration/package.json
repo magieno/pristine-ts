@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/configuration",
-  "version": "0.0.32",
+  "version": "0.0.44",
   "description": "",
   "module": "dist/lib/esm/configuration.module.js",
   "main": "dist/lib/cjs/configuration.module.js",
@@ -15,6 +15,9 @@
   ],
   "author": "",
   "license": "ISC",
+  "publishConfig": {
+    "access": "public"
+  },
   "jest": {
     "transform": {
       ".(ts|tsx)": "ts-jest"
