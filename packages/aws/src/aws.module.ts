@@ -4,6 +4,11 @@ import {dynamicTableNameRegistry} from "./decorators/dynamic-table-name.decorato
 import {DynamoDbTable} from "@aws/dynamodb-data-mapper";
 import {LoggingModule, LogHandler} from "@pristine-ts/logging";
 import {DependencyContainer} from "tsyringe";
+import {DynamodbClient} from "./clients/dynamodb.client";
+import {DynamodbEventParser} from "./event-parsers/dynamodb.event-parser";
+import {S3EventParser} from "./event-parsers/s3.event-parser";
+import {SnsEventParser} from "./event-parsers/sns.event-parser";
+import {SqsEventParser} from "./event-parsers/sqs.event-parser";
 
 
 export * from "./clients/clients";
@@ -19,7 +24,14 @@ export * from "./models/models";
 export const AwsModule: ModuleInterface = {
     keyname: "pristine.aws",
     configurationDefinition: ConfigurationDefinition,
-    importServices: [],
+    importServices: [
+        DynamodbClient,
+
+        DynamodbEventParser,
+        S3EventParser,
+        SnsEventParser,
+        SqsEventParser,
+    ],
     importModules: [LoggingModule],
     providerRegistrations: [
     ],
