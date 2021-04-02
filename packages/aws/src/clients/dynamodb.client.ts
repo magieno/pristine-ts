@@ -101,6 +101,7 @@ export class DynamodbClient {
 
             return item;
         } catch (error) {
+            //TODO: Get the primary key.
             error = this.convertError(error, this.getTableName(item.constructor.prototype));
             this.logHandler.error("DYNAMODB CLIENT - Error updating", {error, item})
             throw error;
