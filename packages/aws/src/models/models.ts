@@ -1,3 +1,4 @@
+export * from "./api-gateway-response";
 export * from "./dynamic-table-name.model";
 export * from "./dynamodb.model";
 export * from "./dynamodb-keys.model";

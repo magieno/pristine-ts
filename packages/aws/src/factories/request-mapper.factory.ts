@@ -1,9 +1,9 @@
 import {injectable} from "tsyringe";
 
-import {ApiGatewayRequest} from "../models/api-gateway-request";
 import {RequestMapperInterface} from "../interfaces/request-mapper.interface";
 import {RestApiRequestMapper} from "../mappers/rest-api-request.mapper";
 import {HttpRequestMapper} from "../mappers/http-request.mapper";
+import {ApiGatewayRequest} from "../types/api-gateway-request.type";
 
 @injectable()
 export class RequestMapperFactory {
