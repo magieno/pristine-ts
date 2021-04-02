@@ -1,6 +1,6 @@
 import DynamoDB from "aws-sdk/clients/dynamodb";
 //todo: Create a fork with fixes
-import {DataMapper, QueryOptions, StringToAnyObjectMap} from "@aws/dynamodb-data-mapper";
+import {DataMapper, DynamoDbTable, QueryOptions, StringToAnyObjectMap} from "@aws/dynamodb-data-mapper";
 import {ZeroArgumentsConstructor} from "@aws/dynamodb-data-marshaller";
 import {ConditionExpression, equals, greaterThan, OrExpression} from "@aws/dynamodb-expressions";
 import {inject, injectable} from "tsyringe";
@@ -37,6 +37,10 @@ export class DynamodbClient {
         return this.mapperClient = this.mapperClient ?? new DataMapper({client: await this.getClient()});
     }
 
+    private getTableName<T extends StringToAnyObjectMap>(classType: ZeroArgumentsConstructor<T>): string {
+        return classType.prototype[DynamoDbTable]
+    }
+
     public async get<T extends StringToAnyObjectMap>(classType: ZeroArgumentsConstructor<T>, primaryKeyAndValue: {[key: string]: string}): Promise<T> {
         try {
             let item = this.createItemOfClassWithPrimaryKey(classType, primaryKeyAndValue);
@@ -44,7 +48,7 @@ export class DynamodbClient {
             this.logHandler.debug("DYNAMODB CLIENT - Got item", {item});
             return item;
         } catch (error) {
-            error = this.convertError(error);
+            error = this.convertError(error, this.getTableName(classType), Object.keys(primaryKeyAndValue)[0]);
             this.logHandler.error("DYNAMODB CLIENT - Error getting", {error, classType, primaryKeyAndValue})
             throw error;
         }
@@ -62,7 +66,7 @@ export class DynamodbClient {
 
             return items;
         } catch (error) {
-            error = this.convertError(error);
+            error = this.convertError(error, this.getTableName(classType));
             this.logHandler.error("DYNAMODB CLIENT - Error listing", {error, classType})
             throw error;
         }
@@ -74,7 +78,7 @@ export class DynamodbClient {
             // If we get here without throwing then we found an item.
             throw new DynamodbItemAlreadyExistsError();
         } catch (error) {
-            error = this.convertError(error);
+            error = this.convertError(error, this.getTableName(item.constructor.prototype));
             if (error instanceof DynamodbItemNotFoundError) {
                 try {
                     item = await (await this.getMapperClient()).put(item);
@@ -82,7 +86,7 @@ export class DynamodbClient {
 
                     return item;
                 } catch (e) {
-                    throw this.convertError(e);
+                    throw this.convertError(e, this.getTableName(item.constructor.prototype));
                 }
             }
 
@@ -97,7 +101,7 @@ export class DynamodbClient {
 
             return item;
         } catch (error) {
-            error = this.convertError(error);
+            error = this.convertError(error, this.getTableName(item.constructor.prototype));
             this.logHandler.error("DYNAMODB CLIENT - Error updating", {error, item})
             throw error;
         }
@@ -113,7 +117,7 @@ export class DynamodbClient {
 
             return item;
         } catch (error) {
-            error = this.convertError(error);
+            error = this.convertError(error, this.getTableName(item.constructor.prototype));
             this.logHandler.error("DYNAMODB CLIENT - Error putting", {error, item})
             throw error;
         }
@@ -127,7 +131,7 @@ export class DynamodbClient {
 
             return;
         } catch (error) {
-            error = this.convertError(error);
+            error = this.convertError(error, this.getTableName(classType), Object.keys(primaryKeyAndValue)[0]);
             this.logHandler.error("DYNAMODB CLIENT - Error deleting", {error, classType, primaryKeyAndValue})
             throw error;
         }
@@ -150,7 +154,7 @@ export class DynamodbClient {
 
             return items;
         } catch (error) {
-            error = this.convertError(error);
+            error = this.convertError(error, this.getTableName(classType));
             this.logHandler.error("DYNAMODB CLIENT - Error finding by secondary index", {error, classType, keyCondition, secondaryIndexName, filterKeysAndValues, expiresAtFilter})
             throw error;
         }
@@ -225,23 +229,23 @@ export class DynamodbClient {
         return greaterThanExpression;
     }
 
-    private convertError(error: Error): Error {
+    private convertError(error: Error, tableName?: string, primaryKey?: string): Error {
         if(error instanceof DynamodbError){
             return error;
         }
         if (error.hasOwnProperty("name") === true) {
             switch (error.name){
                 case "ResourceNotFoundException":
-                    return new DynamodbTableNotFoundError();
+                    return new DynamodbTableNotFoundError(error, tableName);
                 case "ItemNotFoundException":
-                    return new DynamodbItemNotFoundError();
+                    return new DynamodbItemNotFoundError(error, tableName, primaryKey);
                 case "ValidationException":
-                    return new DynamodbValidationError();
+                    return new DynamodbValidationError(error, tableName, primaryKey);
                 default:
-                    return new DynamodbError("Unknown dynamodb error: " + error.name);
+                    return new DynamodbError("Unknown dynamodb error: " + error.name, error, tableName, primaryKey);
             }
         }
-        return new DynamodbError("Unknown dynamodb error");
+        return new DynamodbError("Unknown dynamodb error", error, tableName, primaryKey);
     }
 
     private createItemOfClassWithPrimaryKey<T extends StringToAnyObjectMap>(classType: ZeroArgumentsConstructor<T>, primaryKeyAndValue: {[key: string]: string}): T {

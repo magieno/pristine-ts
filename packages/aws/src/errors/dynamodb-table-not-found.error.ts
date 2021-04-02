@@ -4,8 +4,13 @@
 import {DynamodbError} from "./dynamodb.error";
 
 export class DynamodbTableNotFoundError extends DynamodbError {
-    public constructor() {
-        super("The table was not found in dynamodb.");
+    public constructor(originalError?: Error,
+                       tableName?: string) {
+        super(
+            "The table was not found in dynamodb.",
+            originalError,
+            tableName,
+        );
 
         // Set the prototype explicitly.
         // As specified in the documentation in TypeScript

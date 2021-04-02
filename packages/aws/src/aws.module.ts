@@ -42,11 +42,17 @@ export const AwsModule: ModuleInterface = {
 
 const registerDynamicTableNames = (container: DependencyContainer) => {
     for (const dynamicTableName of dynamicTableNameRegistry) {
-        try {
-            dynamicTableName.classConstructor.prototype[DynamoDbTable] = container.resolve(dynamicTableName.tokenName);
-        } catch (e){
+        if(container.isRegistered(dynamicTableName.tokenName) === false) {
             const logHandler = container.resolve(LogHandler);
             logHandler.warning("The table token name does not exist in the container.");
+            continue;
+        }
+        try {
+            dynamicTableName.classConstructor.prototype[DynamoDbTable] = container.resolve(dynamicTableName.tokenName);
+        } catch (error){
+            const logHandler = container.resolve(LogHandler);
+            logHandler.error("Error resolving the dynamic table token name", {error, tokenName: dynamicTableName.tokenName});
+            continue;
         }
     }
 }

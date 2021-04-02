@@ -4,8 +4,14 @@
 import {DynamodbError} from "./dynamodb.error";
 
 export class DynamodbItemAlreadyExistsError extends DynamodbError {
-    public constructor() {
-        super("The item already exists in dynamodb.");
+    public constructor(originalError?: Error,
+                       tableName?: string,
+                       primaryKey?: string,) {
+        super(
+            "The item already exists in dynamodb.",
+            originalError,
+            tableName,
+        );
 
         // Set the prototype explicitly.
         // As specified in the documentation in TypeScript

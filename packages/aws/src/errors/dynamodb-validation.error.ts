@@ -4,8 +4,15 @@
 import {DynamodbError} from "./dynamodb.error";
 
 export class DynamodbValidationError extends DynamodbError {
-    public constructor() {
-        super("The table was not found in dynamodb.");
+    public constructor(originalError?: Error,
+                       tableName?: string,
+                       primaryKey?: string,
+                       ) {
+        super(
+            "Validation error in dynamodb.",
+            originalError,
+            tableName
+            );
 
         // Set the prototype explicitly.
         // As specified in the documentation in TypeScript
