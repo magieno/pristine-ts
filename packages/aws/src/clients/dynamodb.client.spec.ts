@@ -6,6 +6,7 @@ import {DynamodbItemAlreadyExistsError} from "../errors/dynamodb-item-already-ex
 import {DynamodbTableNotFoundError} from "../errors/dynamodb-table-not-found.error";
 import {DynamodbValidationError} from "../errors/dynamodb-validation.error";
 import {ConsoleLogger, LogHandler} from "@pristine-ts/logging";
+import {DynamoDbTable} from "@aws/dynamodb-data-mapper";
 
 describe("Dynamodb client", () => {
 
@@ -207,6 +208,18 @@ describe("Dynamodb client", () => {
             const a = new A();
             a.attribute1 = "value";
             expect(client["createItemOfClassWithPrimaryKey"](A, {"attribute1": "value"})).toEqual(a);
+        })
+    });
+
+    describe("getTableName", () => {
+        class A {
+            attribute1: string;
+            attribute2?: string;
+        }
+        it("should get a table name.", () => {
+            const a = new A();
+            a.constructor.prototype[DynamoDbTable] = "TableA";
+            expect(client["getTableName"](A)).toEqual("TableA");
         })
     });
 
