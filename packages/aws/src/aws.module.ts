@@ -18,8 +18,11 @@ export * from "./enums/enums";
 export * from "./errors/errors";
 export * from "./event-parsers/event-parsers";
 export * from "./event-payloads/event-payloads";
+export * from "./factories/factories";
 export * from "./interfaces/interfaces";
+export * from "./mappers/mappers";
 export * from "./models/models";
+export * from "./types/types";
 
 export const AwsModule: ModuleInterface = {
     keyname: "pristine.aws",
