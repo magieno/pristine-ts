@@ -1,4 +1,4 @@
-export class HttpRequestContextHttp{
+export class HttpRequestContextHttpModel {
     method: string;
     path: string;
     protocol: string;

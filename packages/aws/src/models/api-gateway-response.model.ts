@@ -1,4 +1,4 @@
-export class ApiGatewayResponse {
+export class ApiGatewayResponseModel {
     statusCode: number;
     headers?: {[key: string]: string};
     isBase64Encoded: boolean;

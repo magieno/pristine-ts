@@ -1,12 +1,12 @@
-import {HttpRequestContext} from "./http-request-context";
+import {HttpRequestContextModel} from "./http-request-context.model";
 
-export class HttpRequest {
+export class HttpRequestModel {
     version: string;
     routeKey: string;
     rawPath: string;
     rawQueryString: string;
     cookies: string[];
     headers: {[key: string]: string};
-    requestContext: HttpRequestContext;
+    requestContext: HttpRequestContextModel;
     isBase64Encoded: boolean;
 }

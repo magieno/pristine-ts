@@ -1,10 +1,10 @@
-import {RestApiRequestContext} from "./rest-api-request-context";
+import {RestApiRequestContextModel} from "./rest-api-request-context.model";
 
-export class RestApiRequest {
+export class RestApiRequestModel {
     resource: string;
     path: string;
     httpMethod: string;
-    requestContext: RestApiRequestContext;
+    requestContext: RestApiRequestContextModel;
     headers: {[key: string]: string};
     multiValueHeaders: {[key: string]: string[]};
     queryStringParameters?: {[key: string]: string};

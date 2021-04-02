@@ -2,15 +2,15 @@ import {injectable} from "tsyringe";
 
 import {RequestInterface} from "@pristine-ts/networking";
 import {RequestMapperInterface} from "../interfaces/request-mapper.interface";
-import {HttpRequest} from "../models/http-request";
 import {MethodMapper} from "./method.mapper";
+import {HttpRequestModel} from "../models/http-request.model";
 
 @injectable()
 export class HttpRequestMapper implements RequestMapperInterface {
     constructor(private readonly methodMapper: MethodMapper) {
     }
 
-    map(request: HttpRequest): RequestInterface {
+    map(request: HttpRequestModel): RequestInterface {
         return {
             url: request.url,
             headers: request.headers,

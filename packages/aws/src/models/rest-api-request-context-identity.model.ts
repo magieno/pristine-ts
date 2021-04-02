@@ -1,4 +1,4 @@
-export class RestApiRequestContextIdentity {
+export class RestApiRequestContextIdentityModel {
     cognitoIdentityPoolId?: string;
     accountId?: string;
     cognitoIdentityId?: string;

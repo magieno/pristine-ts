@@ -1,11 +1,11 @@
 import {injectable} from "tsyringe";
 import {Response} from "@pristine-ts/networking";
-import {ApiGatewayResponse} from "../models/api-gateway-response";
+import {ApiGatewayResponseModel} from "../models/api-gateway-response.model";
 
 @injectable()
 export class ResponseMapper {
-    reverseMap(response: Response): ApiGatewayResponse {
-        const apiGatewayResponse = new ApiGatewayResponse();
+    reverseMap(response: Response): ApiGatewayResponseModel {
+        const apiGatewayResponse = new ApiGatewayResponseModel();
         apiGatewayResponse.statusCode = response.status;
 
         apiGatewayResponse.headers = response.headers;

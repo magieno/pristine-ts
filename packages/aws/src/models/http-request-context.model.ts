@@ -1,11 +1,11 @@
-import {HttpRequestContextHttp} from "./http-request-context-http";
+import {HttpRequestContextHttpModel} from "./http-request-context-http.model";
 
-export class HttpRequestContext{
+export class HttpRequestContextModel {
     accountId: string;
     apiId: string;
     domainName: string;
     domainPrefix: string;
-    http: HttpRequestContextHttp;
+    http: HttpRequestContextHttpModel;
     requestId: string[];
     routeKey: string;
     stage: string;

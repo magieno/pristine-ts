@@ -1,6 +1,6 @@
-import {RestApiRequestContextIdentity} from "./rest-api-request-context-identity";
+import {RestApiRequestContextIdentityModel} from "./rest-api-request-context-identity.model";
 
-export class RestApiRequestContext {
+export class RestApiRequestContextModel {
     resourceId: string;
     resourcePath: string;
     httpMethod: string;
@@ -13,7 +13,7 @@ export class RestApiRequestContext {
     domainPrefix: string;
     requestTimeEpoch: number;
     requestId: string;
-    identity: RestApiRequestContextIdentity;
+    identity: RestApiRequestContextIdentityModel;
     domainName: string;
     apiId: string;
 }
