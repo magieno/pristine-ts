@@ -157,7 +157,7 @@ describe("Request mapper", () => {
             "stageVariable2": "value2"
         }
     };
-    
+
     it("should map a rest request properly", () => {
         const methodMapper = new MethodMapper();
         const requestMapper = new RequestMapper(new RequestMapperFactory(new HttpRequestMapper(methodMapper), new RestApiRequestMapper(methodMapper)));
