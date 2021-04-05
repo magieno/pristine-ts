@@ -12,9 +12,10 @@ export class HttpRequestMapper implements RequestMapperInterface {
 
     map(request: HttpRequestModel): RequestInterface {
         return {
-            url: request.url,
+            url: request.requestContext.http.path,
             headers: request.headers,
             httpMethod: this.methodMapper.map(request.requestContext.http.method),
+            body: request.body,
         }
     }
 }

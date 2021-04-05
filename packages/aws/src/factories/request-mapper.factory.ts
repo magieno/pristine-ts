@@ -12,7 +12,7 @@ export class RequestMapperFactory {
     }
 
     getRequestMapper(request: ApiGatewayRequest): RequestMapperInterface {
-        if(request){
+        if(request.version === "2.0"){
             return this.httpRequestMapper;
         } else {
             return this.restApiRequestMapper;

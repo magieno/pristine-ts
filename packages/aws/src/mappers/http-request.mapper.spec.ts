@@ -3,37 +3,72 @@ import "reflect-metadata"
 describe("Http request mapper", () => {
     const rawEvent = {
         "version": "2.0",
-        "routeKey": "ANY /nodejs-apig-function-1G3XMPLZXVXYI",
-        "rawPath": "/default/nodejs-apig-function-1G3XMPLZXVXYI",
-        "rawQueryString": "",
+        "routeKey": "$default",
+        "rawPath": "/my/path",
+        "rawQueryString": "parameter1=value1&parameter1=value2&parameter2=value",
         "cookies": [
-            "s_fid=7AABXMPL1AFD9BBF-0643XMPL09956DE2",
-            "regStatus=pre-register"
+            "cookie1",
+            "cookie2"
         ],
         "headers": {
-            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-            "accept-encoding": "gzip, deflate, br",
-            "accept-language": "en-US,en;q=0.9",
+            "header1": "value1",
+            "header2": "value1,value2"
+        },
+        "queryStringParameters": {
+            "parameter1": "value1,value2",
+            "parameter2": "value"
         },
         "requestContext": {
             "accountId": "123456789012",
-            "apiId": "r3pmxmplak",
-            "domainName": "r3pmxmplak.execute-api.us-east-2.amazonaws.com",
-            "domainPrefix": "r3pmxmplak",
-            "http": {
-                "method": "GET",
-                "path": "/default/nodejs-apig-function-1G3XMPLZXVXYI",
-                "protocol": "HTTP/1.1",
-                "sourceIp": "205.255.255.176",
-                "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36"
+            "apiId": "api-id",
+            "authentication": {
+                "clientCert": {
+                    "clientCertPem": "CERT_CONTENT",
+                    "subjectDN": "www.example.com",
+                    "issuerDN": "Example issuer",
+                    "serialNumber": "a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1",
+                    "validity": {
+                        "notBefore": "May 28 12:30:02 2019 GMT",
+                        "notAfter": "Aug  5 09:36:04 2021 GMT"
+                    }
+                }
             },
-            "requestId": "JKJaXmPLvHcESHA=",
-            "routeKey": "ANY /nodejs-apig-function-1G3XMPLZXVXYI",
-            "stage": "default",
-            "time": "10/Mar/2020:05:16:23 +0000",
-            "timeEpoch": 1583817383220
+            "authorizer": {
+                "jwt": {
+                    "claims": {
+                        "claim1": "value1",
+                        "claim2": "value2"
+                    },
+                    "scopes": [
+                        "scope1",
+                        "scope2"
+                    ]
+                }
+            },
+            "domainName": "id.execute-api.us-east-1.amazonaws.com",
+            "domainPrefix": "id",
+            "http": {
+                "method": "POST",
+                "path": "/my/path",
+                "protocol": "HTTP/1.1",
+                "sourceIp": "IP",
+                "userAgent": "agent"
+            },
+            "requestId": "id",
+            "routeKey": "$default",
+            "stage": "$default",
+            "time": "12/Mar/2020:19:03:58 +0000",
+            "timeEpoch": 1583348638390
         },
-        "isBase64Encoded": true
+        "body": "Hello from Lambda",
+        "pathParameters": {
+            "parameter1": "value1"
+        },
+        "isBase64Encoded": false,
+        "stageVariables": {
+            "stageVariable1": "value1",
+            "stageVariable2": "value2"
+        }
     };
 
 })

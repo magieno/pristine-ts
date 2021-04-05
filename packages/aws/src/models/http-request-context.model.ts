@@ -11,4 +11,6 @@ export class HttpRequestContextModel {
     stage: string;
     time: string;
     timeEpoch: number;
+    authentication: any;
+    authorizer: any;
 }

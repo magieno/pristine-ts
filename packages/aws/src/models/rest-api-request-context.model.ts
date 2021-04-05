@@ -16,4 +16,5 @@ export class RestApiRequestContextModel {
     identity: RestApiRequestContextIdentityModel;
     domainName: string;
     apiId: string;
+    authorizer: any;
 }

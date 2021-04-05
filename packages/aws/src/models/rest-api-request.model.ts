@@ -1,6 +1,7 @@
 import {RestApiRequestContextModel} from "./rest-api-request-context.model";
 
 export class RestApiRequestModel {
+    version: string;
     resource: string;
     path: string;
     httpMethod: string;
@@ -9,8 +10,8 @@ export class RestApiRequestModel {
     multiValueHeaders: {[key: string]: string[]};
     queryStringParameters?: {[key: string]: string};
     multiValueQueryStringParameters?: {[key: string]: string[]};
-    pathParameters?: string;
-    stageVariables?: string;
+    pathParameters?: {[key: string]: string};
+    stageVariables?: {[key: string]: string};
     body?: string;
     isBase64Encoded: boolean;
 }

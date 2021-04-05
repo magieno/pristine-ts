@@ -11,4 +11,5 @@ export class RestApiRequestContextIdentityModel {
     userArn?: string;
     userAgent?: string;
     user?: string;
+    clientCert: any;
 }

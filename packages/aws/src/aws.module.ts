@@ -9,6 +9,12 @@ import {DynamodbEventParser} from "./event-parsers/dynamodb.event-parser";
 import {S3EventParser} from "./event-parsers/s3.event-parser";
 import {SnsEventParser} from "./event-parsers/sns.event-parser";
 import {SqsEventParser} from "./event-parsers/sqs.event-parser";
+import {HttpRequestMapper} from "./mappers/http-request.mapper";
+import {MethodMapper} from "./mappers/method.mapper";
+import {RequestMapper} from "./mappers/request.mapper";
+import {ResponseMapper} from "./mappers/response.mapper";
+import {RestApiRequestMapper} from "./mappers/rest-api-request.mapper";
+import {RequestMapperFactory} from "./factories/request-mapper.factory";
 
 
 export * from "./clients/clients";
@@ -34,6 +40,14 @@ export const AwsModule: ModuleInterface = {
         S3EventParser,
         SnsEventParser,
         SqsEventParser,
+
+        RequestMapperFactory,
+
+        HttpRequestMapper,
+        MethodMapper,
+        RequestMapper,
+        ResponseMapper,
+        RestApiRequestMapper,
     ],
     importModules: [LoggingModule],
     providerRegistrations: [

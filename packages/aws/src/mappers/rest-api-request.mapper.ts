@@ -12,9 +12,10 @@ export class RestApiRequestMapper implements RequestMapperInterface {
 
     map(request: RestApiRequestModel): RequestInterface {
         return {
-            url: request.url,
+            url: request.path,
             headers: request.headers,
             httpMethod: this.methodMapper.map(request.httpMethod),
+            body: request.body,
         }
     }
 }

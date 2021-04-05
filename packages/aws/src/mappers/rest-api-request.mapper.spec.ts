@@ -2,60 +2,83 @@ import "reflect-metadata"
 
 describe("Rest api request mapper", () => {
     const rawEvent = {
-        "resource": "/",
-        "path": "/",
+        "version": "1.0",
+        "resource": "/my/path",
+        "path": "/my/path",
         "httpMethod": "GET",
         "headers": {
-            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-            "accept-encoding": "gzip, deflate, br",
-            "accept-language": "en-US,en;q=0.9"
+            "header1": "value1",
+            "header2": "value2"
         },
         "multiValueHeaders": {
-            "accept": [
-                "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
+            "header1": [
+                "value1"
             ],
-            "accept-encoding": [
-                "gzip, deflate, br"
-            ],
-            "accept-language": [
-                "en-US,en;q=0.9"
+            "header2": [
+                "value1",
+                "value2"
             ]
         },
-        "queryStringParameters": null,
-        "multiValueQueryStringParameters": null,
+        "queryStringParameters": {
+            "parameter1": "value1",
+            "parameter2": "value"
+        },
+        "multiValueQueryStringParameters": {
+            "parameter1": [
+                "value1",
+                "value2"
+            ],
+            "parameter2": [
+                "value"
+            ]
+        },
+        "requestContext": {
+            "accountId": "123456789012",
+            "apiId": "id",
+            "authorizer": {
+                "claims": null,
+                "scopes": null
+            },
+            "domainName": "id.execute-api.us-east-1.amazonaws.com",
+            "domainPrefix": "id",
+            "extendedRequestId": "request-id",
+            "httpMethod": "GET",
+            "identity": {
+                "accessKey": null,
+                "accountId": null,
+                "caller": null,
+                "cognitoAuthenticationProvider": null,
+                "cognitoAuthenticationType": null,
+                "cognitoIdentityId": null,
+                "cognitoIdentityPoolId": null,
+                "principalOrgId": null,
+                "sourceIp": "IP",
+                "user": null,
+                "userAgent": "user-agent",
+                "userArn": null,
+                "clientCert": {
+                    "clientCertPem": "CERT_CONTENT",
+                    "subjectDN": "www.example.com",
+                    "issuerDN": "Example issuer",
+                    "serialNumber": "a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1",
+                    "validity": {
+                        "notBefore": "May 28 12:30:02 2019 GMT",
+                        "notAfter": "Aug  5 09:36:04 2021 GMT"
+                    }
+                }
+            },
+            "path": "/my/path",
+            "protocol": "HTTP/1.1",
+            "requestId": "id=",
+            "requestTime": "04/Mar/2020:19:15:17 +0000",
+            "requestTimeEpoch": 1583349317135,
+            "resourceId": null,
+            "resourcePath": "/my/path",
+            "stage": "$default"
+        },
         "pathParameters": null,
         "stageVariables": null,
-        "requestContext": {
-            "resourceId": "2gxmpl",
-            "resourcePath": "/",
-            "httpMethod": "GET",
-            "extendedRequestId": "JJbxmplHYosFVYQ=",
-            "requestTime": "10/Mar/2020:00:03:59 +0000",
-            "path": "/Prod/",
-            "accountId": "123456789012",
-            "protocol": "HTTP/1.1",
-            "stage": "Prod",
-            "domainPrefix": "70ixmpl4fl",
-            "requestTimeEpoch": 1583798639428,
-            "requestId": "77375676-xmpl-4b79-853a-f982474efe18",
-            "identity": {
-                "cognitoIdentityPoolId": null,
-                "accountId": null,
-                "cognitoIdentityId": null,
-                "caller": null,
-                "sourceIp": "52.255.255.12",
-                "principalOrgId": null,
-                "accessKey": null,
-                "cognitoAuthenticationType": null,
-                "cognitoAuthenticationProvider": null,
-                "userArn": null,
-                "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36",
-                "user": null
-            },
-            "domainName": "70ixmpl4fl.execute-api.us-east-2.amazonaws.com",
-            "apiId": "70ixmpl4fl"
-        },
-        "body": null,
+        "body": "Hello from Lambda!",
         "isBase64Encoded": false
     };
 
