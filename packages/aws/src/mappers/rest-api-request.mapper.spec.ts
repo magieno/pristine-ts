@@ -1,4 +1,8 @@
 import "reflect-metadata"
+import {HttpRequestMapper} from "./http-request.mapper";
+import {MethodMapper} from "./method.mapper";
+import {HttpMethod, RequestInterface} from "@pristine-ts/networking";
+import {RestApiRequestMapper} from "./rest-api-request.mapper";
 
 describe("Rest api request mapper", () => {
     const rawEvent = {
@@ -81,5 +85,22 @@ describe("Rest api request mapper", () => {
         "body": "Hello from Lambda!",
         "isBase64Encoded": false
     };
+
+    it("should map a rest api request properly", () => {
+        const restApiRequestMapper = new RestApiRequestMapper(new MethodMapper());
+
+        const expectedRequest: RequestInterface = {
+            url: "/my/path",
+            body: "Hello from Lambda!",
+            headers: {
+                "header1": "value1",
+                "header2": "value2"
+            },
+            httpMethod: HttpMethod.Get
+        }
+
+        // @ts-ignore
+        expect(restApiRequestMapper.map(rawEvent)).toEqual(expectedRequest);
+    })
 
 })

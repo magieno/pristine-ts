@@ -1,4 +1,7 @@
 import "reflect-metadata"
+import {HttpRequestMapper} from "./http-request.mapper";
+import {HttpMethod, RequestInterface} from "@pristine-ts/networking";
+import {MethodMapper} from "./method.mapper";
 
 describe("Http request mapper", () => {
     const rawEvent = {
@@ -12,7 +15,7 @@ describe("Http request mapper", () => {
         ],
         "headers": {
             "header1": "value1",
-            "header2": "value1,value2"
+            "header2": "value2"
         },
         "queryStringParameters": {
             "parameter1": "value1,value2",
@@ -70,5 +73,22 @@ describe("Http request mapper", () => {
             "stageVariable2": "value2"
         }
     };
+
+
+
+    it("should map an http request properly", () => {
+        const httpRequestMapper = new HttpRequestMapper(new MethodMapper());
+
+        const expectedRequest: RequestInterface = {
+            url: "/my/path",
+            body: "Hello from Lambda",
+            headers: {
+                "header1": "value1",
+                "header2": "value2"
+            },
+            httpMethod: HttpMethod.Post
+        }
+        expect(httpRequestMapper.map(rawEvent)).toEqual(expectedRequest);
+    })
 
 })

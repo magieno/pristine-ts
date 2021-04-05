@@ -1,7 +1,7 @@
 import {RestApiRequestContextIdentityModel} from "./rest-api-request-context-identity.model";
 
 export class RestApiRequestContextModel {
-    resourceId: string;
+    resourceId?: string;
     resourcePath: string;
     httpMethod: string;
     extendedRequestId: string;

@@ -6,7 +6,7 @@ export class HttpRequestContextModel {
     domainName: string;
     domainPrefix: string;
     http: HttpRequestContextHttpModel;
-    requestId: string[];
+    requestId: string;
     routeKey: string;
     stage: string;
     time: string;
