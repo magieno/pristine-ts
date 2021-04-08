@@ -1,7 +1,7 @@
 import {ModuleInterface} from "@pristine-ts/common";
 import {ConfigurationDefinition} from "./configurations/configuration.definition";
 import {dynamicTableNameRegistry} from "./decorators/dynamic-table-name.decorator";
-import {DynamoDbTable} from "@aws/dynamodb-data-mapper";
+import {DynamoDbTable} from "@awslabs-community-fork/dynamodb-data-mapper";
 import {LoggingModule, LogHandler} from "@pristine-ts/logging";
 import {DependencyContainer} from "tsyringe";
 import {DynamodbClient} from "./clients/dynamodb.client";

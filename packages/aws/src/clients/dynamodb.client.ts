@@ -1,8 +1,7 @@
-import DynamoDB from "aws-sdk/clients/dynamodb";
-//todo: Create a fork with fixes
-import {DataMapper, DynamoDbTable, QueryOptions, StringToAnyObjectMap} from "@aws/dynamodb-data-mapper";
-import {ZeroArgumentsConstructor} from "@aws/dynamodb-data-marshaller";
-import {ConditionExpression, equals, greaterThan, OrExpression} from "@aws/dynamodb-expressions";
+import {DynamoDB} from "@aws-sdk/client-dynamodb";
+import {DataMapper, DynamoDbTable, QueryOptions, StringToAnyObjectMap} from "@awslabs-community-fork/dynamodb-data-mapper";
+import {ZeroArgumentsConstructor} from "@awslabs-community-fork/dynamodb-data-marshaller";
+import {ConditionExpression, equals, greaterThan, OrExpression} from "@awslabs-community-fork/dynamodb-expressions";
 import {inject, injectable} from "tsyringe";
 import {DynamodbItemNotFoundError} from "../errors/dynamodb-item-not-found.error";
 import {DynamodbItemAlreadyExistsError} from "../errors/dynamodb-item-already-exists.error";
@@ -27,10 +26,6 @@ export class DynamodbClient {
 
     public async getClient(): Promise<DynamoDB> {
         return this.client = this.client ?? new DynamoDB({region: this.region});
-    }
-
-    public async getDocumentClient(): Promise<DynamoDB.DocumentClient> {
-        return this.documentClient = this.documentClient ?? new DynamoDB.DocumentClient({region: this.region});
     }
 
     public async getMapperClient(): Promise<DataMapper> {

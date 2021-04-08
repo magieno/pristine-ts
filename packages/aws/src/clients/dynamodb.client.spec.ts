@@ -6,7 +6,7 @@ import {DynamodbItemAlreadyExistsError} from "../errors/dynamodb-item-already-ex
 import {DynamodbTableNotFoundError} from "../errors/dynamodb-table-not-found.error";
 import {DynamodbValidationError} from "../errors/dynamodb-validation.error";
 import {ConsoleLogger, LogHandler} from "@pristine-ts/logging";
-import {DynamoDbTable} from "@aws/dynamodb-data-mapper";
+import {DynamoDbTable} from "@awslabs-community-fork/dynamodb-data-mapper";
 
 describe("Dynamodb client", () => {
 
