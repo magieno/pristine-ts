@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/aws",
-  "version": "0.0.47",
+  "version": "0.0.48",
   "description": "",
   "module": "dist/lib/esm/aws.module.js",
   "main": "dist/lib/cjs/aws.module.js",
@@ -16,14 +16,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.11.0",
     "@awslabs-community-fork/dynamodb-data-mapper": "^0.7.9",
     "@awslabs-community-fork/dynamodb-data-marshaller": "^0.7.9",
     "@awslabs-community-fork/dynamodb-expressions": "^0.7.9",
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/event": "file:../event",
     "@pristine-ts/logging": "file:../logging",
-    "@pristine-ts/networking": "file:../networking",
-    "@aws-sdk/client-dynamodb": "^3.11.0"
+    "@pristine-ts/networking": "file:../networking"
   },
   "publishConfig": {
     "access": "public"
