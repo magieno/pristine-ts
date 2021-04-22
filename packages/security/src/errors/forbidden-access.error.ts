@@ -1,5 +1,5 @@
 /**
- * This Error is thrown when there's you try to decode a JWT in a request but the AuthorizationHeader is missing.
+ * This Error is thrown when you are trying to access a resource you are not allowed to access.
  */
 export class ForbiddenAccessError extends Error {
     public previousError?: Error;
