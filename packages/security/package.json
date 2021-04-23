@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/security",
-  "version": "0.0.48",
+  "version": "0.0.49",
   "description": "",
   "module": "dist/lib/esm/security.module.js",
   "main": "dist/lib/cjs/security.module.js",
@@ -20,8 +20,8 @@
   },
   "dependencies": {
     "@pristine-ts/common": "file:../common",
-    "@pristine-ts/networking": "file:../networking",
-    "@pristine-ts/logging": "file:../logging"
+    "@pristine-ts/logging": "file:../logging",
+    "@pristine-ts/networking": "file:../networking"
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^8.5.0"
