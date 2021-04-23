@@ -40,7 +40,7 @@ describe("", ()=> {
             }
         }
 
-        expect(permissionManager.hasAccessToResource(identity, ResourceActionEnum.Read, {}, VotingStrategyEnum.DenyOnUnanimousAbstention)).toBe(VoteEnum.Deny);
+        expect(await permissionManager.hasAccessToResource(identity, ResourceActionEnum.Read, {}, VotingStrategyEnum.DenyOnUnanimousAbstention)).toBe(false);
     });
 
     it("should return granted if no voter and GrantOnUnanimousAbstention", async () => {
@@ -53,7 +53,7 @@ describe("", ()=> {
             }
         }
 
-        expect(permissionManager.hasAccessToResource(identity, ResourceActionEnum.Read, {}, VotingStrategyEnum.GrantOnUnanimousAbstention)).toBe(VoteEnum.Grant);
+        expect(await permissionManager.hasAccessToResource(identity, ResourceActionEnum.Read, {}, VotingStrategyEnum.GrantOnUnanimousAbstention)).toBe(true);
     });
 
     it("should return deny if no voter supports and DenyOnUnanimousAbstention", async () => {
@@ -66,7 +66,7 @@ describe("", ()=> {
             }
         }
 
-        expect(permissionManager.hasAccessToResource(identity, ResourceActionEnum.Read, {}, VotingStrategyEnum.DenyOnUnanimousAbstention)).toBe(VoteEnum.Deny);
+        expect(await permissionManager.hasAccessToResource(identity, ResourceActionEnum.Read, {}, VotingStrategyEnum.DenyOnUnanimousAbstention)).toBe(false);
     });
 
     it("should return granted if no voter supports and GrantOnUnanimousAbstention", async () => {
@@ -79,7 +79,7 @@ describe("", ()=> {
             }
         }
 
-        expect(permissionManager.hasAccessToResource(identity, ResourceActionEnum.Read, {}, VotingStrategyEnum.GrantOnUnanimousAbstention)).toBe(VoteEnum.Grant);
+        expect(await permissionManager.hasAccessToResource(identity, ResourceActionEnum.Read, {}, VotingStrategyEnum.GrantOnUnanimousAbstention)).toBe(true);
     });
 
     it("should return granted if all voter grant", async () => {
@@ -92,8 +92,8 @@ describe("", ()=> {
             }
         }
 
-        expect(permissionManager.hasAccessToResource(identity, ResourceActionEnum.Read, new Resource(), VotingStrategyEnum.GrantOnUnanimousAbstention)).toBe(VoteEnum.Grant);
-        expect(permissionManager.hasAccessToResource(identity, ResourceActionEnum.Read, new Resource(), VotingStrategyEnum.DenyOnUnanimousAbstention)).toBe(VoteEnum.Grant);
+        expect(await permissionManager.hasAccessToResource(identity, ResourceActionEnum.Read, new Resource(), VotingStrategyEnum.GrantOnUnanimousAbstention)).toBe(true);
+        expect(await permissionManager.hasAccessToResource(identity, ResourceActionEnum.Read, new Resource(), VotingStrategyEnum.DenyOnUnanimousAbstention)).toBe(true);
     });
 
     it("should return deny if 1 voter deny", async () => {
@@ -106,7 +106,7 @@ describe("", ()=> {
             }
         }
 
-        expect(permissionManager.hasAccessToResource(identity, ResourceActionEnum.Read, new Resource(), VotingStrategyEnum.GrantOnUnanimousAbstention)).toBe(VoteEnum.Grant);
-        expect(permissionManager.hasAccessToResource(identity, ResourceActionEnum.Read, new Resource(), VotingStrategyEnum.DenyOnUnanimousAbstention)).toBe(VoteEnum.Grant);
+        expect(await permissionManager.hasAccessToResource(identity, ResourceActionEnum.Read, new Resource(), VotingStrategyEnum.GrantOnUnanimousAbstention)).toBe(false);
+        expect(await permissionManager.hasAccessToResource(identity, ResourceActionEnum.Read, new Resource(), VotingStrategyEnum.DenyOnUnanimousAbstention)).toBe(false);
     });
 })
