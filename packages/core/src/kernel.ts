@@ -13,7 +13,7 @@ import {
     Route,
     HttpError
 } from "@pristine-ts/networking";
-import {ModuleConfiguration, ConfigurationParser} from "@pristine-ts/configuration";
+import { ConfigurationParser} from "@pristine-ts/configuration";
 import {Event} from "@pristine-ts/event";
 import {RuntimeError} from "./errors/runtime.error";
 import {RequestInterceptorInterface} from "./interfaces/request-interceptor.interface";
@@ -51,11 +51,13 @@ export class Kernel {
     public constructor() {
     }
 
-    public async init(module: ModuleInterface, moduleConfigurations: ModuleConfiguration<any>[] = []) {
-        await this.initModule(module, moduleConfigurations);
+    public async init(module: ModuleInterface) {
+        await this.initModule(module);
 
         // Register all the service tags in the container.
         await this.registerServiceTags();
+
+        // Register
 
         // Setup the router
         this.setupRouter();
