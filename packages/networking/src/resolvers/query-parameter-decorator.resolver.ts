@@ -2,7 +2,6 @@ import {injectable} from "tsyringe";
 import {ControllerMethodParameterDecoratorResolverInterface} from "../interfaces/controller-method-parameter-decorator-resolver.interface";
 import {Request} from "../models/request";
 import Url from 'url-parse';
-// const Url = require('url-parse');
 import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 
 @tag(ServiceDefinitionTagEnum.MethodParameterDecoratorResolver)
