@@ -11,7 +11,7 @@ import {Route} from "./models/route";
 import {MethodRouterNode} from "./nodes/method-router.node";
 import {ForbiddenHttpError} from "./errors/forbidden.http-error";
 import {ControllerMethodParameterDecoratorResolver} from "./resolvers/controller-method-parameter-decorator.resolver";
-const Url = require('url-parse');
+import Url from 'url-parse';
 
 @singleton()
 export class Router implements RouterInterface {

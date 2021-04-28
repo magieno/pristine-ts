@@ -6,7 +6,7 @@ import {Readable, Writable} from "stream";
 import * as util from "util";
 import {Utils} from "../utils/utils";
 import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
-const fs = require('fs');
+import fs from 'fs';
 
 @tag(ServiceDefinitionTagEnum.Logger)
 @injectable()

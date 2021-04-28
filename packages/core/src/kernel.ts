@@ -26,8 +26,7 @@ import {
     taggedProviderRegistrationsRegistry
 } from "@pristine-ts/common";
 import {EventTransformer, EventDispatcher} from "@pristine-ts/event";
-
-const util = require('util');
+import util from "util";
 
 /**
  * This is the central class that manages the lifecyle of this library.
