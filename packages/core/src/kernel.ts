@@ -13,7 +13,7 @@ import {
     Route,
     HttpError
 } from "@pristine-ts/networking";
-import { ConfigurationParser} from "@pristine-ts/configuration";
+import { ConfigurationManager, ModuleConfigurationValue} from "@pristine-ts/configuration";
 import {Event} from "@pristine-ts/event";
 import {RuntimeError} from "./errors/runtime.error";
 import {RequestInterceptorInterface} from "./interfaces/request-interceptor.interface";
@@ -51,13 +51,14 @@ export class Kernel {
     public constructor() {
     }
 
-    public async init(module: ModuleInterface) {
+    public async init(module: ModuleInterface, moduleConfigurationValues: {[key: string]: ModuleConfigurationValue}) {
         await this.initModule(module);
 
         // Register all the service tags in the container.
         await this.registerServiceTags();
 
-        // Register
+        // Register the configuration
+        await this.initConfiguration(moduleConfigurationValues);
 
         // Setup the router
         this.setupRouter();
@@ -101,11 +102,11 @@ export class Kernel {
      * @param moduleConfigurations
      * @private
      */
-    private async initModule(module: ModuleInterface, moduleConfigurations: ModuleConfiguration<any>[] = []) {
+    private async initModule(module: ModuleInterface) {
         if (module.importModules) {
             // Start by recursively importing all the packages
             for (let importedModule of module.importModules) {
-                await this.initModule(importedModule, moduleConfigurations);
+                await this.initModule(importedModule);
             }
         }
 
@@ -121,38 +122,30 @@ export class Kernel {
             })
         }
 
-        // Validate the configuration with this module. If the module doesn't specify a configuration definition, then return.
-        const configurationForCurrentModule = moduleConfigurations.find(moduleConfiguration => moduleConfiguration.moduleKeyname === module.keyname);
-
-        if (module.configurationDefinition === undefined) {
-            if (configurationForCurrentModule !== undefined) {
-                throw new InitializationError("You passed a configuration for module: '" + module.keyname + "', but it doesn't expose a configuration.")
-            }
-
-            if(module.onInit) {
-                await module.onInit(this.container);
-            }
-
-            this.instantiatedModules[module.keyname] = module;
-
-            return;
-        }
-
-        const configurationParser: ConfigurationParser = this.container.resolve(ConfigurationParser);
-
-        const configurationParameterInjectionTokens = await configurationParser.parse(module.configurationDefinition, configurationForCurrentModule?.configuration ?? {}, module.keyname)
-
-        configurationParameterInjectionTokens.forEach(injectionToken => {
-            this.container.register(injectionToken.parameterName, {
-                useFactory: instanceCachingFactory(() => injectionToken.value),
-            });
-        });
-
         if(module.onInit) {
             await module.onInit(this.container);
         }
 
         this.instantiatedModules[module.keyname] = module;
+    }
+
+    private async initConfiguration(moduleConfigurationValues: {[key: string]: ModuleConfigurationValue}) {
+        const configurationManager: ConfigurationManager = this.container.resolve(ConfigurationManager);
+
+        // Start by loading the configuration definitions of all the modules
+        for (let key in this.instantiatedModules) {
+            if(this.instantiatedModules.hasOwnProperty(key) === false) {
+                continue;
+            }
+
+            const instantiatedModule: ModuleInterface = this.instantiatedModules[key];
+            if(instantiatedModule.configurationDefinitions) {
+                instantiatedModule.configurationDefinitions.forEach(configurationDefinition => configurationManager.register(configurationDefinition));
+            }
+        }
+
+        // Load the configuration values passed by the app
+        await configurationManager.load(moduleConfigurationValues, this.container);
     }
 
     /**

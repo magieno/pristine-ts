@@ -2,8 +2,8 @@ import {injectable, DependencyContainer} from "tsyringe";
 import {ConfigurationDefinitionAlreadyExistsError} from "../errors/configuration-definition-already-exists.error";
 import {ModuleConfigurationValue} from "../types/module-configuration.value";
 import {ConfigurationParser} from "../parsers/configuration.parser";
-import {ConfigurationDefinition} from "../types/configuration-definition.type";
 import {ConfigurationValidationError} from "../errors/configuration-validation.error";
+import {ConfigurationDefinition} from "@pristine-ts/common";
 
 @injectable()
 export class ConfigurationManager {
@@ -12,6 +12,12 @@ export class ConfigurationManager {
     public constructor(private readonly configurationParser: ConfigurationParser) {
     }
 
+    /**
+     * This method registers the configuration definition that a module has defined. This method will be called multiple times per
+     * configuration definition in each module.
+     *
+     * @param configurationDefinition
+     */
     public register(configurationDefinition: ConfigurationDefinition) {
         if(this.configurationDefinitions.hasOwnProperty(configurationDefinition.parameterName)) {
             throw new ConfigurationDefinitionAlreadyExistsError("There is already a configuration definition registered for this parameter name: '" + configurationDefinition.parameterName + "'");
@@ -20,6 +26,16 @@ export class ConfigurationManager {
         this.configurationDefinitions[configurationDefinition.parameterName] = configurationDefinition;
     }
 
+    /**
+     * This method loads the configuration values passed dynamically when instantiating the Kernel. This method
+     * will verify that a corresponding configurationDefinition exists and if it does, it will resolve the value.
+     *
+     * This method will also check to make sure that all the expected values are being passed. For example, if a module expects
+     * a configuration value to be passed, this method will throw if none are passed.
+     *
+     * @param moduleConfigurationValues
+     * @param container
+     */
     public async load(moduleConfigurationValues: {[key: string]: ModuleConfigurationValue}, container: DependencyContainer) {
         const validationErrors: string[] = [];
 
@@ -71,6 +87,13 @@ export class ConfigurationManager {
         this.configurationDefinitions = {};
     }
 
+    /**
+     * This method simply registers the configuration parameter with the resolved value in the container.
+     *
+     * @param configurationKey
+     * @param value
+     * @param container
+     */
     public registerConfigurationValue(configurationKey: string, value: boolean | number |  string, container: DependencyContainer) {
         // Register the configuration in the container
         container.registerInstance("%" + configurationKey + "%", value);

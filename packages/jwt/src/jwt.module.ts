@@ -15,7 +15,27 @@ export * from "./resolvers/resolvers";
 
 export const JwtModule: ModuleInterface = {
     keyname: "pristine.jwt",
-    configurationDefinition: ConfigurationDefinition,
+    configurationDefinitions: [
+        {
+            parameterName: "pristine.jwt.algorithm",
+            isRequired: false,
+            defaultValue: "HS256",
+        },
+        {
+            parameterName: "pristine.jwt.publicKey",
+            isRequired: true,
+        },
+        {
+            parameterName: "pristine.jwt.privateKey",
+            isRequired: false,
+            defaultValue: "",
+        },
+        {
+            parameterName: "pristine.jwt.passphrase",
+            isRequired: false,
+            defaultValue: "",
+        },
+    ],
     importServices: [],
     importModules: [
         NetworkingModule,
