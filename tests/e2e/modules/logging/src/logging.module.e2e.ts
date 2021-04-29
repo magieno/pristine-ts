@@ -3,7 +3,7 @@ import {container} from "tsyringe";
 import {Kernel} from "@pristine-ts/core";
 import {controller, guards, HttpMethod, NetworkingModule, RequestInterface, route} from "@pristine-ts/networking";
 import {CoreModule} from "@pristine-ts/core";
-import {LoggingModule, LogHandler, ConfigurationDefinitionInterface} from "@pristine-ts/logging";
+import {LoggingModule, LogHandler} from "@pristine-ts/logging";
 
 
 // @ts-ignore
@@ -22,28 +22,25 @@ describe("Logging Module instantiation in the Kernel", () => {
     })
 
     it("should log properly", async () => {
-        const loggingConfiguration: ConfigurationDefinitionInterface = {
-            numberOfStackedLogs: 10,
-            logSeverityLevelConfiguration: 0,
-            logDebugDepthConfiguration: 10,
-            logInfoDepthConfiguration: 10,
-            logWarningDepthConfiguration: 10,
-            logErrorDepthConfiguration: 10,
-            logCriticalDepthConfiguration: 10,
-            consoleLoggerActivated: true,
-            fileLoggerActivated: false,
-            fileLoggerPretty:false,
-        }
+
         const kernel = new Kernel();
         await kernel.init({
             keyname: "logging.test",
             importModules: [CoreModule, NetworkingModule, LoggingModule],
             importServices: [],
             providerRegistrations: []
-        }, [{
-            moduleKeyname: LoggingModule.keyname,
-            configuration: loggingConfiguration,
-        }]);
+        }, {
+            "pristine.logging.numberOfStackedLogs": 10,
+            "pristine.logging.logSeverityLevelConfiguration": 0,
+            "pristine.logging.logDebugDepthConfiguration": 10,
+            "pristine.logging.logInfoDepthConfiguration": 10,
+            "pristine.logging.logWarningDepthConfiguration": 10,
+            "pristine.logging.logErrorDepthConfiguration": 10,
+            "pristine.logging.logCriticalDepthConfiguration": 10,
+            "pristine.logging.consoleLoggerActivated": true,
+            "pristine.logging.fileLoggerActivated": false,
+            "pristine.logging.fileLoggerPretty":false,
+        });
 
         const logHandler: LogHandler = await kernel.container.resolve(LogHandler);
 

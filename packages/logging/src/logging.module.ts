@@ -19,11 +19,6 @@ export const LoggingModule: ModuleInterface = {
             defaultValue: 10,
         },
         {
-            parameterName: "pristine.logging.numberOfStackedLogs",
-            defaultValue: 10,
-            isRequired: false,
-        },
-        {
             parameterName: "pristine.logging.logSeverityLevelConfiguration",
             defaultValue: 0,
             isRequired: false,

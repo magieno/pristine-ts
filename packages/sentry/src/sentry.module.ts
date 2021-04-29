@@ -1,7 +1,6 @@
 import {ModuleInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {SentryLogger} from "./loggers/sentry.logger";
 
-export * from "./interfaces/interfaces";
 export * from "./loggers/loggers";
 
 export const SentryModule: ModuleInterface = {
