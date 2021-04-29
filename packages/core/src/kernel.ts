@@ -51,14 +51,16 @@ export class Kernel {
     public constructor() {
     }
 
-    public async init(module: ModuleInterface, moduleConfigurationValues: {[key: string]: ModuleConfigurationValue}) {
+    public async init(module: ModuleInterface, moduleConfigurationValues?: {[key: string]: ModuleConfigurationValue}) {
         await this.initModule(module);
 
         // Register all the service tags in the container.
         await this.registerServiceTags();
 
         // Register the configuration
-        await this.initConfiguration(moduleConfigurationValues);
+        if(moduleConfigurationValues) {
+            await this.initConfiguration(moduleConfigurationValues);
+        }
 
         // Setup the router
         this.setupRouter();
