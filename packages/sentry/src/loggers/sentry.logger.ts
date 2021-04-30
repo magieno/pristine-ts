@@ -3,7 +3,10 @@ import * as Sentry from "@sentry/node";
 import {Severity as SentrySeverity} from "@sentry/node";
 import {Readable, Writable} from "stream";
 import {LogModel, SeverityEnum, LoggerInterface} from "@pristine-ts/logging";
+import {moduleScoped} from "@pristine-ts/common";
+import {SentryModule} from "../sentry.module";
 
+@moduleScoped(SentryModule.keyname)
 @injectable()
 export class SentryLogger implements LoggerInterface {
     public readableStream: Readable;
