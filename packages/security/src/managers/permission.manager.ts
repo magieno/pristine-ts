@@ -3,7 +3,7 @@ import {VoterInterface} from "../interfaces/voter.interface";
 import {VotingStrategyEnum} from "../enums/voting-strategy.enum";
 import {LogHandler} from "@pristine-ts/logging";
 import {VoteEnum} from "../enums/vote.enum";
-import {IdentityInterface} from "../interfaces/identity.interface";
+import {IdentityInterface} from "@pristine-ts/common";
 
 @injectable()
 export class PermissionManager {

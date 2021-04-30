@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "@pristine-ts/aws": "file:packages/aws",
+    "@pristine-ts/cognito": "file:packages/cognito",
     "@pristine-ts/common": "file:packages/common",
     "@pristine-ts/configuration": "file:packages/configuration",
     "@pristine-ts/core": "file:packages/core",

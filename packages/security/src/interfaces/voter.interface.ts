@@ -1,5 +1,5 @@
 import {VoteEnum} from "../enums/vote.enum";
-import {IdentityInterface} from "./identity.interface";
+import {IdentityInterface} from "@pristine-ts/common";
 
 export interface VoterInterface {
     supports(resource: object): boolean;
