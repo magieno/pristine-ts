@@ -1,6 +1,6 @@
-import {ModuleScopedRegistrationType} from "../types/module-scoped-registration.type";
+import {ModuleScopedRegistrationInterface} from "../interfaces/module-scoped-registration.interface";
 
-export const moduleScopedServicesRegistry: {[key: string]: ModuleScopedRegistrationType}= {};
+export const moduleScopedServicesRegistry: {[key: string]: ModuleScopedRegistrationInterface}= {};
 
 export const moduleScoped = (moduleKeyname: string) => {
     return (constructor: any) => {

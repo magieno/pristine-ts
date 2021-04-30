@@ -23,10 +23,9 @@ import {
     ServiceDefinitionTagEnum,
     ModuleInterface,
     ProviderRegistration,
-    taggedProviderRegistrationsRegistry, moduleScopedServicesRegistry
+    taggedProviderRegistrationsRegistry, moduleScopedServicesRegistry, TaggedRegistrationInterface
 } from "@pristine-ts/common";
 import {EventTransformer, EventDispatcher} from "@pristine-ts/event";
-import {TaggedRegistrationType} from "@pristine-ts/common/dist/types/types/tagged-registration.type";
 import util from "util";
 
 /**
@@ -444,7 +443,7 @@ export class Kernel {
      * @private
      */
     private registerServiceTags() {
-        taggedProviderRegistrationsRegistry.forEach( (taggedRegistrationType: TaggedRegistrationType) => {
+        taggedProviderRegistrationsRegistry.forEach( (taggedRegistrationType: TaggedRegistrationInterface) => {
             // Verify that if the constructor is moduleScoped, we only load it if its corresponding module is initialized.
             // If the module is not initialized, we do not load the tagged service.
             const moduleScopedRegistration = moduleScopedServicesRegistry[taggedRegistrationType.constructor];

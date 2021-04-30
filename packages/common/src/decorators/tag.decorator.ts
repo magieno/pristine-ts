@@ -1,7 +1,7 @@
 import {ProviderRegistration} from "../types/provider-registration.type";
-import {TaggedRegistrationType} from "../types/tagged-registration.type";
+import {TaggedRegistrationInterface} from "../interfaces/tagged-registration.interface";
 
-export const taggedProviderRegistrationsRegistry: TaggedRegistrationType[] = [];
+export const taggedProviderRegistrationsRegistry: TaggedRegistrationInterface[] = [];
 
 export const tag = (tag: string) => {
     return (constructor: any) => {
