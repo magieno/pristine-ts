@@ -1,5 +1,4 @@
 import {ModuleInterface} from "@pristine-ts/common";
-import {ConfigurationDefinition} from "./configurations/configuration.definition";
 import {dynamicTableNameRegistry} from "./decorators/dynamic-table-name.decorator";
 import {DynamoDbTable} from "@awslabs-community-fork/dynamodb-data-mapper";
 import {LoggingModule, LogHandler} from "@pristine-ts/logging";
@@ -18,7 +17,6 @@ import {RequestMapperFactory} from "./factories/request-mapper.factory";
 
 
 export * from "./clients/clients";
-export * from "./configurations/configurations";
 export * from "./decorators/decorators";
 export * from "./enums/enums";
 export * from "./errors/errors";
@@ -32,7 +30,13 @@ export * from "./types/types";
 
 export const AwsModule: ModuleInterface = {
     keyname: "pristine.aws",
-    configurationDefinition: ConfigurationDefinition,
+    configurationDefinitions: [
+        {
+            parameterName: "pristine.aws.region",
+            isRequired: false,
+            defaultValue: "us-east-1",
+        }
+    ],
     importServices: [
         DynamodbClient,
 

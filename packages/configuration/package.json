@@ -13,6 +13,9 @@
   "files": [
     "dist"
   ],
+  "dependencies": {
+    "@pristine-ts/common": "file:../common"
+  },
   "author": "",
   "license": "ISC",
   "publishConfig": {

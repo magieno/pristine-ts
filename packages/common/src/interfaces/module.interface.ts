@@ -1,5 +1,6 @@
 import {ProviderRegistration} from "../types/provider-registration.type";
 import {DependencyContainer} from "tsyringe";
+import {ConfigurationDefinition} from "../types/configuration-definition.type";
 
 /**
  * The ModuleInterface is the entry point that groups all the classes that you want to handle in your module.
@@ -33,7 +34,7 @@ export interface ModuleInterface {
      * This property defines the configuration definition that allows the kernel to know if the provided configuration is sufficient
      * for the module.
      */
-    configurationDefinition?: { new(): object };
+    configurationDefinitions?: ConfigurationDefinition[];
 
     /**
      * This function lets you run code on the module initialization. Be careful the tags and the router are not created yet.
