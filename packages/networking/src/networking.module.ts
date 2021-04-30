@@ -4,6 +4,7 @@ import {QueryParameterDecoratorResolver} from "./resolvers/query-parameter-decor
 import {QueryParametersDecoratorResolver} from "./resolvers/query-parameters-decorator.resolver";
 import {ControllerMethodParameterDecoratorResolver} from "./resolvers/controller-method-parameter-decorator.resolver";
 import {RouteParameterDecoratorResolver} from "./resolvers/route-parameter-decorator.resolver";
+import {NetworkingModuleKeyname} from "./networking.module.keyname";
 
 export * from "./decorators/decorators";
 export * from "./enums/enums";
@@ -17,7 +18,7 @@ export * from "./utils/utils";
 export * from "./router";
 
 export const NetworkingModule: ModuleInterface = {
-    keyname: "pristine.networking",
+    keyname: NetworkingModuleKeyname,
 
     importServices: [],
 

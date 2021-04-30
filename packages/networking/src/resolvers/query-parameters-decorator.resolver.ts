@@ -1,9 +1,11 @@
 import {injectable} from "tsyringe";
 import {ControllerMethodParameterDecoratorResolverInterface} from "../interfaces/controller-method-parameter-decorator-resolver.interface";
 import {Request} from "../models/request";
+import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {NetworkingModuleKeyname} from "../networking.module.keyname";
 import Url from 'url-parse';
-import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 
+@moduleScoped(NetworkingModuleKeyname)
 @tag(ServiceDefinitionTagEnum.MethodParameterDecoratorResolver)
 @injectable()
 export class QueryParametersDecoratorResolver implements ControllerMethodParameterDecoratorResolverInterface {
