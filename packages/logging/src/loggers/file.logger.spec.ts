@@ -2,7 +2,7 @@ import "reflect-metadata"
 import {SeverityEnum} from "../enums/severity.enum";
 import {LogModel} from "../models/log.model";
 import {FileLogger} from "./file.logger";
-const fs = require('fs');
+import fs from 'fs';
 
 
 describe("File writer", () => {

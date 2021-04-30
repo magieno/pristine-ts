@@ -13,8 +13,8 @@ export class ConfigurationManager {
     }
 
     /**
-     * This method registers the configuration definition that a module has defined. This method will be called multiple times per
-     * configuration definition in each module.
+     * This method registers the configuration definition that a module has defined. This method will be called for each
+     * configuration definition defined in each module.
      *
      * @param configurationDefinition
      */
