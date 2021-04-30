@@ -1,0 +1,62 @@
+{
+  "name": "@pristine-ts/cognito",
+  "version": "0.0.53",
+  "description": "",
+  "module": "dist/lib/esm/cognito.module.js",
+  "main": "dist/lib/cjs/cognito.module.js",
+  "types": "dist/types/cognito.module.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
+    "prepublish": "npm run build",
+    "test": "jest"
+  },
+  "files": [
+    "dist"
+  ],
+  "author": "",
+  "license": "ISC",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@pristine-ts/common": "file:../common",
+    "axios": "^0.21.1",
+    "jwk-to-pem": "^2.0.5",
+    "jsonwebtoken": "^8.5.1"
+  },
+  "jest": {
+    "transform": {
+      ".(ts|tsx)": "ts-jest"
+    },
+    "globals": {
+      "ts-jest": {
+        "tsconfig": {
+          "strictNullChecks": false
+        }
+      }
+    },
+    "testEnvironment": "node",
+    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/test/"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 90,
+        "functions": 95,
+        "lines": 95,
+        "statements": 95
+      }
+    },
+    "collectCoverageFrom": [
+      "src/*.{js,ts}"
+    ]
+  },
+  "gitHead": "112f715bf4ac6467192d416aa6e419f772b77c58"
+}
