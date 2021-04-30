@@ -3,6 +3,7 @@ import {NetworkingModule} from "@pristine-ts/networking";
 import {JwtManager} from "./managers/jwt.manager";
 import {JwtManagerInterface} from "./interfaces/jwt-manager.interface";
 import {JwtPayloadParameterDecoratorResolver} from "./resolvers/jwt-payload-parameter-decorator.resolver";
+import {JwtModuleKeyname} from "./jwt.module.keyname";
 
 export * from "./decorators/decorators";
 export * from "./errors/errors";
@@ -10,26 +11,27 @@ export * from "./guards/guards";
 export * from "./interfaces/interfaces";
 export * from "./managers/managers";
 export * from "./resolvers/resolvers";
+export * from "./jwt.module.keyname";
 
 export const JwtModule: ModuleInterface = {
-    keyname: "pristine.jwt",
+    keyname: JwtModuleKeyname,
     configurationDefinitions: [
         {
-            parameterName: "pristine.jwt.algorithm",
+            parameterName: JwtModuleKeyname + ".algorithm",
             isRequired: false,
             defaultValue: "HS256",
         },
         {
-            parameterName: "pristine.jwt.publicKey",
+            parameterName: JwtModuleKeyname + ".publicKey",
             isRequired: true,
         },
         {
-            parameterName: "pristine.jwt.privateKey",
+            parameterName: JwtModuleKeyname + ".privateKey",
             isRequired: false,
             defaultValue: "",
         },
         {
-            parameterName: "pristine.jwt.passphrase",
+            parameterName: JwtModuleKeyname + ".passphrase",
             isRequired: false,
             defaultValue: "",
         },

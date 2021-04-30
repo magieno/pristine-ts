@@ -2,9 +2,9 @@ import {injectable} from "tsyringe";
 import {ControllerMethodParameterDecoratorResolverInterface} from "../interfaces/controller-method-parameter-decorator-resolver.interface";
 import {Request} from "../models/request";
 import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
-import {NetworkingModule} from "../networking.module";
+import {NetworkingModuleKeyname} from "../networking.module.keyname";
 
-@moduleScoped(NetworkingModule.keyname)
+@moduleScoped(NetworkingModuleKeyname)
 @tag(ServiceDefinitionTagEnum.MethodParameterDecoratorResolver)
 @injectable()
 export class RouteParameterDecoratorResolver implements ControllerMethodParameterDecoratorResolverInterface {

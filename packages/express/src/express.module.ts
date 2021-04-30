@@ -7,9 +7,10 @@ import {MethodMapper} from "./mappers/method.mapper";
 import {ResponseMapper} from "./mappers/response.mapper";
 import {CoreModule} from "@pristine-ts/core";
 import {ModuleInterface} from "@pristine-ts/common";
+import {ExpressModuleKeyname} from "./express.module.keyname";
 
 export const ExpressModule: ModuleInterface = {
-    keyname: "pristine.express",
+    keyname: ExpressModuleKeyname,
     importServices: [
         RequestMapper,
         HttpHeadersMapper,
@@ -23,3 +24,5 @@ export const ExpressModule: ModuleInterface = {
 
 // Mappers
 export * from "./mappers/mappers";
+
+export * from "./express.module.keyname";

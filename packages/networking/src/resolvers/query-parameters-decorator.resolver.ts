@@ -3,9 +3,9 @@ import {ControllerMethodParameterDecoratorResolverInterface} from "../interfaces
 import {Request} from "../models/request";
 const Url = require('url-parse');
 import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
-import {NetworkingModule} from "../networking.module";
+import {NetworkingModuleKeyname} from "../networking.module.keyname";
 
-@moduleScoped(NetworkingModule.keyname)
+@moduleScoped(NetworkingModuleKeyname)
 @tag(ServiceDefinitionTagEnum.MethodParameterDecoratorResolver)
 @injectable()
 export class QueryParametersDecoratorResolver implements ControllerMethodParameterDecoratorResolverInterface {

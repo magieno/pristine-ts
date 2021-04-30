@@ -14,7 +14,7 @@ import {RequestMapper} from "./mappers/request.mapper";
 import {ResponseMapper} from "./mappers/response.mapper";
 import {RestApiRequestMapper} from "./mappers/rest-api-request.mapper";
 import {RequestMapperFactory} from "./factories/request-mapper.factory";
-
+import {AwsModuleKeyname} from "./aws.module.keyname";
 
 export * from "./clients/clients";
 export * from "./decorators/decorators";
@@ -28,11 +28,13 @@ export * from "./mappers/mappers";
 export * from "./models/models";
 export * from "./types/types";
 
+export * from "./aws.module.keyname";
+
 export const AwsModule: ModuleInterface = {
-    keyname: "pristine.aws",
+    keyname: AwsModuleKeyname,
     configurationDefinitions: [
         {
-            parameterName: "pristine.aws.region",
+            parameterName: AwsModuleKeyname + ".region",
             isRequired: false,
             defaultValue: "us-east-1",
         }

@@ -2,6 +2,7 @@ import {ModuleInterface} from "@pristine-ts/common";
 import {LogHandler} from "./handlers/log.handler";
 import {ConsoleLogger} from "./loggers/console.logger";
 import {FileLogger} from "./loggers/file.logger";
+import {LoggingModuleKeyname} from "./logging.module.keyname";
 
 export * from "./enums/enums";
 export * from "./handlers/handlers";
@@ -9,62 +10,63 @@ export * from "./interfaces/interfaces";
 export * from "./models/models";
 export * from "./loggers/loggers";
 export * from "./utils/utils";
+export * from "./logging.module.keyname"
 
 export const LoggingModule: ModuleInterface = {
-    keyname: "pristine.logging",
+    keyname: LoggingModuleKeyname,
     configurationDefinitions: [
         {
-            parameterName: "pristine.logging.numberOfStackedLogs",
+            parameterName: LoggingModuleKeyname + ".numberOfStackedLogs",
             isRequired: false,
             defaultValue: 10,
         },
         {
-            parameterName: "pristine.logging.logSeverityLevelConfiguration",
+            parameterName: LoggingModuleKeyname + ".logSeverityLevelConfiguration",
             defaultValue: 0,
             isRequired: false,
         },
         {
-            parameterName: "pristine.logging.logDebugDepthConfiguration",
+            parameterName: LoggingModuleKeyname + ".logDebugDepthConfiguration",
             defaultValue: 10,
             isRequired: false,
         },
         {
-            parameterName: "pristine.logging.logInfoDepthConfiguration",
+            parameterName: LoggingModuleKeyname + ".logInfoDepthConfiguration",
             defaultValue: 10,
             isRequired: false,
         },
         {
-            parameterName: "pristine.logging.logWarningDepthConfiguration",
+            parameterName: LoggingModuleKeyname + ".logWarningDepthConfiguration",
             defaultValue: 10,
             isRequired: false,
         },
         {
-            parameterName: "pristine.logging.logErrorDepthConfiguration",
+            parameterName: LoggingModuleKeyname + ".logErrorDepthConfiguration",
             defaultValue: 10,
             isRequired: false,
         },
         {
-            parameterName: "pristine.logging.logCriticalDepthConfiguration",
+            parameterName: LoggingModuleKeyname + ".logCriticalDepthConfiguration",
             defaultValue: 10,
             isRequired: false,
         },
         {
-            parameterName: "pristine.logging.consoleLoggerActivated",
+            parameterName: LoggingModuleKeyname + ".consoleLoggerActivated",
             defaultValue: false,
             isRequired: false,
         },
         {
-            parameterName: "pristine.logging.fileLoggerActivated",
+            parameterName: LoggingModuleKeyname + ".fileLoggerActivated",
             defaultValue: false,
             isRequired: false,
         },
         {
-            parameterName: "pristine.logging.filePath",
+            parameterName: LoggingModuleKeyname + ".filePath",
             defaultValue: "./logs.txt",
             isRequired: false,
         },
         {
-            parameterName: "pristine.logging.fileLoggerPretty",
+            parameterName: LoggingModuleKeyname + ".fileLoggerPretty",
             defaultValue: false,
             isRequired: false,
         },
