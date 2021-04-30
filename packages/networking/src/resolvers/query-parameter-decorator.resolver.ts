@@ -5,6 +5,7 @@ const Url = require('url-parse');
 import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {NetworkingModuleKeyname} from "../networking.module.keyname";
 
+console.log(NetworkingModuleKeyname)
 @moduleScoped(NetworkingModuleKeyname)
 @tag(ServiceDefinitionTagEnum.MethodParameterDecoratorResolver)
 @injectable()

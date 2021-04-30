@@ -3,9 +3,9 @@ import {injectable} from "tsyringe";
 import {ControllerMethodParameterDecoratorResolverInterface, Request} from "@pristine-ts/networking";
 import {JwtManager} from "../managers/jwt.manager";
 import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
-import {JwtModule} from "../jwt.module";
+import {JwtModuleKeyname} from "../jwt.module.keyname";
 
-@moduleScoped(JwtModule.keyname)
+@moduleScoped(JwtModuleKeyname)
 @tag(ServiceDefinitionTagEnum.MethodParameterDecoratorResolver)
 @injectable()
 export class JwtPayloadParameterDecoratorResolver implements ControllerMethodParameterDecoratorResolverInterface {

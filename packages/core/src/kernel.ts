@@ -449,7 +449,7 @@ export class Kernel {
             // Verify that if the constructor is moduleScoped, we only load it if its corresponding module is initialized.
             // If the module is not initialized, we do not load the tagged service.
             const moduleScopedRegistration = moduleScopedServicesRegistry[taggedRegistrationType.constructor];
-            if(moduleScopedRegistration && this.instantiatedModules.hasOwnProperty(moduleScopedRegistration.moduleKeyname)) {
+            if(moduleScopedRegistration && this.instantiatedModules.hasOwnProperty(moduleScopedRegistration.moduleKeyname) === false) {
                 return;
             }
 
