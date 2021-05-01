@@ -2,7 +2,7 @@ import {injectable, inject, singleton} from "tsyringe";
 import {CognitoModuleKeyname} from "../cognito.module.keyname";
 import {PublicKeyInterface} from "../interfaces/public-key.interface";
 import {HttpClientInterface} from "../interfaces/http-client.interface";
-import * as jwkToPem from "jwk-to-pem";
+const jwkToPem = require("jwk-to-pem");
 import * as jwt from "jsonwebtoken";
 import {RequestInterface} from "@pristine-ts/networking";
 import {TokenHeaderInterface} from "../interfaces/token-header.interface";
@@ -14,20 +14,23 @@ import {ClaimInterface} from "../interfaces/claim.interface";
 export class CognitoAuthenticator {
 
     private cachedPems;
+    private cognitoIssuer;
+    private publicKeyUrl;
 
     constructor(@inject(`%${CognitoModuleKeyname}.region%`) private readonly region: string,
                 @inject(`%${CognitoModuleKeyname}.poolId%`) private readonly poolId: string,
                 private readonly httpClient: HttpClientInterface,
                 ) {
+        this.cognitoIssuer = this.getCognitoIssuer();
+        this.publicKeyUrl = this.getPublicKeyUrl();
     }
 
     async authenticate(request: RequestInterface): Promise<IdentityInterface> {
-        const cognitoIssuer = "https://cognito-idp." + this.region + ".amazonaws.com/" + this.poolId;
-        this.cachedPems = this.cachedPems ?? await this.getPems(cognitoIssuer);
+        this.cachedPems = this.cachedPems ?? await this.getPems();
         const token = this.validateRequestAndReturnToken(request);
         const key = this.getKeyFromToken(token, this.cachedPems);
 
-        const claim = this.getAndVerifyClaims(token, key, cognitoIssuer);
+        const claim = this.getAndVerifyClaims(token, key);
 
         console.log(`claim confirmed for ${claim.username}`);
 
@@ -37,66 +40,33 @@ export class CognitoAuthenticator {
         }
     }
 
-    private getAndVerifyClaims(token: string, key: string, cognitoIssuer: string): ClaimInterface {
-        let claim;
-        try {
-            claim = jwt.verify(token, key) as ClaimInterface;
-        } catch(err) {
-            throw new Error("Invalid jwt");
-        }
-
-        const currentSeconds = Math.floor( (new Date()).valueOf() / 1000);
-        if (currentSeconds > claim.exp || currentSeconds < claim.auth_time) {
-            throw new Error('claim is expired or invalid');
-        }
-        if (claim.iss !== cognitoIssuer) {
-            throw new Error('claim issuer is invalid');
-        }
-        if (claim.token_use !== 'access') {
-            throw new Error('claim use is not access');
-        }
-
-        return claim;
+    private getCognitoIssuer(): string {
+        return "https://cognito-idp." + this.region + ".amazonaws.com/" + this.poolId
     }
 
-    private async getPems(cognitoIssuer: string) {
-        const url = cognitoIssuer + "/.well-known/jwks.json";
+    private getPublicKeyUrl(): string {
+        return this.cognitoIssuer + "/.well-known/jwks.json";
+    }
 
-        const publicKeys = await this.httpClient.get<{keys: PublicKeyInterface[]}>(url);
+    private async getPems() {
+        const publicKeys = await this.httpClient.get<{keys: PublicKeyInterface[]}>(this.publicKeyUrl);
 
         const pems: {[key: string]: string} = publicKeys.keys.reduce((agg, current) => {
-            agg[current.kid] =  jwkToPem(current);
+            agg[current.kid] = jwkToPem(current);
             return agg;
         }, {} as {[key: string]: string});
 
         return pems;
     }
 
-    private getKeyFromToken(token: string, pems:{[key: string]: string}): string {
-        const header = this.getTokenHeader(token);
-        const key = pems[header.kid];
-        if (key === undefined) {
-            throw new Error('claim made for unknown kid');
-        }
-        return key;
-    }
-
-    private getTokenHeader(token): TokenHeaderInterface {
-        const tokenSections = (token || '').split('.');
-        if (tokenSections.length < 2) {
-            throw new Error('requested token is invalid');
-        }
-        const headerJSON = Buffer.from(tokenSections[0], 'base64').toString('utf8');
-        return  JSON.parse(headerJSON) as TokenHeaderInterface;
-    }
-
+    // todo: this is a copy from jwt manager should we put that somewhere common ?
     private validateRequestAndReturnToken(request: RequestInterface): string {
-        if (request.headers === undefined || request.headers.hasOwnProperty("Authorization") === false) {
+        if (request.headers === undefined || (request.headers.hasOwnProperty("Authorization") === false && request.headers.hasOwnProperty("authorization") === false)) {
             throw new Error("The Authorization header wasn't found in the Request.");
             // throw new MissingAuthorizationHeaderError("The Authorization header wasn't found in the Request.");
         }
 
-        const authorizationHeader = request.headers.Authorization;
+        const authorizationHeader = request.headers.Authorization ?? request.headers.authorization;
 
         if (authorizationHeader === undefined) {
             throw new Error("The Authorization header wasn't found in the Request.");
@@ -111,5 +81,45 @@ export class CognitoAuthenticator {
         }
 
         return authorizationHeader.substr(7, authorizationHeader.length);
+    }
+
+    private getAndVerifyClaims(token: string, key: string): ClaimInterface {
+        let claim;
+        try {
+            claim = jwt.verify(token, key) as ClaimInterface;
+        } catch(err) {
+            throw new Error("Invalid jwt: " + err.message);
+        }
+
+        const currentSeconds = Math.floor( (new Date()).valueOf() / 1000);
+        if (currentSeconds > claim.exp || currentSeconds < claim.auth_time) {
+            throw new Error('Claim is expired or invalid');
+        }
+        if (claim.iss !== this.cognitoIssuer) {
+            throw new Error('Claim issuer is invalid');
+        }
+        if (claim.token_use !== 'access') {
+            throw new Error('Claim use is not access');
+        }
+
+        return claim;
+    }
+
+    private getKeyFromToken(token: string, pems:{[key: string]: string}): string {
+        const header = this.getTokenHeader(token);
+        const key = pems[header.kid];
+        if (key === undefined) {
+            throw new Error('Claim made for unknown kid');
+        }
+        return key;
+    }
+
+    private getTokenHeader(token): TokenHeaderInterface {
+        const tokenSections = (token || '').split('.');
+        if (tokenSections.length < 2) {
+            throw new Error('Token is invalid');
+        }
+        const headerJSON = Buffer.from(tokenSections[0], 'base64').toString('utf8');
+        return  JSON.parse(headerJSON) as TokenHeaderInterface;
     }
 }
