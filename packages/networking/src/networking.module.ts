@@ -1,9 +1,4 @@
-import {ModuleInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
-import {BodyParameterDecoratorResolver} from "./resolvers/body-parameter-decorator.resolver";
-import {QueryParameterDecoratorResolver} from "./resolvers/query-parameter-decorator.resolver";
-import {QueryParametersDecoratorResolver} from "./resolvers/query-parameters-decorator.resolver";
-import {ControllerMethodParameterDecoratorResolver} from "./resolvers/controller-method-parameter-decorator.resolver";
-import {RouteParameterDecoratorResolver} from "./resolvers/route-parameter-decorator.resolver";
+import {ModuleInterface} from "@pristine-ts/common";
 import {NetworkingModuleKeyname} from "./networking.module.keyname";
 
 export * from "./decorators/decorators";

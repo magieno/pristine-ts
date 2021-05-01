@@ -12,12 +12,16 @@ import {MethodRouterNode} from "./nodes/method-router.node";
 import {ForbiddenHttpError} from "./errors/forbidden.http-error";
 import {ControllerMethodParameterDecoratorResolver} from "./resolvers/controller-method-parameter-decorator.resolver";
 import Url from 'url-parse';
+import {AuthenticatorInterface} from "./interfaces/authenticator.interface";
+import {IdentityInterface} from "@pristine-ts/common";
 
 @singleton()
 export class Router implements RouterInterface {
     private root: RouterNode = new PathRouterNode("/");
 
-    public constructor(private readonly controllerMethodParameterDecoratorResolver: ControllerMethodParameterDecoratorResolver) {
+    public constructor(private readonly controllerMethodParameterDecoratorResolver: ControllerMethodParameterDecoratorResolver,
+                       // todo: how do we decide which authenticator to inject ?
+                       private readonly authenticator: AuthenticatorInterface) {
     }
 
     /**
@@ -63,10 +67,18 @@ export class Router implements RouterInterface {
             // Instantiate the controller
             const controller: any = container.resolve(methodNode.route.controllerInstantiationToken);
 
+            //Todo: figure out how to we decide if we authenticate or not
+            let identity: IdentityInterface | undefined;
+            try {
+                identity = await this.authenticator.authenticate(request);
+            } catch (e) {
+                //todo handle error do we reject or do we ignore ?
+            }
+
             const resolvedMethodArguments: any[] = [];
 
             for (const methodArgument of methodNode.route.methodArguments) {
-                resolvedMethodArguments.push(await this.controllerMethodParameterDecoratorResolver.resolve(methodArgument, request, routeParameters));
+                resolvedMethodArguments.push(await this.controllerMethodParameterDecoratorResolver.resolve(methodArgument, request, routeParameters, identity));
             }
 
             // Call the controller with the resolved Method arguments
@@ -76,7 +88,7 @@ export class Router implements RouterInterface {
                 if(methodNode.route.guards && Array.isArray(methodNode.route.guards)) {
                     for (let guard of methodNode.route.guards) {
                         try {
-                            if(await guard.isAuthorized(request) === false) {
+                            if(await guard.isAuthorized(request, identity) === false) {
                                 return reject(new ForbiddenHttpError("The guard: '" + guard.keyname + "' denied access."));
                             }
                         }

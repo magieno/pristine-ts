@@ -1,7 +1,7 @@
 import {injectable} from "tsyringe";
 import {ControllerMethodParameterDecoratorResolverInterface} from "../interfaces/controller-method-parameter-decorator-resolver.interface";
 import {Request} from "../models/request";
-import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {IdentityInterface, moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {NetworkingModuleKeyname} from "../networking.module.keyname";
 
 @moduleScoped(NetworkingModuleKeyname)
@@ -10,7 +10,8 @@ import {NetworkingModuleKeyname} from "../networking.module.keyname";
 export class RouteParameterDecoratorResolver implements ControllerMethodParameterDecoratorResolverInterface {
     resolve(methodArgument: any,
             request: Request,
-            routeParameters: { [p: string]: string }):  Promise<any> {
+            routeParameters: { [p: string]: string },
+            identity?: IdentityInterface):  Promise<any> {
         return Promise.resolve(routeParameters[methodArgument.routeParameterName] ?? null);
     }
 

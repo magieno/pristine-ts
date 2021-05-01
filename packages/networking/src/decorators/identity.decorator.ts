@@ -1,6 +1,6 @@
-import {BodyParameterDecoratorInterface} from "../interfaces/body-parameter-decorator.interface";
+import {IdentityParameterDecoratorInterface} from "../interfaces/identity-parameteter-decorator.interface";
 
-export const body = () => {
+export const identity = () => {
     return (
         target: Object,
         propertyKey: string | symbol,
@@ -22,8 +22,8 @@ export const body = () => {
             target.constructor.prototype["__metadata__"]["methods"][propertyKey]["arguments"] = [];
         }
 
-        const methodParameter: BodyParameterDecoratorInterface = {
-            type: "body"
+        const methodParameter: IdentityParameterDecoratorInterface = {
+            type: "identity"
         };
 
         target.constructor.prototype["__metadata__"]["methods"][propertyKey]["arguments"][parameterIndex] = methodParameter;

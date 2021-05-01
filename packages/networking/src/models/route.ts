@@ -1,4 +1,4 @@
-import {BodyParameterDecoratorInterface} from "../interfaces/body-parameteter-decorator.interface";
+import {BodyParameterDecoratorInterface} from "../interfaces/body-parameter-decorator.interface";
 import {QueryParameterDecoratorInterface} from "../interfaces/query-parameter-decorator.interface";
 import {QueryParametersDecoratorInterface} from "../interfaces/query-parameters-decorator.interface";
 import {RouteParameterDecoratorInterface} from "../interfaces/route-parameter-decorator.interface";
