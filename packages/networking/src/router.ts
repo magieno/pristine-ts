@@ -65,7 +65,6 @@ export class Router implements RouterInterface {
             // Instantiate the controller
             const controller: any = container.resolve(methodNode.route.controllerInstantiationToken);
 
-            //Todo: figure out how to we decide if we authenticate or not
             let identity: IdentityInterface | undefined;
             if(methodNode.route.authenticator) {
                 try {

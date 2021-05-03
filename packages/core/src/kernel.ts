@@ -11,7 +11,7 @@ import {
     RequestInterface,
     RouterInterface,
     Route,
-    HttpError
+    HttpError, AuthenticatorInitializationError
 } from "@pristine-ts/networking";
 import { ConfigurationManager, ModuleConfigurationValue} from "@pristine-ts/configuration";
 import {Event} from "@pristine-ts/event";
@@ -27,7 +27,6 @@ import {
 } from "@pristine-ts/common";
 import {EventTransformer, EventDispatcher} from "@pristine-ts/event";
 import util from "util";
-import {AuthenticatorInitializationError} from "@pristine-ts/networking/dist/lib/esm/errors/authenticator-initialization.error";
 
 /**
  * This is the central class that manages the lifecyle of this library.
@@ -421,6 +420,7 @@ export class Kernel {
                 })
 
                 // Setup the authenticator for this route
+                // An authenticator on the method has priority over an authenticator at the controller level.
                 const authenticator =  method.authenticator ?? controller.__metadata__?.controller?.authenticator;
                 if(authenticator) {
                     let instantiatedAuthenticator = authenticator

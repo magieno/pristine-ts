@@ -12,6 +12,7 @@ export class Route {
     /**
      * This array contains all the arguments, in order, to pass to the Controller method corresponding to this route.
      */
+        //todo: should we add all parameter decorator interface ? what about ones from other modules ?
     methodArguments: (BodyParameterDecoratorInterface | QueryParameterDecoratorInterface | QueryParametersDecoratorInterface | RouteParameterDecoratorInterface)[] = [];
 
     /**
@@ -19,10 +20,19 @@ export class Route {
      */
     guards: GuardInterface[] = [];
 
+    /**
+     * This contains the authenticator for this route.
+     */
     authenticator?: AuthenticatorInterface;
 
+    /**
+     * This contains the whole controller context for dynamic usage.
+     */
     controllerContext?: any;
 
+    /**
+     * This contains the whole methode context for dynamic usage.
+     */
     methodContext?: any;
 
     constructor(public readonly controllerInstantiationToken: any, public readonly methodPropertyKey: string) {

@@ -18,7 +18,6 @@ export class CognitoGroupGuard implements GuardInterface {
             neededGroups.push(... methodNode.route.methodContext.groups);
         }
 
-        //todo: verify how congito sends the groups
         if(neededGroups.length > 0 && (identity?.claims?.hasOwnProperty("cognito:groups") === false || !Array.isArray(identity?.claims["cognito:groups"]))){
             return false;
         }
