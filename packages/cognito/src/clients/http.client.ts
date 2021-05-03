@@ -3,7 +3,7 @@ import * as Axios from 'axios';
 import {HttpClientInterface} from "../interfaces/http-client.interface";
 
 
-// todo: move somewhere else Networking Core Common ?
+// todo: move somewhere else Networking Core Common ? And implement actual client
 @injectable()
 export class HttpClient implements HttpClientInterface{
 
