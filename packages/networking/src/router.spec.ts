@@ -15,20 +15,7 @@ import {QueryParameterDecoratorResolver} from "./resolvers/query-parameter-decor
 import {QueryParametersDecoratorResolver} from "./resolvers/query-parameters-decorator.resolver";
 import {RouteParameterDecoratorResolver} from "./resolvers/route-parameter-decorator.resolver";
 import {BodyParameterDecoratorInterface} from "./interfaces/body-parameter-decorator.interface";
-import {AuthenticatorInterface} from "./interfaces/authenticator.interface";
-import {RequestInterface} from "./interfaces/request.interface";
-import {IdentityInterface} from "@pristine-ts/common";
 
-export class MockAuthenticator implements AuthenticatorInterface {
-    authenticate(request: RequestInterface): Promise<IdentityInterface> {
-        return Promise.resolve({
-            id: "id",
-            claims: {
-                claim1: "claim1"
-            }
-        });
-    }
-}
 
 describe("Router.spec", () => {
     let root: PathRouterNode;
@@ -99,7 +86,7 @@ describe("Router.spec", () => {
             new QueryParameterDecoratorResolver(),
             new QueryParametersDecoratorResolver(),
             new RouteParameterDecoratorResolver(),
-        ]), new MockAuthenticator());
+        ]));
 
         router["root"] = root;
 

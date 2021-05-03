@@ -3,6 +3,7 @@ import {QueryParameterDecoratorInterface} from "../interfaces/query-parameter-de
 import {QueryParametersDecoratorInterface} from "../interfaces/query-parameters-decorator.interface";
 import {RouteParameterDecoratorInterface} from "../interfaces/route-parameter-decorator.interface";
 import {GuardInterface} from "../interfaces/guard.interface";
+import {AuthenticatorInterface} from "../interfaces/authenticator.interface";
 
 /**
  * This class represents a Route and how it can be routed to the proper controller method.
@@ -17,6 +18,8 @@ export class Route {
      * This contains an array of all the guards protecting this route.
      */
     guards: GuardInterface[] = [];
+
+    authenticator?: AuthenticatorInterface;
 
     controllerContext?: any;
 

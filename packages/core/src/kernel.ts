@@ -27,6 +27,7 @@ import {
 } from "@pristine-ts/common";
 import {EventTransformer, EventDispatcher} from "@pristine-ts/event";
 import util from "util";
+import {AuthenticatorInitializationError} from "@pristine-ts/networking/dist/lib/esm/errors/authenticator-initialization.error";
 
 /**
  * This is the central class that manages the lifecyle of this library.
@@ -418,6 +419,21 @@ export class Kernel {
 
                     return instantiatedGuard;
                 })
+
+                // Setup the authenticator for this route
+                const authenticator =  method.authenticator ?? controller.__metadata__?.controller?.authenticator;
+                if(authenticator) {
+                    let instantiatedAuthenticator = authenticator
+                    if (typeof authenticator === 'function') {
+                        instantiatedAuthenticator = this.container.resolve(authenticator);
+                    }
+
+                    // Check again if the class as the authenticate method
+                    if (typeof instantiatedAuthenticator.authenticate !== 'function') {
+                        throw new AuthenticatorInitializationError("The authenticator: '" + authenticator + "' isn't valid. It isn't a function or doesn't implement the 'authenticate' method.");
+                    }
+                    route.authenticator = instantiatedAuthenticator;
+                }
 
                 // Build the proper path
                 let path = routeMethodDecorator.path;

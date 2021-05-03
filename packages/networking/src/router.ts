@@ -19,9 +19,7 @@ import {IdentityInterface} from "@pristine-ts/common";
 export class Router implements RouterInterface {
     private root: RouterNode = new PathRouterNode("/");
 
-    public constructor(private readonly controllerMethodParameterDecoratorResolver: ControllerMethodParameterDecoratorResolver,
-                       // todo: how do we decide which authenticator to inject ?
-                       private readonly authenticator: AuthenticatorInterface) {
+    public constructor(private readonly controllerMethodParameterDecoratorResolver: ControllerMethodParameterDecoratorResolver) {
     }
 
     /**
@@ -69,10 +67,12 @@ export class Router implements RouterInterface {
 
             //Todo: figure out how to we decide if we authenticate or not
             let identity: IdentityInterface | undefined;
-            try {
-                identity = await this.authenticator.authenticate(request);
-            } catch (e) {
-                //todo handle error do we reject or do we ignore ?
+            if(methodNode.route.authenticator) {
+                try {
+                    identity = await methodNode.route.authenticator.authenticate(request);
+                } catch (e) {
+                    //todo handle error do we reject or do we ignore ?
+                }
             }
 
             const resolvedMethodArguments: any[] = [];

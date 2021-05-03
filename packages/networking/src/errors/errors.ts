@@ -1,3 +1,4 @@
+export * from "./authenticator-initialization.error";
 export * from "./forbidden.http-error";
 export * from "./http.error";
 export * from "./guard-initialization.error";
