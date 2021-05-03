@@ -19,11 +19,11 @@ export class CognitoGroupGuard implements GuardInterface {
         }
 
         //todo: verify how congito sends the groups
-        if(neededGroups.length > 0 && !identity?.claims?.groups){
+        if(neededGroups.length > 0 && (identity?.claims?.hasOwnProperty("cognito:groups") === false || !Array.isArray(identity?.claims["cognito:groups"]))){
             return false;
         }
         neededGroups.forEach(group => {
-            if(!identity?.claims?.groups?.include(group)){
+            if(!identity?.claims["cognito:groups"].include(group)){
                 return false;
             }
         })

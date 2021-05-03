@@ -32,10 +32,10 @@ export class CognitoAuthenticator {
 
         const claim = this.getAndVerifyClaims(token, key);
 
-        console.log(`claim confirmed for ${claim.username}`);
+        console.log(`claim confirmed for ${claim["cognito:username"]}`);
 
         return {
-            id: claim.username, // or maybe cognito:username ?
+            id: claim["cognito:username"],
             claims: claim
         }
     }

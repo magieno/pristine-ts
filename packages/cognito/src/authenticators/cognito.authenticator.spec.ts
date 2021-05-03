@@ -60,7 +60,7 @@ describe("Cognito authenticator ", () => {
             "token_use": "access",
             "auth_time": 1500009400,
             "iss": "https://cognito-idp.us-east-1.amazonaws.com/poolId",
-            "username": "anaya",
+            "cognito:username": "anaya",
             "exp": (Date.now() + 3600000)/1000,
             "given_name": "Anaya",
             "iat": 1500009400,
