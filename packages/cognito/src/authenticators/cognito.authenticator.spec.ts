@@ -1,7 +1,8 @@
 import "reflect-metadata"
 import {CognitoAuthenticator} from "./cognito.authenticator";
 import {HttpClientInterface} from "../interfaces/http-client.interface";
-import {HttpMethod, RequestInterface} from "@pristine-ts/networking";
+import {HttpMethod} from "@pristine-ts/networking";
+import {RequestInterface} from "@pristine-ts/common";
 import * as jwt from "jsonwebtoken";
 
 const privateKey = "-----BEGIN RSA PRIVATE KEY-----\n" +
