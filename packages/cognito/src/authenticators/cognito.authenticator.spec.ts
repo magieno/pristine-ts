@@ -235,7 +235,7 @@ describe("Cognito authenticator ", () => {
             }
         }
         expect(await cognitoAuthenticator["authenticate"](request)).toEqual({
-            id: payload.username,
+            id: payload["cognito:username"],
             claims: payload
         });
     });
