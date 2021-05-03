@@ -9,12 +9,11 @@ export const authenticator = (authenticator: AuthenticatorInterface | Function) 
 
         // This is the condition to check that the authenticator is valid.
         if(!(authenticator && (
-            (typeof authenticator === 'function' && typeof authenticator.prototype.authenticate === 'function') ||
-            (typeof authenticator === 'object' && typeof authenticator.authenticate === 'function')
+            (typeof authenticator === 'function' && typeof authenticator.prototype.authenticate === 'function' && typeof authenticator.prototype.setContext === 'function') ||
+            (typeof authenticator === 'object' && typeof authenticator.authenticate === 'function' && typeof authenticator.setContext === 'function')
         ))) {
-            throw new AuthenticatorInitializationError("The authenticator: '" + authenticator + "' isn't valid. It isn't a function or doesn't implement the 'authenticate' method.");
+            throw new AuthenticatorInitializationError("The authenticator: '" + authenticator + "' isn't valid. It isn't a function or doesn't implement both the 'authenticate' and the 'setContext' methods.");
         }
-
 
         // If there's a descriptor, then it's not a controller authenticator, but a method authenticator
         if(descriptor && propertyKey) {
@@ -30,7 +29,11 @@ export const authenticator = (authenticator: AuthenticatorInterface | Function) 
                 target.constructor.prototype["__metadata__"]["methods"][propertyKey] = {}
             }
 
-            target.constructor.prototype["__metadata__"]["methods"][propertyKey]["authenticator"] = authenticator;
+            if(target.constructor.prototype["__metadata__"]["methods"][propertyKey].hasOwnProperty("__routeContext__") === false) {
+                target.constructor.prototype["__metadata__"]["methods"][propertyKey]["__routeContext__"] = {}
+            }
+
+            target.constructor.prototype["__metadata__"]["methods"][propertyKey]["__routeContext__"]["authenticator"] = authenticator;
         } else {
             if (target.prototype.hasOwnProperty("__metadata__") === false) {
                 target.prototype["__metadata__"] = {}
@@ -40,7 +43,11 @@ export const authenticator = (authenticator: AuthenticatorInterface | Function) 
                 target.prototype["__metadata__"]["controller"] = {}
             }
 
-            target.prototype["__metadata__"]["controller"]["authenticator"] = authenticator;
+            if (target.prototype["__metadata__"]["controller"].hasOwnProperty("__routeContext__") === false) {
+                target.prototype["__metadata__"]["controller"]["__routeContext__"] = {}
+            }
+
+            target.prototype["__metadata__"]["controller"]["__routeContext__"]["authenticator"] = authenticator;
         }
     }
 }

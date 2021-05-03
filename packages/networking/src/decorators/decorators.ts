@@ -1,7 +1,5 @@
-export * from "./authenticator.decorator";
 export * from "./body.decorator";
 export * from "./controller.decorator";
-export * from "./guards.decorator";
 export * from "./identity.decorator";
 export * from "./query-parameter.decorator";
 export * from "./query-parameters.decorator";

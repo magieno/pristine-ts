@@ -1,6 +1,6 @@
 import "reflect-metadata"
 import {container, DependencyContainer, inject, injectable, singleton} from "tsyringe";
-import {RequestInterface} from "@pristine-ts/networking";
+import {RequestInterface} from "@pristine-ts/common";
 
 import {Algorithm, verify} from "jsonwebtoken"
 import {MissingAuthorizationHeaderError} from "../errors/missing-authorization-header.error";

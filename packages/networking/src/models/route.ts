@@ -2,8 +2,8 @@ import {BodyParameterDecoratorInterface} from "../interfaces/body-parameter-deco
 import {QueryParameterDecoratorInterface} from "../interfaces/query-parameter-decorator.interface";
 import {QueryParametersDecoratorInterface} from "../interfaces/query-parameters-decorator.interface";
 import {RouteParameterDecoratorInterface} from "../interfaces/route-parameter-decorator.interface";
-import {GuardInterface} from "../interfaces/guard.interface";
-import {AuthenticatorInterface} from "../interfaces/authenticator.interface";
+import {GuardInterface} from "@pristine-ts/security";
+import {AuthenticatorInterface} from "@pristine-ts/security";
 
 /**
  * This class represents a Route and how it can be routed to the proper controller method.
@@ -26,14 +26,9 @@ export class Route {
     authenticator?: AuthenticatorInterface;
 
     /**
-     * This contains the whole controller context for dynamic usage.
+     * This contains the Route context for dynamic usage.
      */
-    controllerContext?: any;
-
-    /**
-     * This contains the whole methode context for dynamic usage.
-     */
-    methodContext?: any;
+    context?: any;
 
     constructor(public readonly controllerInstantiationToken: any, public readonly methodPropertyKey: string) {
     }

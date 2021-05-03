@@ -12,7 +12,6 @@ import {MethodRouterNode} from "./nodes/method-router.node";
 import {ForbiddenHttpError} from "./errors/forbidden.http-error";
 import {ControllerMethodParameterDecoratorResolver} from "./resolvers/controller-method-parameter-decorator.resolver";
 import Url from 'url-parse';
-import {AuthenticatorInterface} from "./interfaces/authenticator.interface";
 import {IdentityInterface} from "@pristine-ts/common";
 
 @singleton()
@@ -68,9 +67,12 @@ export class Router implements RouterInterface {
             let identity: IdentityInterface | undefined;
             if(methodNode.route.authenticator) {
                 try {
+                    await methodNode.route.authenticator.setContext(methodNode.route.context)
+
                     identity = await methodNode.route.authenticator.authenticate(request);
                 } catch (e) {
-                    //todo handle error do we reject or do we ignore ?
+                    // Todo: check if the error is an UnauthorizedHttpError, else create one.
+                    return reject(e);
                 }
             }
 
@@ -87,7 +89,9 @@ export class Router implements RouterInterface {
                 if(methodNode.route.guards && Array.isArray(methodNode.route.guards)) {
                     for (let guard of methodNode.route.guards) {
                         try {
-                            if(await guard.isAuthorized(request, methodNode, identity) === false) {
+                            //todo: retrieve the context for this specific guard and call the setContext method.
+
+                            if(await guard.isAuthorized(request, identity) === false) {
                                 return reject(new ForbiddenHttpError("The guard: '" + guard.keyname + "' denied access."));
                             }
                         }

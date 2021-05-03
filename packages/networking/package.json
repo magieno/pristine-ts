@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@pristine-ts/common": "file:../common",
+    "@pristine-ts/security": "file:../security",
     "url-parse": "^1.4.7"
   },
   "jest": {

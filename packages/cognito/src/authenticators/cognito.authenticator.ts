@@ -4,18 +4,20 @@ import {PublicKeyInterface} from "../interfaces/public-key.interface";
 import {HttpClientInterface} from "../interfaces/http-client.interface";
 const jwkToPem = require("jwk-to-pem");
 import * as jwt from "jsonwebtoken";
-import {RequestInterface} from "@pristine-ts/networking";
+import {RequestInterface} from "@pristine-ts/common";
 import {TokenHeaderInterface} from "../interfaces/token-header.interface";
 import {IdentityInterface} from "@pristine-ts/common";
 import {ClaimInterface} from "../interfaces/claim.interface";
+import {AuthenticatorInterface} from "@pristine-ts/security";
 
 @singleton()
 @injectable()
-export class CognitoAuthenticator {
+export class CognitoAuthenticator implements AuthenticatorInterface{
 
     private cachedPems;
     private cognitoIssuer;
     private publicKeyUrl;
+    private context;
 
     constructor(@inject(`%${CognitoModuleKeyname}.region%`) private readonly region: string,
                 @inject(`%${CognitoModuleKeyname}.poolId%`) private readonly poolId: string,
@@ -23,6 +25,11 @@ export class CognitoAuthenticator {
                 ) {
         this.cognitoIssuer = this.getCognitoIssuer();
         this.publicKeyUrl = this.getPublicKeyUrl();
+    }
+
+    setContext(context: any): Promise<void> {
+        this.context = context;
+        return Promise.resolve();
     }
 
     async authenticate(request: RequestInterface): Promise<IdentityInterface> {
@@ -122,4 +129,6 @@ export class CognitoAuthenticator {
         const headerJSON = Buffer.from(tokenSections[0], 'base64').toString('utf8');
         return  JSON.parse(headerJSON) as TokenHeaderInterface;
     }
+
+
 }

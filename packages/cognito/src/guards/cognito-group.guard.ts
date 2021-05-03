@@ -1,21 +1,24 @@
 import {inject, injectable} from "tsyringe";
-import {GuardInterface, MethodRouterNode, RequestInterface} from "@pristine-ts/networking";
-import {IdentityInterface} from "@pristine-ts/common";
+import {MethodRouterNode, } from "@pristine-ts/networking";
+import {IdentityInterface, RequestInterface} from "@pristine-ts/common";
+import {GuardInterface} from "@pristine-ts/security";
 
 @injectable()
 export class CognitoGroupGuard implements GuardInterface {
-    constructor() {
-    }
-
     public keyname = "cognito.group";
 
-    async isAuthorized(request: RequestInterface, methodNode: MethodRouterNode, identity?: IdentityInterface): Promise<boolean> {
+    private context;
+
+    setContext(context: any): Promise<void> {
+        this.context = context;
+
+        return Promise.resolve();
+    }
+
+    async isAuthorized(request: RequestInterface, identity?: IdentityInterface): Promise<boolean> {
         const neededGroups: string[] = [];
-        if(methodNode.route.controllerContext.hasOwnProperty("groups") && Array.isArray(methodNode.route.controllerContext.groups)){
-            neededGroups.push(... methodNode.route.controllerContext.groups);
-        }
-        if(methodNode.route.methodContext.hasOwnProperty("groups") && Array.isArray(methodNode.route.methodContext.groups)){
-            neededGroups.push(... methodNode.route.methodContext.groups);
+        if(this.context.hasOwnProperty("groups") && Array.isArray(this.context.groups)){
+            neededGroups.push(... this.context.groups);
         }
 
         if(neededGroups.length > 0 && (identity?.claims?.hasOwnProperty("cognito:groups") === false || !Array.isArray(identity?.claims["cognito:groups"]))){

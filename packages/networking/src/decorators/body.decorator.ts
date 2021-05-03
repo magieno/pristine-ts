@@ -29,3 +29,4 @@ export const body = () => {
         target.constructor.prototype["__metadata__"]["methods"][propertyKey]["arguments"][parameterIndex] = methodParameter;
     }
 };
+

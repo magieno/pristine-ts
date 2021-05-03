@@ -6,14 +6,14 @@ import {
     Request,
     Router,
     controllerRegistry,
-    GuardInitializationError,
     RouteMethodDecorator,
-    RequestInterface,
     RouterInterface,
     Route,
-    HttpError, AuthenticatorInitializationError
+    HttpError,
 } from "@pristine-ts/networking";
-import { ConfigurationManager, ModuleConfigurationValue} from "@pristine-ts/configuration";
+import {RequestInterface} from "@pristine-ts/common";
+import {GuardInitializationError, AuthenticatorInitializationError} from "@pristine-ts/security";
+import {ConfigurationManager, ModuleConfigurationValue} from "@pristine-ts/configuration";
 import {Event} from "@pristine-ts/event";
 import {RuntimeError} from "./errors/runtime.error";
 import {RequestInterceptorInterface} from "./interfaces/request-interceptor.interface";
@@ -27,6 +27,7 @@ import {
 } from "@pristine-ts/common";
 import {EventTransformer, EventDispatcher} from "@pristine-ts/event";
 import util from "util";
+import {mergeWith} from "lodash"
 
 /**
  * This is the central class that manages the lifecyle of this library.
@@ -50,14 +51,14 @@ export class Kernel {
     public constructor() {
     }
 
-    public async init(module: ModuleInterface, moduleConfigurationValues?: {[key: string]: ModuleConfigurationValue}) {
+    public async init(module: ModuleInterface, moduleConfigurationValues?: { [key: string]: ModuleConfigurationValue }) {
         await this.initModule(module);
 
         // Register all the service tags in the container.
         await this.registerServiceTags();
 
         // Register the configuration
-        if(moduleConfigurationValues) {
+        if (moduleConfigurationValues) {
             await this.initConfiguration(moduleConfigurationValues);
         }
 
@@ -119,28 +120,28 @@ export class Kernel {
         // Add all the providers to the container
         if (module.providerRegistrations) {
             module.providerRegistrations.forEach((providerRegistration: ProviderRegistration) => {
-               this.registerProviderRegistration(providerRegistration);
+                this.registerProviderRegistration(providerRegistration);
             })
         }
 
-        if(module.onInit) {
+        if (module.onInit) {
             await module.onInit(this.container);
         }
 
         this.instantiatedModules[module.keyname] = module;
     }
 
-    private async initConfiguration(moduleConfigurationValues: {[key: string]: ModuleConfigurationValue}) {
+    private async initConfiguration(moduleConfigurationValues: { [key: string]: ModuleConfigurationValue }) {
         const configurationManager: ConfigurationManager = this.container.resolve(ConfigurationManager);
 
         // Start by loading the configuration definitions of all the modules
         for (let key in this.instantiatedModules) {
-            if(this.instantiatedModules.hasOwnProperty(key) === false) {
+            if (this.instantiatedModules.hasOwnProperty(key) === false) {
                 continue;
             }
 
             const instantiatedModule: ModuleInterface = this.instantiatedModules[key];
-            if(instantiatedModule.configurationDefinitions) {
+            if (instantiatedModule.configurationDefinitions) {
                 instantiatedModule.configurationDefinitions.forEach(configurationDefinition => configurationManager.register(configurationDefinition));
             }
         }
@@ -169,7 +170,7 @@ export class Kernel {
             return;
         }
 
-        if(module.afterInit) {
+        if (module.afterInit) {
             await module.afterInit(this.container);
         }
 
@@ -394,9 +395,7 @@ export class Kernel {
                 // the appropriate controller method
                 const route = new Route(controller.constructor, routeMethodDecorator.methodKeyname);
                 route.methodArguments = method.arguments ?? [];
-
-                route.controllerContext = controller.__metadata__?.controller;
-                route.methodContext = method;
+                route.context = mergeWith({}, ...controller.__metadata__?.controller.__routeContext__, ...method.__routeContext__);
 
                 // Setup the guards for this route
                 const guards: any[] = controller.__metadata__?.controller?.guards ?? [];
@@ -421,16 +420,21 @@ export class Kernel {
 
                 // Setup the authenticator for this route
                 // An authenticator on the method has priority over an authenticator at the controller level.
-                const authenticator =  method.authenticator ?? controller.__metadata__?.controller?.authenticator;
-                if(authenticator) {
+                const authenticator = method.authenticator ?? controller.__metadata__?.controller?.authenticator;
+                if (authenticator) {
                     let instantiatedAuthenticator = authenticator
                     if (typeof authenticator === 'function') {
                         instantiatedAuthenticator = this.container.resolve(authenticator);
                     }
 
-                    // Check again if the class as the authenticate method
+                    // Check again if the class has the authenticate method
                     if (typeof instantiatedAuthenticator.authenticate !== 'function') {
                         throw new AuthenticatorInitializationError("The authenticator: '" + authenticator + "' isn't valid. It isn't a function or doesn't implement the 'authenticate' method.");
+                    }
+
+                    // Check again if the class has the setContext method
+                    if (typeof instantiatedAuthenticator.setContext !== 'function') {
+                        throw new AuthenticatorInitializationError("The authenticator: '" + authenticator + "' isn't valid. It isn't a function or doesn't implement the 'setContext' method.");
                     }
                     route.authenticator = instantiatedAuthenticator;
                 }
@@ -462,11 +466,11 @@ export class Kernel {
      * @private
      */
     private registerServiceTags() {
-        taggedProviderRegistrationsRegistry.forEach( (taggedRegistrationType: TaggedRegistrationInterface) => {
+        taggedProviderRegistrationsRegistry.forEach((taggedRegistrationType: TaggedRegistrationInterface) => {
             // Verify that if the constructor is moduleScoped, we only load it if its corresponding module is initialized.
             // If the module is not initialized, we do not load the tagged service.
             const moduleScopedRegistration = moduleScopedServicesRegistry[taggedRegistrationType.constructor];
-            if(moduleScopedRegistration && this.instantiatedModules.hasOwnProperty(moduleScopedRegistration.moduleKeyname) === false) {
+            if (moduleScopedRegistration && this.instantiatedModules.hasOwnProperty(moduleScopedRegistration.moduleKeyname) === false) {
                 return;
             }
 
