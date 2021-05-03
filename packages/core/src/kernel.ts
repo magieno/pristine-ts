@@ -395,6 +395,9 @@ export class Kernel {
                 const route = new Route(controller.constructor, routeMethodDecorator.methodKeyname);
                 route.methodArguments = method.arguments ?? [];
 
+                route.controllerContext = controller.__metadata__?.controller;
+                route.methodContext = method;
+
                 // Setup the guards for this route
                 const guards: any[] = controller.__metadata__?.controller?.guards ?? [];
                 guards.push(...(method.guards ?? []));

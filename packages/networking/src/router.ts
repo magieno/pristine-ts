@@ -88,7 +88,7 @@ export class Router implements RouterInterface {
                 if(methodNode.route.guards && Array.isArray(methodNode.route.guards)) {
                     for (let guard of methodNode.route.guards) {
                         try {
-                            if(await guard.isAuthorized(request, identity) === false) {
+                            if(await guard.isAuthorized(request, methodNode, identity) === false) {
                                 return reject(new ForbiddenHttpError("The guard: '" + guard.keyname + "' denied access."));
                             }
                         }

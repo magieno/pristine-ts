@@ -18,6 +18,10 @@ export class Route {
      */
     guards: GuardInterface[] = [];
 
+    controllerContext?: any;
+
+    methodContext?: any;
+
     constructor(public readonly controllerInstantiationToken: any, public readonly methodPropertyKey: string) {
     }
 }

@@ -3,6 +3,7 @@ import {CognitoModuleKeyname} from "./cognito.module.keyname";
 
 export * from "./authenticators/authenticators";
 export * from "./clients/clients";
+export * from "./decorators/decorators";
 export * from "./guards/guards";
 export * from "./interfaces/interfaces";
 
