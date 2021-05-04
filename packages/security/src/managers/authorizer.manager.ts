@@ -3,10 +3,12 @@ import {GuardContextInterface} from "../interfaces/guard-context.interface";
 import {GuardInterface} from "../interfaces/guard.interface";
 import {LogHandler} from "@pristine-ts/logging";
 import {GuardInitializationError} from "../errors/guard-initialization.error";
-import {IdentityInterface, RequestInterface} from "@pristine-ts/common";
+import {IdentityInterface, RequestInterface, tag} from "@pristine-ts/common";
+import {AuthorizerManagerInterface} from "../interfaces/authorizer-manager.interface";
 
+@tag("AuthorizerManagerInterface")
 @injectable()
-export class AuthorizerManager {
+export class AuthorizerManager implements AuthorizerManagerInterface {
     public constructor(private readonly logHandler: LogHandler) {
     }
 

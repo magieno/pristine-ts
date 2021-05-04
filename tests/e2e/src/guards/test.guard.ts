@@ -1,5 +1,5 @@
 import {injectable} from "tsyringe";
-import {GuardInterface} from "@pristine-ts/security";
+import {GuardContextInterface, GuardInterface} from "@pristine-ts/security";
 import {RequestInterface} from "@pristine-ts/common";
 
 export class TestGuard implements GuardInterface {
@@ -15,4 +15,6 @@ export class TestGuard implements GuardInterface {
     setContext(context: any): Promise<void> {
         return Promise.resolve(undefined);
     }
+
+    guardContext: GuardContextInterface;
 }

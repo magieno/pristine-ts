@@ -15,6 +15,7 @@ import {QueryParameterDecoratorResolver} from "./resolvers/query-parameter-decor
 import {QueryParametersDecoratorResolver} from "./resolvers/query-parameters-decorator.resolver";
 import {RouteParameterDecoratorResolver} from "./resolvers/route-parameter-decorator.resolver";
 import {BodyParameterDecoratorInterface} from "./interfaces/body-parameter-decorator.interface";
+import {IdentityInterface, RequestInterface} from "@pristine-ts/common";
 
 
 describe("Router.spec", () => {
@@ -86,7 +87,11 @@ describe("Router.spec", () => {
             new QueryParameterDecoratorResolver(),
             new QueryParametersDecoratorResolver(),
             new RouteParameterDecoratorResolver(),
-        ]));
+        ]), {
+            isAuthorized(requestInterface: RequestInterface, routeContext: any, container, identity?: IdentityInterface): Promise<boolean> {
+                return Promise.resolve(true);
+            }
+        });
 
         router["root"] = root;
 
