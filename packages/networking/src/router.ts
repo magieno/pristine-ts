@@ -1,4 +1,4 @@
-import {DependencyContainer, singleton} from "tsyringe";
+import {DependencyContainer, singleton, inject} from "tsyringe";
 import {HttpMethod} from "./enums/http-method.enum";
 import {Request} from "./models/request";
 import {Response} from "./models/response";
@@ -13,13 +13,13 @@ import {ForbiddenHttpError} from "./errors/forbidden.http-error";
 import {ControllerMethodParameterDecoratorResolver} from "./resolvers/controller-method-parameter-decorator.resolver";
 import Url from 'url-parse';
 import {IdentityInterface} from "@pristine-ts/common";
-import {AuthorizerManager} from "@pristine-ts/security";
+import {AuthorizerManagerInterface} from "@pristine-ts/security";
 
 @singleton()
 export class Router implements RouterInterface {
     private root: RouterNode = new PathRouterNode("/");
 
-    public constructor(private readonly controllerMethodParameterDecoratorResolver: ControllerMethodParameterDecoratorResolver, private readonly authorizerManager: AuthorizerManager) {
+    public constructor(private readonly controllerMethodParameterDecoratorResolver: ControllerMethodParameterDecoratorResolver, @inject("AuthorizerManagerInterface") private readonly authorizerManager: AuthorizerManagerInterface) {
     }
 
     /**
