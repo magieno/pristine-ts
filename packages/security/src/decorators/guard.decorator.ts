@@ -1,5 +1,6 @@
 import {GuardInterface} from "../interfaces/guard.interface";
 import {GuardInitializationError} from "../errors/guard-initialization.error";
+import {GuardContextInterface} from "../interfaces/guard-context.interface";
 
 export const guard = (guard: GuardInterface | Function, options?: any) => {
     return ( target: any,
@@ -7,17 +8,19 @@ export const guard = (guard: GuardInterface | Function, options?: any) => {
              descriptor?: PropertyDescriptor) => {
 
         // Validate the interface of the guard
-        guard => {
-            // This is the condition to check that the guard is valid.
-            if(guard && (
-                (typeof guard === 'function' && typeof guard.prototype.isAuthorized === 'function') ||
-                (typeof guard === 'object' && typeof guard.isAuthorized === 'function')
-            )) {
-                return;
-            }
-
+        if (!(guard && (
+            (typeof guard === 'function' && typeof guard.prototype.isAuthorized === 'function') ||
+            (typeof guard === 'object' && typeof guard.isAuthorized === 'function')
+        ))) {
             throw new GuardInitializationError("The guard: '" + guard + "' isn't valid. It isn't a function or doesn't implement the 'isAuthorized' method.");
         }
+
+        // Construct the Guard Context.
+        const guardContext: GuardContextInterface =  {
+            constructorName: (guard as any).prototype.constructor.name,
+            guard,
+            options,
+        };
 
         // If there's a descriptor, then it's not a controller guard, but a method guard
         if(descriptor && propertyKey) {
@@ -41,11 +44,7 @@ export const guard = (guard: GuardInterface | Function, options?: any) => {
                 target.constructor.prototype["__metadata__"]["methods"][propertyKey]["__routeContext__"]["guards"] = []
             }
 
-            //todo: how to access cleanly the prototype of a Function or an object.
-            target.constructor.prototype["__metadata__"]["methods"][propertyKey]["__routeContext__"]["guards"].push({
-                guard,
-                options
-            });
+            target.constructor.prototype["__metadata__"]["methods"][propertyKey]["__routeContext__"]["guards"].push(guardContext);
         }
         else {
             if(target.prototype.hasOwnProperty("__metadata__") === false) {
@@ -63,12 +62,7 @@ export const guard = (guard: GuardInterface | Function, options?: any) => {
                 target.prototype["__metadata__"]["controller"]["__routeContext__"]["guards"] = []
             }
 
-            target.prototype["__metadata__"]["controller"]["__routeContext__"]["guards"].push({
-                guard,
-                options
-            });
-
-            const a = 0;
+            target.prototype["__metadata__"]["controller"]["__routeContext__"]["guards"].push(guardContext);
         }
     }
 }

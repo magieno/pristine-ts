@@ -2,6 +2,7 @@ import {inject, injectable} from "tsyringe";
 import {JwtManagerInterface} from "../interfaces/jwt-manager.interface";
 import {IdentityInterface, RequestInterface} from "@pristine-ts/common";
 import {GuardInterface} from "@pristine-ts/security";
+import {GuardContextInterface} from "@pristine-ts/security";
 
 @injectable()
 export class JwtProtectedGuard implements GuardInterface {
@@ -9,6 +10,8 @@ export class JwtProtectedGuard implements GuardInterface {
     }
 
     public keyname = "jwt.protected";
+
+    public guardContext: GuardContextInterface
 
     isAuthorized(request: RequestInterface, identity?: IdentityInterface): Promise<boolean> {
         return new Promise<boolean>((resolve) => {
@@ -19,6 +22,8 @@ export class JwtProtectedGuard implements GuardInterface {
     }
 
     setContext(context: any): Promise<void> {
+        this.guardContext = context;
+
         return Promise.resolve();
     }
 }

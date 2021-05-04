@@ -67,7 +67,9 @@ export class Router implements RouterInterface {
             let identity: IdentityInterface | undefined;
             if(methodNode.route.authenticator) {
                 try {
-                    await methodNode.route.authenticator.setContext(methodNode.route.context)
+                    if(methodNode.route.context && methodNode.route.context.authenticator) {
+                        await methodNode.route.authenticator.setContext(methodNode.route.context.authenticator)
+                    }
 
                     identity = await methodNode.route.authenticator.authenticate(request);
                 } catch (e) {
@@ -89,7 +91,12 @@ export class Router implements RouterInterface {
                 if(methodNode.route.guards && Array.isArray(methodNode.route.guards)) {
                     for (let guard of methodNode.route.guards) {
                         try {
-                            //todo: retrieve the context for this specific guard and call the setContext method.
+                            if(methodNode.route.context && methodNode.route.context.guards && Array.isArray(methodNode.route.context.guards)) {
+                                const guardContext = methodNode.route.context.guards.find(guardContext => guardContext.constructorName === (guard as any).prototype.constructor.name)
+                                if(guardContext) {
+                                    await guard.setContext(guardContext);
+                                }
+                            }
 
                             if(await guard.isAuthorized(request, identity) === false) {
                                 return reject(new ForbiddenHttpError("The guard: '" + guard.keyname + "' denied access."));
