@@ -69,7 +69,35 @@ describe("AuthenticationManager", () => {
         }, container)).toBe(identity)
     })
 
-    it("should call the setContext method before calling the 'authenticate' method", () => {
+    it("should call the setContext method before calling the 'authenticate' method", async () => {
+        const identity: IdentityInterface = {
+            id: "Id",
+            claims: {},
+        }
 
+        let index = 0;
+
+        const authenticationManager: AuthenticationManager = new AuthenticationManager(logHandlerMock, {
+            fromContext(authenticatorContext: AuthenticatorContextInterface, container): AuthenticatorInterface {
+                return {
+                    setContext(context: any): Promise<void> {
+                        expect(index).toBe(0);
+                        index++;
+
+                        return Promise.resolve();
+                    },
+                    authenticate(request: RequestInterface): Promise<IdentityInterface | undefined> {
+                        expect(index).toBe(1);
+                        return Promise.resolve(identity);
+                    }
+                };
+            }
+        })
+
+        await authenticationManager.authenticate(requestMock, {
+            authenticator: {}
+        }, container);
+
+        expect.assertions(2);
     })
 })
