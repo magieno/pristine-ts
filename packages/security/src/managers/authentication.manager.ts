@@ -6,11 +6,12 @@ import {GuardInterface} from "../interfaces/guard.interface";
 import {AuthenticatorContextInterface} from "../interfaces/authenticator-context.interface";
 import {AuthenticatorInitializationError} from "../errors/authenticator-initialization.error";
 import {LogHandler} from "@pristine-ts/logging";
+import {AuthenticatorFactory} from "../factories/authenticator.factory";
 
 @tag("AuthenticationManagerInterface")
 @injectable()
 export class AuthenticationManager implements AuthenticationManagerInterface {
-    public constructor(private readonly logHandler: LogHandler) {
+    public constructor(private readonly logHandler: LogHandler, private readonly authenticatorFactory: AuthenticatorFactory) {
     }
 
     public async authenticate(request: RequestInterface, routeContext: any, container: DependencyContainer): Promise<IdentityInterface | undefined> {
@@ -23,7 +24,7 @@ export class AuthenticationManager implements AuthenticationManagerInterface {
         const authenticatorContext: AuthenticatorContextInterface = routeContext.authenticator;
 
         try {
-            const instantiatedAuthenticator: AuthenticatorInterface = this.instantiateAuthenticatorFromContext(authenticatorContext, container);
+            const instantiatedAuthenticator: AuthenticatorInterface = this.authenticatorFactory.fromContext(authenticatorContext, container);
 
             await instantiatedAuthenticator.setContext(authenticatorContext);
 
@@ -35,26 +36,5 @@ export class AuthenticationManager implements AuthenticationManagerInterface {
         }
 
         return Promise.resolve(identity);
-    }
-
-    private instantiateAuthenticatorFromContext(authenticatorContext: AuthenticatorContextInterface, container: DependencyContainer): AuthenticatorInterface {
-        // Check if the guard needs to be instantiated
-        let instantiatedAuthenticator: AuthenticatorInterface = authenticatorContext.authenticator as AuthenticatorInterface;
-
-        if (typeof instantiatedAuthenticator === 'function') {
-            instantiatedAuthenticator = container.resolve(instantiatedAuthenticator);
-        }
-
-        // Check again if the class has the authenticate method
-        if (typeof instantiatedAuthenticator.authenticate !== 'function') {
-            throw new AuthenticatorInitializationError("The authenticator: '" + instantiatedAuthenticator + "' isn't valid. It isn't a function or doesn't implement the 'authenticate' method.");
-        }
-
-        // Check again if the class has the setContext method
-        if (typeof instantiatedAuthenticator.setContext !== 'function') {
-            throw new AuthenticatorInitializationError("The authenticator: '" + instantiatedAuthenticator + "' isn't valid. It isn't a function or doesn't implement the 'setContext' method.");
-        }
-
-        return instantiatedAuthenticator;
     }
 }

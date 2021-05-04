@@ -1,0 +1,5 @@
+describe("Authenticator Factory", () => {
+    it("", () => {
+
+    })
+})

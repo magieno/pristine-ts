@@ -5,11 +5,12 @@ import {LogHandler} from "@pristine-ts/logging";
 import {GuardInitializationError} from "../errors/guard-initialization.error";
 import {IdentityInterface, RequestInterface, tag} from "@pristine-ts/common";
 import {AuthorizerManagerInterface} from "../interfaces/authorizer-manager.interface";
+import {GuardFactory} from "../factories/guard.factory";
 
 @tag("AuthorizerManagerInterface")
 @injectable()
 export class AuthorizerManager implements AuthorizerManagerInterface {
-    public constructor(private readonly logHandler: LogHandler) {
+    public constructor(private readonly logHandler: LogHandler, private readonly guardFactory: GuardFactory) {
     }
 
     public async isAuthorized(requestInterface: RequestInterface, routeContext: any, container: DependencyContainer, identity?: IdentityInterface): Promise<boolean> {
@@ -22,7 +23,7 @@ export class AuthorizerManager implements AuthorizerManagerInterface {
 
         for (const guardContext of routeContext.guards) {
             try {
-                const instantiatedGuard = this.instantiateGuardFromContext(guardContext, container);
+                const instantiatedGuard = this.guardFactory.fromContext(guardContext, container);
 
                 await instantiatedGuard.setContext(guardContext);
 
@@ -35,26 +36,5 @@ export class AuthorizerManager implements AuthorizerManagerInterface {
         }
 
         return Promise.resolve(isAuthorized);
-    }
-
-    private instantiateGuardFromContext(guardContext: GuardContextInterface, container: DependencyContainer): GuardInterface {
-        // Check if the guard needs to be instantiated
-        let instantiatedGuard: GuardInterface = guardContext.guard as GuardInterface;
-
-        if (typeof instantiatedGuard === 'function') {
-            instantiatedGuard = container.resolve(instantiatedGuard);
-        }
-
-        // Check again if the class has the isAuthorized method
-        if (typeof instantiatedGuard.isAuthorized !== 'function') {
-            throw new GuardInitializationError("The guard: '" + instantiatedGuard + "' doesn't implement the isAuthorized() method.");
-        }
-
-        // Check again if the class has the setContext method
-        if (typeof instantiatedGuard.setContext !== 'function') {
-            throw new GuardInitializationError("The guard: '" + instantiatedGuard + "' doesn't implement the setContext() method.");
-        }
-
-        return instantiatedGuard;
     }
 }
