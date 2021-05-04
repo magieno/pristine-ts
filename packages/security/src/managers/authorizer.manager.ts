@@ -1,8 +1,5 @@
-import {DependencyContainer, injectable} from "tsyringe";
-import {GuardContextInterface} from "../interfaces/guard-context.interface";
-import {GuardInterface} from "../interfaces/guard.interface";
-import {LogHandler} from "@pristine-ts/logging";
-import {GuardInitializationError} from "../errors/guard-initialization.error";
+import {DependencyContainer, inject, injectable} from "tsyringe";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 import {IdentityInterface, RequestInterface, tag} from "@pristine-ts/common";
 import {AuthorizerManagerInterface} from "../interfaces/authorizer-manager.interface";
 import {GuardFactory} from "../factories/guard.factory";
@@ -10,7 +7,8 @@ import {GuardFactory} from "../factories/guard.factory";
 @tag("AuthorizerManagerInterface")
 @injectable()
 export class AuthorizerManager implements AuthorizerManagerInterface {
-    public constructor(private readonly logHandler: LogHandler, private readonly guardFactory: GuardFactory) {
+    public constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
+                       private readonly guardFactory: GuardFactory) {
     }
 
     public async isAuthorized(requestInterface: RequestInterface, routeContext: any, container: DependencyContainer, identity?: IdentityInterface): Promise<boolean> {
