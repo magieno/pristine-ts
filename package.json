@@ -47,6 +47,7 @@
     "@pristine-ts/logging": "file:packages/logging",
     "@pristine-ts/networking": "file:packages/networking",
     "@pristine-ts/security": "file:packages/security",
-    "@pristine-ts/sentry": "file:packages/sentry"
+    "@pristine-ts/sentry": "file:packages/sentry",
+    "@pristine-ts/e2e": "file:tests/e2e"
   }
 }

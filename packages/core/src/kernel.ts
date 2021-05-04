@@ -395,24 +395,28 @@ export class Kernel {
                 // the appropriate controller method
                 const route = new Route(controller.constructor, routeMethodDecorator.methodKeyname);
                 route.methodArguments = method.arguments ?? [];
-                route.context = mergeWith({}, ...controller.__metadata__?.controller.__routeContext__, ...method.__routeContext__);
+                route.context = mergeWith({}, controller.__metadata__?.controller?.__routeContext__ , method.__routeContext__);
 
                 // Setup the guards for this route
-                const guards: any[] = controller.__metadata__?.controller?.guards ?? [];
-                guards.push(...(method.guards ?? []));
+                const guards: any[] = route.context.guards ?? [];
 
                 // Loop through the guards and check to see if they need to be instantiated or if they already are
-                route.guards = guards.map(guard => {
+                route.guards = guards.map(guardContext => {
                     // Check if the guard needs to be instantiated
-                    let instantiatedGuard = guard;
+                    let instantiatedGuard = guardContext.guard;
 
-                    if (typeof guard === 'function') {
-                        instantiatedGuard = this.container.resolve(guard);
+                    if (typeof instantiatedGuard === 'function') {
+                        instantiatedGuard = this.container.resolve(instantiatedGuard);
                     }
 
-                    // Check again if the class as the isAuthorized method
+                    // Check again if the class has the isAuthorized method
                     if (typeof instantiatedGuard.isAuthorized !== 'function') {
-                        throw new GuardInitializationError("The guard: '" + guard + "' doesn't implement the isAuthorized() method.");
+                        throw new GuardInitializationError("The guard: '" + instantiatedGuard + "' doesn't implement the isAuthorized() method.");
+                    }
+
+                    // Check again if the class has the setContext method
+                    if (typeof instantiatedGuard.setContext !== 'function') {
+                        throw new GuardInitializationError("The guard: '" + instantiatedGuard + "' doesn't implement the setContext() method.");
                     }
 
                     return instantiatedGuard;

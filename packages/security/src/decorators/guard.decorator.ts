@@ -1,7 +1,7 @@
 import {GuardInterface} from "../interfaces/guard.interface";
 import {GuardInitializationError} from "../errors/guard-initialization.error";
 
-export const guard = (guard: GuardInterface | Function, options: any) => {
+export const guard = (guard: GuardInterface | Function, options?: any) => {
     return ( target: any,
              propertyKey?: string,
              descriptor?: PropertyDescriptor) => {
@@ -33,15 +33,19 @@ export const guard = (guard: GuardInterface | Function, options: any) => {
                 target.constructor.prototype["__metadata__"]["methods"][propertyKey] = {}
             }
 
-            if(target.constructor.prototype["__metadata__"]["methods"][propertyKey].hasOwnProperty("guards") === false) {
-                target.constructor.prototype["__metadata__"]["methods"][propertyKey]["guards"] = {}
+            if(target.constructor.prototype["__metadata__"]["methods"][propertyKey].hasOwnProperty("__routeContext__") === false) {
+                target.constructor.prototype["__metadata__"]["methods"][propertyKey]["__routeContext__"] = {}
+            }
+
+            if(target.constructor.prototype["__metadata__"]["methods"][propertyKey]["__routeContext__"].hasOwnProperty("guards") === false) {
+                target.constructor.prototype["__metadata__"]["methods"][propertyKey]["__routeContext__"]["guards"] = []
             }
 
             //todo: how to access cleanly the prototype of a Function or an object.
-            target.constructor.prototype["__metadata__"]["methods"][propertyKey]["guards"][(guard as any).prototype.constructor] = {
+            target.constructor.prototype["__metadata__"]["methods"][propertyKey]["__routeContext__"]["guards"].push({
                 guard,
                 options
-            };
+            });
         }
         else {
             if(target.prototype.hasOwnProperty("__metadata__") === false) {
@@ -51,16 +55,20 @@ export const guard = (guard: GuardInterface | Function, options: any) => {
             if(target.prototype["__metadata__"].hasOwnProperty("controller") === false) {
                 target.prototype["__metadata__"]["controller"] = {}
             }
-
-
-            if(target.prototype["__metadata__"]["controller"].hasOwnProperty("guards") === false) {
-                target.prototype["__metadata__"]["controller"]["guards"] = {}
+            if (target.prototype["__metadata__"]["controller"].hasOwnProperty("__routeContext__") === false) {
+                target.prototype["__metadata__"]["controller"]["__routeContext__"] = {}
             }
 
-            target.prototype["__metadata__"]["controller"]["guards"][(guard as any).prototype.constructor] = {
+            if(target.prototype["__metadata__"]["controller"]["__routeContext__"].hasOwnProperty("guards") === false) {
+                target.prototype["__metadata__"]["controller"]["__routeContext__"]["guards"] = []
+            }
+
+            target.prototype["__metadata__"]["controller"]["__routeContext__"]["guards"].push({
                 guard,
                 options
-            };;
+            });
+
+            const a = 0;
         }
     }
 }
