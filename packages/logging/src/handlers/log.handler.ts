@@ -3,9 +3,10 @@ import {SeverityEnum} from "../enums/severity.enum";
 import {LogModel} from "../models/log.model";
 import {LoggerInterface} from "../interfaces/logger.interface";
 import {ServiceDefinitionTagEnum} from "@pristine-ts/common";
+import {LogHandlerInterface} from "../interfaces/log-handler.interface";
 
 @injectable()
-export class LogHandler {
+export class LogHandler implements LogHandlerInterface {
 
   public constructor(@injectAll(ServiceDefinitionTagEnum.Logger) private readonly loggers: LoggerInterface[]) {
   }
