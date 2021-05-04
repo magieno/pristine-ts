@@ -11,11 +11,6 @@ export class Route {
     methodArguments: ParameterDecoratorInterface[] = [];
 
     /**
-     * This contains an array of all the guards protecting this route.
-     */
-    guards: GuardInterface[] = [];
-
-    /**
      * This contains the authenticator for this route.
      */
     authenticator?: AuthenticatorInterface;

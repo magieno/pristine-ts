@@ -1,4 +1,4 @@
-import {DependencyContainer, injectable} from "tsyringe";
+import {DependencyContainer} from "tsyringe";
 import {IdentityInterface, RequestInterface} from "@pristine-ts/common";
 
 export interface AuthorizerManagerInterface {

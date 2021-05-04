@@ -395,27 +395,6 @@ export class Kernel {
                 route.methodArguments = method.arguments ?? [];
                 route.context = mergeWith({}, controller.__metadata__?.controller?.__routeContext__ , method.__routeContext__);
 
-                // Setup the authenticator for this route
-                // An authenticator on the method has priority over an authenticator at the controller level.
-                const authenticator = method.authenticator ?? controller.__metadata__?.controller?.authenticator;
-                if (authenticator) {
-                    let instantiatedAuthenticator = authenticator
-                    if (typeof authenticator === 'function') {
-                        instantiatedAuthenticator = this.container.resolve(authenticator);
-                    }
-
-                    // Check again if the class has the authenticate method
-                    if (typeof instantiatedAuthenticator.authenticate !== 'function') {
-                        throw new AuthenticatorInitializationError("The authenticator: '" + authenticator + "' isn't valid. It isn't a function or doesn't implement the 'authenticate' method.");
-                    }
-
-                    // Check again if the class has the setContext method
-                    if (typeof instantiatedAuthenticator.setContext !== 'function') {
-                        throw new AuthenticatorInitializationError("The authenticator: '" + authenticator + "' isn't valid. It isn't a function or doesn't implement the 'setContext' method.");
-                    }
-                    route.authenticator = instantiatedAuthenticator;
-                }
-
                 // Build the proper path
                 let path = routeMethodDecorator.path;
 

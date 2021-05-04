@@ -91,6 +91,10 @@ describe("Router.spec", () => {
             isAuthorized(requestInterface: RequestInterface, routeContext: any, container, identity?: IdentityInterface): Promise<boolean> {
                 return Promise.resolve(true);
             }
+        }, {
+            authenticate(request: RequestInterface, routeContext: any, container): Promise<IdentityInterface | undefined> {
+                return Promise.resolve(undefined);
+            }
         });
 
         router["root"] = root;
