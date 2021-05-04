@@ -3,7 +3,7 @@ import {IdentityInterface, RequestInterface} from "@pristine-ts/common";
 import {GuardContextInterface, GuardInterface} from "@pristine-ts/security";
 
 @injectable()
-export class CognitoGroupGuard implements GuardInterface {
+export class AwsCognitoGroupGuard implements GuardInterface {
     public keyname = "cognito.group";
 
     public guardContext: GuardContextInterface;

@@ -37,17 +37,17 @@
   },
   "dependencies": {
     "@pristine-ts/aws": "file:packages/aws",
-    "@pristine-ts/cognito": "file:packages/cognito",
+    "@pristine-ts/aws-cognito": "file:packages/aws-cognito",
     "@pristine-ts/common": "file:packages/common",
     "@pristine-ts/configuration": "file:packages/configuration",
     "@pristine-ts/core": "file:packages/core",
+    "@pristine-ts/e2e": "file:tests/e2e",
     "@pristine-ts/event": "file:packages/event",
     "@pristine-ts/express": "file:packages/express",
     "@pristine-ts/jwt": "file:packages/jwt",
     "@pristine-ts/logging": "file:packages/logging",
     "@pristine-ts/networking": "file:packages/networking",
     "@pristine-ts/security": "file:packages/security",
-    "@pristine-ts/sentry": "file:packages/sentry",
-    "@pristine-ts/e2e": "file:tests/e2e"
+    "@pristine-ts/sentry": "file:packages/sentry"
   }
 }

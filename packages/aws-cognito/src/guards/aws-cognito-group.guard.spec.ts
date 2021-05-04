@@ -1,13 +1,13 @@
 import "reflect-metadata";
-import {CognitoGroupGuard} from "./cognito-group.guard";
+import {AwsCognitoGroupGuard} from "./aws-cognito-group.guard";
 import {HttpMethod} from "@pristine-ts/networking";
 
-describe("Cognito group Guard", () => {
+describe("AWS Cognito group Guard", () => {
     it("should return true when no group is needed", async () => {
-        const cognitoGroupGuard = new CognitoGroupGuard();
+        const cognitoGroupGuard = new AwsCognitoGroupGuard();
 
         cognitoGroupGuard.setContext({
-            CognitoGroupGuard,
+            CognitoGroupGuard: AwsCognitoGroupGuard,
             options: {
                 groups: []
             }
@@ -27,10 +27,10 @@ describe("Cognito group Guard", () => {
     })
 
     it("should return false when groups are needed but identity does not provide groups.", async () => {
-        const cognitoGroupGuard = new CognitoGroupGuard();
+        const cognitoGroupGuard = new AwsCognitoGroupGuard();
 
         cognitoGroupGuard.setContext({
-            CognitoGroupGuard,
+            CognitoGroupGuard: AwsCognitoGroupGuard,
             options: {
                 groups: ["ADMIN"]
             }
@@ -49,10 +49,10 @@ describe("Cognito group Guard", () => {
     })
 
     it("should return false when groups are needed but identity groups is not an array.", async () => {
-        const cognitoGroupGuard = new CognitoGroupGuard();
+        const cognitoGroupGuard = new AwsCognitoGroupGuard();
 
         cognitoGroupGuard.setContext({
-            CognitoGroupGuard,
+            CognitoGroupGuard: AwsCognitoGroupGuard,
             options: {
                 groups: ["ADMIN"]
             }
@@ -72,10 +72,10 @@ describe("Cognito group Guard", () => {
     })
 
     it("should return false when groups are needed that are not in the identity groups.", async () => {
-        const cognitoGroupGuard = new CognitoGroupGuard();
+        const cognitoGroupGuard = new AwsCognitoGroupGuard();
 
         cognitoGroupGuard.setContext({
-            CognitoGroupGuard,
+            CognitoGroupGuard: AwsCognitoGroupGuard,
             options: {
                 groups: ["ADMIN"]
             }
@@ -95,10 +95,10 @@ describe("Cognito group Guard", () => {
     })
 
     it("should return true when all groups needed are in the identity groups.", async () => {
-        const cognitoGroupGuard = new CognitoGroupGuard();
+        const cognitoGroupGuard = new AwsCognitoGroupGuard();
 
         cognitoGroupGuard.setContext({
-            CognitoGroupGuard,
+            CognitoGroupGuard: AwsCognitoGroupGuard,
             options: {
                 groups: ["ADMIN", "USER"]
             }
