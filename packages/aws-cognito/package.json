@@ -1,10 +1,10 @@
 {
-  "name": "@pristine-ts/cognito",
+  "name": "@pristine-ts/aws-cognito",
   "version": "0.0.53",
   "description": "",
-  "module": "dist/lib/esm/cognito.module.js",
-  "main": "dist/lib/cjs/cognito.module.js",
-  "types": "dist/types/cognito.module.d.ts",
+  "module": "dist/lib/esm/aws-cognito.module.js",
+  "main": "dist/lib/cjs/aws-cognito.module.js",
+  "types": "dist/types/aws-cognito.module.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
     "prepublish": "npm run build",

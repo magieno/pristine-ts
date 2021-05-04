@@ -1,5 +1,5 @@
 import {injectable, inject, singleton} from "tsyringe";
-import {CognitoModuleKeyname} from "../cognito.module.keyname";
+import {AwsCognitoModuleKeyname} from "../aws-cognito.module.keyname";
 import {PublicKeyInterface} from "../interfaces/public-key.interface";
 import {HttpClientInterface} from "../interfaces/http-client.interface";
 const jwkToPem = require("jwk-to-pem");
@@ -12,15 +12,15 @@ import {AuthenticatorInterface} from "@pristine-ts/security";
 
 @singleton()
 @injectable()
-export class CognitoAuthenticator implements AuthenticatorInterface{
+export class AwsCognitoAuthenticator implements AuthenticatorInterface{
 
     private cachedPems;
     private cognitoIssuer;
     private publicKeyUrl;
     private context;
 
-    constructor(@inject(`%${CognitoModuleKeyname}.region%`) private readonly region: string,
-                @inject(`%${CognitoModuleKeyname}.poolId%`) private readonly poolId: string,
+    constructor(@inject(`%${AwsCognitoModuleKeyname}.region%`) private readonly region: string,
+                @inject(`%${AwsCognitoModuleKeyname}.poolId%`) private readonly poolId: string,
                 private readonly httpClient: HttpClientInterface,
                 ) {
         this.cognitoIssuer = this.getCognitoIssuer();

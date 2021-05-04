@@ -1,22 +1,21 @@
 import {ModuleInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
-import {CognitoModuleKeyname} from "./cognito.module.keyname";
+import {AwsCognitoModuleKeyname} from "./aws-cognito.module.keyname";
 
 export * from "./authenticators/authenticators";
 export * from "./clients/clients";
-export * from "./decorators/decorators";
 export * from "./guards/guards";
 export * from "./interfaces/interfaces";
 
-export const CognitoModule: ModuleInterface = {
-    keyname: CognitoModuleKeyname,
+export const AwsCognitoModule: ModuleInterface = {
+    keyname: AwsCognitoModuleKeyname,
     configurationDefinitions: [
         {
-            parameterName: CognitoModuleKeyname + ".region",
+            parameterName: AwsCognitoModuleKeyname + ".region",
             isRequired: false,
             defaultValue: "us-east-1",
         },
         {
-            parameterName: CognitoModuleKeyname + ".poolId",
+            parameterName: AwsCognitoModuleKeyname + ".poolId",
             isRequired: true,
         }
     ],
