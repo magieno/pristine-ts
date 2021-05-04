@@ -1,5 +1,6 @@
 import {ModuleInterface} from "@pristine-ts/common";
 import {NetworkingModuleKeyname} from "./networking.module.keyname";
+import {SecurityModule} from "@pristine-ts/security";
 
 export * from "./decorators/decorators";
 export * from "./enums/enums";
@@ -23,4 +24,8 @@ export const NetworkingModule: ModuleInterface = {
      */
     providerRegistrations: [
     ],
+
+    importModules: [
+        SecurityModule
+    ]
 }

@@ -1,7 +1,9 @@
+import "reflect-metadata";
 import {testModule} from "../test.module";
 import {TestGuard} from "./test.guard";
 import {PermissionManager} from "../managers/permission.manager";
 import {container, DependencyContainer, inject, injectable, singleton} from "tsyringe";
+
 
 import {
     HttpMethod,

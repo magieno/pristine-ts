@@ -1,5 +1,6 @@
 import {ModuleInterface} from "@pristine-ts/common";
 import {SecurityModuleKeyname} from "./security.module.keyname";
+import {LoggingModule} from "@pristine-ts/logging";
 
 export * from "./decorators/decorators";
 export * from "./enums/enums";
@@ -12,6 +13,7 @@ export const SecurityModule: ModuleInterface = {
     keyname: SecurityModuleKeyname,
     importServices: [],
     importModules: [
+        LoggingModule,
     ],
     providerRegistrations: []
 }

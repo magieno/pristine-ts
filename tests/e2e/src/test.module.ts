@@ -6,11 +6,12 @@ import {Voter1Model} from "./models/voter1.model";
 import {Voter2Model} from "./models/voter2.model";
 import {TestController} from "./controllers/test.controller";
 import {TestGuard} from "./guards/test.guard";
+import {SecurityModule} from "@pristine-ts/security";
 
 export const testModule: ModuleInterface = {
     keyname: "test",
     importServices: [TestController],
-    importModules: [CoreModule],
+    importModules: [CoreModule, SecurityModule],
     providerRegistrations: [
         {
             token: "voter",

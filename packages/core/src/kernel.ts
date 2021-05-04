@@ -58,9 +58,7 @@ export class Kernel {
         await this.registerServiceTags();
 
         // Register the configuration
-        if (moduleConfigurationValues) {
-            await this.initConfiguration(moduleConfigurationValues);
-        }
+        await this.initConfiguration(moduleConfigurationValues);
 
         // Setup the router
         this.setupRouter();
@@ -131,7 +129,7 @@ export class Kernel {
         this.instantiatedModules[module.keyname] = module;
     }
 
-    private async initConfiguration(moduleConfigurationValues: { [key: string]: ModuleConfigurationValue }) {
+    private async initConfiguration(moduleConfigurationValues?: { [key: string]: ModuleConfigurationValue }) {
         const configurationManager: ConfigurationManager = this.container.resolve(ConfigurationManager);
 
         // Start by loading the configuration definitions of all the modules
@@ -147,7 +145,7 @@ export class Kernel {
         }
 
         // Load the configuration values passed by the app
-        await configurationManager.load(moduleConfigurationValues, this.container);
+        await configurationManager.load(moduleConfigurationValues ?? {}, this.container);
     }
 
     /**
@@ -396,31 +394,6 @@ export class Kernel {
                 const route = new Route(controller.constructor, routeMethodDecorator.methodKeyname);
                 route.methodArguments = method.arguments ?? [];
                 route.context = mergeWith({}, controller.__metadata__?.controller?.__routeContext__ , method.__routeContext__);
-
-                // Setup the guards for this route
-                const guards: any[] = route.context.guards ?? [];
-
-                // Loop through the guards and check to see if they need to be instantiated or if they already are
-                route.guards = guards.map(guardContext => {
-                    // Check if the guard needs to be instantiated
-                    let instantiatedGuard = guardContext.guard;
-
-                    if (typeof instantiatedGuard === 'function') {
-                        instantiatedGuard = this.container.resolve(instantiatedGuard);
-                    }
-
-                    // Check again if the class has the isAuthorized method
-                    if (typeof instantiatedGuard.isAuthorized !== 'function') {
-                        throw new GuardInitializationError("The guard: '" + instantiatedGuard + "' doesn't implement the isAuthorized() method.");
-                    }
-
-                    // Check again if the class has the setContext method
-                    if (typeof instantiatedGuard.setContext !== 'function') {
-                        throw new GuardInitializationError("The guard: '" + instantiatedGuard + "' doesn't implement the setContext() method.");
-                    }
-
-                    return instantiatedGuard;
-                })
 
                 // Setup the authenticator for this route
                 // An authenticator on the method has priority over an authenticator at the controller level.
