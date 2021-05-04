@@ -15,6 +15,7 @@ import {ResponseMapper} from "./mappers/response.mapper";
 import {RestApiRequestMapper} from "./mappers/rest-api-request.mapper";
 import {RequestMapperFactory} from "./factories/request-mapper.factory";
 import {AwsModuleKeyname} from "./aws.module.keyname";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 
 export * from "./clients/clients";
 export * from "./decorators/decorators";
@@ -66,14 +67,14 @@ export const AwsModule: ModuleInterface = {
 const registerDynamicTableNames = (container: DependencyContainer) => {
     for (const dynamicTableName of dynamicTableNameRegistry) {
         if(container.isRegistered(dynamicTableName.tokenName) === false) {
-            const logHandler = container.resolve(LogHandler);
+            const logHandler: LogHandlerInterface = container.resolve("LogHandlerInterface");
             logHandler.warning("The table token name does not exist in the container.");
             continue;
         }
         try {
             dynamicTableName.classConstructor.prototype[DynamoDbTable] = container.resolve(dynamicTableName.tokenName);
         } catch (error){
-            const logHandler = container.resolve(LogHandler);
+            const logHandler: LogHandlerInterface = container.resolve("LogHandlerInterface");
             logHandler.error("Error resolving the dynamic table token name", {error, tokenName: dynamicTableName.tokenName});
             continue;
         }

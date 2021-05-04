@@ -1,4 +1,3 @@
-import {SeverityEnum} from "../enums/severity.enum";
 
 export interface LogHandlerInterface {
     error(message: string, extra?: any): void;
@@ -10,6 +9,4 @@ export interface LogHandlerInterface {
     info(message: string, extra?: any): void;
 
     warning(message: string, extra?: any): void;
-
-    log(message: string, severity: SeverityEnum, extra?: any): void;
 }

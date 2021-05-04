@@ -1,17 +1,16 @@
-import {DependencyContainer, injectable} from "tsyringe";
+import {DependencyContainer, inject, injectable} from "tsyringe";
 import {AuthenticationManagerInterface} from "../interfaces/authentication-manager.interface";
 import {IdentityInterface, RequestInterface, tag} from "@pristine-ts/common";
 import {AuthenticatorInterface} from "../interfaces/authenticator.interface";
-import {GuardInterface} from "../interfaces/guard.interface";
 import {AuthenticatorContextInterface} from "../interfaces/authenticator-context.interface";
-import {AuthenticatorInitializationError} from "../errors/authenticator-initialization.error";
-import {LogHandler} from "@pristine-ts/logging";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 import {AuthenticatorFactory} from "../factories/authenticator.factory";
 
 @tag("AuthenticationManagerInterface")
 @injectable()
 export class AuthenticationManager implements AuthenticationManagerInterface {
-    public constructor(private readonly logHandler: LogHandler, private readonly authenticatorFactory: AuthenticatorFactory) {
+    public constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
+                       private readonly authenticatorFactory: AuthenticatorFactory) {
     }
 
     public async authenticate(request: RequestInterface, routeContext: any, container: DependencyContainer): Promise<IdentityInterface | undefined> {
