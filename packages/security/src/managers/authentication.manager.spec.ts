@@ -6,4 +6,8 @@ describe("AuthenticationManager", () => {
     it("should return the Identity returned by the configured authenticator in the context", () => {
 
     })
+
+    it("should call the setContext method before calling the 'authenticate' method", () => {
+
+    })
 })
