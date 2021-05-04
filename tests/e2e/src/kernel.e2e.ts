@@ -12,7 +12,7 @@ import {
     HttpError,
     NetworkingModule,
 } from "@pristine-ts/networking";
-import {ServiceDefinitionTagEnum, ModuleInterface, tag} from "@pristine-ts/common";
+import {ServiceDefinitionTagEnum, ModuleInterface, tag, moduleScoped} from "@pristine-ts/common";
 import {
     Kernel,
     RequestInterceptorInterface,
@@ -418,5 +418,70 @@ describe("Kernel.ts", () => {
 
         const classThatHasAllTheOthersInjected = kernel.container.resolve(ClassThatHasAllTheOthersInjected);
         expect(classThatHasAllTheOthersInjected.taggedClasses.length).toBe(2);
+    })
+
+
+    describe("Scoped modules", () => {
+        const module1Keyname = "testModule1";
+        const module2Keyname = "testModule2";
+        const module3Keyname = "testModule3";
+
+        @tag("CommonTag")
+        @moduleScoped(module1Keyname)
+        @injectable()
+        class TestClass1 {
+            testFunction() {
+                return
+            }
+        }
+
+        @tag("CommonTag")
+        @moduleScoped(module2Keyname)
+        @injectable()
+        class TestClass2 {testFunction() {
+                return
+            }
+        }
+
+        @tag("CommonTag")
+        @moduleScoped(module3Keyname)
+        @injectable()
+        class TestClass3 {testFunction() {
+                return
+            }
+        }
+
+        const testModule1: ModuleInterface = {
+            keyname: module1Keyname,
+            importServices: [],
+        }
+
+        const testModule2: ModuleInterface = {
+            keyname: module2Keyname,
+            importServices: [],
+        }
+
+        const testModule3: ModuleInterface = {
+            keyname: module3Keyname,
+            importServices: [],
+        }
+
+        it("should only resolve classes from imported modules", async () => {
+            const module: ModuleInterface = {
+                keyname: "Module",
+                importServices: [],
+                importModules: [
+                    CoreModule,
+                    testModule1,
+                    testModule2,
+                ],
+            }
+
+            const kernel = new Kernel();
+
+            await kernel.init(module);
+
+            expect(kernel.container.resolveAll("CommonTag").length).toBe(2);
+        })
     })
 })
