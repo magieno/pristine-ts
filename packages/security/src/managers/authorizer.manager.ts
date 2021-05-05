@@ -1,9 +1,11 @@
 import {DependencyContainer, inject, injectable} from "tsyringe";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import {IdentityInterface, RequestInterface, tag} from "@pristine-ts/common";
+import {IdentityInterface, moduleScoped, RequestInterface, tag} from "@pristine-ts/common";
 import {AuthorizerManagerInterface} from "../interfaces/authorizer-manager.interface";
 import {GuardFactory} from "../factories/guard.factory";
+import {SecurityModuleKeyname} from "../security.module.keyname";
 
+@moduleScoped(SecurityModuleKeyname)
 @tag("AuthorizerManagerInterface")
 @injectable()
 export class AuthorizerManager implements AuthorizerManagerInterface {
@@ -11,10 +13,10 @@ export class AuthorizerManager implements AuthorizerManagerInterface {
                        private readonly guardFactory: GuardFactory) {
     }
 
-    public async isAuthorized(requestInterface: RequestInterface, routeContext: any, container: DependencyContainer, identity?: IdentityInterface): Promise<boolean> {
+    public async isAuthorized(request: RequestInterface, routeContext: any, container: DependencyContainer, identity?: IdentityInterface): Promise<boolean> {
         // If there are no guards defined, we simply return that it is authorized.
         if(!routeContext || routeContext.guards === undefined || Array.isArray(routeContext.guards) === false) {
-            return Promise.resolve(true);
+            return true;
         }
 
         let isAuthorized = true;
@@ -25,7 +27,8 @@ export class AuthorizerManager implements AuthorizerManagerInterface {
 
                 await instantiatedGuard.setContext(guardContext);
 
-                isAuthorized = isAuthorized && await instantiatedGuard.isAuthorized(requestInterface, identity);
+                const didAuthorize= await instantiatedGuard.isAuthorized(request, identity);
+                isAuthorized = isAuthorized && didAuthorize;
             }
             catch (e) {
                 this.logHandler.error(e.message);
@@ -33,6 +36,6 @@ export class AuthorizerManager implements AuthorizerManagerInterface {
             }
         }
 
-        return Promise.resolve(isAuthorized);
+        return isAuthorized;
     }
 }

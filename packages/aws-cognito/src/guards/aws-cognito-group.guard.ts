@@ -23,11 +23,11 @@ export class AwsCognitoGroupGuard implements GuardInterface {
         if(neededGroups.length > 0 && (identity?.claims?.hasOwnProperty("cognito:groups") === false || !Array.isArray(identity?.claims["cognito:groups"]))){
             return false;
         }
-        neededGroups.forEach(group => {
+        for(const group of neededGroups) {
             if(!identity?.claims["cognito:groups"].includes(group)){
                 return false;
             }
-        })
+        }
         return true;
     }
 }

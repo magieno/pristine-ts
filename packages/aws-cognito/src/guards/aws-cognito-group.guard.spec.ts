@@ -91,7 +91,7 @@ describe("AWS Cognito group Guard", () => {
             claims: {
                 "cognito:groups": ["USER"]
             }
-        })).toBeTruthy()
+        })).toBeFalsy()
     })
 
     it("should return true when all groups needed are in the identity groups.", async () => {

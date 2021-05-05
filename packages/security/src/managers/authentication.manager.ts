@@ -1,11 +1,13 @@
 import {DependencyContainer, inject, injectable} from "tsyringe";
 import {AuthenticationManagerInterface} from "../interfaces/authentication-manager.interface";
-import {IdentityInterface, RequestInterface, tag} from "@pristine-ts/common";
+import {IdentityInterface, moduleScoped, RequestInterface, tag} from "@pristine-ts/common";
 import {AuthenticatorInterface} from "../interfaces/authenticator.interface";
 import {AuthenticatorContextInterface} from "../interfaces/authenticator-context.interface";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {AuthenticatorFactory} from "../factories/authenticator.factory";
+import {SecurityModuleKeyname} from "../security.module.keyname";
 
+@moduleScoped(SecurityModuleKeyname)
 @tag("AuthenticationManagerInterface")
 @injectable()
 export class AuthenticationManager implements AuthenticationManagerInterface {
@@ -15,7 +17,7 @@ export class AuthenticationManager implements AuthenticationManagerInterface {
 
     public async authenticate(request: RequestInterface, routeContext: any, container: DependencyContainer): Promise<IdentityInterface | undefined> {
         if(!routeContext || routeContext.authenticator === undefined) {
-            return Promise.resolve(undefined);
+            return undefined;
         }
 
         let identity: IdentityInterface | undefined;
@@ -34,6 +36,6 @@ export class AuthenticationManager implements AuthenticationManagerInterface {
             identity = undefined;
         }
 
-        return Promise.resolve(identity);
+        return identity;
     }
 }

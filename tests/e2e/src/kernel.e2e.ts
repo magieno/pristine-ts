@@ -12,7 +12,14 @@ import {
     HttpError,
     NetworkingModule,
 } from "@pristine-ts/networking";
-import {ServiceDefinitionTagEnum, ModuleInterface, tag, moduleScoped} from "@pristine-ts/common";
+import {
+    ServiceDefinitionTagEnum,
+    ModuleInterface,
+    tag,
+    moduleScoped,
+    IdentityInterface,
+    RequestInterface
+} from "@pristine-ts/common";
 import {
     Kernel,
     RequestInterceptorInterface,
@@ -20,11 +27,11 @@ import {
     ErrorResponseInterceptorInterface,
     CoreModule,
 } from "@pristine-ts/core";
-import {TestGuard} from "./guards/test.guard";
+import {AuthenticationManagerInterface, AuthorizerManagerInterface} from "@pristine-ts/security";
 
 describe("Kernel.ts", () => {
     beforeEach(async () => {
-        // Very import to clear the instances in between executions.
+        // Very important to clear the instances in between executions.
         container.clearInstances();
     })
 
@@ -285,7 +292,6 @@ describe("Kernel.ts", () => {
 
             done();
         })
-
 
     })
 

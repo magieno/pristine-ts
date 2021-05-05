@@ -21,7 +21,7 @@ export class AwsCognitoAuthenticator implements AuthenticatorInterface{
 
     constructor(@inject(`%${AwsCognitoModuleKeyname}.region%`) private readonly region: string,
                 @inject(`%${AwsCognitoModuleKeyname}.poolId%`) private readonly poolId: string,
-                private readonly httpClient: HttpClientInterface,
+                @inject("HttpClientInterface") private readonly httpClient: HttpClientInterface,
                 ) {
         this.cognitoIssuer = this.getCognitoIssuer();
         this.publicKeyUrl = this.getPublicKeyUrl();

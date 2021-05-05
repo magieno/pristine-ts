@@ -1,7 +1,9 @@
 import {AuthenticatorInterface} from "../interfaces/authenticator.interface";
 import {AuthenticatorInitializationError} from "../errors/authenticator-initialization.error";
+import {GuardContextInterface} from "../interfaces/guard-context.interface";
+import {AuthenticatorContextInterface} from "../interfaces/authenticator-context.interface";
 
-export const authenticator = (authenticator: AuthenticatorInterface | Function) => {
+export const authenticator = (authenticator: AuthenticatorInterface | Function, options?: any) => {
     return ( target: any,
              propertyKey?: string,
              descriptor?: PropertyDescriptor) => {
@@ -14,6 +16,13 @@ export const authenticator = (authenticator: AuthenticatorInterface | Function) 
         ))) {
             throw new AuthenticatorInitializationError("The authenticator: '" + authenticator + "' isn't valid. It isn't a function or doesn't implement both the 'authenticate' and the 'setContext' methods.");
         }
+
+        // Construct the Guard Context.
+        const authenticatorContext: AuthenticatorContextInterface =  {
+            constructorName: (authenticator as any).prototype.constructor.name,
+            authenticator,
+            options,
+        };
 
         // If there's a descriptor, then it's not a controller authenticator, but a method authenticator
         if(descriptor && propertyKey) {
@@ -33,7 +42,7 @@ export const authenticator = (authenticator: AuthenticatorInterface | Function) 
                 target.constructor.prototype["__metadata__"]["methods"][propertyKey]["__routeContext__"] = {}
             }
 
-            target.constructor.prototype["__metadata__"]["methods"][propertyKey]["__routeContext__"]["authenticator"] = authenticator;
+            target.constructor.prototype["__metadata__"]["methods"][propertyKey]["__routeContext__"]["authenticator"] = authenticatorContext;
         } else {
             if (target.prototype.hasOwnProperty("__metadata__") === false) {
                 target.prototype["__metadata__"] = {}
@@ -47,7 +56,7 @@ export const authenticator = (authenticator: AuthenticatorInterface | Function) 
                 target.prototype["__metadata__"]["controller"]["__routeContext__"] = {}
             }
 
-            target.prototype["__metadata__"]["controller"]["__routeContext__"]["authenticator"] = authenticator;
+            target.prototype["__metadata__"]["controller"]["__routeContext__"]["authenticator"] = authenticatorContext;
         }
     }
 }
