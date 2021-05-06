@@ -105,9 +105,11 @@ export class AwsCognitoAuthenticator implements AuthenticatorInterface{
         if (claim.iss !== this.cognitoIssuer) {
             throw new Error('Claim issuer is invalid');
         }
-        if (claim.token_use !== 'access') {
-            throw new Error('Claim use is not access');
-        }
+
+        // We'll remove this for now as cognito authorizer only authorizes id token.
+        // if (claim.token_use !== 'access') {
+        //     throw new Error('Claim use is not access');
+        // }
 
         return claim;
     }
