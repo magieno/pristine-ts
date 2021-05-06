@@ -129,6 +129,4 @@ export class AwsCognitoAuthenticator implements AuthenticatorInterface{
         const headerJSON = Buffer.from(tokenSections[0], 'base64').toString('utf8');
         return  JSON.parse(headerJSON) as TokenHeaderInterface;
     }
-
-
 }
