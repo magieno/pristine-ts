@@ -1,5 +1,5 @@
 import {HttpMethod} from "../enums/http-method.enum";
-import {RequestInterface} from "@pristine-ts/common/dist/lib/esm/interfaces/request.interface";
+import {RequestInterface} from "@pristine-ts/common";
 
 /**
  * This Request object represents the class used internally that represents a Request.

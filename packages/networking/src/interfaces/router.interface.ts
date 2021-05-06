@@ -1,5 +1,4 @@
 import {HttpMethod} from "../enums/http-method.enum";
-import {RequestInterface} from "@pristine-ts/common/dist/lib/esm/interfaces/request.interface";
 import {DependencyContainer} from "tsyringe";
 import {Response} from "../models/response";
 import {Request} from "../models/request";
