@@ -1,7 +1,7 @@
 import "reflect-metadata"
 import {container} from "tsyringe";
 import {Kernel} from "@pristine-ts/core";
-import {controller, guards, HttpMethod, NetworkingModule, RequestInterface, route} from "@pristine-ts/networking";
+import {controller, HttpMethod, NetworkingModule, route} from "@pristine-ts/networking";
 import {CoreModule} from "@pristine-ts/core";
 import {LoggingModule, LogHandler} from "@pristine-ts/logging";
 

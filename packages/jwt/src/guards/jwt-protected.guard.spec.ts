@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import {JwtProtectedGuard} from "./jwt-protected.guard";
-import {HttpMethod, RequestInterface} from "@pristine-ts/networking";
+import {HttpMethod, MethodRouterNode, PathRouterNode, Route} from "@pristine-ts/networking";
+import {RequestInterface} from "@pristine-ts/common";
 
 describe("JWT Protected Guard", () => {
     it("should return true when the validateAndDecode resolves", async () => {

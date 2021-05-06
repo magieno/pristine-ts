@@ -27,6 +27,7 @@
   "homepage": "https://github.com/ima-tech/pristine-ts#readme",
   "devDependencies": {
     "@types/jest": "^26.0.20",
+    "@types/lodash": "^4.14.168",
     "@types/node": "^14.14.31",
     "@types/url-parse": "^1.4.3",
     "jest": "^26.6.3",
@@ -36,9 +37,11 @@
   },
   "dependencies": {
     "@pristine-ts/aws": "file:packages/aws",
+    "@pristine-ts/aws-cognito": "file:packages/aws-cognito",
     "@pristine-ts/common": "file:packages/common",
     "@pristine-ts/configuration": "file:packages/configuration",
     "@pristine-ts/core": "file:packages/core",
+    "@pristine-ts/e2e": "file:tests/e2e",
     "@pristine-ts/event": "file:packages/event",
     "@pristine-ts/express": "file:packages/express",
     "@pristine-ts/jwt": "file:packages/jwt",

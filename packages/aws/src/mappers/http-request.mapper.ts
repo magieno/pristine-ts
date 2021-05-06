@@ -1,6 +1,6 @@
 import {injectable} from "tsyringe";
 
-import {RequestInterface} from "@pristine-ts/networking";
+import {RequestInterface} from "@pristine-ts/common";
 import {RequestMapperInterface} from "../interfaces/request-mapper.interface";
 import {MethodMapper} from "./method.mapper";
 import {HttpRequestModel} from "../models/http-request.model";

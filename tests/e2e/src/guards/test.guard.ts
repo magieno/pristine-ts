@@ -1,5 +1,6 @@
 import {injectable} from "tsyringe";
-import {GuardInterface, RequestInterface} from "@pristine-ts/networking";
+import {GuardContextInterface, GuardInterface} from "@pristine-ts/security";
+import {RequestInterface} from "@pristine-ts/common";
 
 export class TestGuard implements GuardInterface {
     public keyname = "testGuard"
@@ -10,4 +11,10 @@ export class TestGuard implements GuardInterface {
     async isAuthorized(request: RequestInterface): Promise<boolean> {
         return this.shouldAuthorize;
     }
+
+    setContext(context: any): Promise<void> {
+        return Promise.resolve(undefined);
+    }
+
+    guardContext: GuardContextInterface;
 }

@@ -9,6 +9,7 @@ import {DynamodbTableNotFoundError} from "../errors/dynamodb-table-not-found.err
 import {DynamodbValidationError} from "../errors/dynamodb-validation.error";
 import {DynamodbError} from "../errors/dynamodb.error";
 import {LogHandler} from "@pristine-ts/logging";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 
 
 @injectable()
@@ -19,7 +20,7 @@ export class DynamodbClient {
     private mapperClient: any;
 
     constructor(
-        private readonly logHandler: LogHandler,
+        @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
         @inject("%pristine.aws.region%") private readonly region: string,
     ) {
     }

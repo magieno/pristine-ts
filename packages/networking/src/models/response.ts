@@ -1,5 +1,5 @@
 import {Request} from "./request";
-import {RequestInterface} from "../interfaces/request.interface";
+import {RequestInterface} from "@pristine-ts/common";
 
 export class Response {
     status: number = 200;

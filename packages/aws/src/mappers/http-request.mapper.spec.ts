@@ -1,6 +1,7 @@
 import "reflect-metadata"
 import {HttpRequestMapper} from "./http-request.mapper";
-import {HttpMethod, RequestInterface} from "@pristine-ts/networking";
+import {HttpMethod} from "@pristine-ts/networking";
+import {RequestInterface} from "@pristine-ts/common";
 import {MethodMapper} from "./method.mapper";
 
 describe("Http request mapper", () => {

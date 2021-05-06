@@ -1,4 +1,3 @@
-import {BodyParameterDecoratorInterface} from "../interfaces/body-parameteter-decorator.interface";
 import {QueryParameterDecoratorInterface} from "../interfaces/query-parameter-decorator.interface";
 
 export const queryParameter = (name: string) => {

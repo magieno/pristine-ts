@@ -1,11 +1,11 @@
 import "reflect-metadata";
 import {PermissionManager} from "./permission.manager";
 import {LogHandler} from "@pristine-ts/logging";
-import {IdentityInterface} from "../interfaces/identity.interface";
 import {ResourceActionEnum} from "../enums/resource-action.enum";
 import {VotingStrategyEnum} from "../enums/voting-strategy.enum";
 import {VoteEnum} from "../enums/vote.enum";
 import {VoterInterface} from "../interfaces/voter.interface";
+import {IdentityInterface} from "@pristine-ts/common";
 
 class Resource {
     private property: string;

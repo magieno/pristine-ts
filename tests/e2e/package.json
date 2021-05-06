@@ -2,11 +2,12 @@
   "name": "@pristine-ts/e2e",
   "version": "1.0.0",
   "dependencies": {
-    "@pristine-ts/core": "0.0.29",
-    "@pristine-ts/common": "0.0.29",
-    "@pristine-ts/express": "0.0.29",
-    "@pristine-ts/networking": "0.0.29",
-    "@pristine-ts/logging": "0.0.29"
+    "@pristine-ts/core": "file:../../packages/core",
+    "@pristine-ts/common": "file:../../packages/common",
+    "@pristine-ts/express": "file:../../packages/express",
+    "@pristine-ts/networking": "file:../../packages/networking",
+    "@pristine-ts/logging": "file:../../packages/logging",
+    "@pristine-ts/security": "file:../../packages/security"
   },
   "jest": {
     "transform": {

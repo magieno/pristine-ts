@@ -1,4 +1,4 @@
-import {RequestInterface} from "@pristine-ts/networking";
+import {RequestInterface} from "@pristine-ts/common";
 import {ApiGatewayRequest} from "../types/api-gateway-request.type";
 
 export interface RequestMapperInterface {

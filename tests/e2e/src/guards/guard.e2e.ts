@@ -1,14 +1,15 @@
+import "reflect-metadata";
 import {testModule} from "../test.module";
 import {TestGuard} from "./test.guard";
 import {PermissionManager} from "../managers/permission.manager";
 import {container, DependencyContainer, inject, injectable, singleton} from "tsyringe";
+
 
 import {
     HttpMethod,
     ForbiddenHttpError,
     controllerRegistry,
     controller,
-    guards,
     body,
     routeParameter,
     route,
@@ -16,10 +17,11 @@ import {
 import {
     Kernel,
 } from "@pristine-ts/core";
+import {guard} from "@pristine-ts/security";
 
 @controller("/api/2.0/guards")
 @singleton()
-@guards(TestGuard)
+@guard(TestGuard)
 export class TestGuardsController {
     constructor(private readonly permissionManager: PermissionManager) {
     }

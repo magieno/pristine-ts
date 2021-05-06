@@ -4,7 +4,6 @@ import {HttpMethod} from "./enums/http-method.enum";
 import {RouteParameterDecoratorInterface} from "./interfaces/route-parameter-decorator.interface";
 import {QueryParameterDecoratorInterface} from "./interfaces/query-parameter-decorator.interface";
 import {QueryParametersDecoratorInterface} from "./interfaces/query-parameters-decorator.interface";
-import {BodyParameterDecoratorInterface} from "./interfaces/body-parameteter-decorator.interface";
 import {PathRouterNode} from "./nodes/path-router.node";
 import {MethodRouterNode} from "./nodes/method-router.node";
 import {Router} from "./router";
@@ -15,6 +14,9 @@ import {BodyParameterDecoratorResolver} from "./resolvers/body-parameter-decorat
 import {QueryParameterDecoratorResolver} from "./resolvers/query-parameter-decorator.resolver";
 import {QueryParametersDecoratorResolver} from "./resolvers/query-parameters-decorator.resolver";
 import {RouteParameterDecoratorResolver} from "./resolvers/route-parameter-decorator.resolver";
+import {BodyParameterDecoratorInterface} from "./interfaces/body-parameter-decorator.interface";
+import {IdentityInterface, RequestInterface} from "@pristine-ts/common";
+
 
 describe("Router.spec", () => {
     let root: PathRouterNode;
@@ -85,7 +87,15 @@ describe("Router.spec", () => {
             new QueryParameterDecoratorResolver(),
             new QueryParametersDecoratorResolver(),
             new RouteParameterDecoratorResolver(),
-        ]));
+        ]), {
+            isAuthorized(requestInterface: RequestInterface, routeContext: any, container, identity?: IdentityInterface): Promise<boolean> {
+                return Promise.resolve(true);
+            }
+        }, {
+            authenticate(request: RequestInterface, routeContext: any, container): Promise<IdentityInterface | undefined> {
+                return Promise.resolve(undefined);
+            }
+        });
 
         router["root"] = root;
 

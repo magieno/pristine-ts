@@ -1,6 +1,6 @@
 import {injectable} from "tsyringe";
 
-import {RequestInterface} from "@pristine-ts/networking";
+import {RequestInterface} from "@pristine-ts/common";
 import {ApiGatewayRequest} from "../types/api-gateway-request.type";
 import {RequestMapperFactory} from "../factories/request-mapper.factory";
 

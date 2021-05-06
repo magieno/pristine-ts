@@ -2,10 +2,12 @@ import {injectable, injectAll} from "tsyringe";
 import {SeverityEnum} from "../enums/severity.enum";
 import {LogModel} from "../models/log.model";
 import {LoggerInterface} from "../interfaces/logger.interface";
-import {ServiceDefinitionTagEnum} from "@pristine-ts/common";
+import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {LogHandlerInterface} from "../interfaces/log-handler.interface";
 
+@tag("LogHandlerInterface")
 @injectable()
-export class LogHandler {
+export class LogHandler implements LogHandlerInterface {
 
   public constructor(@injectAll(ServiceDefinitionTagEnum.Logger) private readonly loggers: LoggerInterface[]) {
   }
@@ -30,7 +32,7 @@ export class LogHandler {
     return this.log(message, SeverityEnum.Warning, extra);
   }
 
-  public log(message: string, severity: SeverityEnum = SeverityEnum.Error, extra?: any): void {
+  private log(message: string, severity: SeverityEnum = SeverityEnum.Error, extra?: any): void {
     const log = new LogModel();
     log.extra = extra;
     log.severity = severity;

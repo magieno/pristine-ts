@@ -6,14 +6,14 @@ import {
     Request,
     Router,
     controllerRegistry,
-    GuardInitializationError,
     RouteMethodDecorator,
-    RequestInterface,
     RouterInterface,
     Route,
-    HttpError
+    HttpError,
 } from "@pristine-ts/networking";
-import { ConfigurationManager, ModuleConfigurationValue} from "@pristine-ts/configuration";
+import {RequestInterface} from "@pristine-ts/common";
+import {GuardInitializationError, AuthenticatorInitializationError} from "@pristine-ts/security";
+import {ConfigurationManager, ModuleConfigurationValue} from "@pristine-ts/configuration";
 import {Event} from "@pristine-ts/event";
 import {RuntimeError} from "./errors/runtime.error";
 import {RequestInterceptorInterface} from "./interfaces/request-interceptor.interface";
@@ -27,6 +27,7 @@ import {
 } from "@pristine-ts/common";
 import {EventTransformer, EventDispatcher} from "@pristine-ts/event";
 import util from "util";
+import {mergeWith} from "lodash"
 
 /**
  * This is the central class that manages the lifecyle of this library.
@@ -50,16 +51,14 @@ export class Kernel {
     public constructor() {
     }
 
-    public async init(module: ModuleInterface, moduleConfigurationValues?: {[key: string]: ModuleConfigurationValue}) {
+    public async init(module: ModuleInterface, moduleConfigurationValues?: { [key: string]: ModuleConfigurationValue }) {
         await this.initModule(module);
 
         // Register all the service tags in the container.
         await this.registerServiceTags();
 
         // Register the configuration
-        if(moduleConfigurationValues) {
-            await this.initConfiguration(moduleConfigurationValues);
-        }
+        await this.initConfiguration(moduleConfigurationValues);
 
         // Setup the router
         this.setupRouter();
@@ -119,34 +118,34 @@ export class Kernel {
         // Add all the providers to the container
         if (module.providerRegistrations) {
             module.providerRegistrations.forEach((providerRegistration: ProviderRegistration) => {
-               this.registerProviderRegistration(providerRegistration);
+                this.registerProviderRegistration(providerRegistration);
             })
         }
 
-        if(module.onInit) {
+        if (module.onInit) {
             await module.onInit(this.container);
         }
 
         this.instantiatedModules[module.keyname] = module;
     }
 
-    private async initConfiguration(moduleConfigurationValues: {[key: string]: ModuleConfigurationValue}) {
+    private async initConfiguration(moduleConfigurationValues?: { [key: string]: ModuleConfigurationValue }) {
         const configurationManager: ConfigurationManager = this.container.resolve(ConfigurationManager);
 
         // Start by loading the configuration definitions of all the modules
         for (let key in this.instantiatedModules) {
-            if(this.instantiatedModules.hasOwnProperty(key) === false) {
+            if (this.instantiatedModules.hasOwnProperty(key) === false) {
                 continue;
             }
 
             const instantiatedModule: ModuleInterface = this.instantiatedModules[key];
-            if(instantiatedModule.configurationDefinitions) {
+            if (instantiatedModule.configurationDefinitions) {
                 instantiatedModule.configurationDefinitions.forEach(configurationDefinition => configurationManager.register(configurationDefinition));
             }
         }
 
         // Load the configuration values passed by the app
-        await configurationManager.load(moduleConfigurationValues, this.container);
+        await configurationManager.load(moduleConfigurationValues ?? {}, this.container);
     }
 
     /**
@@ -169,7 +168,7 @@ export class Kernel {
             return;
         }
 
-        if(module.afterInit) {
+        if (module.afterInit) {
             await module.afterInit(this.container);
         }
 
@@ -394,27 +393,7 @@ export class Kernel {
                 // the appropriate controller method
                 const route = new Route(controller.constructor, routeMethodDecorator.methodKeyname);
                 route.methodArguments = method.arguments ?? [];
-
-                // Setup the guards for this route
-                const guards: any[] = controller.__metadata__?.controller?.guards ?? [];
-                guards.push(...(method.guards ?? []));
-
-                // Loop through the guards and check to see if they need to be instantiated or if they already are
-                route.guards = guards.map(guard => {
-                    // Check if the guard needs to be instantiated
-                    let instantiatedGuard = guard;
-
-                    if (typeof guard === 'function') {
-                        instantiatedGuard = this.container.resolve(guard);
-                    }
-
-                    // Check again if the class as the isAuthorized method
-                    if (typeof instantiatedGuard.isAuthorized !== 'function') {
-                        throw new GuardInitializationError("The guard: '" + guard + "' doesn't implement the isAuthorized() method.");
-                    }
-
-                    return instantiatedGuard;
-                })
+                route.context = mergeWith({}, controller.__metadata__?.controller?.__routeContext__ , method.__routeContext__);
 
                 // Build the proper path
                 let path = routeMethodDecorator.path;
@@ -443,11 +422,11 @@ export class Kernel {
      * @private
      */
     private registerServiceTags() {
-        taggedProviderRegistrationsRegistry.forEach( (taggedRegistrationType: TaggedRegistrationInterface) => {
+        taggedProviderRegistrationsRegistry.forEach((taggedRegistrationType: TaggedRegistrationInterface) => {
             // Verify that if the constructor is moduleScoped, we only load it if its corresponding module is initialized.
             // If the module is not initialized, we do not load the tagged service.
             const moduleScopedRegistration = moduleScopedServicesRegistry[taggedRegistrationType.constructor];
-            if(moduleScopedRegistration && this.instantiatedModules.hasOwnProperty(moduleScopedRegistration.moduleKeyname) === false) {
+            if (moduleScopedRegistration && this.instantiatedModules.hasOwnProperty(moduleScopedRegistration.moduleKeyname) === false) {
                 return;
             }
 

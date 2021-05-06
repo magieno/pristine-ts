@@ -1,13 +1,14 @@
-import {injectable, injectAll} from "tsyringe";
+import {injectable, injectAll, inject} from "tsyringe";
 import {VoterInterface} from "../interfaces/voter.interface";
 import {VotingStrategyEnum} from "../enums/voting-strategy.enum";
-import {LogHandler} from "@pristine-ts/logging";
+import {LogHandler, LogHandlerInterface} from "@pristine-ts/logging";
 import {VoteEnum} from "../enums/vote.enum";
-import {IdentityInterface} from "../interfaces/identity.interface";
+import {IdentityInterface} from "@pristine-ts/common";
 
 @injectable()
 export class PermissionManager {
-    public constructor(@injectAll("voter") private readonly voters: VoterInterface[], private readonly logHandler: LogHandler) {
+    public constructor(@injectAll("voter") private readonly voters: VoterInterface[],
+                       @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface) {
     }
 
     async hasAccessToResource(identity: IdentityInterface, action: string, resource: object, votingStrategy: VotingStrategyEnum = VotingStrategyEnum.DenyOnUnanimousAbstention): Promise<boolean>{
