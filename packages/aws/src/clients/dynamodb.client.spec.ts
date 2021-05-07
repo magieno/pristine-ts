@@ -219,7 +219,8 @@ describe("Dynamodb client", () => {
         it("should get a table name.", () => {
             const a = new A();
             a.constructor.prototype[DynamoDbTable] = "TableA";
-            expect(client["getTableName"](A)).toEqual("TableA");
+            expect(client["getTableName"](a.constructor.prototype)).toEqual("TableA");
+            expect(client["getTableName"](A.prototype)).toEqual("TableA");
         })
     });
 
