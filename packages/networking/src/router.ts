@@ -1,4 +1,4 @@
-import {DependencyContainer, singleton} from "tsyringe";
+import {DependencyContainer, singleton, inject} from "tsyringe";
 import {HttpMethod} from "./enums/http-method.enum";
 import {Request} from "./models/request";
 import {Response} from "./models/response";
@@ -11,13 +11,18 @@ import {Route} from "./models/route";
 import {MethodRouterNode} from "./nodes/method-router.node";
 import {ForbiddenHttpError} from "./errors/forbidden.http-error";
 import {ControllerMethodParameterDecoratorResolver} from "./resolvers/controller-method-parameter-decorator.resolver";
-const Url = require('url-parse');
+import Url from 'url-parse';
+import {IdentityInterface} from "@pristine-ts/common";
+import {AuthorizerManagerInterface} from "@pristine-ts/security";
+import {AuthenticationManagerInterface} from "@pristine-ts/security";
 
 @singleton()
 export class Router implements RouterInterface {
     private root: RouterNode = new PathRouterNode("/");
 
-    public constructor(private readonly controllerMethodParameterDecoratorResolver: ControllerMethodParameterDecoratorResolver) {
+    public constructor(private readonly controllerMethodParameterDecoratorResolver: ControllerMethodParameterDecoratorResolver,
+                       @inject("AuthorizerManagerInterface") private readonly authorizerManager: AuthorizerManagerInterface,
+                       @inject("AuthenticationManagerInterface") private readonly authenticationManager: AuthenticationManagerInterface) {
     }
 
     /**
@@ -63,27 +68,26 @@ export class Router implements RouterInterface {
             // Instantiate the controller
             const controller: any = container.resolve(methodNode.route.controllerInstantiationToken);
 
+            let identity: IdentityInterface | undefined;
+
+            try {
+                identity = await this.authenticationManager.authenticate(request, methodNode.route.context, container);
+            } catch (e) {
+                // Todo: check if the error is an UnauthorizedHttpError, else create one.
+                return reject(e);
+            }
+
             const resolvedMethodArguments: any[] = [];
 
             for (const methodArgument of methodNode.route.methodArguments) {
-                resolvedMethodArguments.push(await this.controllerMethodParameterDecoratorResolver.resolve(methodArgument, request, routeParameters));
+                resolvedMethodArguments.push(await this.controllerMethodParameterDecoratorResolver.resolve(methodArgument, request, routeParameters, identity));
             }
 
             // Call the controller with the resolved Method arguments
             try {
-                // Check if this controller method is to be protected by one or many guards
-                // If yes, call the guards and if one denies, return a HttpForbiddenException.
-                if(methodNode.route.guards && Array.isArray(methodNode.route.guards)) {
-                    for (let guard of methodNode.route.guards) {
-                        try {
-                            if(await guard.isAuthorized(request) === false) {
-                                return reject(new ForbiddenHttpError("The guard: '" + guard.keyname + "' denied access."));
-                            }
-                        }
-                        catch (e) {
-                            return reject(new ForbiddenHttpError("The guard: '" + guard.keyname + "' threw an error so we are denying access."));
-                        }
-                    }
+
+                if(await this.authorizerManager.isAuthorized(request, methodNode.route.context, container, identity) === false) {
+                    return reject(new ForbiddenHttpError("You are not allowed to access this."));
                 }
 
                 const controllerResponse = controller[methodNode.route.methodPropertyKey].apply(controller, resolvedMethodArguments);

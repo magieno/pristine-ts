@@ -1,6 +1,6 @@
 export class ConfigurationValidationError extends Error {
-    public constructor(message: string) {
-        super(message);
+    public constructor(messages: string[]) {
+        super(messages.join("\n"));
 
         // Set the prototype explicitly.
         // As specified in the documentation in TypeScript

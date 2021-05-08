@@ -1,4 +1,4 @@
-const fs = require('fs');
+import fs from 'fs';
 
 const controllerContent = fs.readFileSync("./token.controller.ts", "utf-8");
 

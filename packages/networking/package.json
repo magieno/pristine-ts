@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/networking",
-  "version": "0.0.45",
+  "version": "0.0.57",
   "description": "",
   "module": "dist/lib/esm/networking.module.js",
   "main": "dist/lib/cjs/networking.module.js",
@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@pristine-ts/common": "file:../common",
+    "@pristine-ts/security": "file:../security",
     "url-parse": "^1.4.7"
   },
   "jest": {

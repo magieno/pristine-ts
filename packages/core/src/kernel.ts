@@ -6,14 +6,14 @@ import {
     Request,
     Router,
     controllerRegistry,
-    GuardInitializationError,
     RouteMethodDecorator,
-    RequestInterface,
     RouterInterface,
     Route,
-    HttpError
+    HttpError,
 } from "@pristine-ts/networking";
-import {ModuleConfiguration, ConfigurationParser} from "@pristine-ts/configuration";
+import {RequestInterface} from "@pristine-ts/common";
+import {GuardInitializationError, AuthenticatorInitializationError} from "@pristine-ts/security";
+import {ConfigurationManager, ModuleConfigurationValue} from "@pristine-ts/configuration";
 import {Event} from "@pristine-ts/event";
 import {RuntimeError} from "./errors/runtime.error";
 import {RequestInterceptorInterface} from "./interfaces/request-interceptor.interface";
@@ -23,11 +23,11 @@ import {
     ServiceDefinitionTagEnum,
     ModuleInterface,
     ProviderRegistration,
-    taggedProviderRegistrationsRegistry
+    taggedProviderRegistrationsRegistry, moduleScopedServicesRegistry, TaggedRegistrationInterface
 } from "@pristine-ts/common";
 import {EventTransformer, EventDispatcher} from "@pristine-ts/event";
-
-const util = require('util');
+import util from "util";
+import {mergeWith} from "lodash"
 
 /**
  * This is the central class that manages the lifecyle of this library.
@@ -40,6 +40,8 @@ export class Kernel {
 
     private instantiatedModules: { [id: string]: ModuleInterface } = {};
 
+    private afterInstantiatedModules: { [id: string]: ModuleInterface } = {};
+
     /**
      * Contains a reference to the Router. It is undefined until this.setupRouter() is called.
      * @private
@@ -49,14 +51,19 @@ export class Kernel {
     public constructor() {
     }
 
-    public async init(module: ModuleInterface, moduleConfigurations: ModuleConfiguration<any>[] = []) {
-        await this.initModule(module, moduleConfigurations);
+    public async init(module: ModuleInterface, moduleConfigurationValues?: { [key: string]: ModuleConfigurationValue }) {
+        await this.initModule(module);
 
         // Register all the service tags in the container.
         await this.registerServiceTags();
 
+        // Register the configuration
+        await this.initConfiguration(moduleConfigurationValues);
+
         // Setup the router
         this.setupRouter();
+
+        await this.afterInitModule(module);
     }
 
     /**
@@ -95,11 +102,11 @@ export class Kernel {
      * @param moduleConfigurations
      * @private
      */
-    private async initModule(module: ModuleInterface, moduleConfigurations: ModuleConfiguration<any>[] = []) {
+    private async initModule(module: ModuleInterface) {
         if (module.importModules) {
             // Start by recursively importing all the packages
             for (let importedModule of module.importModules) {
-                await this.initModule(importedModule, moduleConfigurations);
+                await this.initModule(importedModule);
             }
         }
 
@@ -111,34 +118,61 @@ export class Kernel {
         // Add all the providers to the container
         if (module.providerRegistrations) {
             module.providerRegistrations.forEach((providerRegistration: ProviderRegistration) => {
-               this.registerProviderRegistration(providerRegistration);
+                this.registerProviderRegistration(providerRegistration);
             })
         }
 
-        // Validate the configuration with this module. If the module doesn't specify a configuration definition, then return.
-        const configurationForCurrentModule = moduleConfigurations.find(moduleConfiguration => moduleConfiguration.moduleKeyname === module.keyname);
+        if (module.onInit) {
+            await module.onInit(this.container);
+        }
 
-        if (module.configurationDefinition === undefined) {
-            if (configurationForCurrentModule !== undefined) {
-                throw new InitializationError("You passed a configuration for module: '" + module.keyname + "', but it doesn't expose a configuration.")
+        this.instantiatedModules[module.keyname] = module;
+    }
+
+    private async initConfiguration(moduleConfigurationValues?: { [key: string]: ModuleConfigurationValue }) {
+        const configurationManager: ConfigurationManager = this.container.resolve(ConfigurationManager);
+
+        // Start by loading the configuration definitions of all the modules
+        for (let key in this.instantiatedModules) {
+            if (this.instantiatedModules.hasOwnProperty(key) === false) {
+                continue;
             }
 
-            this.instantiatedModules[module.keyname] = module;
+            const instantiatedModule: ModuleInterface = this.instantiatedModules[key];
+            if (instantiatedModule.configurationDefinitions) {
+                instantiatedModule.configurationDefinitions.forEach(configurationDefinition => configurationManager.register(configurationDefinition));
+            }
+        }
 
+        // Load the configuration values passed by the app
+        await configurationManager.load(moduleConfigurationValues ?? {}, this.container);
+    }
+
+    /**
+     * This method receives a module and recursively calls back this method with the module dependencies
+     * specified as imported by the module.
+     *
+     * @param module
+     * @private
+     */
+    private async afterInitModule(module: ModuleInterface) {
+        if (module.importModules) {
+            // Start by recursively importing all the packages
+            for (let importedModule of module.importModules) {
+                await this.afterInitModule(importedModule);
+            }
+        }
+
+        if (this.afterInstantiatedModules.hasOwnProperty(module.keyname)) {
+            // module already instantiated, we return
             return;
         }
 
-        const configurationParser: ConfigurationParser = this.container.resolve(ConfigurationParser);
+        if (module.afterInit) {
+            await module.afterInit(this.container);
+        }
 
-        const configurationParameterInjectionTokens = await configurationParser.parse(module.configurationDefinition, configurationForCurrentModule?.configuration ?? {}, module.keyname)
-
-        configurationParameterInjectionTokens.forEach(injectionToken => {
-            this.container.register(injectionToken.parameterName, {
-                useFactory: instanceCachingFactory(() => injectionToken.value),
-            });
-        });
-
-        this.instantiatedModules[module.keyname] = module;
+        this.afterInstantiatedModules[module.keyname] = module;
     }
 
     /**
@@ -359,27 +393,7 @@ export class Kernel {
                 // the appropriate controller method
                 const route = new Route(controller.constructor, routeMethodDecorator.methodKeyname);
                 route.methodArguments = method.arguments ?? [];
-
-                // Setup the guards for this route
-                const guards: any[] = controller.__metadata__?.controller?.guards ?? [];
-                guards.push(...(method.guards ?? []));
-
-                // Loop through the guards and check to see if they need to be instantiated or if they already are
-                route.guards = guards.map(guard => {
-                    // Check if the guard needs to be instantiated
-                    let instantiatedGuard = guard;
-
-                    if (typeof guard === 'function') {
-                        instantiatedGuard = this.container.resolve(guard);
-                    }
-
-                    // Check again if the class as the isAuthorized method
-                    if (typeof instantiatedGuard.isAuthorized !== 'function') {
-                        throw new GuardInitializationError("The guard: '" + guard + "' doesn't implement the isAuthorized() method.");
-                    }
-
-                    return instantiatedGuard;
-                })
+                route.context = mergeWith({}, controller.__metadata__?.controller?.__routeContext__ , method.__routeContext__);
 
                 // Build the proper path
                 let path = routeMethodDecorator.path;
@@ -408,8 +422,15 @@ export class Kernel {
      * @private
      */
     private registerServiceTags() {
-        taggedProviderRegistrationsRegistry.forEach( (providerRegistration: ProviderRegistration) => {
-            this.registerProviderRegistration(providerRegistration);
+        taggedProviderRegistrationsRegistry.forEach((taggedRegistrationType: TaggedRegistrationInterface) => {
+            // Verify that if the constructor is moduleScoped, we only load it if its corresponding module is initialized.
+            // If the module is not initialized, we do not load the tagged service.
+            const moduleScopedRegistration = moduleScopedServicesRegistry[taggedRegistrationType.constructor];
+            if (moduleScopedRegistration && this.instantiatedModules.hasOwnProperty(moduleScopedRegistration.moduleKeyname) === false) {
+                return;
+            }
+
+            this.registerProviderRegistration(taggedRegistrationType.providerRegistration);
         })
     }
 }

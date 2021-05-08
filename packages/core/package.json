@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/core",
-  "version": "0.0.45",
+  "version": "0.0.57",
   "description": "",
   "module": "dist/lib/esm/core.module.js",
   "main": "dist/lib/cjs/core.module.js",
@@ -24,6 +24,8 @@
     "@pristine-ts/event": "file:../event",
     "@pristine-ts/logging": "file:../logging",
     "@pristine-ts/networking": "file:../networking",
+    "@pristine-ts/security": "file:../security",
+    "lodash": "^4.17.21",
     "reflect-metadata": "^0.1.13",
     "tsyringe": "^4.4.0"
   },

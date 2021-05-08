@@ -1,14 +1,32 @@
 import {ModuleInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {SentryLogger} from "./loggers/sentry.logger";
-import {ConfigurationDefinition} from "./configurations/configuration.definition";
+import {SentryModuleKeyname} from "./sentry.module.keyname";
 
-export * from "./configurations/configurations";
-export * from "./interfaces/interfaces";
 export * from "./loggers/loggers";
+export * from "./sentry.module.keyname";
 
 export const SentryModule: ModuleInterface = {
-    keyname: "pristine.sentry",
-    configurationDefinition: ConfigurationDefinition,
+    keyname: SentryModuleKeyname,
+    configurationDefinitions: [
+        {
+            parameterName: SentryModuleKeyname + ".sentryDsn",
+            isRequired: true,
+        },
+        {
+            parameterName: SentryModuleKeyname + ".tagRelease",
+            isRequired: true,
+        },
+        {
+            parameterName: SentryModuleKeyname + ".sentrySampleRate",
+            isRequired: false,
+            defaultValue: 0.1,
+        },
+        {
+            parameterName: SentryModuleKeyname + ".sentryActivated",
+            isRequired: false,
+            defaultValue: false,
+        },
+    ],
     importServices: [],
     importModules: [],
     providerRegistrations: [

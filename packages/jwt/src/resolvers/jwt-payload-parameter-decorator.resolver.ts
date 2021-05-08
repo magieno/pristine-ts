@@ -2,8 +2,10 @@ import "reflect-metadata"
 import {injectable} from "tsyringe";
 import {ControllerMethodParameterDecoratorResolverInterface, Request} from "@pristine-ts/networking";
 import {JwtManager} from "../managers/jwt.manager";
-import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {IdentityInterface, moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {JwtModuleKeyname} from "../jwt.module.keyname";
 
+@moduleScoped(JwtModuleKeyname)
 @tag(ServiceDefinitionTagEnum.MethodParameterDecoratorResolver)
 @injectable()
 export class JwtPayloadParameterDecoratorResolver implements ControllerMethodParameterDecoratorResolverInterface {
@@ -12,8 +14,9 @@ export class JwtPayloadParameterDecoratorResolver implements ControllerMethodPar
     }
 
     async resolve(methodArgument: any,
-            request: Request,
-            routeParameters: { [p: string]: string }): Promise<any> {
+                  request: Request,
+                  routeParameters: { [p: string]: string },
+                  identity?: IdentityInterface): Promise<any> {
 
         // Here, we need to decrypt the header and return the decrypted jwt payload
         let payload = {};

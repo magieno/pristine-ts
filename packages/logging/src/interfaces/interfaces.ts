@@ -1,2 +1,2 @@
 export * from "./logger.interface";
-export * from "./configuration-definition.interface";
+export * from "./log-handler.interface";

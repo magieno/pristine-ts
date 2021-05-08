@@ -1,9 +1,6 @@
-import {ModuleInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
-import {BodyParameterDecoratorResolver} from "./resolvers/body-parameter-decorator.resolver";
-import {QueryParameterDecoratorResolver} from "./resolvers/query-parameter-decorator.resolver";
-import {QueryParametersDecoratorResolver} from "./resolvers/query-parameters-decorator.resolver";
-import {ControllerMethodParameterDecoratorResolver} from "./resolvers/controller-method-parameter-decorator.resolver";
-import {RouteParameterDecoratorResolver} from "./resolvers/route-parameter-decorator.resolver";
+import {ModuleInterface} from "@pristine-ts/common";
+import {NetworkingModuleKeyname} from "./networking.module.keyname";
+import {SecurityModule} from "@pristine-ts/security";
 
 export * from "./decorators/decorators";
 export * from "./enums/enums";
@@ -17,7 +14,7 @@ export * from "./utils/utils";
 export * from "./router";
 
 export const NetworkingModule: ModuleInterface = {
-    keyname: "pristine.networking",
+    keyname: NetworkingModuleKeyname,
 
     importServices: [],
 
@@ -27,4 +24,8 @@ export const NetworkingModule: ModuleInterface = {
      */
     providerRegistrations: [
     ],
+
+    importModules: [
+        SecurityModule
+    ]
 }

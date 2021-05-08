@@ -1,4 +1,4 @@
-import {BodyParameterDecoratorInterface} from "../interfaces/body-parameteter-decorator.interface";
+import {BodyParameterDecoratorInterface} from "../interfaces/body-parameter-decorator.interface";
 
 export const body = () => {
     return (
@@ -29,3 +29,4 @@ export const body = () => {
         target.constructor.prototype["__metadata__"]["methods"][propertyKey]["arguments"][parameterIndex] = methodParameter;
     }
 };
+
