@@ -1,5 +1,5 @@
 import {JwtManager} from "./jwt.manager";
-import {HttpMethod} from "@pristine-ts/networking";
+import {HttpMethod} from "@pristine-ts/common";
 import {RequestInterface} from "@pristine-ts/common";
 import {JWTKeys} from "../tests/jwt.keys";
 

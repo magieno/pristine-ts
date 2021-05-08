@@ -1,5 +1,5 @@
 import {RouterNode} from "./router.node";
-import {HttpMethod} from "../enums/http-method.enum";
+import {HttpMethod} from "@pristine-ts/common";
 import {PathRouterNode} from "./path-router.node";
 import {Route} from "../models/route";
 

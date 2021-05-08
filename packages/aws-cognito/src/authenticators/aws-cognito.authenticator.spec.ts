@@ -1,7 +1,7 @@
 import "reflect-metadata"
 import {AwsCognitoAuthenticator} from "./aws-cognito.authenticator";
 import {HttpClientInterface} from "../interfaces/http-client.interface";
-import {HttpMethod} from "@pristine-ts/networking";
+import {HttpMethod} from "@pristine-ts/common";
 import {RequestInterface} from "@pristine-ts/common";
 import * as jwt from "jsonwebtoken";
 

@@ -1,5 +1,4 @@
 import {DependencyContainer, singleton, inject} from "tsyringe";
-import {HttpMethod} from "./enums/http-method.enum";
 import {Request} from "./models/request";
 import {Response} from "./models/response";
 import {UrlUtil} from "./utils/url.util";
@@ -12,7 +11,7 @@ import {MethodRouterNode} from "./nodes/method-router.node";
 import {ForbiddenHttpError} from "./errors/forbidden.http-error";
 import {ControllerMethodParameterDecoratorResolver} from "./resolvers/controller-method-parameter-decorator.resolver";
 import Url from 'url-parse';
-import {IdentityInterface} from "@pristine-ts/common";
+import {HttpMethod, IdentityInterface} from "@pristine-ts/common";
 import {AuthorizerManagerInterface} from "@pristine-ts/security";
 import {AuthenticationManagerInterface} from "@pristine-ts/security";
 

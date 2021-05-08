@@ -1,4 +1,4 @@
-import {HttpMethod} from "../enums/http-method.enum";
+import {HttpMethod} from "@pristine-ts/common";
 import {RequestInterface} from "@pristine-ts/common";
 
 /**
