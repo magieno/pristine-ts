@@ -131,8 +131,8 @@ export class Router implements RouterInterface {
         let enhancedResponse = response;
 
         // Check first if there are any ResponseEnhancers
-        if (container.isRegistered(ServiceDefinitionTagEnum.ResponseEnhancer, true)) {
-            const enhancers: any[] = container.resolveAll(ServiceDefinitionTagEnum.ResponseEnhancer);
+        if (container.isRegistered(ServiceDefinitionTagEnum.RouterResponseEnhancer, true)) {
+            const enhancers: any[] = container.resolveAll(ServiceDefinitionTagEnum.RouterResponseEnhancer);
 
             for (const enhancer of enhancers) {
                 // We don't have a guarantee that the request enhancers will implement the Interface, even though we specify it should.

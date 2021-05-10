@@ -5,7 +5,7 @@ import {NetworkingModuleKeyname} from "../networking.module.keyname";
 import {ResponseEnhancerInterface} from "../interfaces/response-enhancer.interface";
 import {MethodRouterNode} from "../nodes/method-router.node";
 
-@tag(ServiceDefinitionTagEnum.ResponseEnhancer)
+@tag(ServiceDefinitionTagEnum.RouterResponseEnhancer)
 @moduleScoped(NetworkingModuleKeyname)
 export class ResponseEnhancer implements ResponseEnhancerInterface {
     async enhanceResponse(response: Response, request: Request, methodNode: MethodRouterNode): Promise<Response> {
