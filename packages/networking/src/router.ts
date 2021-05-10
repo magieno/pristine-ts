@@ -14,7 +14,6 @@ import {ControllerMethodParameterDecoratorResolver} from "./resolvers/controller
 import Url from 'url-parse';
 import {IdentityInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {AuthenticationManagerInterface, AuthorizerManagerInterface} from "@pristine-ts/security";
-import {RuntimeError} from "@pristine-ts/core/dist/lib/esm/errors/runtime.error";
 import {ResponseEnhancerInterface} from "./interfaces/response-enhancer.interface";
 
 @singleton()
