@@ -9,7 +9,7 @@ import {MethodRouterNode} from "../nodes/method-router.node";
 @moduleScoped(NetworkingModuleKeyname)
 export class ResponseEnhancer implements ResponseEnhancerInterface {
     async enhanceResponse(response: Response, request: Request, methodNode: MethodRouterNode): Promise<Response> {
-        if(methodNode.route.context.hasOwnProperty("responseHeaders")){
+        if(methodNode.route.context && methodNode.route.context.hasOwnProperty("responseHeaders")){
             response.headers = {...response.headers, ...methodNode.route.context.responseHeaders}
         }
         return response;

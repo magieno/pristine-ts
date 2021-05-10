@@ -130,7 +130,7 @@ export class Router implements RouterInterface {
         // Execute all the request enhancers
         let enhancedResponse = response;
 
-        // Check first if there are any RequestInterceptors
+        // Check first if there are any ResponseEnhancers
         if (container.isRegistered(ServiceDefinitionTagEnum.ResponseEnhancer, true)) {
             const enhancers: any[] = container.resolveAll(ServiceDefinitionTagEnum.ResponseEnhancer);
 
