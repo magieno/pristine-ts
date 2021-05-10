@@ -3,6 +3,7 @@ import {NetworkingModuleKeyname} from "./networking.module.keyname";
 import {SecurityModule} from "@pristine-ts/security";
 
 export * from "./decorators/decorators";
+export * from "./enhancers/enhancers";
 export * from "./enums/enums";
 export * from "./errors/errors";
 export * from "./interfaces/interfaces";

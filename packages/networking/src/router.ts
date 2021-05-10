@@ -1,4 +1,4 @@
-import {DependencyContainer, singleton, inject} from "tsyringe";
+import {DependencyContainer, inject, singleton} from "tsyringe";
 import {HttpMethod} from "./enums/http-method.enum";
 import {Request} from "./models/request";
 import {Response} from "./models/response";
@@ -12,9 +12,10 @@ import {MethodRouterNode} from "./nodes/method-router.node";
 import {ForbiddenHttpError} from "./errors/forbidden.http-error";
 import {ControllerMethodParameterDecoratorResolver} from "./resolvers/controller-method-parameter-decorator.resolver";
 import Url from 'url-parse';
-import {IdentityInterface} from "@pristine-ts/common";
-import {AuthorizerManagerInterface} from "@pristine-ts/security";
-import {AuthenticationManagerInterface} from "@pristine-ts/security";
+import {IdentityInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
+import {AuthenticationManagerInterface, AuthorizerManagerInterface} from "@pristine-ts/security";
+import {RuntimeError} from "@pristine-ts/core/dist/lib/esm/errors/runtime.error";
+import {ResponseEnhancerInterface} from "./interfaces/response-enhancer.interface";
 
 @singleton()
 export class Router implements RouterInterface {
@@ -94,24 +95,63 @@ export class Router implements RouterInterface {
 
                 // This resolves the promise if it's a promise or promisifies the value
                 // https://stackoverflow.com/a/27760489/684101
-                Promise.resolve(controllerResponse).then((response) => {
-                    // If the response is already a Response object, return the response
-                    if(response instanceof Response) {
-                        return resolve(response);
-                    }
+                const response = await Promise.resolve(controllerResponse);
 
+                let returnedResponse: Response;
+                // If the response is already a Response object, return the response
+                if(response instanceof Response) {
+                    returnedResponse = response;
+                } else {
                     // If the response is not a response object, but the method hasn't thrown an error, assume the
                     // returned response is directly the body. Also assume an Http Status code of 200.
-                    const returnedResponse = new Response();
+                    returnedResponse = new Response();
                     returnedResponse.status = 200;
                     returnedResponse.body = response;
+                }
+                returnedResponse = await this.executeResponseEnhancers(returnedResponse, request, container, methodNode);
 
-                    return resolve(returnedResponse);
-                })
+                return resolve(returnedResponse);
             }
             catch (e) {
                 return reject(e);
             }
         })
+    }
+
+    /**
+     * This method executes all the response enhancers and returns the response updated by the enhancers.
+     *
+     * @param response
+     * @param request
+     * @param container
+     * @param methodNode
+     * @private
+     */
+    private async executeResponseEnhancers(response: Response, request: Request, container: DependencyContainer, methodNode: MethodRouterNode): Promise<Response> {
+        // Execute all the request enhancers
+        let enhancedResponse = response;
+
+        // Check first if there are any RequestInterceptors
+        if (container.isRegistered(ServiceDefinitionTagEnum.ResponseEnhancer, true)) {
+            const enhancers: any[] = container.resolveAll(ServiceDefinitionTagEnum.ResponseEnhancer);
+
+            for (const enhancer of enhancers) {
+                // We don't have a guarantee that the request enhancers will implement the Interface, even though we specify it should.
+                // So, we have to verify that the method exists, and if it doesn't we throw
+                if (typeof enhancer.enhanceResponse === "undefined") {
+                    //todo should we type this error ?
+                    throw new Error("The Response Enhancer named: '" + enhancer.constructor.name + "' doesn't have the 'enhanceResponse' method. ResponseEnhancers should implement the ResponseEnhancer interface.")
+                }
+
+                try {
+                    // https://stackoverflow.com/a/27760489/684101
+                    enhancedResponse = await Promise.resolve((enhancer as ResponseEnhancerInterface).enhanceResponse(enhancedResponse, request, methodNode));
+                } catch (e) {
+                    throw new Error("There was an exception thrown while executing the 'enhanceResponse' method of the ResponseEnhancer named: '" + enhancer.constructor.name + "'. Error thrown is: '" + e + "'.");
+                }
+            }
+        }
+
+        return enhancedResponse;
     }
 }

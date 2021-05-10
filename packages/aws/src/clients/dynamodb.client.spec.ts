@@ -223,7 +223,4 @@ describe("Dynamodb client", () => {
             expect(client["getTableName"](A.prototype)).toEqual("TableA");
         })
     });
-
-
-
 })
