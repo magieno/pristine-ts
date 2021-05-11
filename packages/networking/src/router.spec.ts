@@ -17,7 +17,6 @@ import {BodyParameterDecoratorInterface} from "./interfaces/body-parameter-decor
 import {HttpMethod, IdentityInterface, RequestInterface} from "@pristine-ts/common";
 import {DependencyContainer, container} from "tsyringe";
 
-
 describe("Router.spec", () => {
     let root: PathRouterNode;
 

@@ -60,6 +60,7 @@ describe("Http Client", () => {
                 expect(parsedBody.headers["content-type"]).toBe("application/json");
                 expect(parsedBody.headers["x-token"]).toBe("AuthorizationToken");
 
+                server.close();
                 return resolve();
             });
 
@@ -128,6 +129,7 @@ describe("Http Client", () => {
                 expect(parsedBody.headers["content-type"]).toBe("application/json");
                 expect(parsedBody.headers["x-token"]).toBe("AuthorizationToken");
 
+                server.close();
                 return resolve();
             });
         })
