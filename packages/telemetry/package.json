@@ -12,9 +12,7 @@
   },
   "dependencies": {
     "@pristine-ts/common": "file:../common",
-    "@pristine-ts/logging": "file:../logging",
-    "@opentelemetry/api": "^0.18.0",
-    "@opentelemetry/tracing": "^0.18.0"
+    "@pristine-ts/logging": "file:../logging"
   },
   "files": [
     "dist"
