@@ -1,18 +1,12 @@
 import "reflect-metadata"
-import {singleton, container} from "tsyringe";
+import {container, singleton} from "tsyringe";
 import {CoreModule, Kernel} from "@pristine-ts/core";
-import {
-    controller,
-    identity,
-    NetworkingModule,
-    responseHeader,
-    route,
-    routeParameter
-} from "@pristine-ts/networking";
-import {HttpMethod, IdentityInterface, ModuleInterface, RequestInterface, tag} from "@pristine-ts/common";
+import {controller, HttpMethod, NetworkingModule, responseHeader, route} from "@pristine-ts/networking";
+import {ModuleInterface, RequestInterface} from "@pristine-ts/common";
 
 @controller("/api")
 @singleton()
+@responseHeader("header1", "value1")
 class TestController {
 
     @responseHeader("Cache-Control", "no-cache")
@@ -31,13 +25,13 @@ const moduleTest: ModuleInterface = {
     ]
 }
 
-describe("Response header enhancer", () => {
+describe("Response header enricher", () => {
     beforeEach(async () => {
         // Very import to clear the instances in between executions.
         container.clearInstances();
     })
 
-    it("should enhance the response with the specified header", async () => {
+    it("should enrich the response with the specified header", async () => {
 
         const kernel = new Kernel();
         await kernel.init(moduleTest);
@@ -52,6 +46,6 @@ describe("Response header enhancer", () => {
 
         expect(response.status).toBe(200);
         expect(response.body).toEqual("test");
-        expect(response.headers).toEqual({"Cache-Control": "no-cache"});
+        expect(response.headers).toEqual({"header1": "value1", "Cache-Control": "no-cache"});
     })
 });
