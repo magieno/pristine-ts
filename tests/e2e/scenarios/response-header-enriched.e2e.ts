@@ -1,8 +1,8 @@
 import "reflect-metadata"
 import {container, singleton} from "tsyringe";
 import {CoreModule, Kernel} from "@pristine-ts/core";
-import {controller, HttpMethod, NetworkingModule, responseHeader, route} from "@pristine-ts/networking";
-import {ModuleInterface, RequestInterface} from "@pristine-ts/common";
+import {controller, NetworkingModule, responseHeader, route} from "@pristine-ts/networking";
+import {ModuleInterface, RequestInterface, HttpMethod} from "@pristine-ts/common";
 
 @controller("/api")
 @singleton()
