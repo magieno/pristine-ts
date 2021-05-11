@@ -14,7 +14,7 @@ import {ControllerMethodParameterDecoratorResolver} from "./resolvers/controller
 import Url from 'url-parse';
 import {IdentityInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {AuthenticationManagerInterface, AuthorizerManagerInterface} from "@pristine-ts/security";
-import {ResponseEnhancerInterface} from "./interfaces/response-enhancer.interface";
+import {RouterResponseEnricherInterface} from "./interfaces/router-response-enricher.interface";
 
 @singleton()
 export class Router implements RouterInterface {
@@ -107,7 +107,7 @@ export class Router implements RouterInterface {
                     returnedResponse.status = 200;
                     returnedResponse.body = response;
                 }
-                returnedResponse = await this.executeResponseEnhancers(returnedResponse, request, container, methodNode);
+                returnedResponse = await this.executeResponseEnrichers(returnedResponse, request, container, methodNode);
 
                 return resolve(returnedResponse);
             }
@@ -118,7 +118,7 @@ export class Router implements RouterInterface {
     }
 
     /**
-     * This method executes all the response enhancers and returns the response updated by the enhancers.
+     * This method executes all the Router response enrichers and returns the response updated by the enrichers.
      *
      * @param response
      * @param request
@@ -126,31 +126,31 @@ export class Router implements RouterInterface {
      * @param methodNode
      * @private
      */
-    private async executeResponseEnhancers(response: Response, request: Request, container: DependencyContainer, methodNode: MethodRouterNode): Promise<Response> {
-        // Execute all the request enhancers
-        let enhancedResponse = response;
+    private async executeResponseEnrichers(response: Response, request: Request, container: DependencyContainer, methodNode: MethodRouterNode): Promise<Response> {
+        // Execute all the request enrichers
+        let enrichedResponse = response;
 
-        // Check first if there are any ResponseEnhancers
-        if (container.isRegistered(ServiceDefinitionTagEnum.RouterResponseEnhancer, true)) {
-            const enhancers: any[] = container.resolveAll(ServiceDefinitionTagEnum.RouterResponseEnhancer);
+        // Check first if there are any Router Response enrichers
+        if (container.isRegistered(ServiceDefinitionTagEnum.RouterResponseEnricher, true)) {
+            const enrichers: any[] = container.resolveAll(ServiceDefinitionTagEnum.RouterResponseEnricher);
 
-            for (const enhancer of enhancers) {
-                // We don't have a guarantee that the request enhancers will implement the Interface, even though we specify it should.
+            for (const enricher of enrichers) {
+                // We don't have a guarantee that the Router response enrichers will implement the Interface, even though we specify it should.
                 // So, we have to verify that the method exists, and if it doesn't we throw
-                if (typeof enhancer.enhanceResponse === "undefined") {
+                if (typeof enricher.enrichResponse === "undefined") {
                     //todo should we type this error ?
-                    throw new Error("The Response Enhancer named: '" + enhancer.constructor.name + "' doesn't have the 'enhanceResponse' method. ResponseEnhancers should implement the ResponseEnhancer interface.")
+                    throw new Error("The Router Response Enricher named: '" + enricher.constructor.name + "' doesn't have the 'enrichResponse' method. RouterResponseEnrichers should implement the RouterResponseEnricher interface.")
                 }
 
                 try {
                     // https://stackoverflow.com/a/27760489/684101
-                    enhancedResponse = await Promise.resolve((enhancer as ResponseEnhancerInterface).enhanceResponse(enhancedResponse, request, methodNode));
+                    enrichedResponse = await Promise.resolve((enricher as RouterResponseEnricherInterface).enrichResponse(enrichedResponse, request, methodNode));
                 } catch (e) {
-                    throw new Error("There was an exception thrown while executing the 'enhanceResponse' method of the ResponseEnhancer named: '" + enhancer.constructor.name + "'. Error thrown is: '" + e + "'.");
+                    throw new Error("There was an exception thrown while executing the 'enrichResponse' method of the RouterResponseEnricher named: '" + enricher.constructor.name + "'. Error thrown is: '" + e + "'.");
                 }
             }
         }
 
-        return enhancedResponse;
+        return enrichedResponse;
     }
 }

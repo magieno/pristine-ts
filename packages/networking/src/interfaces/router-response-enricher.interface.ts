@@ -3,10 +3,10 @@ import {Response} from "../models/response";
 import {Request} from "../models/request";
 
 /**
- * The Response Enhancer Interface defines the methods that a Response Enhancer must implement. This
- * Enhancer is called after the controllers returned a response and before the interceptors.
+ * The Router Response Enricher Interface defines the methods that a Router Response Enricher must implement. This
+ * Enricher is called after the controllers returned a response and before the interceptors.
  */
-export interface ResponseEnhancerInterface {
+export interface RouterResponseEnricherInterface {
     /**
      * This method receives a response object and the associated request and must return a transformed response object.
      * If you don't want to manipulate the response object (when logging for example), juste resolve a promise with the response passed to this method.
@@ -17,5 +17,5 @@ export interface ResponseEnhancerInterface {
      * @param request
      * @param methodeNode
      */
-    enhanceResponse(response: Response, request: Request, methodeNode: MethodRouterNode): Promise<Response>;
+    enrichResponse(response: Response, request: Request, methodeNode: MethodRouterNode): Promise<Response>;
 }
