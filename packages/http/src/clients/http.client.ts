@@ -1,4 +1,4 @@
-import {injectable} from "tsyringe";
+import {inject, injectable} from "tsyringe";
 import {HttpClientInterface} from "../interfaces/http-client.interface";
 import {HttpRequestInterface} from "../interfaces/http-request.interface";
 import {HttpResponseInterface} from "../interfaces/http-response.interface";
@@ -6,9 +6,18 @@ import {IncomingMessage, request as httpRequest, RequestOptions} from "http";
 import {request as httpsRequest} from "https";
 import Url from 'url-parse';
 import {InvalidHttpRequestProtocolError} from "../errors/invalid-http-request-protocol.error";
+import {ResponseTypeEnum} from "../enums/response-type.enum";
+import {HttpRequestOptions} from "../options/http-request.options.";
+import {assign} from "lodash";
 
 @injectable()
 export class HttpClient implements HttpClientInterface {
+    private defaultOptions: HttpRequestOptions = {};
+
+    constructor(@inject("%{HttpModuleKeyname}.defaultResponseType%") private readonly defaultResponseType: ResponseTypeEnum) {
+        this.defaultOptions.responseType = defaultResponseType;
+    }
+
     request(request: HttpRequestInterface): Promise<HttpResponseInterface> {
         return new Promise((resolve, reject) => {
             const url = new Url(request.url, true);
@@ -19,6 +28,8 @@ export class HttpClient implements HttpClientInterface {
                 headers: request.headers,
                 port: url.port,
             }
+
+            const httpRequestOptions: HttpRequestOptions = assign({}, this.defaultOptions, request.options);
 
             const defaultResponseStatus = 200; // todo: decide if that's how we should proceed
             const response: HttpResponseInterface = {
@@ -43,7 +54,16 @@ export class HttpClient implements HttpClientInterface {
                 })
 
                 res.on('end', () => {
-                    response.body = body;
+
+                    switch(httpRequestOptions.responseType) {
+                        case ResponseTypeEnum.Raw:
+                            response.body = body;
+                            break;
+                        case ResponseTypeEnum.Json:
+                            response.body = JSON.parse(body);
+                            break;
+                    }
+
                     return resolve(response);
                 });
             }
