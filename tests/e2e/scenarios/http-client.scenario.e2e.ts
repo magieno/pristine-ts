@@ -63,7 +63,6 @@ describe("Http Client", () => {
                 server.close();
                 return resolve();
             });
-
         })
 
         expect.assertions(5)
