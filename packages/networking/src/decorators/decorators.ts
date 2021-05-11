@@ -1,5 +1,6 @@
 export * from "./body.decorator";
 export * from "./controller.decorator";
+export * from "./response-header.decorator";
 export * from "./identity.decorator";
 export * from "./query-parameter.decorator";
 export * from "./query-parameters.decorator";
