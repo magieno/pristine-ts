@@ -3,7 +3,6 @@ import {singleton, container} from "tsyringe";
 import {CoreModule, Kernel} from "@pristine-ts/core";
 import {
     controller,
-    identity,
     NetworkingModule,
     responseHeader,
     route,
