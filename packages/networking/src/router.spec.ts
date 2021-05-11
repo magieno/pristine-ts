@@ -15,6 +15,8 @@ import {QueryParametersDecoratorResolver} from "./resolvers/query-parameters-dec
 import {RouteParameterDecoratorResolver} from "./resolvers/route-parameter-decorator.resolver";
 import {BodyParameterDecoratorInterface} from "./interfaces/body-parameter-decorator.interface";
 import {HttpMethod, IdentityInterface, RequestInterface} from "@pristine-ts/common";
+import {IdentityInterface, RequestInterface} from "@pristine-ts/common";
+import {DependencyContainer, container} from "tsyringe";
 
 
 describe("Router.spec", () => {
@@ -24,7 +26,7 @@ describe("Router.spec", () => {
 
     let router: Router;
 
-    let mockContainer;
+    let mockContainer: DependencyContainer;
 
     let request: Request;
 
@@ -99,10 +101,9 @@ describe("Router.spec", () => {
         router["root"] = root;
 
         // Create the MockContainer
-        mockContainer = {
-            resolve: (token: any)  => {
-                return mockController;
-            }
+        mockContainer = container.createChildContainer();
+        mockContainer.resolve = (token: any)  => {
+            return mockController;
         }
     })
 

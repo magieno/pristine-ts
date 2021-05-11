@@ -184,13 +184,6 @@ describe("AWS Cognito authenticator ", () => {
         expect(() => cognitoAuthenticator["getAndVerifyClaims"](token, publicKey1)).toThrow(new Error('Claim issuer is invalid'));
     });
 
-    it("should not getAndVerifyClaims if token use different than access", async () => {
-        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient());
-        payload.token_use = "hello";
-        const token = jwt.sign(payload, privateKey, { algorithm: 'RS256'});
-        expect(() => cognitoAuthenticator["getAndVerifyClaims"](token, publicKey1)).toThrow(new Error('Claim use is not access'));
-    });
-
     it("should getKeyFromToken", async () => {
         const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient());
         const token = jwt.sign(payload, privateKey, { algorithm: 'RS256', keyid: "687dfb71-7ce9-42b5-b77c-c39ac2dfd21e"});

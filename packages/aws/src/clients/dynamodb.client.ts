@@ -33,8 +33,8 @@ export class DynamodbClient {
         return this.mapperClient = this.mapperClient ?? new DataMapper({client: await this.getClient()});
     }
 
-    private getTableName<T extends StringToAnyObjectMap>(classType: ZeroArgumentsConstructor<T>): string {
-        return classType.prototype[DynamoDbTable]
+    private getTableName(classTypeProtoype: any): string {
+        return classTypeProtoype[DynamoDbTable]
     }
 
     public async get<T extends StringToAnyObjectMap>(classType: ZeroArgumentsConstructor<T>, primaryKeyAndValue: {[key: string]: string}): Promise<T> {
@@ -44,7 +44,7 @@ export class DynamodbClient {
             this.logHandler.debug("DYNAMODB CLIENT - Got item", {item});
             return item;
         } catch (error) {
-            error = this.convertError(error, this.getTableName(classType), Object.keys(primaryKeyAndValue)[0]);
+            error = this.convertError(error, this.getTableName(classType.prototype), Object.keys(primaryKeyAndValue)[0]);
             this.logHandler.error("DYNAMODB CLIENT - Error getting", {error, classType, primaryKeyAndValue})
             throw error;
         }
@@ -62,7 +62,7 @@ export class DynamodbClient {
 
             return items;
         } catch (error) {
-            error = this.convertError(error, this.getTableName(classType));
+            error = this.convertError(error, this.getTableName(classType.prototype));
             this.logHandler.error("DYNAMODB CLIENT - Error listing", {error, classType})
             throw error;
         }
@@ -128,7 +128,7 @@ export class DynamodbClient {
 
             return;
         } catch (error) {
-            error = this.convertError(error, this.getTableName(classType), Object.keys(primaryKeyAndValue)[0]);
+            error = this.convertError(error, this.getTableName(classType.prototype), Object.keys(primaryKeyAndValue)[0]);
             this.logHandler.error("DYNAMODB CLIENT - Error deleting", {error, classType, primaryKeyAndValue})
             throw error;
         }
@@ -151,7 +151,7 @@ export class DynamodbClient {
 
             return items;
         } catch (error) {
-            error = this.convertError(error, this.getTableName(classType));
+            error = this.convertError(error, this.getTableName(classType.prototype));
             this.logHandler.error("DYNAMODB CLIENT - Error finding by secondary index", {error, classType, keyCondition, secondaryIndexName, filterKeysAndValues, expiresAtFilter})
             throw error;
         }
