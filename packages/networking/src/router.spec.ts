@@ -15,7 +15,6 @@ import {QueryParametersDecoratorResolver} from "./resolvers/query-parameters-dec
 import {RouteParameterDecoratorResolver} from "./resolvers/route-parameter-decorator.resolver";
 import {BodyParameterDecoratorInterface} from "./interfaces/body-parameter-decorator.interface";
 import {HttpMethod, IdentityInterface, RequestInterface} from "@pristine-ts/common";
-import {IdentityInterface, RequestInterface} from "@pristine-ts/common";
 import {DependencyContainer, container} from "tsyringe";
 
 
