@@ -3,9 +3,7 @@ import {Span} from "./span.model";
 export class Trace {
     public id: string;
 
-    public name: string;
-
-    public startDate: number;
+    public startDate: number = Date.now();
 
     public endDate?: number;
 

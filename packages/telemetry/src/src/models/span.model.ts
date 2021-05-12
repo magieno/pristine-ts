@@ -4,9 +4,11 @@ import {TracingManagerInterface} from "../interfaces/tracing-manager.interface";
 export class Span {
     public id: string;
 
+    public keyname: string;
+
     public trace: Trace;
 
-    public startDate: number;
+    public startDate: number = Date.now();
 
     public endDate?: number;
 
