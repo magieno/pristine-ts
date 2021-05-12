@@ -4,7 +4,7 @@ import {SecurityModule} from "@pristine-ts/security";
 
 export * from "./decorators/decorators";
 export * from "./enrichers/enrichers";
-export * from "./enums/enums";
+//export * from "./enums/enums";
 export * from "./errors/errors";
 export * from "./interfaces/interfaces";
 export * from "./models/models";

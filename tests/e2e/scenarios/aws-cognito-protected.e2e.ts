@@ -4,10 +4,10 @@ import {CoreModule, Kernel} from "@pristine-ts/core";
 import {testModule} from "../src/test.module";
 import {ResolvedClassModel} from "../src/models/resolved-class.model";
 import {PermissionManager} from "../src/managers/permission.manager";
-import {controller, HttpMethod, identity, NetworkingModule, route, routeParameter} from "@pristine-ts/networking";
+import {controller, identity, NetworkingModule, route, routeParameter} from "@pristine-ts/networking";
 import {authenticator, guard, SecurityModule, SecurityModuleKeyname} from "@pristine-ts/security";
 import {AwsCognitoAuthenticator, AwsCognitoGroupGuard, AwsCognitoModule} from "@pristine-ts/aws-cognito";
-import {IdentityInterface, ModuleInterface, RequestInterface, tag} from "@pristine-ts/common";
+import {HttpMethod, IdentityInterface, ModuleInterface, RequestInterface, tag} from "@pristine-ts/common";
 import * as jwt from "jsonwebtoken";
 import {HttpClientInterface} from "@pristine-ts/aws-cognito/dist/lib/esm/interfaces/http-client.interface";
 

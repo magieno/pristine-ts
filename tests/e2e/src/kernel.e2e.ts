@@ -4,7 +4,6 @@ import {testModule} from "./test.module";
 import {PermissionManager} from "./managers/permission.manager";
 import {container, DependencyContainer, inject, injectAll, injectable, singleton} from "tsyringe";
 import {
-    HttpMethod,
     Request,
     Response,
     Route,
@@ -18,7 +17,7 @@ import {
     tag,
     moduleScoped,
     IdentityInterface,
-    RequestInterface
+    RequestInterface, HttpMethod
 } from "@pristine-ts/common";
 import {
     Kernel,

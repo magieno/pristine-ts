@@ -1,6 +1,7 @@
 import {singleton} from "tsyringe";
 import {PermissionManager} from "../managers/permission.manager";
-import {controller, HttpMethod, route, body, routeParameter} from "@pristine-ts/networking";
+import {controller, route, body, routeParameter} from "@pristine-ts/networking";
+import {HttpMethod} from "@pristine-ts/common";
 
 @controller("/api/2.0")
 @singleton()

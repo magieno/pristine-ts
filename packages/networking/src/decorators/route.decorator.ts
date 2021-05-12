@@ -1,4 +1,4 @@
-import {HttpMethod} from "../enums/http-method.enum";
+import {HttpMethod} from "@pristine-ts/common";
 import {RouteMethodDecorator} from "../interfaces/route-method-decorator.interface";
 
 export const route = (httpMethod: HttpMethod | string, path: string) => {
