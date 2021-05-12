@@ -1,6 +1,6 @@
 import {MethodRouterNode} from "./method-router.node";
 import {PathRouterNode} from "./path-router.node";
-import {HttpMethod} from "../enums/http-method.enum";
+import {HttpMethod} from "@pristine-ts/common";
 import {Route} from "../models/route";
 
 describe("Path Router Node tests", () => {

@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import {AwsCognitoGroupGuard} from "./aws-cognito-group.guard";
-import {HttpMethod} from "@pristine-ts/networking";
+import {HttpMethod} from "@pristine-ts/common";
 
 describe("AWS Cognito group Guard", () => {
     it("should return true when no group is needed", async () => {

@@ -11,11 +11,6 @@ export class Route {
     methodArguments: ParameterDecoratorInterface[] = [];
 
     /**
-     * This contains the authenticator for this route.
-     */
-    authenticator?: AuthenticatorInterface;
-
-    /**
      * This contains the Route context for dynamic usage.
      */
     context?: any;

@@ -1,5 +1,5 @@
 import {RouterNode} from "./router.node";
-import {HttpMethod} from "../enums/http-method.enum";
+import {HttpMethod} from "@pristine-ts/common";
 import {MethodRouterNode} from "./method-router.node";
 import {Route} from "../models/route";
 import {NetworkingInitializationError} from "../errors/networking-initialization.error";

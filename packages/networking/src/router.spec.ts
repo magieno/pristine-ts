@@ -1,6 +1,5 @@
 import "reflect-metadata";
 import {pathRouterNode} from "../test-fixtures/path-router.node.test-fixture";
-import {HttpMethod} from "./enums/http-method.enum";
 import {RouteParameterDecoratorInterface} from "./interfaces/route-parameter-decorator.interface";
 import {QueryParameterDecoratorInterface} from "./interfaces/query-parameter-decorator.interface";
 import {QueryParametersDecoratorInterface} from "./interfaces/query-parameters-decorator.interface";
@@ -15,8 +14,8 @@ import {QueryParameterDecoratorResolver} from "./resolvers/query-parameter-decor
 import {QueryParametersDecoratorResolver} from "./resolvers/query-parameters-decorator.resolver";
 import {RouteParameterDecoratorResolver} from "./resolvers/route-parameter-decorator.resolver";
 import {BodyParameterDecoratorInterface} from "./interfaces/body-parameter-decorator.interface";
-import {IdentityInterface, RequestInterface} from "@pristine-ts/common";
-
+import {HttpMethod, IdentityInterface, RequestInterface} from "@pristine-ts/common";
+import {DependencyContainer, container} from "tsyringe";
 
 describe("Router.spec", () => {
     let root: PathRouterNode;
@@ -25,7 +24,7 @@ describe("Router.spec", () => {
 
     let router: Router;
 
-    let mockContainer;
+    let mockContainer: DependencyContainer;
 
     let request: Request;
 
@@ -100,10 +99,9 @@ describe("Router.spec", () => {
         router["root"] = root;
 
         // Create the MockContainer
-        mockContainer = {
-            resolve: (token: any)  => {
-                return mockController;
-            }
+        mockContainer = container.createChildContainer();
+        mockContainer.resolve = (token: any)  => {
+            return mockController;
         }
     })
 

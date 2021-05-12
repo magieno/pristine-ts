@@ -1,11 +1,11 @@
 import "reflect-metadata"
 import {container} from "tsyringe";
 import {Kernel} from "@pristine-ts/core";
-import {controller, HttpMethod, NetworkingModule, route} from "@pristine-ts/networking";
+import {controller, NetworkingModule, route} from "@pristine-ts/networking";
 import {JwtModule, jwtPayload, JwtProtectedGuard} from "@pristine-ts/jwt";
 import {CoreModule} from "@pristine-ts/core";
 import {JWTKeys} from "./jwt.keys";
-import {RequestInterface} from "@pristine-ts/common";
+import {HttpMethod, RequestInterface} from "@pristine-ts/common";
 import {guard} from "@pristine-ts/security";
 
 describe("JWT Module instantiation in the Kernel", () => {

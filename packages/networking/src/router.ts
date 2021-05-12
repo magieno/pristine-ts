@@ -1,5 +1,4 @@
-import {DependencyContainer, singleton, inject} from "tsyringe";
-import {HttpMethod} from "./enums/http-method.enum";
+import {DependencyContainer, inject, singleton} from "tsyringe";
 import {Request} from "./models/request";
 import {Response} from "./models/response";
 import {UrlUtil} from "./utils/url.util";
@@ -12,9 +11,9 @@ import {MethodRouterNode} from "./nodes/method-router.node";
 import {ForbiddenHttpError} from "./errors/forbidden.http-error";
 import {ControllerMethodParameterDecoratorResolver} from "./resolvers/controller-method-parameter-decorator.resolver";
 import Url from 'url-parse';
-import {IdentityInterface} from "@pristine-ts/common";
-import {AuthorizerManagerInterface} from "@pristine-ts/security";
-import {AuthenticationManagerInterface} from "@pristine-ts/security";
+import {HttpMethod, IdentityInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
+import {AuthenticationManagerInterface, AuthorizerManagerInterface} from "@pristine-ts/security";
+import {RouterResponseEnricherInterface} from "./interfaces/router-response-enricher.interface";
 
 @singleton()
 export class Router implements RouterInterface {
@@ -94,24 +93,63 @@ export class Router implements RouterInterface {
 
                 // This resolves the promise if it's a promise or promisifies the value
                 // https://stackoverflow.com/a/27760489/684101
-                Promise.resolve(controllerResponse).then((response) => {
-                    // If the response is already a Response object, return the response
-                    if(response instanceof Response) {
-                        return resolve(response);
-                    }
+                const response = await Promise.resolve(controllerResponse);
 
+                let returnedResponse: Response;
+                // If the response is already a Response object, return the response
+                if(response instanceof Response) {
+                    returnedResponse = response;
+                } else {
                     // If the response is not a response object, but the method hasn't thrown an error, assume the
                     // returned response is directly the body. Also assume an Http Status code of 200.
-                    const returnedResponse = new Response();
+                    returnedResponse = new Response();
                     returnedResponse.status = 200;
                     returnedResponse.body = response;
+                }
+                returnedResponse = await this.executeResponseEnrichers(returnedResponse, request, container, methodNode);
 
-                    return resolve(returnedResponse);
-                })
+                return resolve(returnedResponse);
             }
             catch (e) {
                 return reject(e);
             }
         })
+    }
+
+    /**
+     * This method executes all the Router response enrichers and returns the response updated by the enrichers.
+     *
+     * @param response
+     * @param request
+     * @param container
+     * @param methodNode
+     * @private
+     */
+    private async executeResponseEnrichers(response: Response, request: Request, container: DependencyContainer, methodNode: MethodRouterNode): Promise<Response> {
+        // Execute all the request enrichers
+        let enrichedResponse = response;
+
+        // Check first if there are any Router Response enrichers
+        if (container.isRegistered(ServiceDefinitionTagEnum.RouterResponseEnricher, true)) {
+            const enrichers: any[] = container.resolveAll(ServiceDefinitionTagEnum.RouterResponseEnricher);
+
+            for (const enricher of enrichers) {
+                // We don't have a guarantee that the Router response enrichers will implement the Interface, even though we specify it should.
+                // So, we have to verify that the method exists, and if it doesn't we throw
+                if (typeof enricher.enrichResponse === "undefined") {
+                    //todo should we type this error ?
+                    throw new Error("The Router Response Enricher named: '" + enricher.constructor.name + "' doesn't have the 'enrichResponse' method. RouterResponseEnrichers should implement the RouterResponseEnricher interface.")
+                }
+
+                try {
+                    // https://stackoverflow.com/a/27760489/684101
+                    enrichedResponse = await Promise.resolve((enricher as RouterResponseEnricherInterface).enrichResponse(enrichedResponse, request, methodNode));
+                } catch (e) {
+                    throw new Error("There was an exception thrown while executing the 'enrichResponse' method of the RouterResponseEnricher named: '" + enricher.constructor.name + "'. Error thrown is: '" + e + "'.");
+                }
+            }
+        }
+
+        return enrichedResponse;
     }
 }

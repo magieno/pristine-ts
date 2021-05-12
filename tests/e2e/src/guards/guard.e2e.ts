@@ -6,7 +6,6 @@ import {container, DependencyContainer, inject, injectable, singleton} from "tsy
 
 
 import {
-    HttpMethod,
     ForbiddenHttpError,
     controllerRegistry,
     controller,
@@ -18,6 +17,7 @@ import {
     Kernel,
 } from "@pristine-ts/core";
 import {guard} from "@pristine-ts/security";
+import {HttpMethod} from "@pristine-ts/common";
 
 @controller("/api/2.0/guards")
 @singleton()

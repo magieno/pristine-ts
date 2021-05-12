@@ -1,5 +1,6 @@
 import {singleton} from "tsyringe";
-import {controller, HttpMethod, route, body, routeParameter} from "@pristine-ts/networking";
+import {controller, route, body, routeParameter} from "@pristine-ts/networking";
+import {HttpMethod} from "@pristine-ts/common";
 
 @controller("/api/1.0")
 @singleton()
