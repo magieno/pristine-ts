@@ -16,6 +16,9 @@
     "type": "git",
     "url": "git+https://ima-tech@github.com/ima-tech/pristine-ts.git"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "author": "",
   "license": "ISC",
   "bugs": {
@@ -44,9 +47,9 @@
     "@pristine-ts/http": "file:packages/http",
     "@pristine-ts/jwt": "file:packages/jwt",
     "@pristine-ts/logging": "file:packages/logging",
-    "@pristine-ts/telemetry": "file:packages/telemetry",
-    "@pristine-ts/sentry": "file:packages/sentry",
     "@pristine-ts/networking": "file:packages/networking",
-    "@pristine-ts/security": "file:packages/security"
+    "@pristine-ts/security": "file:packages/security",
+    "@pristine-ts/sentry": "file:packages/sentry",
+    "@pristine-ts/telemetry": "file:packages/telemetry"
   }
 }
