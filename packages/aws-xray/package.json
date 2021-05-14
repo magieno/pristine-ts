@@ -1,10 +1,10 @@
 {
-  "name": "@pristine-ts/aws-cognito",
+  "name": "@pristine-ts/aws-xray",
   "version": "0.0.59",
   "description": "",
-  "module": "dist/lib/esm/aws-cognito.module.js",
-  "main": "dist/lib/cjs/aws-cognito.module.js",
-  "types": "dist/types/aws-cognito.module.d.ts",
+  "module": "dist/lib/esm/aws-xray.module.js",
+  "main": "dist/lib/cjs/aws-xray.module.js",
+  "types": "dist/types/aws-xray.module.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
     "prepublish": "npm run build",
@@ -20,9 +20,8 @@
   },
   "dependencies": {
     "@pristine-ts/common": "file:../common",
-    "@pristine-ts/networking": "file:../networking",
-    "jsonwebtoken": "^8.5.1",
-    "jwk-to-pem": "^2.0.5"
+    "@pristine-ts/telemetry": "file:../telemetry",
+    "aws-xray-sdk": "^3.3.3"
   },
   "jest": {
     "transform": {

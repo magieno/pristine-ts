@@ -16,7 +16,7 @@ export class Span {
 
     public childSpans: Span[] = [];
 
-    public context?: any;
+    public context: { [key: string]: string } = {};
 
 
     public constructor(private readonly tracingManagerInterface: TracingManagerInterface) {

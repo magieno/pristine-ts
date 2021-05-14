@@ -24,8 +24,7 @@
     "@pristine-ts/event": "file:../event",
     "@pristine-ts/logging": "file:../logging",
     "@pristine-ts/networking": "file:../networking",
-    "@pristine-ts/security": "file:../security",
-    "@pristine-ts/telemetry": "file:../telemetry"
+    "@pristine-ts/security": "file:../security"
   },
   "publishConfig": {
     "access": "public"

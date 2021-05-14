@@ -83,7 +83,7 @@ export class TracingManager implements TracingManagerInterface {
 
         // Notify the Tracers that a new span was started.
         this.tracers.forEach( (tracer:TracerInterface) => {
-            tracer.spanStartedStream.push(span);
+            tracer.spanStartedStream?.push(span);
         })
     }
 
@@ -116,7 +116,7 @@ export class TracingManager implements TracingManagerInterface {
 
         // Notify the TraceListeners that the span was ended.
         this.tracers.forEach( (tracer:TracerInterface) => {
-            tracer.spanEndedStream.push(span);
+            tracer.spanEndedStream?.push(span);
         })
 
         // If the span is the root span, the trace has ended
@@ -146,7 +146,7 @@ export class TracingManager implements TracingManagerInterface {
 
         // Notify the TraceListeners that the span was ended.
         this.tracers.forEach( (tracer:TracerInterface) => {
-            tracer.traceEndedStream.push(this.trace);
+            tracer.traceEndedStream?.push(this.trace);
         })
     }
 }

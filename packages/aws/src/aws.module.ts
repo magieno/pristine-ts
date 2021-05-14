@@ -57,7 +57,7 @@ export const AwsModule: ModuleInterface = {
         ResponseMapper,
         RestApiRequestMapper,
     ],
-    importModules: [LoggingModule, TelemetryModule],
+    importModules: [LoggingModule],
     providerRegistrations: [
     ],
     async afterInit(container): Promise<void> {
