@@ -12,7 +12,6 @@
   },
   "dependencies": {
     "@pristine-ts/common": "file:../common",
-    "@pristine-ts/logging": "file:../logging",
     "uuid": "^8.3.2"
   },
   "files": [
