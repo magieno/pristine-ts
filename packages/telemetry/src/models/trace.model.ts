@@ -7,13 +7,13 @@ export class Trace {
 
     public endDate?: number;
 
-    public getDuration(): number {
-        return (this.endDate ?? Date.now()) - this.startDate;
-    }
-
     public rootSpan: Span;
 
     public context?: any;
 
     public hasEnded: boolean = false;
+
+    public getDuration(): number {
+        return (this.endDate ?? Date.now()) - this.startDate;
+    }
 }

@@ -2,9 +2,7 @@ import "reflect-metadata"
 import {AwsCognitoAuthenticator} from "./aws-cognito.authenticator";
 import {HttpMethod, RequestInterface} from "@pristine-ts/common";
 import * as jwt from "jsonwebtoken";
-import {HttpClientInterface} from "@pristine-ts/http";
-import {HttpRequestInterface} from "@pristine-ts/http/dist/types/interfaces/http-request.interface";
-import {HttpResponseInterface} from "@pristine-ts/http/dist/types/interfaces/http-response.interface";
+import {HttpClientInterface, HttpRequestInterface, HttpResponseInterface} from "@pristine-ts/http";
 
 const privateKey = "-----BEGIN RSA PRIVATE KEY-----\n" +
     "MIIBOQIBAAJAXmWi+JMuW8v5Ng5sDso+H6wl+i9u7lwMxJrZ+j0VQNEh4E7EwHQM\n" +
