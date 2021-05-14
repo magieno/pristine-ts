@@ -1,2 +1,2 @@
-# AWS Cognito Module
+# AWS X-Ray Module
 
