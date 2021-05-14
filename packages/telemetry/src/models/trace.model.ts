@@ -14,4 +14,6 @@ export class Trace {
     public rootSpan: Span;
 
     public context?: any;
+
+    public hasEnded: boolean = false;
 }

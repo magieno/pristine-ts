@@ -16,6 +16,7 @@ import {RestApiRequestMapper} from "./mappers/rest-api-request.mapper";
 import {RequestMapperFactory} from "./factories/request-mapper.factory";
 import {AwsModuleKeyname} from "./aws.module.keyname";
 import {LogHandlerInterface} from "@pristine-ts/logging";
+import {TelemetryModule} from "@pristine-ts/telemetry";
 
 export * from "./clients/clients";
 export * from "./decorators/decorators";
@@ -56,7 +57,7 @@ export const AwsModule: ModuleInterface = {
         ResponseMapper,
         RestApiRequestMapper,
     ],
-    importModules: [LoggingModule],
+    importModules: [LoggingModule, TelemetryModule],
     providerRegistrations: [
     ],
     async afterInit(container): Promise<void> {
