@@ -1,14 +1,14 @@
-import {injectable, inject, singleton} from "tsyringe";
+import {inject, injectable, singleton} from "tsyringe";
 import {AwsCognitoModuleKeyname} from "../aws-cognito.module.keyname";
 import {PublicKeyInterface} from "../interfaces/public-key.interface";
-import {HttpClientInterface} from "../interfaces/http-client.interface";
-const jwkToPem = require("jwk-to-pem");
 import * as jwt from "jsonwebtoken";
-import {RequestInterface} from "@pristine-ts/common";
+import {HttpMethod, IdentityInterface, RequestInterface} from "@pristine-ts/common";
 import {TokenHeaderInterface} from "../interfaces/token-header.interface";
-import {IdentityInterface} from "@pristine-ts/common";
 import {ClaimInterface} from "../interfaces/claim.interface";
 import {AuthenticatorInterface} from "@pristine-ts/security";
+import {HttpClientInterface, ResponseTypeEnum} from "@pristine-ts/http";
+
+const jwkToPem = require("jwk-to-pem");
 
 @singleton()
 @injectable()
@@ -56,7 +56,15 @@ export class AwsCognitoAuthenticator implements AuthenticatorInterface{
     }
 
     private async getPems() {
-        const publicKeys = await this.httpClient.get<{keys: PublicKeyInterface[]}>(this.publicKeyUrl);
+        const publicKeysResponse = await this.httpClient.request({
+            httpMethod: HttpMethod.Get,
+            url: this.publicKeyUrl,
+            options: {
+                responseType: ResponseTypeEnum.Json,
+            }
+        });
+
+        const publicKeys = publicKeysResponse.body;
 
         const pems: {[key: string]: string} = publicKeys.keys.reduce((agg, current) => {
             agg[current.kid] = jwkToPem(current);

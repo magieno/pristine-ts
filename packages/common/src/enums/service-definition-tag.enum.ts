@@ -14,5 +14,6 @@ export enum ServiceDefinitionTagEnum {
     EventParser = "EVENT_PARSER",
     EventSubscriber = "EVENT_SUBSCRIBER",
     Voter = "VOTER",
-    Logger = "LOGGER"
+    Logger = "LOGGER",
+    Tracer = "TRACER",
 }

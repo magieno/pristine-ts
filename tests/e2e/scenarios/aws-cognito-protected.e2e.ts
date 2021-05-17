@@ -9,7 +9,9 @@ import {authenticator, guard, SecurityModule, SecurityModuleKeyname} from "@pris
 import {AwsCognitoAuthenticator, AwsCognitoGroupGuard, AwsCognitoModule} from "@pristine-ts/aws-cognito";
 import {HttpMethod, IdentityInterface, ModuleInterface, RequestInterface, tag} from "@pristine-ts/common";
 import * as jwt from "jsonwebtoken";
-import {HttpClientInterface} from "@pristine-ts/aws-cognito/dist/lib/esm/interfaces/http-client.interface";
+import {HttpClientInterface} from "@pristine-ts/http";
+import {HttpRequestInterface} from "@pristine-ts/http/dist/types/interfaces/http-request.interface";
+import {HttpResponseInterface} from "@pristine-ts/http/dist/types/interfaces/http-response.interface";
 
 const privateKey = "-----BEGIN RSA PRIVATE KEY-----\n" +
     "MIIBOQIBAAJAXmWi+JMuW8v5Ng5sDso+H6wl+i9u7lwMxJrZ+j0VQNEh4E7EwHQM\n" +
@@ -50,10 +52,19 @@ const publicKeys = {
 }
 
 @tag("HttpClientInterface")
-class MockHttpClient implements HttpClientInterface {
-    get<T>(url: string): Promise<T> {
-        // @ts-ignore
-        return Promise.resolve(publicKeys as T);
+export class MockHttpClient implements HttpClientInterface {
+
+    request(request: HttpRequestInterface): Promise<HttpResponseInterface> {
+        return Promise.resolve({
+            body: publicKeys,
+            request: {
+                httpMethod: HttpMethod.Get,
+                headers: {},
+                url: "",
+            },
+            headers: {},
+            status: 200,
+        });
     }
 }
 

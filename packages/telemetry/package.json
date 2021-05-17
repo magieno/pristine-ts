@@ -1,29 +1,24 @@
 {
-  "name": "@pristine-ts/aws-cognito",
-  "version": "0.0.60",
+  "name": "@pristine-ts/telemetry",
+  "version": "0.0.31",
   "description": "",
-  "module": "dist/lib/esm/aws-cognito.module.js",
-  "main": "dist/lib/cjs/aws-cognito.module.js",
-  "types": "dist/types/aws-cognito.module.d.ts",
+  "module": "dist/lib/esm/telemetry.module.js",
+  "main": "dist/lib/cjs/telemetry.module.js",
+  "types": "dist/types/telemetry.module.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
     "prepublish": "npm run build",
     "test": "jest"
+  },
+  "dependencies": {
+    "@pristine-ts/common": "file:../common",
+    "uuid": "^8.3.2"
   },
   "files": [
     "dist"
   ],
   "author": "",
   "license": "ISC",
-  "publishConfig": {
-    "access": "public"
-  },
-  "dependencies": {
-    "@pristine-ts/common": "file:../common",
-    "@pristine-ts/networking": "file:../networking",
-    "jsonwebtoken": "^8.5.1",
-    "jwk-to-pem": "^2.0.5"
-  },
   "jest": {
     "transform": {
       ".(ts|tsx)": "ts-jest"

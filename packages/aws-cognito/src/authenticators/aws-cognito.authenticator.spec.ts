@@ -1,9 +1,8 @@
 import "reflect-metadata"
 import {AwsCognitoAuthenticator} from "./aws-cognito.authenticator";
-import {HttpClientInterface} from "../interfaces/http-client.interface";
-import {HttpMethod} from "@pristine-ts/common";
-import {RequestInterface} from "@pristine-ts/common";
+import {HttpMethod, RequestInterface} from "@pristine-ts/common";
 import * as jwt from "jsonwebtoken";
+import {HttpClientInterface, HttpRequestInterface, HttpResponseInterface} from "@pristine-ts/http";
 
 const privateKey = "-----BEGIN RSA PRIVATE KEY-----\n" +
     "MIIBOQIBAAJAXmWi+JMuW8v5Ng5sDso+H6wl+i9u7lwMxJrZ+j0VQNEh4E7EwHQM\n" +
@@ -45,9 +44,18 @@ const publicKeys = {
 let payload;
 
 export class MockHttpClient implements HttpClientInterface {
-    get<T>(url: string): Promise<T> {
-        // @ts-ignore
-        return Promise.resolve(publicKeys as T);
+
+    request(request: HttpRequestInterface): Promise<HttpResponseInterface> {
+        return Promise.resolve({
+            body: publicKeys,
+            request: {
+                httpMethod: HttpMethod.Get,
+                headers: {},
+                url: "",
+            },
+            headers: {},
+            status: 200,
+        });
     }
 }
 

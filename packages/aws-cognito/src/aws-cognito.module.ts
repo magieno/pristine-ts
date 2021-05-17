@@ -2,7 +2,6 @@ import {ModuleInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {AwsCognitoModuleKeyname} from "./aws-cognito.module.keyname";
 
 export * from "./authenticators/authenticators";
-export * from "./clients/clients";
 export * from "./guards/guards";
 export * from "./interfaces/interfaces";
 
