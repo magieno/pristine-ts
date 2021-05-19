@@ -39,22 +39,19 @@ export class HttpClient implements HttpClientInterface {
      * @param request
      * @param options
      */
-    request(request: HttpRequestInterface, options?: HttpRequestOptions): Promise<HttpResponseInterface> {
-        return new Promise(async (resolve, reject) => {
-            const requestOptions: HttpRequestOptions = assign({}, this.defaultOptions, options);
+    async request(request: HttpRequestInterface, options?: HttpRequestOptions): Promise<HttpResponseInterface> {
+        const requestOptions: HttpRequestOptions = assign({}, this.defaultOptions, options);
 
-            // Handle the request by calling the interceptors before actually making the request
-            const handledRequest: HttpRequestInterface = await this.handleRequest(request, requestOptions);
+        // Handle the request by calling the interceptors before actually making the request
+        const handledRequest: HttpRequestInterface = await this.handleRequest(request, requestOptions);
 
-            try {
-                const response = await this.executeRequest(handledRequest);
+        try {
+            const response = await this.executeRequest(handledRequest);
 
-                return resolve(await this.handleResponse(handledRequest, requestOptions, response));
-            }
-            catch (e) {
-                return reject(e); // todo, need to improve this
-            }
-        });
+            return this.handleResponse(handledRequest, requestOptions, response);
+        } catch (e) {
+            throw e; // todo, need to improve this
+        }
     }
 
     /**
@@ -93,15 +90,14 @@ export class HttpClient implements HttpClientInterface {
         interceptedResponse = await this.handleResponseRedirect(request, requestOptions, interceptedResponse);
 
         // Adjust the response body according to the options.
-        switch(requestOptions.responseType) {
+        switch (requestOptions.responseType) {
             case ResponseTypeEnum.Raw:
 
                 break;
             case ResponseTypeEnum.Json:
                 try {
                     interceptedResponse.body = JSON.parse(interceptedResponse.body);
-                }
-                catch (e) {
+                } catch (e) {
                 }
 
                 break;
@@ -128,10 +124,10 @@ export class HttpClient implements HttpClientInterface {
         let updatedResponse = response;
 
         // First check to determine if this request should be retried or not, only if the response is an error code
-        if(this.isResponseError(updatedResponse) &&
+        if (this.isResponseError(updatedResponse) &&
             requestOptions.isRetryable && requestOptions.isRetryable(request, updatedResponse)
         ) {
-            if(requestOptions.maximumNumberOfRetries && requestOptions.maximumNumberOfRetries <= currentRetryCount) {
+            if (requestOptions.maximumNumberOfRetries && requestOptions.maximumNumberOfRetries <= currentRetryCount) {
                 // Simply return the errored out response.
                 return updatedResponse;
             }
@@ -144,7 +140,7 @@ export class HttpClient implements HttpClientInterface {
             }, MathUtils.exponentialBackoffWithJitter(updatedRetryCount)))
 
             // Check if the retriedResponse is still an error, if yes recursively call this method.
-            if(this.isResponseError(updatedResponse)) {
+            if (this.isResponseError(updatedResponse)) {
                 updatedResponse = await this.handleResponseError(request, requestOptions, response, updatedRetryCount);
             }
         }
@@ -164,13 +160,13 @@ export class HttpClient implements HttpClientInterface {
         let updatedResponse = response;
 
         // Check to determine if this requests should be redirected and replayed
-        if(this.isResponseRedirect(updatedResponse) && requestOptions.followRedirects) {
-            if(requestOptions.maximumNumberOfRedirects && requestOptions.maximumNumberOfRedirects <= currentRedirectCount) {
+        if (this.isResponseRedirect(updatedResponse) && requestOptions.followRedirects) {
+            if (requestOptions.maximumNumberOfRedirects && requestOptions.maximumNumberOfRedirects <= currentRedirectCount) {
                 throw new Error(); // todo: output a proper error that we have reached the maximum number of redirects.
             }
 
             // todo: Interpret the redirect and call the redirected URL with the same request payload
-            if(response.headers === undefined || response.headers.location === undefined) {
+            if (response.headers === undefined || response.headers.location === undefined) {
                 throw new Error(); // todo: output a proper error that we have reached the maximum number of redirects.
             }
 
@@ -188,12 +184,12 @@ export class HttpClient implements HttpClientInterface {
             updatedResponse = await this.executeRequest(updatedRequest)
 
             // This updated response could be an error, check to see if it is and handle it.
-            if(this.isResponseError(updatedResponse)) {
+            if (this.isResponseError(updatedResponse)) {
                 updatedResponse = await this.handleResponseError(updatedRequest, requestOptions, updatedResponse);
             }
 
             // Check if the redirected response is still a redirect, if yes recursively call this method.
-            if(this.isResponseRedirect(updatedResponse)) {
+            if (this.isResponseRedirect(updatedResponse)) {
                 updatedResponse = await this.handleResponseRedirect(request, requestOptions, response, updatedRedirectCount);
             }
         }
@@ -250,21 +246,20 @@ export class HttpClient implements HttpClientInterface {
             }
 
             // Make the http or https call depending on the url.
-            if(url.protocol === "http://" || url.protocol === "http:" || url.protocol === "http") {
+            if (url.protocol === "http://" || url.protocol === "http:" || url.protocol === "http") {
                 const req = httpRequest(options, callback);
 
-                if(request.body) {
+                if (request.body) {
                     req.write(request.body);
                 }
 
                 return req.end();
-            }
-            else if( url.protocol === "https://" || url.protocol === "https:" || url.protocol === "https") {
+            } else if (url.protocol === "https://" || url.protocol === "https:" || url.protocol === "https") {
                 options.port = options.port ?? 443;
 
                 const req = httpsRequest(options, callback);
 
-                if(request.body) {
+                if (request.body) {
                     req.write(request.body);
                 }
 
