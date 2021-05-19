@@ -59,9 +59,8 @@ export class AwsCognitoAuthenticator implements AuthenticatorInterface{
         const publicKeysResponse = await this.httpClient.request({
             httpMethod: HttpMethod.Get,
             url: this.publicKeyUrl,
-            options: {
-                responseType: ResponseTypeEnum.Json,
-            }
+        }, {
+            responseType: ResponseTypeEnum.Json,
         });
 
         const publicKeys = publicKeysResponse.body;

@@ -13,6 +13,8 @@ import {assign} from "lodash";
 import {ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {HttpRequestInterceptorInterface} from "../interfaces/http-request-interceptor.interface";
 import {HttpResponseInterceptorInterface} from "../interfaces/http-response-interceptor.interface";
+import {MathUtils} from "../utils/math.utils";
+import URLParse from "url-parse";
 
 @injectable()
 export class HttpClient implements HttpClientInterface {
@@ -31,6 +33,12 @@ export class HttpClient implements HttpClientInterface {
     ) {
     }
 
+    /**
+     * This method is the entry point where the request is passed as an argument and the response is retured.
+     *
+     * @param request
+     * @param options
+     */
     request(request: HttpRequestInterface, options?: HttpRequestOptions): Promise<HttpResponseInterface> {
         return new Promise(async (resolve, reject) => {
             const requestOptions: HttpRequestOptions = assign({}, this.defaultOptions, options);
@@ -39,9 +47,9 @@ export class HttpClient implements HttpClientInterface {
             const handledRequest: HttpRequestInterface = await this.handleRequest(request, requestOptions);
 
             try {
-                const response = await this.executeRequest(request);
+                const response = await this.executeRequest(handledRequest);
 
-                return resolve(await this.handleResponse(request, requestOptions, response));
+                return resolve(await this.handleResponse(handledRequest, requestOptions, response));
             }
             catch (e) {
                 return reject(e); // todo, need to improve this
@@ -67,7 +75,11 @@ export class HttpClient implements HttpClientInterface {
     }
 
     /**
-     *
+     * This method handles the response by:
+     * - calling the handleResponseError to retry if it can
+     * - calling the handleResponseRedirect to follow the redirect if necessary and conditions are met
+     * - converting the response body
+     * - calling the response interceptors
      * @param request
      * @param requestOptions
      * @param response
@@ -86,7 +98,12 @@ export class HttpClient implements HttpClientInterface {
 
                 break;
             case ResponseTypeEnum.Json:
-                interceptedResponse.body = JSON.parse(interceptedResponse.body);
+                try {
+                    interceptedResponse.body = JSON.parse(interceptedResponse.body);
+                }
+                catch (e) {
+                }
+
                 break;
         }
 
@@ -97,39 +114,88 @@ export class HttpClient implements HttpClientInterface {
         return interceptedResponse;
     }
 
-    private async handleResponseError(request: HttpRequestInterface, requestOptions: HttpRequestOptions, response: HttpResponseInterface, currentRedirectCount = 0): Promise<HttpResponseInterface> {
+    /**
+     * This method checks if the response is an error. If it is, it checks to see if this request can be retried and if
+     * it can, will retry it. It will also check that we haven't reached the maximum number of retries. It will also apply
+     * exponential backoff and jitter.
+     * @param request
+     * @param requestOptions
+     * @param response
+     * @param currentRetryCount
+     * @private
+     */
+    private async handleResponseError(request: HttpRequestInterface, requestOptions: HttpRequestOptions, response: HttpResponseInterface, currentRetryCount = 0): Promise<HttpResponseInterface> {
         let updatedResponse = response;
 
         // First check to determine if this request should be retried or not, only if the response is an error code
         if(this.isResponseError(updatedResponse) &&
             requestOptions.isRetryable && requestOptions.isRetryable(request, updatedResponse)
         ) {
-            if(requestOptions.maximumNumberOfRedirects && requestOptions.maximumNumberOfRedirects <= currentRedirectCount) {
-                throw new Error(); // todo output a proper error that we have reached the maximum number of redirects.
+            if(requestOptions.maximumNumberOfRetries && requestOptions.maximumNumberOfRetries <= currentRetryCount) {
+                // Simply return the errored out response.
+                return updatedResponse;
             }
 
-            // todo: start a counter, and make sure we are not retrying more often than specified in the options
+            const updatedRetryCount = ++currentRetryCount;
 
-            // todo: re-execute the executeRequest method until we have success by using an exponential backoff strategy
+            // Retry the request using an exponential backoff with jitter.
+            updatedResponse = await new Promise<HttpResponseInterface>(resolve => setTimeout(async () => {
+                return resolve(await this.executeRequest(request));
+            }, MathUtils.exponentialBackoffWithJitter(updatedRetryCount)))
 
-            // If the request is successful , simply continue the execution.
+            // Check if the retriedResponse is still an error, if yes recursively call this method.
+            if(this.isResponseError(updatedResponse)) {
+                updatedResponse = await this.handleResponseError(request, requestOptions, response, updatedRetryCount);
+            }
         }
 
         return updatedResponse;
     }
 
+    /**
+     * This method follows the redirects the server returns an HTTP with status 3xx.
+     * @param request
+     * @param requestOptions
+     * @param response
+     * @param currentRedirectCount
+     * @private
+     */
     private async handleResponseRedirect(request: HttpRequestInterface, requestOptions: HttpRequestOptions, response: HttpResponseInterface, currentRedirectCount = 0): Promise<HttpResponseInterface> {
         let updatedResponse = response;
-        let updatedRequest = request;
 
         // Check to determine if this requests should be redirected and replayed
-        if(this.isResponseRedirect(updatedResponse)) {
+        if(this.isResponseRedirect(updatedResponse) && requestOptions.followRedirects) {
             if(requestOptions.maximumNumberOfRedirects && requestOptions.maximumNumberOfRedirects <= currentRedirectCount) {
-                throw new Error(); // todo output a proper error that we have reached the maximum number of redirects.
+                throw new Error(); // todo: output a proper error that we have reached the maximum number of redirects.
             }
 
             // todo: Interpret the redirect and call the redirected URL with the same request payload
+            if(response.headers === undefined || response.headers.location === undefined) {
+                throw new Error(); // todo: output a proper error that we have reached the maximum number of redirects.
+            }
 
+            const updatedRequest = request;
+
+            // Updated the URL by using the 'location' header returned by the response.
+            const url = new Url(request.url, true);
+            url.set("pathname", response.headers.location);
+
+            updatedRequest.url = url.toString()
+
+            const updatedRedirectCount = ++currentRedirectCount;
+
+            // Retry the request using an exponential backoff with jitter.
+            updatedResponse = await this.executeRequest(updatedRequest)
+
+            // This updated response could be an error, check to see if it is and handle it.
+            if(this.isResponseError(updatedResponse)) {
+                updatedResponse = await this.handleResponseError(updatedRequest, requestOptions, updatedResponse);
+            }
+
+            // Check if the redirected response is still a redirect, if yes recursively call this method.
+            if(this.isResponseRedirect(updatedResponse)) {
+                updatedResponse = await this.handleResponseRedirect(request, requestOptions, response, updatedRedirectCount);
+            }
         }
 
         return updatedResponse;
@@ -147,10 +213,11 @@ export class HttpClient implements HttpClientInterface {
             const url = new Url(request.url, true);
             const options: RequestOptions = {
                 host: url.hostname,
-                path: url.pathname + "?" + Object.keys(url.query).map(key => key + "=" + url.query).join("&"),
+                path: url.pathname + ((url.query === {}) ? "" : "?" + Object.keys(url.query).map(key => key + "=" + url.query).join("&")),
                 method: request.httpMethod,
                 headers: request.headers,
                 port: url.port,
+
             }
 
             const defaultResponseStatus = 200; // todo: decide if that's how we should proceed

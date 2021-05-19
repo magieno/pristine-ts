@@ -7,6 +7,7 @@ export * from "./enums/enums";
 export * from "./errors/errors";
 export * from "./interfaces/interfaces"
 export * from "./options/options";
+export * from "./utils/utils";
 
 export const HttpModule: ModuleInterface = {
     keyname: HttpModuleKeyname,
