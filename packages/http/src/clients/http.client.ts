@@ -138,7 +138,7 @@ export class HttpClient implements HttpClientInterface {
             updatedResponse = await new Promise<HttpResponseInterface>(resolve => setTimeout(async () => {
                 return resolve(await this.executeRequest(request));
             }, MathUtils.exponentialBackoffWithJitter(updatedRetryCount)))
-            
+
             return await this.handleResponseError(request, requestOptions, response, updatedRetryCount);
         }
 
@@ -185,10 +185,7 @@ export class HttpClient implements HttpClientInterface {
                 updatedResponse = await this.handleResponseError(updatedRequest, requestOptions, updatedResponse);
             }
 
-            // Check if the redirected response is still a redirect, if yes recursively call this method.
-            if (this.isResponseRedirect(updatedResponse)) {
-                updatedResponse = await this.handleResponseRedirect(request, requestOptions, response, updatedRedirectCount);
-            }
+            return await this.handleResponseRedirect(request, requestOptions, response, updatedRedirectCount);
         }
 
         return updatedResponse;
