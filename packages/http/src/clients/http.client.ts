@@ -138,11 +138,8 @@ export class HttpClient implements HttpClientInterface {
             updatedResponse = await new Promise<HttpResponseInterface>(resolve => setTimeout(async () => {
                 return resolve(await this.executeRequest(request));
             }, MathUtils.exponentialBackoffWithJitter(updatedRetryCount)))
-
-            // Check if the retriedResponse is still an error, if yes recursively call this method.
-            if (this.isResponseError(updatedResponse)) {
-                updatedResponse = await this.handleResponseError(request, requestOptions, response, updatedRetryCount);
-            }
+            
+            return await this.handleResponseError(request, requestOptions, response, updatedRetryCount);
         }
 
         return updatedResponse;
