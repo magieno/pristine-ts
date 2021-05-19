@@ -20,7 +20,7 @@ import URLParse from "url-parse";
 export class HttpClient implements HttpClientInterface {
     public defaultOptions: HttpRequestOptions = {
         followRedirects: true,
-        maximumNumberOfRedirects: 7,
+        maximumNumberOfRedirects: 5,
         isRetryable: (httpRequestInterface, httpResponseInterface) => {
             return httpResponseInterface.status >= 500 && httpResponseInterface.status < 600;
         },
