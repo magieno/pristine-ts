@@ -12,10 +12,5 @@ export const HttpModule: ModuleInterface = {
     keyname: HttpModuleKeyname,
     importServices: [],
     configurationDefinitions: [
-        {
-            isRequired: false,
-            parameterName: HttpModuleKeyname + ".defaultResponseType",
-            defaultValue: ResponseTypeEnum.Raw
-        },
     ],
 }

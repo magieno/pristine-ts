@@ -38,7 +38,8 @@ describe("Http Client", () => {
                 await new Promise<void>(resolve => {
                     server.listen(port, host, async () => {
                         // Make an HTTP call using the httpClient
-                        const httpClient = new HttpClient(ResponseTypeEnum.Raw)
+                        const httpClient = new HttpClient()
+                        httpClient.defaultOptions.responseType = ResponseTypeEnum.Raw;
                         const requestBody = JSON.stringify({
                             keyname: "Value",
                         });
@@ -74,7 +75,8 @@ describe("Http Client", () => {
                 await new Promise<void>(resolve => {
                     server.listen(port, host, async () => {
                         // Make an HTTP call using the httpClient
-                        const httpClient = new HttpClient(ResponseTypeEnum.Json)
+                        const httpClient = new HttpClient()
+                        httpClient.defaultOptions.responseType = ResponseTypeEnum.Raw;
                         const requestBody = JSON.stringify({
                             keyname: "Value",
                         });
@@ -105,6 +107,19 @@ describe("Http Client", () => {
 
                 expect.assertions(5)
             })
+
+            it("should follow the redirect if the options is set to true", async () => {});
+            it("should not follow the redirect if the options is set to false", async () => {});
+            it("should not follow the redirect if the options is set to true but has exceeded the maximum number of redirects", async () => {});
+
+            it("should retry the request if the response is an error and is retryable", async () => {});
+            it("should not retry the request if the response is an error but not retryable", async () => {});
+            it("should not retry the request if the response is an error, is retryable, but has exceeded the max number of retries", async () => {});
+
+
+            it("should call all the request interceptors", async () => {});
+
+            it("should call all the response interceptors", async () => {});
 
         })
 
