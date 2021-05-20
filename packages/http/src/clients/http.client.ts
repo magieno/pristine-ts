@@ -139,7 +139,7 @@ export class HttpClient implements HttpClientInterface {
                 return resolve(await this.executeRequest(request));
             }, MathUtils.exponentialBackoffWithJitter(updatedRetryCount)))
 
-            return await this.handleResponseError(request, requestOptions, response, updatedRetryCount);
+            return this.handleResponseError(request, requestOptions, updatedResponse, updatedRetryCount);
         }
 
         return updatedResponse;
@@ -185,7 +185,7 @@ export class HttpClient implements HttpClientInterface {
                 updatedResponse = await this.handleResponseError(updatedRequest, requestOptions, updatedResponse);
             }
 
-            return await this.handleResponseRedirect(request, requestOptions, response, updatedRedirectCount);
+            return this.handleResponseRedirect(request, requestOptions, updatedResponse, updatedRedirectCount);
         }
 
         return updatedResponse;

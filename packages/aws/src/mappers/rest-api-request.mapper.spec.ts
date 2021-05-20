@@ -4,6 +4,7 @@ import {MethodMapper} from "./method.mapper";
 import {HttpMethod} from "@pristine-ts/common";
 import {RequestInterface} from "@pristine-ts/common";
 import {RestApiRequestMapper} from "./rest-api-request.mapper";
+import {BodyMapper} from "./body-mapper";
 
 describe("Rest api request mapper", () => {
     const rawEvent = {
@@ -83,16 +84,16 @@ describe("Rest api request mapper", () => {
         },
         "pathParameters": null,
         "stageVariables": null,
-        "body": "Hello from Lambda!",
+        "body": JSON.stringify({ message: "Hello from Lambda"}),
         "isBase64Encoded": false
     };
 
     it("should map a rest api request properly", () => {
-        const restApiRequestMapper = new RestApiRequestMapper(new MethodMapper());
+        const restApiRequestMapper = new RestApiRequestMapper(new MethodMapper(), new BodyMapper());
 
         const expectedRequest: RequestInterface = {
             url: "/my/path",
-            body: "Hello from Lambda!",
+            body: { message: "Hello from Lambda"},
             headers: {
                 "header1": "value1",
                 "header2": "value2"
@@ -103,5 +104,4 @@ describe("Rest api request mapper", () => {
         // @ts-ignore
         expect(restApiRequestMapper.map(rawEvent)).toEqual(expectedRequest);
     })
-
 })

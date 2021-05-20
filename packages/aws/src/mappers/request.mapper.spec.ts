@@ -6,6 +6,7 @@ import {MethodMapper} from "./method.mapper";
 import {RequestMapper} from "./request.mapper";
 import {RequestMapperFactory} from "../factories/request-mapper.factory";
 import {RestApiRequestMapper} from "./rest-api-request.mapper";
+import {BodyMapper} from "./body-mapper";
 
 describe("Request mapper", () => {
     const rawRestEvent = {
@@ -161,7 +162,8 @@ describe("Request mapper", () => {
 
     it("should map a rest request properly", () => {
         const methodMapper = new MethodMapper();
-        const requestMapper = new RequestMapper(new RequestMapperFactory(new HttpRequestMapper(methodMapper), new RestApiRequestMapper(methodMapper)));
+        const bodyMapper = new BodyMapper();
+        const requestMapper = new RequestMapper(new RequestMapperFactory(new HttpRequestMapper(methodMapper, bodyMapper), new RestApiRequestMapper(methodMapper, bodyMapper)));
 
         const expectedRequest: RequestInterface = {
             url: "/my/path",
@@ -179,7 +181,8 @@ describe("Request mapper", () => {
 
     it("should map an http request properly", () => {
         const methodMapper = new MethodMapper();
-        const requestMapper = new RequestMapper(new RequestMapperFactory(new HttpRequestMapper(methodMapper), new RestApiRequestMapper(methodMapper)));
+        const bodyMapper = new BodyMapper();
+        const requestMapper = new RequestMapper(new RequestMapperFactory(new HttpRequestMapper(methodMapper, bodyMapper), new RestApiRequestMapper(methodMapper, bodyMapper)));
 
         const expectedRequest: RequestInterface = {
             url: "/my/path",

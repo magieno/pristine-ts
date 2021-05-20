@@ -44,11 +44,12 @@ describe("Logging Module instantiation in the Kernel", () => {
 
         const logHandler: LogHandler = await kernel.container.resolve(LogHandler);
 
-        logHandler.info("Allo", {al:{bob:12}});
+        logHandler.info("Allo", {depth1:{depth2:{depth3: {depth4: {depth5: {depth6: {depth7: {depth8: {depth9: 10}}}}}}}}});
 
         await new Promise(res => setTimeout(res, 1000));
 
-        expect(global.console.info).toHaveBeenCalledWith({"extra": {"al": {"bob": 12}}, "message": "Allo", "severity": 0});
+        expect(global.console.info).toHaveBeenCalledWith({"extra": {depth1:{depth2:{depth3: {depth4: {depth5: {depth6: {depth7: {depth8: {depth9: 10}}}}}}}}}, "message": "Allo", "severity": 0});
+
 
     })
 
