@@ -16,4 +16,6 @@ export enum ServiceDefinitionTagEnum {
     Voter = "VOTER",
     Logger = "LOGGER",
     Tracer = "TRACER",
+    HttpRequestInterceptor = "HTTP_REQUEST_INTERCEPTOR",
+    HttpResponseInterceptor = "HTTP_RESPONSE_INTERCEPTOR",
 }
