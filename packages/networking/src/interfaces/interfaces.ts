@@ -4,6 +4,7 @@ export * from "./identity-parameteter-decorator.interface";
 export * from "./parameter-decorator.interface";
 export * from "./query-parameter-decorator.interface";
 export * from "./query-parameters-decorator.interface";
+export * from "./router-request-enricher.interface";
 export * from "./router-response-enricher.interface";
 export * from "./route-method-decorator.interface";
 export * from "./route-parameter-decorator.interface";
