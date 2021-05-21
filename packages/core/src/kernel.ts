@@ -274,7 +274,6 @@ export class Kernel {
             interceptedErrorResponse.status = 500;
         }
 
-
         // Check first if there are any RequestInterceptors
         if (container.isRegistered(ServiceDefinitionTagEnum.ErrorResponseInterceptor, true)) {
             const interceptors: any[] = container.resolveAll(ServiceDefinitionTagEnum.ErrorResponseInterceptor);
