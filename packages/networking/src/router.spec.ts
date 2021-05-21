@@ -81,7 +81,14 @@ describe("Router.spec", () => {
         spyMethodController = jest.spyOn(mockController, "route");
 
         // Force the node as the root node
-        router = new Router(new ControllerMethodParameterDecoratorResolver([
+        router = new Router( {
+            error(message: string, extra?: any) {
+            }, critical(message: string, extra?: any): void {
+            }, debug(message: string, extra?: any): void {
+            }, info(message: string, extra?: any): void {
+            }, warning(message: string, extra?: any): void {
+            }
+        },new ControllerMethodParameterDecoratorResolver([
             new BodyParameterDecoratorResolver(),
             new QueryParameterDecoratorResolver(),
             new QueryParametersDecoratorResolver(),
