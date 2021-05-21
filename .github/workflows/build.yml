@@ -52,9 +52,10 @@ jobs:
         uses: actions/setup-node@v2
         with:
           always-auth: true
-          node-version: ${{ matrix.node-version }}
+          node-version: 16.x
           registry-url: https://registry.npmjs.org
           scope: '@pristine'
+      - run: npm install -g npm@latest
       - run: npm ci
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
