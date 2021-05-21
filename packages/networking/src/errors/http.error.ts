@@ -3,7 +3,7 @@
  * If you throw this error when handling an Event, it won't be returned.
  */
 export class HttpError extends Error {
-    public constructor(public readonly httpStatus: number, readonly message: string) {
+    public constructor(public readonly httpStatus: number, readonly message: string, public readonly errors?: any[]) {
         super(message);
 
         // Set the prototype explicitly.

@@ -14,14 +14,17 @@ import Url from 'url-parse';
 import {HttpMethod, IdentityInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {AuthenticationManagerInterface, AuthorizerManagerInterface} from "@pristine-ts/security";
 import {RouterResponseEnricherInterface} from "./interfaces/router-response-enricher.interface";
+import {RouterRequestEnricherInterface} from "./interfaces/router-request-enricher.interface";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 
 @singleton()
 export class Router implements RouterInterface {
     private root: RouterNode = new PathRouterNode("/");
 
-    public constructor(private readonly controllerMethodParameterDecoratorResolver: ControllerMethodParameterDecoratorResolver,
-                       @inject("AuthorizerManagerInterface") private readonly authorizerManager: AuthorizerManagerInterface,
-                       @inject("AuthenticationManagerInterface") private readonly authenticationManager: AuthenticationManagerInterface) {
+    public constructor( @inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface,
+                        private readonly controllerMethodParameterDecoratorResolver: ControllerMethodParameterDecoratorResolver,
+                        @inject("AuthorizerManagerInterface") private readonly authorizerManager: AuthorizerManagerInterface,
+                        @inject("AuthenticationManagerInterface") private readonly authenticationManager: AuthenticationManagerInterface) {
     }
 
     /**
@@ -76,17 +79,19 @@ export class Router implements RouterInterface {
                 return reject(e);
             }
 
-            const resolvedMethodArguments: any[] = [];
-
-            for (const methodArgument of methodNode.route.methodArguments) {
-                resolvedMethodArguments.push(await this.controllerMethodParameterDecoratorResolver.resolve(methodArgument, request, routeParameters, identity));
-            }
-
             // Call the controller with the resolved Method arguments
             try {
 
                 if(await this.authorizerManager.isAuthorized(request, methodNode.route.context, container, identity) === false) {
                     return reject(new ForbiddenHttpError("You are not allowed to access this."));
+                }
+
+                const enrichedRequest = await this.executeRequestEnrichers(request, container, methodNode);
+
+                const resolvedMethodArguments: any[] = [];
+
+                for (const methodArgument of methodNode.route.methodArguments) {
+                    resolvedMethodArguments.push(await this.controllerMethodParameterDecoratorResolver.resolve(methodArgument, enrichedRequest, routeParameters, identity));
                 }
 
                 const controllerResponse = controller[methodNode.route.methodPropertyKey].apply(controller, resolvedMethodArguments);
@@ -145,11 +150,49 @@ export class Router implements RouterInterface {
                     // https://stackoverflow.com/a/27760489/684101
                     enrichedResponse = await Promise.resolve((enricher as RouterResponseEnricherInterface).enrichResponse(enrichedResponse, request, methodNode));
                 } catch (e) {
-                    throw new Error("There was an exception thrown while executing the 'enrichResponse' method of the RouterResponseEnricher named: '" + enricher.constructor.name + "'. Error thrown is: '" + e + "'.");
+                    this.loghandler.error("There was an exception thrown while executing the 'enrichResponse' method of the RouterResponseEnricher named: '" + enricher.constructor.name + "'.", {e});
+                    throw e;
                 }
             }
         }
 
         return enrichedResponse;
+    }
+
+    /**
+     * This method executes all the Router request enrichers and returns the request updated by the enrichers.
+     *
+     * @param request
+     * @param container
+     * @param methodNode
+     * @private
+     */
+    private async executeRequestEnrichers( request: Request, container: DependencyContainer, methodNode: MethodRouterNode): Promise<Request> {
+        // Execute all the request enrichers
+        let enrichedRequest = request;
+
+        // Check first if there are any Router Request enrichers
+        if (container.isRegistered(ServiceDefinitionTagEnum.RouterRequestEnricher, true)) {
+            const enrichers: any[] = container.resolveAll(ServiceDefinitionTagEnum.RouterRequestEnricher);
+
+            for (const enricher of enrichers) {
+                // We don't have a guarantee that the Router response enrichers will implement the Interface, even though we specify it should.
+                // So, we have to verify that the method exists, and if it doesn't we throw
+                if (typeof enricher.enrichRequest === "undefined") {
+                    //todo should we type this error ?
+                    throw new Error("The Router Request Enricher named: '" + enricher.constructor.name + "' doesn't have the 'enrichRequest' method. RouterRequestEnrichers should implement the RouterRequestEnricher interface.")
+                }
+
+                try {
+                    // https://stackoverflow.com/a/27760489/684101
+                    enrichedRequest = await Promise.resolve((enricher as RouterRequestEnricherInterface).enrichRequest(enrichedRequest, methodNode));
+                } catch (e) {
+                    this.loghandler.error("There was an exception thrown while executing the 'enrichedRequest' method of the RouterRequestEnricher named: '" + enricher.constructor.name + "'.", {e});
+                    throw e;
+                }
+            }
+        }
+
+        return enrichedRequest;
     }
 }

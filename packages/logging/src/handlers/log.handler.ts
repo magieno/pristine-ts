@@ -1,3 +1,4 @@
+import "reflect-metadata"
 import {injectable, injectAll} from "tsyringe";
 import {SeverityEnum} from "../enums/severity.enum";
 import {LogModel} from "../models/log.model";
