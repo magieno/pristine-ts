@@ -32,7 +32,7 @@ describe("Request Body Validation", () => {
 
     let kernel: Kernel;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
         kernel = new Kernel();
         await kernel.init({
             keyname: "pristine.validation.test",
