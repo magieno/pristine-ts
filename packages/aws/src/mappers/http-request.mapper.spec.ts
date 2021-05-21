@@ -3,6 +3,7 @@ import {HttpRequestMapper} from "./http-request.mapper";
 import {HttpMethod} from "@pristine-ts/common";
 import {RequestInterface} from "@pristine-ts/common";
 import {MethodMapper} from "./method.mapper";
+import {BodyMapper} from "./body-mapper";
 
 describe("Http request mapper", () => {
     const rawEvent = {
@@ -64,7 +65,7 @@ describe("Http request mapper", () => {
             "time": "12/Mar/2020:19:03:58 +0000",
             "timeEpoch": 1583348638390
         },
-        "body": "Hello from Lambda",
+        "body": JSON.stringify({ message: "Hello from Lambda"}),
         "pathParameters": {
             "parameter1": "value1"
         },
@@ -75,14 +76,12 @@ describe("Http request mapper", () => {
         }
     };
 
-
-
     it("should map an http request properly", () => {
-        const httpRequestMapper = new HttpRequestMapper(new MethodMapper());
+        const httpRequestMapper = new HttpRequestMapper(new MethodMapper(), new BodyMapper());
 
         const expectedRequest: RequestInterface = {
             url: "/my/path",
-            body: "Hello from Lambda",
+            body: { message: "Hello from Lambda"},
             headers: {
                 "header1": "value1",
                 "header2": "value2"
