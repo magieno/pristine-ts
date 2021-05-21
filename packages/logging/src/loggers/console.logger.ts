@@ -46,23 +46,29 @@ export class ConsoleLogger implements LoggerInterface {
   private log(log: LogModel): void {
     switch (log.severity) {
       case SeverityEnum.Debug:
-        console.debug(Utils.truncate(log,  this.logDebugDepthConfiguration));
+        console.debug(util.inspect(log,{
+          depth: this.logDebugDepthConfiguration
+        }));
         break;
 
       case SeverityEnum.Info:
-        console.info(Utils.truncate(log,  this.logInfoDepthConfiguration));
+        console.info(util.inspect(log,{
+          depth: this.logInfoDepthConfiguration}));
         break;
 
       case SeverityEnum.Warning:
-        console.warn(Utils.truncate(log,  this.logWarningDepthConfiguration));
+        console.warn(util.inspect(log,{
+          depth: this.logWarningDepthConfiguration}));
         break;
 
       case SeverityEnum.Error:
-        console.error(Utils.truncate(log,  this.logErrorDepthConfiguration));
+        console.error(util.inspect(log,{
+          depth: this.logErrorDepthConfiguration}));
         break;
 
       case SeverityEnum.Critical:
-        console.error(Utils.truncate(log,  this.logCriticalDepthConfiguration));
+        console.error(util.inspect(log,{
+          depth: this.logCriticalDepthConfiguration}));
         break;
     }
   }
