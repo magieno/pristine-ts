@@ -263,8 +263,13 @@ export class Kernel {
         };
 
         if (error instanceof HttpError) {
-            interceptedErrorResponse.status = (error as HttpError).httpStatus
-            interceptedErrorResponse.body.errors = (error as HttpError).errors
+            const httpError: HttpError = error as HttpError;
+
+            interceptedErrorResponse.status = httpError.httpStatus
+
+            if(httpError.errors) {
+                interceptedErrorResponse.body.errors = httpError.errors
+            }
         } else {
             interceptedErrorResponse.status = 500;
         }
