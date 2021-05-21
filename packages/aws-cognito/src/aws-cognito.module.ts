@@ -1,5 +1,6 @@
 import {ModuleInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {AwsCognitoModuleKeyname} from "./aws-cognito.module.keyname";
+import {HttpModule} from "@pristine-ts/http";
 
 export * from "./authenticators/authenticators";
 export * from "./guards/guards";
@@ -17,6 +18,9 @@ export const AwsCognitoModule: ModuleInterface = {
             parameterName: AwsCognitoModuleKeyname + ".poolId",
             isRequired: true,
         }
+    ],
+    importModules: [
+        HttpModule,
     ],
 
     importServices: [],
