@@ -1,6 +1,5 @@
 import {injectable} from "tsyringe";
 import {IncomingHttpHeaders} from "http";
-import instance from "tsyringe/dist/typings/dependency-container";
 
 @injectable()
 export class HttpHeadersMapper {

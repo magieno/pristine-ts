@@ -1,7 +1,6 @@
 import {PathRouterNode} from "./path-router.node";
 import {HttpMethod} from "@pristine-ts/common";
 import {MethodRouterNode} from "./method-router.node";
-import instance from "tsyringe/dist/typings/dependency-container";
 import {pathRouterNode} from "../../test-fixtures/path-router.node.test-fixture";
 import {Route} from "../models/route";
 
@@ -15,13 +14,13 @@ describe("Path Router Node tests", () => {
 
     it("should match if the path matches", () => {
         const pathRouterNode = new PathRouterNode("/allo", undefined)
-        
+
         expect(pathRouterNode.matches("/allo")).toBeTruthy()
     })
-    
+
     it("should match if the path doesn't match", () => {
         const pathRouterNode = new PathRouterNode("/allo", undefined)
-        
+
         expect(pathRouterNode.matches("hello")).toBeFalsy();
     })
 
@@ -36,19 +35,19 @@ describe("Path Router Node tests", () => {
 
         expect(pathRouterNode.matches("24a12cf7-8bc7-447c-9cb0-d97f5eb23fbb")).toBeTruthy();
     })
-    
+
     it("should return null if the split paths passed is less than 1", () => {
         const pathRouterNode = new PathRouterNode("/allo", undefined)
 
         expect(pathRouterNode.find([], HttpMethod.Get)).toBeNull();
     })
-    
+
     it("should return null if the split paths[0] doesn't match", () => {
         const pathRouterNode = new PathRouterNode("/allo", undefined)
 
         expect(pathRouterNode.find(["/hello"], HttpMethod.Get)).toBeNull();
     })
-    
+
     it("should return the httpMethod router node if it matches", () => {
 
         expect(root.find(["/", "/api", "/1.0", "/dogs"], HttpMethod.Get) instanceof MethodRouterNode).toBeTruthy()
