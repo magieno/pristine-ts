@@ -6,13 +6,13 @@ import {
     HttpRequestInterface,
     HttpRequestOptions,
     HttpResponseInterface,
-    ResponseTypeEnum
+    ResponseTypeEnum,
+    HttpRequestInterceptorInterface,
+    HttpResponseInterceptorInterface
 } from "@pristine-ts/http";
 import {HttpMethod} from "@pristine-ts/common";
 import {readFileSync} from "fs";
 import { v4 as uuidv4 } from 'uuid';
-import {HttpRequestInterceptorInterface} from "@pristine-ts/http";
-import {HttpResponseInterceptorInterface} from "@pristine-ts/http";
 import spyOn = jest.spyOn;
 
 describe("Http Client", () => {
