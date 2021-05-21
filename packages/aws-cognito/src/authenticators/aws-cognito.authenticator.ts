@@ -1,6 +1,5 @@
 import {inject, injectable, singleton} from "tsyringe";
 import {AwsCognitoModuleKeyname} from "../aws-cognito.module.keyname";
-import {PublicKeyInterface} from "../interfaces/public-key.interface";
 import * as jwt from "jsonwebtoken";
 import {HttpMethod, IdentityInterface, RequestInterface} from "@pristine-ts/common";
 import {TokenHeaderInterface} from "../interfaces/token-header.interface";
