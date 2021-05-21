@@ -257,16 +257,18 @@ export class Kernel {
         let interceptedErrorResponse = new Response();
         interceptedErrorResponse.request = request;
 
-        if (error instanceof HttpError) {
-            interceptedErrorResponse.status = (error as HttpError).httpStatus
-        } else {
-            interceptedErrorResponse.status = 500;
-        }
-
         interceptedErrorResponse.body = {
             name: error.name,
             message: error.message,
         };
+
+        if (error instanceof HttpError) {
+            interceptedErrorResponse.status = (error as HttpError).httpStatus
+            interceptedErrorResponse.body.errors = (error as HttpError).errors
+        } else {
+            interceptedErrorResponse.status = 500;
+        }
+
 
         // Check first if there are any RequestInterceptors
         if (container.isRegistered(ServiceDefinitionTagEnum.ErrorResponseInterceptor, true)) {

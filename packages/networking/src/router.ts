@@ -15,14 +15,16 @@ import {HttpMethod, IdentityInterface, ServiceDefinitionTagEnum} from "@pristine
 import {AuthenticationManagerInterface, AuthorizerManagerInterface} from "@pristine-ts/security";
 import {RouterResponseEnricherInterface} from "./interfaces/router-response-enricher.interface";
 import {RouterRequestEnricherInterface} from "./interfaces/router-request-enricher.interface";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 
 @singleton()
 export class Router implements RouterInterface {
     private root: RouterNode = new PathRouterNode("/");
 
-    public constructor(private readonly controllerMethodParameterDecoratorResolver: ControllerMethodParameterDecoratorResolver,
-                       @inject("AuthorizerManagerInterface") private readonly authorizerManager: AuthorizerManagerInterface,
-                       @inject("AuthenticationManagerInterface") private readonly authenticationManager: AuthenticationManagerInterface) {
+    public constructor( @inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface,
+                        private readonly controllerMethodParameterDecoratorResolver: ControllerMethodParameterDecoratorResolver,
+                        @inject("AuthorizerManagerInterface") private readonly authorizerManager: AuthorizerManagerInterface,
+                        @inject("AuthenticationManagerInterface") private readonly authenticationManager: AuthenticationManagerInterface) {
     }
 
     /**
@@ -148,7 +150,8 @@ export class Router implements RouterInterface {
                     // https://stackoverflow.com/a/27760489/684101
                     enrichedResponse = await Promise.resolve((enricher as RouterResponseEnricherInterface).enrichResponse(enrichedResponse, request, methodNode));
                 } catch (e) {
-                    throw new Error("There was an exception thrown while executing the 'enrichResponse' method of the RouterResponseEnricher named: '" + enricher.constructor.name + "'. Error thrown is: '" + e + "'.");
+                    this.loghandler.error("There was an exception thrown while executing the 'enrichResponse' method of the RouterResponseEnricher named: '" + enricher.constructor.name + "'.", {e});
+                    throw e;
                 }
             }
         }
@@ -184,7 +187,8 @@ export class Router implements RouterInterface {
                     // https://stackoverflow.com/a/27760489/684101
                     enrichedRequest = await Promise.resolve((enricher as RouterRequestEnricherInterface).enrichRequest(enrichedRequest, methodNode));
                 } catch (e) {
-                    throw new Error("There was an exception thrown while executing the 'enrichResponse' method of the RouterResponseEnricher named: '" + enricher.constructor.name + "'. Error thrown is: '" + e + "'.");
+                    this.loghandler.error("There was an exception thrown while executing the 'enrichedRequest' method of the RouterRequestEnricher named: '" + enricher.constructor.name + "'.", {e});
+                    throw e;
                 }
             }
         }

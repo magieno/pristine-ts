@@ -1,5 +1,5 @@
 
-export const bodyValidation = (instance: string) => {
+export const bodyValidation = (classType: Function) => {
     return ( target: any,
              propertyKey: string,
              descriptor: PropertyDescriptor) => {
@@ -22,7 +22,7 @@ export const bodyValidation = (instance: string) => {
         }
 
         target.constructor.prototype["__metadata__"]["methods"][propertyKey]["__routeContext__"]["bodyValidator"] = {
-            instance,
+            classType,
         };
     }
 }

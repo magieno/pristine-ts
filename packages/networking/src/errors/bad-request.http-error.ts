@@ -5,7 +5,7 @@ import {HttpError} from "./http.error";
  */
 export class BadRequestHttpError extends HttpError {
     public constructor(readonly message: string, readonly errors: any[]) {
-        super(400, message);
+        super(400, message, errors);
 
         // Set the prototype explicitly.
         // As specified in the documentation in TypeScript
