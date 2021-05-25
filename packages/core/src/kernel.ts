@@ -32,6 +32,8 @@ import {KernelInitializationError} from "./errors/kernel-initialization.error";
 import {ErrorResponseInterceptionExecutionError} from "./errors/error-response-interception-execution.error";
 import {ResponseInterceptionExecutionError} from "./errors/response-interception-execution.error";
 import {RequestInterceptionExecutionError} from "./errors/request-interception-execution.error";
+import {EventInterceptionExecutionError} from "./errors/event-interception-execution.error";
+import {EventInterceptorInterface} from "./interfaces/event-interceptor.interface";
 
 /**
  * This is the central class that manages the lifecyle of this library.
@@ -214,6 +216,73 @@ export class Kernel {
     }
 
     /**
+     * This method executes all the EventInterceptors and returns the event updated by the interceptors.
+     *
+     * @param event
+     * @param container
+     * @private
+     */
+    private async executeRawEventInterceptors(event: any, container: DependencyContainer): Promise<any> {
+        // Execute all the event interceptors
+        let interceptedEvent = event;
+
+        // Check first if there are any EventInterceptors
+        if (container.isRegistered(ServiceDefinitionTagEnum.EventInterceptor, true)) {
+            const interceptors: any[] = container.resolveAll(ServiceDefinitionTagEnum.EventInterceptor);
+
+            for (const interceptor of interceptors) {
+                // We don't have a guarantee that the event interceptors will implement the Interface, even though we specify it should.
+                // So, we have to verify that the method exists, and if it doesn't we throw
+                if (typeof interceptor.interceptRawEvent === "undefined") {
+                    throw new EventInterceptionExecutionError("The Event Interceptor doesn't have the 'interceptRawEvent' method. EventInterceptors should implement the EventInterceptor interface.", event, this);
+                }
+
+                try {
+                    // https://stackoverflow.com/a/27760489/684101
+                    interceptedEvent = await Promise.resolve((interceptor as EventInterceptorInterface).interceptRawEvent(interceptedEvent));
+                } catch (error) {
+                    throw new EventInterceptionExecutionError("There was an exception thrown while executing the 'interceptRawEvent' method of the EventInterceptor.", event, this, error);
+                }
+            }
+        }
+
+        return interceptedEvent;
+    }
+    /**
+     * This method executes all the EventInterceptors and returns the event updated by the interceptors.
+     *
+     * @param event
+     * @param container
+     * @private
+     */
+    private async executeEventInterceptors(event: Event<any>, container: DependencyContainer): Promise<Event<any>> {
+        // Execute all the event interceptors
+        let interceptedEvent = event;
+
+        // Check first if there are any EventInterceptor
+        if (container.isRegistered(ServiceDefinitionTagEnum.EventInterceptor, true)) {
+            const interceptors: any[] = container.resolveAll(ServiceDefinitionTagEnum.EventInterceptor);
+
+            for (const interceptor of interceptors) {
+                // We don't have a guarantee that the event interceptors will implement the Interface, even though we specify it should.
+                // So, we have to verify that the method exists, and if it doesn't we throw
+                if (typeof interceptor.interceptEvent === "undefined") {
+                    throw new EventInterceptionExecutionError("The Event Interceptor doesn't have the 'interceptEvent' method. EventInterceptors should implement the EventInterceptor interface.", event, this);
+                }
+
+                try {
+                    // https://stackoverflow.com/a/27760489/684101
+                    interceptedEvent = await Promise.resolve((interceptor as EventInterceptorInterface).interceptEvent(interceptedEvent));
+                } catch (error) {
+                    throw new EventInterceptionExecutionError("There was an exception thrown while executing the 'interceptRawEvent' method of the EventInterceptor.", event, this, error);
+                }
+            }
+        }
+
+        return interceptedEvent;
+    }
+
+    /**
      * This method executes all the response interceptors and returns the response updated by the interceptors.
      *
      * @param response
@@ -311,11 +380,15 @@ export class Kernel {
         // Start by creating a child container and we will use this container to instantiate the dependencies for this event
         const childContainer = this.container.createChildContainer();
 
+        const interceptedRawEvent = await this.executeRawEventInterceptors(rawEvent, childContainer);
+
         const eventTransformer: EventTransformer = childContainer.resolve(EventTransformer);
         const eventDispatcher: EventDispatcher = childContainer.resolve(EventDispatcher);
 
         // Transform the raw event into an object
-        const event: Event<any> = eventTransformer.transform(rawEvent);
+        let event: Event<any> = eventTransformer.transform(interceptedRawEvent);
+
+        event = await this.executeEventInterceptors(event, childContainer);
 
         // Dispatch the Event to the EventListeners
         await eventDispatcher.dispatch(event);
