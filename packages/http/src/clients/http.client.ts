@@ -9,7 +9,7 @@ import Url from 'url-parse';
 import {ResponseTypeEnum} from "../enums/response-type.enum";
 import {HttpRequestOptions} from "../options/http-request.options.";
 import {assign} from "lodash";
-import {ServiceDefinitionTagEnum} from "@pristine-ts/common";
+import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {HttpRequestInterceptorInterface} from "../interfaces/http-request-interceptor.interface";
 import {HttpResponseInterceptorInterface} from "../interfaces/http-response-interceptor.interface";
 import {MathUtils} from "../utils/math.utils";
@@ -17,6 +17,7 @@ import URLParse from "url-parse";
 import {HttpClientResponseRedirectError} from "../errors/http-client-response-redirect.error";
 import {HttpClientRequestError} from "../errors/http-client-request.error";
 
+@tag('HttpClientInterface')
 @injectable()
 export class HttpClient implements HttpClientInterface {
     public defaultOptions: HttpRequestOptions = {
