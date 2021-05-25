@@ -71,11 +71,11 @@ describe("Console writer", () => {
 
         await new Promise(res => setTimeout(res, 1000));
 
-        expect(global.console.info).toHaveBeenCalledWith(logInfo);
-        expect(global.console.debug).toHaveBeenCalledWith(logDebug);
-        expect(global.console.warn).toHaveBeenCalledWith(logWarning);
-        expect(global.console.error).toHaveBeenCalledWith(logError);
-        expect(global.console.error).toHaveBeenCalledWith(logCritical);
+        expect(global.console.info).toHaveBeenCalledWith(JSON.stringify(logInfo));
+        expect(global.console.debug).toHaveBeenCalledWith(JSON.stringify(logDebug));
+        expect(global.console.warn).toHaveBeenCalledWith(JSON.stringify(logWarning));
+        expect(global.console.error).toHaveBeenCalledWith(JSON.stringify(logError));
+        expect(global.console.error).toHaveBeenCalledWith(JSON.stringify(logCritical));
     });
 
     it("should log if configuration level is debug and severity is higher", async () => {
@@ -132,11 +132,11 @@ describe("Console writer", () => {
 
         await new Promise(res => setTimeout(res, 1000));
 
-        expect(global.console.info).not.toHaveBeenCalledWith(logInfo);
-        expect(global.console.debug).toHaveBeenCalledWith(logDebug);
-        expect(global.console.warn).toHaveBeenCalledWith(logWarning);
-        expect(global.console.error).toHaveBeenCalledWith(logError);
-        expect(global.console.error).toHaveBeenCalledWith(logCritical);
+        expect(global.console.info).not.toHaveBeenCalledWith(JSON.stringify(logInfo));
+        expect(global.console.debug).toHaveBeenCalledWith(JSON.stringify(logDebug));
+        expect(global.console.warn).toHaveBeenCalledWith(JSON.stringify(logWarning));
+        expect(global.console.error).toHaveBeenCalledWith(JSON.stringify(logError));
+        expect(global.console.error).toHaveBeenCalledWith(JSON.stringify(logCritical));
     });
 
     it("should log if configuration level is warning and severity is higher", async () => {
@@ -193,11 +193,11 @@ describe("Console writer", () => {
 
         await new Promise(res => setTimeout(res, 1000));
 
-        expect(global.console.info).not.toHaveBeenCalledWith(logInfo);
-        expect(global.console.debug).not.toHaveBeenCalledWith(logDebug);
-        expect(global.console.warn).toHaveBeenCalledWith(logWarning);
-        expect(global.console.error).toHaveBeenCalledWith(logError);
-        expect(global.console.error).toHaveBeenCalledWith(logCritical);
+        expect(global.console.info).not.toHaveBeenCalledWith(JSON.stringify(logInfo));
+        expect(global.console.debug).not.toHaveBeenCalledWith(JSON.stringify(logDebug));
+        expect(global.console.warn).toHaveBeenCalledWith(JSON.stringify(logWarning));
+        expect(global.console.error).toHaveBeenCalledWith(JSON.stringify(logError));
+        expect(global.console.error).toHaveBeenCalledWith(JSON.stringify(logCritical));
     });
 
     it("should log if configuration level is error and severity is higher", async () => {
@@ -254,11 +254,11 @@ describe("Console writer", () => {
 
         await new Promise(res => setTimeout(res, 1000));
 
-        expect(global.console.info).not.toHaveBeenCalledWith(logInfo);
-        expect(global.console.debug).not.toHaveBeenCalledWith(logDebug);
-        expect(global.console.warn).not.toHaveBeenCalledWith(logWarning);
-        expect(global.console.error).toHaveBeenCalledWith(logError);
-        expect(global.console.error).toHaveBeenCalledWith(logCritical);
+        expect(global.console.info).not.toHaveBeenCalledWith(JSON.stringify(logInfo));
+        expect(global.console.debug).not.toHaveBeenCalledWith(JSON.stringify(logDebug));
+        expect(global.console.warn).not.toHaveBeenCalledWith(JSON.stringify(logWarning));
+        expect(global.console.error).toHaveBeenCalledWith(JSON.stringify(logError));
+        expect(global.console.error).toHaveBeenCalledWith(JSON.stringify(logCritical));
     });
 
 
@@ -316,11 +316,11 @@ describe("Console writer", () => {
 
         await new Promise(res => setTimeout(res, 1000));
 
-        expect(global.console.info).not.toHaveBeenCalledWith(logInfo);
-        expect(global.console.debug).not.toHaveBeenCalledWith(logDebug);
-        expect(global.console.warn).not.toHaveBeenCalledWith(logWarning);
-        expect(global.console.error).not.toHaveBeenCalledWith(logError);
-        expect(global.console.error).toHaveBeenCalledWith(logCritical);
+        expect(global.console.info).not.toHaveBeenCalledWith(JSON.stringify(logInfo));
+        expect(global.console.debug).not.toHaveBeenCalledWith(JSON.stringify(logDebug));
+        expect(global.console.warn).not.toHaveBeenCalledWith(JSON.stringify(logWarning));
+        expect(global.console.error).not.toHaveBeenCalledWith(JSON.stringify(logError));
+        expect(global.console.error).toHaveBeenCalledWith(JSON.stringify(logCritical));
     });
 
     it("should log stacked logs if log something", async () => {
@@ -377,11 +377,11 @@ describe("Console writer", () => {
 
         await new Promise(res => setTimeout(res, 1000));
 
-        expect(global.console.info).toHaveBeenCalledWith(logInfo);
-        expect(global.console.debug).toHaveBeenCalledWith(logDebug);
-        expect(global.console.warn).toHaveBeenCalledWith(logWarning);
-        expect(global.console.error).toHaveBeenCalledWith(logError);
-        expect(global.console.error).toHaveBeenCalledWith(logCritical);
+        expect(global.console.info).toHaveBeenCalledWith(JSON.stringify(logInfo));
+        expect(global.console.debug).toHaveBeenCalledWith(JSON.stringify(logDebug));
+        expect(global.console.warn).toHaveBeenCalledWith(JSON.stringify(logWarning));
+        expect(global.console.error).toHaveBeenCalledWith(JSON.stringify(logError));
+        expect(global.console.error).toHaveBeenCalledWith(JSON.stringify(logCritical));
     });
 
 });

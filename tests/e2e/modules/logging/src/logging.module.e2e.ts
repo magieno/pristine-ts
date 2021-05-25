@@ -48,7 +48,7 @@ describe("Logging Module instantiation in the Kernel", () => {
 
         await new Promise(res => setTimeout(res, 1000));
 
-        expect(global.console.info).toHaveBeenCalledWith({"extra": {depth1:{depth2:{depth3: {depth4: {depth5: {depth6: {depth7: {depth8: {depth9: 10}}}}}}}}}, "message": "Allo", "severity": 0});
+        expect(global.console.info).toHaveBeenCalledWith(JSON.stringify({"extra": {depth1:{depth2:{depth3: {depth4: {depth5: {depth6: {depth7: {depth8: {depth9: 10}}}}}}}}}, "severity": 0, "message": "Allo"}));
 
 
     })
