@@ -13,12 +13,12 @@ export class EventLoggingInterceptor implements EventInterceptorInterface{
     }
 
     interceptEvent(event: Event<any>): Promise<Event<any>> {
-        this.logHandler.info("New raw event received", event);
+        this.logHandler.info("New event received", event);
         return Promise.resolve(event);
     }
 
     interceptRawEvent(event: any): Promise<any> {
-        this.logHandler.info("New event received", event);
+        this.logHandler.info("New raw event received", event);
         return Promise.resolve(event);
     }
 
