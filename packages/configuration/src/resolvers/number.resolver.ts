@@ -19,7 +19,7 @@ export class NumberResolver implements ResolverInterface<number> {
             return +value;
         }
 
-        throw new ConfigurationResolverError("Cannot convert the string to a number. Value: '" + value + "'");
+        throw new ConfigurationResolverError("Cannot convert the string to a number.", value);
     }
 
     /**
@@ -38,7 +38,7 @@ export class NumberResolver implements ResolverInterface<number> {
             return 1;
         }
 
-        throw new ConfigurationResolverError("Cannot convert the number to a boolean. Value: '" + value + "'");
+        throw new ConfigurationResolverError("Cannot convert the number to a boolean.", value);
     }
 
     /**
@@ -64,7 +64,7 @@ export class NumberResolver implements ResolverInterface<number> {
             return this.resolveValueOrResolver(await value.resolve());
         }
 
-        throw new ConfigurationResolverError("Cannot resolve the value passed: '" + value + "'. It isn't of type boolean, string, number or ResolverInterface. We saw type: '" + typeof value + "'");
+        throw new ConfigurationResolverError("Cannot resolve the value passed. It isn't of type boolean, string, number or ResolverInterface.", value);
     }
 
     /**

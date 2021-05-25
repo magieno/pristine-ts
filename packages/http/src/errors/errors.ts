@@ -1,1 +1,1 @@
-export * from "./invalid-http-request-protocol.error";
+export * from "./http-client-response-redirect.error";

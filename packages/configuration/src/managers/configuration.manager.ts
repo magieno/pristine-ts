@@ -20,7 +20,7 @@ export class ConfigurationManager {
      */
     public register(configurationDefinition: ConfigurationDefinition) {
         if(this.configurationDefinitions.hasOwnProperty(configurationDefinition.parameterName)) {
-            throw new ConfigurationDefinitionAlreadyExistsError("There is already a configuration definition registered for this parameter name: '" + configurationDefinition.parameterName + "'");
+            throw new ConfigurationDefinitionAlreadyExistsError("There is already a configuration definition registered for this parameter name.",  configurationDefinition.parameterName);
         }
 
         this.configurationDefinitions[configurationDefinition.parameterName] = configurationDefinition;

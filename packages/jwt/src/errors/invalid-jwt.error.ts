@@ -1,13 +1,18 @@
 /**
  * This Error is thrown when you try to decode a JWT but the token is invalid.
  */
-export class InvalidJwtError extends Error {
-    public previousError?: Error;
+import {LoggableError, RequestInterface} from "@pristine-ts/common";
 
-    public constructor(message: string, previousError?: Error) {
-        super(message + ". Previous error:" + previousError?.message);
+export class InvalidJwtError extends LoggableError {
 
-        this.previousError = previousError;
+    public constructor(message: string, previousError: Error, request: RequestInterface, token, algorithm, publicKey) {
+        super(message, {
+            request,
+            previousError,
+            token,
+            algorithm,
+            publicKey,
+        });
 
         // Set the prototype explicitly.
         // As specified in the documentation in TypeScript

@@ -1,10 +1,13 @@
-export class EventTransformError extends Error {
-    public previousError?: Error;
+import {EventParserInterface} from "../interfaces/event-parser.interface";
+import {LoggableError} from "@pristine-ts/common";
 
-    public constructor(message: string, previousError?: Error) {
-        super(message + ". Previous error:" + previousError?.message);
+export class EventTransformError extends LoggableError {
 
-        this.previousError = previousError;
+    public constructor(message: string, event: any, eventParsers: EventParserInterface<any>[]) {
+        super(message, {
+            event,
+            eventParsers,
+        });
 
         // Set the prototype explicitly.
         // As specified in the documentation in TypeScript

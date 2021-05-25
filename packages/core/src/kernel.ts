@@ -1,6 +1,5 @@
 import "reflect-metadata";
 import {container, DependencyContainer, isClassProvider, ValueProvider, instanceCachingFactory} from "tsyringe";
-import {InitializationError} from "./errors/initialization.error";
 import {
     Response,
     Request,
@@ -12,7 +11,6 @@ import {
     HttpError,
 } from "@pristine-ts/networking";
 import {RequestInterface} from "@pristine-ts/common";
-import {GuardInitializationError, AuthenticatorInitializationError} from "@pristine-ts/security";
 import {ConfigurationManager, ModuleConfigurationValue} from "@pristine-ts/configuration";
 import {Event} from "@pristine-ts/event";
 import {RuntimeError} from "./errors/runtime.error";
@@ -28,6 +26,12 @@ import {
 import {EventTransformer, EventDispatcher} from "@pristine-ts/event";
 import util from "util";
 import {mergeWith} from "lodash"
+import {RequestHandlingError} from "./errors/request-handling.error";
+import {ProviderRegistrationError} from "./errors/provider-registration.error";
+import {KernelInitializationError} from "./errors/kernel-initialization.error";
+import {ErrorResponseInterceptionExecutionError} from "./errors/error-response-interception-execution.error";
+import {ResponseInterceptionExecutionError} from "./errors/response-interception-execution.error";
+import {RequestInterceptionExecutionError} from "./errors/request-interception-execution.error";
 
 /**
  * This is the central class that manages the lifecyle of this library.
@@ -88,7 +92,7 @@ export class Kernel {
             // @ts-ignore
             this.container.register.apply(this.container, args);
         } catch (e) {
-            throw new InitializationError("There was an error registering the following providerRegistration: " + util.inspect(providerRegistration, false, 4), e)
+            throw new ProviderRegistrationError("There was an registering the providerRegistration: ", providerRegistration, this);
         }
     }
 
@@ -194,14 +198,14 @@ export class Kernel {
                 // We don't have a guarantee that the request interceptors will implement the Interface, even though we specify it should.
                 // So, we have to verify that the method exists, and if it doesn't we throw
                 if (typeof interceptor.interceptRequest === "undefined") {
-                    throw new RuntimeError("The Request Interceptor named: '" + interceptor.constructor.name + "' doesn't have the 'interceptRequest' method. RequestInterceptors should implement the RequestInterceptor interface.")
+                    throw new RequestInterceptionExecutionError("The Request Interceptor doesn't have the 'interceptRequest' method. RequestInterceptors should implement the RequestInterceptor interface.", request, this);
                 }
 
                 try {
                     // https://stackoverflow.com/a/27760489/684101
                     interceptedRequest = await Promise.resolve((interceptor as RequestInterceptorInterface).interceptRequest(interceptedRequest));
-                } catch (e) {
-                    throw new RuntimeError("There was an exception thrown while executing the 'interceptRequest' method of the RequestInterceptor named: '" + interceptor.constructor.name + "'. Error thrown is: '" + e + "'.");
+                } catch (error) {
+                    throw new RequestInterceptionExecutionError("There was an exception thrown while executing the 'interceptRequest' method of the RequestInterceptor.", request, this, error);
                 }
             }
         }
@@ -229,14 +233,14 @@ export class Kernel {
                 // We don't have a guarantee that the request interceptors will implement the Interface, even though we specify it should.
                 // So, we have to verify that the method exists, and if it doesn't we throw
                 if (typeof interceptor.interceptResponse === "undefined") {
-                    throw new RuntimeError("The Response Interceptor named: '" + interceptor.constructor.name + "' doesn't have the 'interceptResponse' method. ResponseInterceptors should implement the ResponseInterceptor interface.")
+                    throw new ResponseInterceptionExecutionError("The Response Interceptor doesn't have the 'interceptResponse' method. ResponseInterceptors should implement the ResponseInterceptor interface.", request, response, interceptor)
                 }
 
                 try {
                     // https://stackoverflow.com/a/27760489/684101
                     interceptedResponse = await Promise.resolve((interceptor as ResponseInterceptorInterface).interceptResponse(interceptedResponse, request));
                 } catch (e) {
-                    throw new RuntimeError("There was an exception thrown while executing the 'interceptResponse' method of the ResponseInterceptor named: '" + interceptor.constructor.name + "'. Error thrown is: '" + e + "'.");
+                    throw new ResponseInterceptionExecutionError("There was an exception thrown while executing the 'interceptResponse' method of the ResponseInterceptor.", request, response, interceptor, e);
                 }
             }
         }
@@ -282,14 +286,14 @@ export class Kernel {
                 // We don't have a guarantee that the request interceptors will implement the Interface, even though we specify it should.
                 // So, we have to verify that the method exists, and if it doesn't we throw
                 if (typeof interceptor.interceptError === "undefined") {
-                    throw new RuntimeError("The Error Response Interceptor named: '" + interceptor.constructor.name + "' doesn't have the 'interceptError' method. ErrorResponseInterceptors should implement the ErrorResponseInterceptor interface.")
+                    throw new ErrorResponseInterceptionExecutionError("The Error Response Interceptor doesn't have the 'interceptError' method. ErrorResponseInterceptors should implement the ErrorResponseInterceptor interface.", error, request, interceptor)
                 }
 
                 try {
                     // https://stackoverflow.com/a/27760489/684101
                     interceptedErrorResponse = await Promise.resolve((interceptor as ErrorResponseInterceptorInterface).interceptError(error, request, interceptedErrorResponse));
                 } catch (e) {
-                    throw new RuntimeError("There was an exception thrown while executing the 'interceptError' method of the ErrorResponseInterceptors named: '" + interceptor.constructor.name + "'. Error thrown is: '" + e + "'.");
+                    throw new ErrorResponseInterceptionExecutionError("There was an exception thrown while executing the 'interceptError' method of the ErrorResponseInterceptors", error, request, interceptor, e)
                 }
             }
         }
@@ -329,7 +333,7 @@ export class Kernel {
         return new Promise(async (resolve) => {
             // Check for the router to not be undefined.
             if (this.router === undefined) {
-                throw new InitializationError("The Router is undefined");
+                throw new RequestHandlingError("The Router is undefined", request, this);
             }
 
             // Start by creating a child container and we will use this container to instantiate the dependencies for this request
@@ -368,7 +372,7 @@ export class Kernel {
         // Init the controllers
         controllerRegistry.forEach(controller => {
             if (this.router === undefined) {
-                throw new InitializationError("The Router is undefined");
+                throw new KernelInitializationError("The Router is undefined");
             }
 
             if (controller.hasOwnProperty("__metadata__") === false) {

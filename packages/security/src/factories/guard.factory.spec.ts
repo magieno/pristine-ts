@@ -4,7 +4,7 @@ import {container, injectable} from "tsyringe";
 import {GuardInterface} from "../interfaces/guard.interface";
 import {GuardContextInterface} from "../interfaces/guard-context.interface";
 import {IdentityInterface, RequestInterface} from "@pristine-ts/common";
-import {GuardInitializationError} from "../errors/guard-initialization.error";
+import {GuardDecoratorError} from "../errors/guard-decorator.error";
 
 describe("Guard Factory", () => {
     @injectable()
@@ -47,7 +47,7 @@ describe("Guard Factory", () => {
             },
             constructorName: "guard",
             options: {},
-        }, container)).toThrow(GuardInitializationError);
+        }, container)).toThrow(GuardDecoratorError);
     })
 
     it("should throw when the guard doesn't implement the 'setContext' method", () => {
@@ -62,6 +62,6 @@ describe("Guard Factory", () => {
             },
             constructorName: "guard",
             options: {},
-        }, container)).toThrow(GuardInitializationError);
+        }, container)).toThrow(GuardDecoratorError);
     })
 })

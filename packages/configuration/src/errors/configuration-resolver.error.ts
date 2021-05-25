@@ -1,6 +1,11 @@
-export class ConfigurationResolverError extends Error {
-    public constructor(message: string) {
-        super(message);
+import {LoggableError} from "@pristine-ts/common";
+
+export class ConfigurationResolverError extends LoggableError {
+    public constructor(message: string, value) {
+        super(message, {
+            value,
+            type: typeof(value),
+        });
 
         // Set the prototype explicitly.
         // As specified in the documentation in TypeScript

@@ -2,9 +2,14 @@
  * This class defines a basic HttpError. In your code, feel free to throw an HttpError to have this error returned via HTTP.
  * If you throw this error when handling an Event, it won't be returned.
  */
-export class HttpError extends Error {
+import {LoggableError} from "@pristine-ts/common";
+
+export class HttpError extends LoggableError {
     public constructor(public readonly httpStatus: number, readonly message: string, public readonly errors?: any[]) {
-        super(message);
+        super(message, {
+            httpStatus,
+            errors,
+        });
 
         // Set the prototype explicitly.
         // As specified in the documentation in TypeScript

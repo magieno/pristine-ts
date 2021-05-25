@@ -27,6 +27,6 @@ export class EventTransformer {
             }
         }
 
-        throw new EventTransformError("We cannot transform the raw event since no EventParser supported it.");
+        throw new EventTransformError("We cannot transform the raw event since no EventParser supported it.", event, this.eventParsers);
     }
 }

@@ -1,6 +1,8 @@
-export class ConfigurationDefinitionAlreadyExistsError extends Error {
-    public constructor(message: string) {
-        super(message);
+import {LoggableError} from "@pristine-ts/common";
+
+export class ConfigurationDefinitionAlreadyExistsError extends LoggableError {
+    public constructor(message: string, parameterName: string) {
+        super(message, {parameterName});
 
         // Set the prototype explicitly.
         // As specified in the documentation in TypeScript

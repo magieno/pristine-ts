@@ -2,7 +2,8 @@ import {RouterNode} from "./router.node";
 import {HttpMethod} from "@pristine-ts/common";
 import {MethodRouterNode} from "./method-router.node";
 import {Route} from "../models/route";
-import {NetworkingInitializationError} from "../errors/networking-initialization.error";
+import {PathRouterInstantiationError} from "../errors/path-router-instantiation.error";
+import {PathRouterAddingError} from "../errors/path-router-adding.error";
 
 /**
  * This class represents a Path Node in the Router Node. It can never be a leaf node and will always have children.
@@ -12,7 +13,7 @@ export class PathRouterNode extends RouterNode {
         super();
 
         if (path.startsWith("/") === false) {
-            throw new NetworkingInitializationError("The path must absolutely start with a '/', but you passed: '" + path + "'.");
+            throw new PathRouterInstantiationError("The path must absolutely start with a '/'.", path, parent);
         }
 
         this.parent = parent;
@@ -37,7 +38,7 @@ export class PathRouterNode extends RouterNode {
             const matchedMethodRouterNodeChild = this.children.filter(child => child instanceof MethodRouterNode).find((child: MethodRouterNode) => child.matches(method))
 
             if (matchedMethodRouterNodeChild !== undefined) {
-                throw new NetworkingInitializationError("There is already an HTTP Method associated with this path. Path: '" + splitPaths.join("") + "', Method: '" + method + "'")
+                throw new PathRouterAddingError("There is already an HTTP Method associated with this path.", splitPaths, method, route, this);
             }
 
             this.children.push(new MethodRouterNode(this, method, route));

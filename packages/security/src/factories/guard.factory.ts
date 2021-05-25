@@ -1,7 +1,8 @@
 import {DependencyContainer, injectable} from "tsyringe";
 import {GuardContextInterface} from "../interfaces/guard-context.interface";
 import {GuardInterface} from "../interfaces/guard.interface";
-import {GuardInitializationError} from "../errors/guard-initialization.error";
+import {GuardDecoratorError} from "../errors/guard-decorator.error";
+import {GuardInstantiationError} from "../errors/guard-instantiation.error";
 
 @injectable()
 export class GuardFactory {
@@ -15,12 +16,12 @@ export class GuardFactory {
 
         // Check again if the class has the isAuthorized method
         if (typeof instantiatedGuard.isAuthorized !== 'function') {
-            throw new GuardInitializationError("The guard: '" + instantiatedGuard + "' doesn't implement the isAuthorized() method.");
+            throw new GuardInstantiationError("The guard doesn't implement the isAuthorized() method.", instantiatedGuard, guardContext);
         }
 
         // Check again if the class has the setContext method
         if (typeof instantiatedGuard.setContext !== 'function') {
-            throw new GuardInitializationError("The guard: '" + instantiatedGuard + "' doesn't implement the setContext() method.");
+            throw new GuardInstantiationError("The guard doesn't implement the setContext() method.", instantiatedGuard, guardContext);
         }
 
         return instantiatedGuard;
