@@ -1,7 +1,9 @@
 /**
  * This error is a generic error thrown when the kernel is running and you need a generic error.
  */
-export class RuntimeError extends Error {
+import {LoggableError} from "@pristine-ts/common";
+
+export class RuntimeError extends LoggableError {
     public constructor(readonly message: string) {
         super(message);
 

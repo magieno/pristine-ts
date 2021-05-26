@@ -1,14 +1,19 @@
-
 /**
  * This Error represents a 404 error.
  */
-export class DynamodbError extends Error {
+import {LoggableError} from "@pristine-ts/common";
+
+export class DynamodbError extends LoggableError {
     public constructor(message?: string,
                        public readonly originalError?: Error,
                        public readonly tableName?: string,
                        public readonly primaryKey?: string,
                        ) {
-        super(message);
+        super(message ?? "DynamoDBError", {
+            originalError,
+            tableName,
+            primaryKey,
+        });
 
         // Set the prototype explicitly.
         // As specified in the documentation in TypeScript

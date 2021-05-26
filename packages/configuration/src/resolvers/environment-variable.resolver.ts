@@ -7,7 +7,7 @@ export class EnvironmentVariableResolver implements ResolverInterface<string> {
 
     async resolve(): Promise<string> {
         if(process.env[this.environmentVariableName] === undefined) {
-            throw new ConfigurationResolverError("Cannot find the environment variable: '" + this.environmentVariableName + "'.");
+            throw new ConfigurationResolverError("Cannot find the environment variable.", this.environmentVariableName);
         }
 
         return Promise.resolve(process.env[this.environmentVariableName] as string);

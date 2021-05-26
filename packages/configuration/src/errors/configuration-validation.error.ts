@@ -1,4 +1,6 @@
-export class ConfigurationValidationError extends Error {
+import {LoggableError} from "@pristine-ts/common";
+
+export class ConfigurationValidationError extends LoggableError {
     public constructor(messages: string[]) {
         super(messages.join("\n"));
 

@@ -6,7 +6,6 @@ import * as http from "http";
 import {IncomingMessage, request as httpRequest, RequestOptions} from "http";
 import {request as httpsRequest} from "https";
 import Url from 'url-parse';
-import {InvalidHttpRequestProtocolError} from "../errors/invalid-http-request-protocol.error";
 import {ResponseTypeEnum} from "../enums/response-type.enum";
 import {HttpRequestOptions} from "../options/http-request.options.";
 import {assign} from "lodash";
@@ -14,6 +13,9 @@ import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {HttpRequestInterceptorInterface} from "../interfaces/http-request-interceptor.interface";
 import {HttpResponseInterceptorInterface} from "../interfaces/http-response-interceptor.interface";
 import {MathUtils} from "../utils/math.utils";
+import URLParse from "url-parse";
+import {HttpClientResponseRedirectError} from "../errors/http-client-response-redirect.error";
+import {HttpClientRequestError} from "../errors/http-client-request.error";
 
 @tag('HttpClientInterface')
 @injectable()
@@ -160,12 +162,12 @@ export class HttpClient implements HttpClientInterface {
         // Check to determine if this requests should be redirected and replayed
         if (this.isResponseRedirect(updatedResponse) && requestOptions.followRedirects) {
             if (requestOptions.maximumNumberOfRedirects && requestOptions.maximumNumberOfRedirects <= currentRedirectCount) {
-                throw new Error(); // todo: output a proper error that we have reached the maximum number of redirects.
+                throw new HttpClientResponseRedirectError("Error making the HTTP Request, the maximum number of redirects has been reached", request, requestOptions, response, currentRedirectCount); // todo: output a proper error that we have reached the maximum number of redirects.
             }
 
             // todo: Interpret the redirect and call the redirected URL with the same request payload
             if (response.headers === undefined || response.headers.location === undefined) {
-                throw new Error(); // todo: output a proper error that we have reached the maximum number of redirects.
+                throw new HttpClientResponseRedirectError("The http response headers doesn't contain the location header which makes it impossible to follow the redirect.", request, requestOptions, response, currentRedirectCount); // todo: output a proper error that we have reached the maximum number of redirects.
             }
 
             const updatedRequest = request;
@@ -261,7 +263,7 @@ export class HttpClient implements HttpClientInterface {
                 return req.end();
             }
 
-            return reject(new InvalidHttpRequestProtocolError("The protocol for the HttpRequest is invalid. It must be 'http' or 'https', you provided: '" + url.protocol + "'"));
+            return reject(new HttpClientRequestError("The protocol for the HttpRequest is invalid. It must be 'http' or 'https'.", request, url));
         })
     }
 

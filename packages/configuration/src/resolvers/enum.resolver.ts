@@ -28,7 +28,7 @@ export class EnumResolver<E> implements ResolverInterface<E> {
             }
         }
 
-        throw new ConfigurationResolverError("Cannot convert the string to a key of the enum. Value: '" + value + "'");
+        throw new ConfigurationResolverError("Cannot convert the string to a key of the enum.", value);
     }
 
     /**
@@ -47,7 +47,7 @@ export class EnumResolver<E> implements ResolverInterface<E> {
             }
         }
 
-        throw new ConfigurationResolverError("Cannot convert the number to a value of the enum. Value: '" + value + "'");
+        throw new ConfigurationResolverError("Cannot convert the number to a value of the enum.", value);
     }
 
     /**
@@ -71,7 +71,7 @@ export class EnumResolver<E> implements ResolverInterface<E> {
             return this.resolveValueOrResolver(await value.resolve(), enumClass);
         }
 
-        throw new ConfigurationResolverError("Cannot resolve the value passed: '" + value + "'. It isn't of type string, number or ResolverInterface. We saw type: '" + typeof value + "'");
+        throw new ConfigurationResolverError("Cannot resolve the value passed. It isn't of type string, number or ResolverInterface.", value);
     }
 
     /**

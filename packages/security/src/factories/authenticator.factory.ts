@@ -1,7 +1,7 @@
 import {DependencyContainer, injectable} from "tsyringe";
 import {AuthenticatorContextInterface} from "../interfaces/authenticator-context.interface";
 import {AuthenticatorInterface} from "../interfaces/authenticator.interface";
-import {AuthenticatorInitializationError} from "../errors/authenticator-initialization.error";
+import {AuthenticatorInstantiationError} from "../errors/authenticator-instantiation.error";
 
 @injectable()
 export class AuthenticatorFactory {
@@ -15,12 +15,12 @@ export class AuthenticatorFactory {
 
         // Check again if the class has the authenticate method
         if (typeof instantiatedAuthenticator.authenticate !== 'function') {
-            throw new AuthenticatorInitializationError("The authenticator: '" + instantiatedAuthenticator + "' isn't valid. It isn't a function or doesn't implement the 'authenticate' method.");
+            throw new AuthenticatorInstantiationError("The authenticator isn't valid. It isn't a function or doesn't implement the 'authenticate' method.", instantiatedAuthenticator, authenticatorContext);
         }
 
         // Check again if the class has the setContext method
         if (typeof instantiatedAuthenticator.setContext !== 'function') {
-            throw new AuthenticatorInitializationError("The authenticator: '" + instantiatedAuthenticator + "' isn't valid. It isn't a function or doesn't implement the 'setContext' method.");
+            throw new AuthenticatorInstantiationError("The authenticator isn't valid. It isn't a function or doesn't implement the 'setContext' method.", instantiatedAuthenticator, authenticatorContext);
         }
 
         return instantiatedAuthenticator;

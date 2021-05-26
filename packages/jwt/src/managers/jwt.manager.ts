@@ -3,8 +3,7 @@ import {container, DependencyContainer, inject, injectable, singleton} from "tsy
 import {RequestInterface} from "@pristine-ts/common";
 
 import {Algorithm, verify} from "jsonwebtoken"
-import {MissingAuthorizationHeaderError} from "../errors/missing-authorization-header.error";
-import {InvalidAuthorizationHeaderError} from "../errors/invalid-authorization-header.error";
+import {JwtAuthorizationHeaderError} from "../errors/jwt-authorization-header.error";
 import {InvalidJwtError} from "../errors/invalid-jwt.error";
 import {JwtManagerInterface} from "../interfaces/jwt-manager.interface";
 
@@ -20,17 +19,17 @@ export class JwtManager implements JwtManagerInterface {
 
     private validateRequestAndReturnToken(request: RequestInterface): string {
         if (request.headers === undefined || request.headers.hasOwnProperty("Authorization") === false) {
-            throw new MissingAuthorizationHeaderError("The Authorization header wasn't found in the Request.");
+            throw new JwtAuthorizationHeaderError("The Authorization header wasn't found in the Request.", request);
         }
 
         const authorizationHeader = request.headers.Authorization;
 
         if (authorizationHeader === undefined) {
-            throw new MissingAuthorizationHeaderError("The Authorization header wasn't found in the Request.");
+            throw new JwtAuthorizationHeaderError("The Authorization header wasn't found in the Request.", request);
         }
 
         if (authorizationHeader.startsWith("Bearer ") === false) {
-            throw new InvalidAuthorizationHeaderError("The value in Authorization header doesn't start with 'Bearer '")
+            throw new JwtAuthorizationHeaderError("The value in Authorization header doesn't start with 'Bearer '", request)
         }
 
         return authorizationHeader.substr(7, authorizationHeader.length);
@@ -45,7 +44,7 @@ export class JwtManager implements JwtManagerInterface {
                     algorithms: [this.algorithm],
                 }, (err, decoded) => {
                     if (err) {
-                        return reject(new InvalidJwtError("The JWT is invalid.", err));
+                        return reject(new InvalidJwtError("The JWT is invalid.", err, request, token, this.algorithm, this.publicKey));
                     }
 
                     return resolve(decoded);

@@ -1,5 +1,5 @@
 import {GuardInterface} from "../interfaces/guard.interface";
-import {GuardInitializationError} from "../errors/guard-initialization.error";
+import {GuardDecoratorError} from "../errors/guard-decorator.error";
 import {GuardContextInterface} from "../interfaces/guard-context.interface";
 
 export const guard = (guard: GuardInterface | Function, options?: any) => {
@@ -12,7 +12,7 @@ export const guard = (guard: GuardInterface | Function, options?: any) => {
             (typeof guard === 'function' && typeof guard.prototype.isAuthorized === 'function') ||
             (typeof guard === 'object' && typeof guard.isAuthorized === 'function')
         ))) {
-            throw new GuardInitializationError("The guard: '" + guard + "' isn't valid. It isn't a function or doesn't implement the 'isAuthorized' method.");
+            throw new GuardDecoratorError("The guard isn't valid. It isn't a function or doesn't implement the 'isAuthorized' method.", guard, options, target, propertyKey, descriptor);
         }
 
         // Construct the Guard Context.

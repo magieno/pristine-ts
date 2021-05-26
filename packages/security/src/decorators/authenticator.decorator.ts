@@ -1,7 +1,8 @@
 import {AuthenticatorInterface} from "../interfaces/authenticator.interface";
-import {AuthenticatorInitializationError} from "../errors/authenticator-initialization.error";
+import {AuthenticatorInstantiationError} from "../errors/authenticator-instantiation.error";
 import {GuardContextInterface} from "../interfaces/guard-context.interface";
 import {AuthenticatorContextInterface} from "../interfaces/authenticator-context.interface";
+import {AuthenticatorDecoratorError} from "../errors/authenticator-decorator.error";
 
 export const authenticator = (authenticator: AuthenticatorInterface | Function, options?: any) => {
     return ( target: any,
@@ -14,7 +15,7 @@ export const authenticator = (authenticator: AuthenticatorInterface | Function, 
             (typeof authenticator === 'function' && typeof authenticator.prototype.authenticate === 'function' && typeof authenticator.prototype.setContext === 'function') ||
             (typeof authenticator === 'object' && typeof authenticator.authenticate === 'function' && typeof authenticator.setContext === 'function')
         ))) {
-            throw new AuthenticatorInitializationError("The authenticator: '" + authenticator + "' isn't valid. It isn't a function or doesn't implement both the 'authenticate' and the 'setContext' methods.");
+            throw new AuthenticatorDecoratorError("The authenticator isn't valid. It isn't a function or doesn't implement both the 'authenticate' and the 'setContext' methods.", authenticator, options, target, propertyKey, descriptor);
         }
 
         // Construct the Guard Context.

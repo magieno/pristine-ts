@@ -3,9 +3,9 @@ import {container, injectable} from "tsyringe";
 import {AuthenticatorInterface} from "../interfaces/authenticator.interface";
 import {IdentityInterface, RequestInterface} from "@pristine-ts/common";
 import {AuthenticatorFactory} from "./authenticator.factory";
-import {AuthenticatorInitializationError} from "../errors/authenticator-initialization.error";
+import {AuthenticatorInstantiationError} from "../errors/authenticator-instantiation.error";
 import {GuardFactory} from "./guard.factory";
-import {GuardInitializationError} from "../errors/guard-initialization.error";
+import {GuardDecoratorError} from "../errors/guard-decorator.error";
 
 describe("Authenticator Factory", () => {
     @injectable()
@@ -45,7 +45,7 @@ describe("Authenticator Factory", () => {
             },
             constructorName: "authenticator",
             options: {},
-        }, container)).toThrow(AuthenticatorInitializationError);
+        }, container)).toThrow(AuthenticatorInstantiationError);
     })
 
     it("should throw when the authenticator doesn't implement the 'setContext' method", () => {
@@ -60,6 +60,6 @@ describe("Authenticator Factory", () => {
             },
             constructorName: "authenticator",
             options: {},
-        }, container)).toThrow(AuthenticatorInitializationError);
+        }, container)).toThrow(AuthenticatorInstantiationError);
     })
 })

@@ -14,5 +14,6 @@ export const CoreModule: ModuleInterface =  {
 export * from "./kernel";
 
 export * from "./errors/errors";
+export * from "./interceptors/interceptors";
 export * from "./interfaces/interfaces";
 export * from "./core.module.keyname";
