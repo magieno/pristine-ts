@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://ima-tech@github.com/ima-tech/pristine-ts.git"
+    "url": "git+https://magieno@github.com/magieno/pristine-ts.git"
   },
   "publishConfig": {
     "access": "public"
@@ -22,9 +22,9 @@
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/ima-tech/pristine-ts/issues"
+    "url": "https://github.com/magieno/pristine-ts/issues"
   },
-  "homepage": "https://github.com/ima-tech/pristine-ts#readme",
+  "homepage": "https://github.com/magieno/pristine-ts#readme",
   "devDependencies": {
     "@types/jest": "^26.0.20",
     "@types/lodash": "^4.14.168",
