@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/express",
-  "version": "0.0.67",
+  "version": "0.0.68",
   "description": "",
   "module": "dist/lib/esm/express.module.js",
   "main": "dist/lib/cjs/express.module.js",
