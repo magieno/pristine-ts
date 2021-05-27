@@ -48,6 +48,10 @@ export class TracingManager implements TracingManagerInterface {
 
         this.spans[span.keyname] = span;
 
+        this.tracers.forEach( (tracer:TracerInterface) => {
+            tracer.traceStartedStream?.push(this.trace);
+        })
+
         return span;
     }
 

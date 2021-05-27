@@ -1,8 +1,8 @@
-import {injectable} from "tsyringe";
+import {injectable, scoped, Lifecycle} from "tsyringe";
 import {Span, Trace, TracerInterface} from "@pristine-ts/telemetry";
 import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {Readable} from "stream";
-import AWSXRay, {Segment} from "aws-xray-sdk";
+import AWSXRay, {Segment, Subsegment} from "aws-xray-sdk";
 import {AwsXrayModuleKeyname} from "../aws-xray.module.keyname";
 
 AWSXRay.enableManualMode();
@@ -10,10 +10,34 @@ AWSXRay.enableManualMode();
 @moduleScoped(AwsXrayModuleKeyname)
 @tag(ServiceDefinitionTagEnum.Tracer)
 @injectable()
+@scoped(Lifecycle.ContainerScoped)
 export class XrayTracer implements TracerInterface{
+    segment: {[id: string]: Segment} = {};
+    subsegmentMap: {[id: string]: Subsegment} = {};
+    spanStartedStream: Readable;
+    spanEndedStream: Readable;
+    traceStartedStream: Readable;
     traceEndedStream: Readable;
 
     public constructor() {
+        this.spanStartedStream = new Readable({
+            objectMode: true,
+            read(size: number) {
+                return true;
+            }
+        });
+        this.spanEndedStream = new Readable({
+            objectMode: true,
+            read(size: number) {
+                return true;
+            }
+        });
+        this.traceStartedStream = new Readable({
+            objectMode: true,
+            read(size: number) {
+                return true;
+            }
+        });
         this.traceEndedStream = new Readable({
             objectMode: true,
             read(size: number) {
@@ -21,9 +45,39 @@ export class XrayTracer implements TracerInterface{
             }
         });
 
+        this.spanStartedStream.on('data', (span: Span) => {
+            this.spanStarted(span);
+        });
+
+        this.spanEndedStream.on('data', (span: Span) => {
+            this.spanEnded(span);
+        });
+
+        this.traceStartedStream.on('data', (trace: Trace) => {
+            this.traceStarted(trace);
+        });
+
         this.traceEndedStream.on('data', (trace: Trace) => {
             this.traceEnded(trace);
         });
+    }
+
+    private traceStarted(trace: Trace): Segment {
+        const segment = new AWSXRay.Segment(trace.rootSpan.keyname);
+        segment.id = trace.id;
+        segment.trace_id = trace.id;
+
+        if(trace.rootSpan.context) {
+            Object.keys(trace.rootSpan.context).forEach(key => {
+                const value = trace.rootSpan.context[key];
+                if (value) {
+                    segment.addMetadata(key, value);
+                }
+            })
+        }
+
+        this.segment[trace.id] = segment;
+        return segment;
     }
 
     /**
@@ -31,40 +85,34 @@ export class XrayTracer implements TracerInterface{
      * @param trace
      */
     private traceEnded(trace: Trace) {
-        const segment = this.captureSpan(trace.rootSpan, trace);
-        segment.flush();
+        this.segment[trace.id]?.flush();
     }
 
-    /**
-     * This method captures the spans recursively and creates the root segment.
-     * @param span
-     * @param trace
-     * @private
-     */
-    private captureSpan(span: Span, trace: Trace): Segment {
-        const segment = new AWSXRay.Segment(span.keyname);
-        segment.id = span.id;
-        segment.start_time = span.startDate;
-        segment.end_time = span.endDate;
-        segment.trace_id = trace.id;
-
-        if(span.parentSpan) {
-            segment.parent_id = span.parentSpan.id;
-        }
+    private spanStarted(span: Span): Subsegment {
+        const subsegment = new Subsegment(span.keyname);
+        subsegment.id = span.id;
 
         if(span.context) {
             Object.keys(span.context).forEach(key => {
                 const value = span.context[key];
                 if (value) {
-                    segment.addMetadata(key, value);
+                    subsegment.addMetadata(key, value);
                 }
             })
         }
 
-        span.childSpans?.forEach(childSpan => {
-            this.captureSpan(childSpan, trace);
-        })
+        if(span.parentSpan) {
+            this.subsegmentMap[span.parentSpan.id].addSubsegment(subsegment);
+        } else {
+            this.segment[span.trace.id]?.addSubsegment(subsegment);
+        }
 
-        return segment;
+        this.subsegmentMap[subsegment.id] = subsegment;
+
+        return subsegment;
+    }
+
+    private spanEnded(span: Span) {
+        this.subsegmentMap[span.id].close();
     }
 }
