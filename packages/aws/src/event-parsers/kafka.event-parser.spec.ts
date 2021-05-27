@@ -29,7 +29,7 @@ describe("Kafka event parser", () => {
                     offset: 15,
                     timestamp: 1596480920837,
                     timestampType: "CREATE_TIME",
-                    value: "aGVsbG8gZnJvbSBrYWZrYSAx"
+                    value: "ewoia2V5IjogInZhbHVlIgp9Cg=="
                 }
             ]
         }
@@ -71,7 +71,9 @@ describe("Kafka event parser", () => {
                                 partition: 0,
                                 timestamp: new Date(1596480920837),
                                 timestampType: "CREATE_TIME",
-                                value: "hello from kafka 1"
+                                value: {
+                                    key:"value"
+                                }
                             }
                         ]
                     }
