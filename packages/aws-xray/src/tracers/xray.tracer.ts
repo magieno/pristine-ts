@@ -98,6 +98,12 @@ export class XrayTracer implements TracerInterface{
             })
         }
 
+        if(span.parentSpan?.parentSpan) {
+            this.subsegmentMap[span.parentSpan.id].addSubsegment(subsegment);
+        } else {
+            this.segment.addSubsegment(subsegment);
+        }
+
         this.subsegmentMap[subsegment.id] = subsegment;
 
         return subsegment;
