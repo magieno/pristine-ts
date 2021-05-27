@@ -52,12 +52,14 @@ export class XrayTracer implements TracerInterface{
             segment.parent_id = span.parentSpan.id;
         }
 
-        Object.keys(span.context).forEach(key => {
-            const value = span.context[key];
-            if(value) {
-                segment.addMetadata(key, value);
-            }
-        })
+        if(span.context) {
+            Object.keys(span.context).forEach(key => {
+                const value = span.context[key];
+                if (value) {
+                    segment.addMetadata(key, value);
+                }
+            })
+        }
 
         span.childSpans?.forEach(childSpan => {
             this.captureSpan(childSpan, trace);
