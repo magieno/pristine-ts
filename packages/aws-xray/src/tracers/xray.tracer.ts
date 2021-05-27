@@ -62,20 +62,19 @@ export class XrayTracer implements TracerInterface{
     }
 
     private traceStarted(trace: Trace): Segment {
-        const segment = new AWSXRay.Segment(trace.rootSpan.keyname);
-        segment.id = trace.rootSpan.id;
-        segment.trace_id = trace.id;
+        this.segment = new AWSXRay.Segment(trace.rootSpan.keyname);
+        this.segment.id = trace.rootSpan.id;
+        this.segment.trace_id = trace.id;
 
         if(trace.rootSpan.context) {
             Object.keys(trace.rootSpan.context).forEach(key => {
                 const value = trace.rootSpan.context[key];
                 if (value) {
-                    segment.addMetadata(key, value);
+                    this.segment.addMetadata(key, value);
                 }
             })
         }
-        this.segment = segment;
-        return segment;
+        return this.segment;
     }
 
     /**
