@@ -74,6 +74,7 @@ export class XrayTracer implements TracerInterface{
                 }
             })
         }
+        this.segment = segment;
         return segment;
     }
 
