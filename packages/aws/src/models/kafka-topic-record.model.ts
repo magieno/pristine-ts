@@ -4,5 +4,5 @@ export class KafkaTopicRecordModel {
     offset: number;
     timestamp: Date;
     timestampType: string;
-    value: any;
+    value: string;
 }
