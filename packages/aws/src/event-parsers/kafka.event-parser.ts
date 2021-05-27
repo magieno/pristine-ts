@@ -27,7 +27,7 @@ export class KafkaEventParser implements EventParserInterface<KafkaEventPayload>
                     record.partition = topicRecord.partition;
                     record.timestamp = new Date(topicRecord.timestamp);
                     record.timestampType = topicRecord.timestampType;
-                    record.topicName = topicRecord.topicName;
+                    record.topicName = topicRecord.topic;
                     record.value = new Buffer(topicRecord.value, 'base64').toString('ascii');
                     topic.records.push(record);
                 }
