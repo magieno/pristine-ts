@@ -1,3 +1,3 @@
 export enum KafkaEventType {
-    KafkaEvent = "KAFAK_EVENT",
+    KafkaEvent = "KAFKA_EVENT",
 }
