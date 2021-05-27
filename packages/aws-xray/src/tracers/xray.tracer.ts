@@ -1,4 +1,4 @@
-import {injectable} from "tsyringe";
+import {injectable, scoped, Lifecycle} from "tsyringe";
 import {Span, Trace, TracerInterface} from "@pristine-ts/telemetry";
 import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {Readable} from "stream";
@@ -10,9 +10,10 @@ AWSXRay.enableManualMode();
 @moduleScoped(AwsXrayModuleKeyname)
 @tag(ServiceDefinitionTagEnum.Tracer)
 @injectable()
+@scoped(Lifecycle.ContainerScoped)
 export class XrayTracer implements TracerInterface{
-    segment: Segment;
-    subsegmentMap: {[id: string]: Subsegment};
+    segment: {[id: string]: Segment} = {};
+    subsegmentMap: {[id: string]: Subsegment} = {};
     spanStartedStream: Readable;
     spanEndedStream: Readable;
     traceStartedStream: Readable;
@@ -62,19 +63,21 @@ export class XrayTracer implements TracerInterface{
     }
 
     private traceStarted(trace: Trace): Segment {
-        this.segment = new AWSXRay.Segment(trace.rootSpan.keyname);
-        this.segment.id = trace.rootSpan.id;
-        this.segment.trace_id = trace.id;
+        const segment = new AWSXRay.Segment(trace.rootSpan.keyname);
+        segment.id = trace.id;
+        segment.trace_id = trace.id;
 
         if(trace.rootSpan.context) {
             Object.keys(trace.rootSpan.context).forEach(key => {
                 const value = trace.rootSpan.context[key];
                 if (value) {
-                    this.segment.addMetadata(key, value);
+                    segment.addMetadata(key, value);
                 }
             })
         }
-        return this.segment;
+
+        this.segment[trace.id] = segment;
+        return segment;
     }
 
     /**
@@ -82,7 +85,7 @@ export class XrayTracer implements TracerInterface{
      * @param trace
      */
     private traceEnded(trace: Trace) {
-        this.segment.flush();
+        this.segment[trace.id]?.flush();
     }
 
     private spanStarted(span: Span): Subsegment {
@@ -98,10 +101,10 @@ export class XrayTracer implements TracerInterface{
             })
         }
 
-        if(span.parentSpan?.parentSpan) {
+        if(span.parentSpan) {
             this.subsegmentMap[span.parentSpan.id].addSubsegment(subsegment);
         } else {
-            this.segment.addSubsegment(subsegment);
+            this.segment[span.trace.id]?.addSubsegment(subsegment);
         }
 
         this.subsegmentMap[subsegment.id] = subsegment;
