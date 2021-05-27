@@ -9,8 +9,23 @@ import {TracerInterface} from "../interfaces/tracer.interface";
 @tag(ServiceDefinitionTagEnum.Tracer)
 @injectable()
 export class XrayTracer implements TracerInterface {
-    spanStartedStream?: Readable = new Readable();
-    spanEndedStream?: Readable = new Readable();
-    traceEndedStream?: Readable = new Readable();
+    spanStartedStream?: Readable = new Readable({
+        objectMode: true,
+        read(size: number) {
+            return true;
+        }
+    });
+    spanEndedStream?: Readable = new Readable({
+        objectMode: true,
+        read(size: number) {
+            return true;
+        }
+    });
+    traceEndedStream?: Readable = new Readable({
+        objectMode: true,
+        read(size: number) {
+            return true;
+        }
+    });
 }
 
