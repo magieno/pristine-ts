@@ -13,6 +13,9 @@ AWSXRay.enableManualMode();
 export class XrayTracer implements TracerInterface{
     segment: Segment;
     subsegmentMap: {[id: string]: Subsegment};
+    spanStartedStream: Readable;
+    spanEndedStream: Readable;
+    traceStartedStream: Readable;
     traceEndedStream: Readable;
 
     public constructor() {
