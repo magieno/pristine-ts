@@ -33,7 +33,7 @@ export class TracingManager implements TracingManagerInterface {
      * @param traceId
      * @param context
      */
-    startTracing(spanRootKeyname: string = SpanKeynameEnum.RootExecution, traceId?: string, context?: any) {
+    startTracing(spanRootKeyname: string = SpanKeynameEnum.RootExecution, traceId?: string, context?: any): Span {
         this.trace = new Trace();
         this.trace.id = traceId ?? uuidv4();
         this.trace.context = context;
@@ -47,6 +47,8 @@ export class TracingManager implements TracingManagerInterface {
         this.trace.rootSpan = span;
 
         this.spans[span.keyname] = span;
+
+        return span;
     }
 
     /**
@@ -56,7 +58,7 @@ export class TracingManager implements TracingManagerInterface {
      * @param parentId
      * @param context
      */
-    public startSpan(keyname: string, parentId?: string, context?: any) {
+    public startSpan(keyname: string, parentId?: string, context?: any): Span {
         // Check if there's an active trace. If not, start one.
         if(this.trace === undefined) {
             this.startTracing(SpanKeynameEnum.RootExecution, undefined, context);
@@ -85,6 +87,8 @@ export class TracingManager implements TracingManagerInterface {
         this.tracers.forEach( (tracer:TracerInterface) => {
             tracer.spanStartedStream?.push(span);
         })
+
+        return span;
     }
 
     /**

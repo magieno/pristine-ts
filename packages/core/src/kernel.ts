@@ -34,6 +34,8 @@ import {ResponseInterceptionExecutionError} from "./errors/response-interception
 import {RequestInterceptionExecutionError} from "./errors/request-interception-execution.error";
 import {EventInterceptionExecutionError} from "./errors/event-interception-execution.error";
 import {EventInterceptorInterface} from "./interfaces/event-interceptor.interface";
+import {SpanKeynamesEnum} from "./enums/span-keynames.enum";
+import {TracingManagerInterface} from "@pristine-ts/telemetry";
 
 /**
  * This is the central class that manages the lifecyle of this library.
@@ -380,6 +382,11 @@ export class Kernel {
         // Start by creating a child container and we will use this container to instantiate the dependencies for this event
         const childContainer = this.container.createChildContainer();
 
+        const tracingManager: TracingManagerInterface = childContainer.resolve("TracingManagerInterface");
+        tracingManager.startTracing();
+
+        const eventSpan = tracingManager.startSpan(SpanKeynamesEnum.Event);
+
         const interceptedRawEvent = await this.executeRawEventInterceptors(rawEvent, childContainer);
 
         const eventTransformer: EventTransformer = childContainer.resolve(EventTransformer);
@@ -392,6 +399,9 @@ export class Kernel {
 
         // Dispatch the Event to the EventListeners
         await eventDispatcher.dispatch(event);
+
+        eventSpan.end();
+        tracingManager.endTrace();
     }
 
     /**
@@ -412,6 +422,11 @@ export class Kernel {
             // Start by creating a child container and we will use this container to instantiate the dependencies for this request
             const childContainer = this.container.createChildContainer();
 
+            const tracingManager: TracingManagerInterface = childContainer.resolve("TracingManagerInterface");
+            tracingManager.startTracing();
+
+            const requestSpan = tracingManager.startSpan(SpanKeynamesEnum.Request);
+
             try {
                 const interceptedRequest = await this.executeRequestInterceptors(request, childContainer);
 
@@ -420,6 +435,9 @@ export class Kernel {
                 // Execute all the response interceptors
                 const interceptedResponse = await this.executeResponseInterceptors(response, request, childContainer);
 
+                requestSpan.end();
+                tracingManager.endTrace();
+
                 return resolve(interceptedResponse);
             } catch (error) {
                 // Transform the error into a response object
@@ -427,6 +445,9 @@ export class Kernel {
 
                 // Execute all the response interceptors
                 const interceptedResponse = await this.executeResponseInterceptors(errorResponse, request, childContainer);
+
+                requestSpan.end();
+                tracingManager.endTrace();
 
                 return resolve(interceptedResponse);
             }

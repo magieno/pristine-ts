@@ -5,6 +5,7 @@ export * from "./enums/enums";
 export * from "./interfaces/interfaces";
 export * from "./managers/managers";
 export * from "./models/models";
+export * from "./tracers/basic.tracer";
 
 export const TelemetryModule: ModuleInterface = {
     keyname: TelemetryModuleKeyname,
