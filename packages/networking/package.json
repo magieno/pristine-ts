@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/networking",
-  "version": "0.0.71",
+  "version": "0.0.72",
   "description": "",
   "module": "dist/lib/esm/networking.module.js",
   "main": "dist/lib/cjs/networking.module.js",
