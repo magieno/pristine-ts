@@ -28,7 +28,12 @@ export class KafkaEventParser implements EventParserInterface<KafkaEventPayload>
                     record.timestamp = new Date(topicRecord.timestamp);
                     record.timestampType = topicRecord.timestampType;
                     record.topicName = topicRecord.topic;
-                    record.value = new Buffer(topicRecord.value, 'base64').toString('ascii');
+                    const decodedValue = new Buffer(topicRecord.value, 'base64').toString('ascii');
+                    try {
+                        record.value = JSON.parse(decodedValue);
+                    } catch (e) {
+                        record.value = decodedValue;
+                    }
                     topic.records.push(record);
                 }
                 event.payload.topics.push(topic);
