@@ -30,9 +30,15 @@ export class XrayTracer implements TracerInterface{
      * @param trace
      */
     private traceEnded(trace: Trace) {
-        const segment = AWSXRay.getSegment() as Segment;
+        let segment = AWSXRay.getSegment() as Segment;
+
+        if(segment === undefined) {
+            segment = new AWSXRay.Segment(trace.id);
+        }
+
         const subsegment = this.captureSpan(trace.rootSpan, segment);
 
+        segment.flush()
         this.loghandler.debug("X-Ray trace ended", {
             segment,
             subsegment,
@@ -50,7 +56,6 @@ export class XrayTracer implements TracerInterface{
         const subsegment: Subsegment = new Subsegment(span.keyname);
         subsegment.start_time = span.startDate / 1000;
 
-        subsegment["end_time"] = span.endDate? span.endDate / 1000: Date.now() / 1000;
         subsegment.addMetadata("span_id", span.id);
         subsegment.addMetadata("trace_id", span.trace.id);
 
@@ -81,6 +86,10 @@ export class XrayTracer implements TracerInterface{
         });
 
         segment.addSubsegment(subsegment);
+        subsegment.close()
+
+        // Force to rewrite the end time after closing it
+        subsegment["end_time"] = span.endDate ? (span.endDate / 1000) : (Date.now() / 1000);
 
         return subsegment;
     }
