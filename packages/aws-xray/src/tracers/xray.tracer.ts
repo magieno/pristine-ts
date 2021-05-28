@@ -29,18 +29,13 @@ export class XrayTracer implements TracerInterface{
      * @param trace
      */
     private traceEnded(trace: Trace) {
-        const segment = this.captureRoot(trace);
-        this.captureSpan(trace.rootSpan, segment);
-    }
-
-    private captureRoot(trace: Trace): Segment {
         const segment = AWSXRay.getSegment() as Segment;
-        segment.id = trace.id;
-        segment.start_time = trace.startDate;
-        segment.end_time = trace.endDate;
-        segment.trace_id = trace.id;
+        this.captureSpan(trace.rootSpan, segment);
+        segment.close()
+        segment.flush()
 
-        return segment;
+        console.log("Xray trace ended")
+        console.log(trace);
     }
 
     /**
@@ -50,10 +45,11 @@ export class XrayTracer implements TracerInterface{
      * @private
      */
     private captureSpan(span: Span, segment: Segment | Subsegment): Subsegment {
-        const subsegment = new Subsegment(span.id);
-        subsegment.start_time = span.startDate;
-        subsegment["end_time"] = span.endDate;
-        segment.addSubsegment(subsegment);
+        const subsegment: Subsegment = new Subsegment(span.keyname);
+        subsegment.start_time = span.startDate / 1000;
+        subsegment["end_time"] = span.endDate? span.endDate / 1000: Date.now() / 1000;
+        subsegment.addMetadata("span_id", span.id);
+        subsegment.addMetadata("trace_id", span.trace.id);
 
         if(span.context) {
             Object.keys(span.context).forEach(key => {
@@ -64,10 +60,15 @@ export class XrayTracer implements TracerInterface{
             })
         }
 
+        segment.addSubsegment(subsegment);
+
         span.childSpans?.forEach(childSpan => {
-            this.captureSpan(childSpan, segment);
+            console.log("Xray Child span")
+            console.log(childSpan);
+            this.captureSpan(childSpan, subsegment);
         })
 
+        subsegment.close();
         return subsegment;
     }
 }
