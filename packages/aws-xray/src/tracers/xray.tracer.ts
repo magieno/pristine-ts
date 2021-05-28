@@ -1,9 +1,10 @@
-import {injectable, scoped, Lifecycle} from "tsyringe";
+import {injectable, scoped, Lifecycle, inject} from "tsyringe";
 import {Span, Trace, TracerInterface} from "@pristine-ts/telemetry";
 import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {Readable} from "stream";
 import AWSXRay, {Segment, Subsegment} from "aws-xray-sdk";
 import {AwsXrayModuleKeyname} from "../aws-xray.module.keyname";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 
 @moduleScoped(AwsXrayModuleKeyname)
 @tag(ServiceDefinitionTagEnum.Tracer)
@@ -11,7 +12,7 @@ import {AwsXrayModuleKeyname} from "../aws-xray.module.keyname";
 export class XrayTracer implements TracerInterface{
     traceEndedStream: Readable;
 
-    public constructor() {
+    public constructor(@inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface) {
         this.traceEndedStream = new Readable({
             objectMode: true,
             read(size: number) {
@@ -30,12 +31,13 @@ export class XrayTracer implements TracerInterface{
      */
     private traceEnded(trace: Trace) {
         const segment = AWSXRay.getSegment() as Segment;
-        this.captureSpan(trace.rootSpan, segment);
-        segment.close()
-        segment.flush()
+        const subsegment = this.captureSpan(trace.rootSpan, segment);
 
-        console.log("Xray trace ended")
-        console.log(trace);
+        this.loghandler.debug("X-Ray trace ended", {
+            segment,
+            subsegment,
+            trace,
+        })
     }
 
     /**
@@ -47,6 +49,7 @@ export class XrayTracer implements TracerInterface{
     private captureSpan(span: Span, segment: Segment | Subsegment): Subsegment {
         const subsegment: Subsegment = new Subsegment(span.keyname);
         subsegment.start_time = span.startDate / 1000;
+
         subsegment["end_time"] = span.endDate? span.endDate / 1000: Date.now() / 1000;
         subsegment.addMetadata("span_id", span.id);
         subsegment.addMetadata("trace_id", span.trace.id);
@@ -60,15 +63,25 @@ export class XrayTracer implements TracerInterface{
             })
         }
 
-        segment.addSubsegment(subsegment);
-
-        span.childSpans?.forEach(childSpan => {
-            console.log("Xray Child span")
-            console.log(childSpan);
-            this.captureSpan(childSpan, subsegment);
+        this.loghandler.debug("X-Ray capture span", {
+            span,
+            segment,
+            subsegment,
         })
 
-        subsegment.close();
+        span.childSpans?.forEach(childSpan => {
+            this.loghandler.debug("X-Ray before capturing span", {
+                span,
+                segment,
+                subsegment,
+                childSpan,
+            })
+
+            this.captureSpan(childSpan, segment);
+        });
+
+        segment.addSubsegment(subsegment);
+
         return subsegment;
     }
 }

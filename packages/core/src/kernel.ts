@@ -372,6 +372,18 @@ export class Kernel {
         return interceptedErrorResponse;
     }
 
+    /**
+     * This method can be used to test if a raw event is supported or not.
+     * @param rawEvent
+     */
+    isRawEventSupported(rawEvent: object): boolean {
+        // Start by creating a child container and we will use this container to instantiate the dependencies for this event
+        const childContainer = this.container.createChildContainer();
+
+        const eventTransformer: EventTransformer = childContainer.resolve(EventTransformer);
+
+        return eventTransformer.isSupported(rawEvent);
+    }
 
     /**
      *  This method takes the raw Event, transforms it into an Event object and then dispatches it to the Event Listeners
