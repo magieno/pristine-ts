@@ -59,8 +59,21 @@ export class Router implements RouterInterface {
             // Retrieve the node to have information about the controller
             const methodNode: MethodRouterNode = this.root.find(splitPath, request.httpMethod) as MethodRouterNode;
 
+            this.loghandler.debug("Execute request", {
+                rootNode: this.root,
+                request,
+                url,
+                methodNode,
+            });
+
             // If node doesn't exist, throw a 404 error
             if(methodNode === null) {
+                this.loghandler.error("Cannot find the path", {
+                    rootNode: this.root,
+                    request,
+                    url,
+                });
+
                 return reject(new NotFoundHttpError("No route found for path: '" + url.pathname + "'."));
             }
 
@@ -70,23 +83,51 @@ export class Router implements RouterInterface {
             // Instantiate the controller
             const controller: any = container.resolve(methodNode.route.controllerInstantiationToken);
 
+            this.loghandler.debug("Before calling the authenticationManager", {
+                controller,
+                routeParameters
+            });
+
             let identity: IdentityInterface | undefined;
 
             try {
                 identity = await this.authenticationManager.authenticate(request, methodNode.route.context, container);
-            } catch (e) {
+
+                this.loghandler.debug("Found identity.", {
+                    identity
+                });
+            } catch (error) {
+                this.loghandler.error("Authentication error", {
+                    error,
+                    request,
+                    context: methodNode.route.context,
+                    container
+                });
+
                 // Todo: check if the error is an UnauthorizedHttpError, else create one.
-                return reject(e);
+                return reject(error);
             }
 
             // Call the controller with the resolved Method arguments
             try {
 
                 if(await this.authorizerManager.isAuthorized(request, methodNode.route.context, container, identity) === false) {
+                    this.loghandler.error("User not authorized to access this url.", {
+                        request,
+                        context: methodNode.route.context,
+                        container,
+                        identity
+                    });
+
                     return reject(new ForbiddenHttpError("You are not allowed to access this."));
                 }
 
                 const enrichedRequest = await this.executeRequestEnrichers(request, container, methodNode);
+
+                this.loghandler.debug("This request has been enriched", {
+                    request,
+                    enrichedRequest,
+                })
 
                 const resolvedMethodArguments: any[] = [];
 
@@ -94,11 +135,19 @@ export class Router implements RouterInterface {
                     resolvedMethodArguments.push(await this.controllerMethodParameterDecoratorResolver.resolve(methodArgument, enrichedRequest, routeParameters, identity));
                 }
 
+                this.loghandler.debug("Controller argument resolved", {
+                    resolvedMethodArguments,
+                })
+
                 const controllerResponse = controller[methodNode.route.methodPropertyKey].apply(controller, resolvedMethodArguments);
 
                 // This resolves the promise if it's a promise or promisifies the value
                 // https://stackoverflow.com/a/27760489/684101
                 const response = await Promise.resolve(controllerResponse);
+
+                this.loghandler.debug("The returned response by the controller", {
+                    response
+                })
 
                 let returnedResponse: Response;
                 // If the response is already a Response object, return the response
@@ -111,12 +160,21 @@ export class Router implements RouterInterface {
                     returnedResponse.status = 200;
                     returnedResponse.body = response;
                 }
-                returnedResponse = await this.executeResponseEnrichers(returnedResponse, request, container, methodNode);
+                const enrichedResponse = await this.executeResponseEnrichers(returnedResponse, request, container, methodNode);
+
+                this.loghandler.debug("This response has been enriched", {
+                    returnedResponse,
+                    enrichedResponse,
+                })
 
                 return resolve(returnedResponse);
             }
-            catch (e) {
-                return reject(e);
+            catch (error) {
+                this.loghandler.error("There was an error trying to execute the request in the router", {
+                    error,
+                })
+
+                return reject(error);
             }
         })
     }
