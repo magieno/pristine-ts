@@ -19,7 +19,10 @@
     "access": "public"
   },
   "dependencies": {
-    "@pristine-ts/common": "file:../common"
+    "@pristine-ts/common": "file:../common",
+    "@pristine-ts/logging": "file:../logging",
+    "@pristine-ts/networking": "file:../networking",
+    "@pristine-ts/telemetry": "file:../telemetry"
   },
   "jest": {
     "transform": {
