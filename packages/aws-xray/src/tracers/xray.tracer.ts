@@ -31,7 +31,6 @@ export class XrayTracer implements TracerInterface{
      */
     private traceEnded(trace: Trace) {
         let segment = AWSXRay.getSegment() as Segment;
-        segment.notTraced = false
 
         if(segment === undefined) {
             segment = new AWSXRay.Segment(trace.id);
@@ -90,8 +89,8 @@ export class XrayTracer implements TracerInterface{
         subsegment.close()
 
         // Force to rewrite the end time after closing it
-        subsegment["end_time"] = span.endDate? span.endDate / 1000: Date.now() / 1000;
-        
+        subsegment["end_time"] = span.endDate ? (span.endDate / 1000) : (Date.now() / 1000);
+
         return subsegment;
     }
 }
