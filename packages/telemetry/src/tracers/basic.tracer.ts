@@ -21,6 +21,12 @@ export class XrayTracer implements TracerInterface {
             return true;
         }
     });
+    traceStartedStream?: Readable = new Readable({
+        objectMode: true,
+        read(size: number) {
+            return true;
+        }
+    });
     traceEndedStream?: Readable = new Readable({
         objectMode: true,
         read(size: number) {

@@ -1,4 +1,4 @@
-import {injectable, scoped, Lifecycle, injectAll} from "tsyringe";
+import {injectable, scoped, Lifecycle, injectAll, inject} from "tsyringe";
 import {Trace} from "../models/trace.model";
 import {Span} from "../models/span.model";
 import {TracingManagerInterface} from "../interfaces/tracing-manager.interface";
@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import {SpanKeynameEnum} from "../enums/span-keyname.enum";
 import {TelemetryModuleKeyname} from "../telemetry.module.keyname";
 import {TracerInterface} from "../interfaces/tracer.interface";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 
 @moduleScoped(TelemetryModuleKeyname)
 @tag("TracingManagerInterface")
@@ -23,7 +24,8 @@ export class TracingManager implements TracingManagerInterface {
      */
     public spans: {[keyname: string]: Span} = {};
 
-    public constructor(@injectAll(ServiceDefinitionTagEnum.Tracer) private readonly tracers: TracerInterface[]) {
+    public constructor(@injectAll(ServiceDefinitionTagEnum.Tracer) private readonly tracers: TracerInterface[],
+                       @inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface) {
     }
 
     /**
@@ -48,12 +50,32 @@ export class TracingManager implements TracingManagerInterface {
 
         this.spans[span.keyname] = span;
 
+        // Log that we are starting the tracing
+        this.loghandler.debug("Start Tracing", {
+            spanRootKeyname,
+            traceId,
+            context,
+            trace: this.trace,
+            span,
+        })
+
         this.tracers.forEach( (tracer:TracerInterface) => {
+            this.loghandler.debug("Pushing the trace into the traceStartedStream.", {
+                tracer,
+                trace: this.trace,
+            });
+
             tracer.traceStartedStream?.push(this.trace);
         })
 
         // Notify the Tracers that a new span was started.
         this.tracers.forEach( (tracer:TracerInterface) => {
+            this.loghandler.debug("Pushing the span into the spanStartedStream.", {
+                tracer,
+                trace: this.trace,
+                span,
+            });
+
             tracer.spanStartedStream?.push(span);
         })
 
@@ -92,8 +114,25 @@ export class TracingManager implements TracingManagerInterface {
         // Add it to the map of spans
         this.spans[span.keyname] = span;
 
+        this.loghandler.debug("Start Span", {
+            keyname,
+            parentId,
+            context,
+            trace: this.trace,
+            span,
+        })
+
         // Notify the Tracers that a new span was started.
         this.tracers.forEach( (tracer:TracerInterface) => {
+            this.loghandler.debug("Pushing the span into the spanStartedStream.", {
+                keyname,
+                parentId,
+                context,
+                trace: this.trace,
+                span,
+                tracer,
+            })
+
             tracer.spanStartedStream?.push(span);
         })
 
@@ -127,8 +166,19 @@ export class TracingManager implements TracingManagerInterface {
 
         span.endDate = Date.now();
 
+        this.loghandler.debug("End Span", {
+            trace: this.trace,
+            span,
+        })
+
         // Notify the TraceListeners that the span was ended.
         this.tracers.forEach( (tracer:TracerInterface) => {
+            this.loghandler.debug("Pushing the span into the spanEndedStream.", {
+                trace: this.trace,
+                span,
+                tracer,
+            })
+
             tracer.spanEndedStream?.push(span);
         })
 
@@ -157,8 +207,17 @@ export class TracingManager implements TracingManagerInterface {
         // End the trace by setting the end date.
         this.trace.endDate = Date.now();
 
+        this.loghandler.debug("End Trace", {
+            trace: this.trace,
+        })
+
         // Notify the TraceListeners that the span was ended.
         this.tracers.forEach( (tracer:TracerInterface) => {
+            this.loghandler.debug("Pushing the tracer into the traceEndedStream.", {
+                trace: this.trace,
+                tracer,
+            })
+
             tracer.traceEndedStream?.push(this.trace);
         })
     }

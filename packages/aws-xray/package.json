@@ -21,6 +21,7 @@
   "dependencies": {
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/telemetry": "file:../telemetry",
+    "@pristine-ts/logging": "file:../logging",
     "aws-xray-sdk": "^3.3.3"
   },
   "jest": {
