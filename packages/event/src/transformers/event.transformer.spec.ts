@@ -1,7 +1,20 @@
 import {EventTransformer} from "./event.transformer";
 import {EventParserInterface} from "../interfaces/event-parser.interface";
 import {Event} from "../models/event";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 
+const logHandlerMock: LogHandlerInterface = {
+    debug(message: string, extra?: any) {
+    },
+    info(message: string, extra?: any) {
+    },
+    error(message: string, extra?: any) {
+    }
+    ,critical(message: string, extra?: any) {
+    },
+    warning(message: string, extra?: any) {
+    },
+}
 
 describe("Event Transformer", () => {
     it("should transform an event by calling the event parsers", () => {
@@ -45,7 +58,7 @@ describe("Event Transformer", () => {
         const eventParser2SupportsMethodSpy = jest.spyOn(eventParser2, "supports");
         const eventParser2ParseMethodSpy = jest.spyOn(eventParser2, "parse");
 
-        const eventTransformer = new EventTransformer([eventParser2, eventParser1]);
+        const eventTransformer = new EventTransformer([eventParser2, eventParser1], logHandlerMock);
 
         const event = eventTransformer.transform({
             "type": "arn",

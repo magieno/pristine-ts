@@ -30,8 +30,7 @@ export class XrayTracer implements TracerInterface{
      * @param trace
      */
     private traceEnded(trace: Trace) {
-<<<<<<< HEAD
-        const segment = this.captureRoot(trace);
+        const segment = AWSXRay.getSegment() as Segment;
         const subsegment = this.captureSpan(trace.rootSpan, segment);
 
         this.loghandler.debug("X-Ray trace ended", {
@@ -39,18 +38,6 @@ export class XrayTracer implements TracerInterface{
             subsegment,
             trace,
         })
-    }
-
-    private captureRoot(trace: Trace): Segment {
-=======
->>>>>>> master
-        const segment = AWSXRay.getSegment() as Segment;
-        this.captureSpan(trace.rootSpan, segment);
-        segment.close()
-        segment.flush()
-
-        console.log("Xray trace ended")
-        console.log(trace);
     }
 
     /**

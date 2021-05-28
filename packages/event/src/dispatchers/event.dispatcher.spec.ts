@@ -3,6 +3,20 @@ import {Event} from "../models/event";
 import {EventTransformer} from "../transformers/event.transformer";
 import {EventListenerInterface} from "../interfaces/event-listener.interface";
 import {EventDispatcher} from "./event.dispatcher";
+import {LogHandlerInterface} from "@pristine-ts/logging";
+
+const logHandlerMock: LogHandlerInterface = {
+    debug(message: string, extra?: any) {
+    },
+    info(message: string, extra?: any) {
+    },
+    error(message: string, extra?: any) {
+    }
+    ,critical(message: string, extra?: any) {
+    },
+    warning(message: string, extra?: any) {
+    },
+}
 
 describe("Event Dispatcher", () => {
     it("should transform an event by calling all the event listeners", () => {
@@ -35,7 +49,7 @@ describe("Event Dispatcher", () => {
         const eventParser2SupportsMethodSpy = jest.spyOn(eventListener2, "supports");
         const eventParser2ParseMethodSpy = jest.spyOn(eventListener2, "handle");
 
-        const eventDispatcher = new EventDispatcher([eventListener2, eventListener1]);
+        const eventDispatcher = new EventDispatcher([eventListener2, eventListener1], logHandlerMock);
 
         const event: Event<any> = {
             type: "type",
