@@ -3,43 +3,42 @@ import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {injectable} from "tsyringe";
 import {KafkaEventPayload} from "../event-payloads/kafka.event-payload";
 import {KafkaEventType} from "../enums/kafka-event-type.enum";
-import {KafkaTopicModel} from "../models/kafka-topic.model";
-import {KafkaTopicRecordModel} from "../models/kafka-topic-record.model";
+import {KafkaMessageModel} from "../models/kafka-message.model";
 
 @tag(ServiceDefinitionTagEnum.EventParser)
 @injectable()
 export class KafkaEventParser implements EventParserInterface<KafkaEventPayload>{
 
-    parse(rawEvent: any): Event<KafkaEventPayload> {
-        const event = new Event<KafkaEventPayload>();
-        event.type = KafkaEventType.KafkaEvent;
-        event.payload = new KafkaEventPayload();
-
-        event.payload.eventSource = rawEvent.eventSource;
-        event.payload.eventSourceArn = rawEvent.eventSourceArn;
+    parse(rawEvent: any): Event<KafkaEventPayload>[] {
+        const parsedEvents: Event<KafkaEventPayload>[] = [];
 
         for(const key in rawEvent.records) {
+            const event = new Event<KafkaEventPayload>();
+            event.type = KafkaEventType.KafkaEvent;
+            event.payload = new KafkaEventPayload();
+            event.payload.eventSource = rawEvent.eventSource;
+            event.payload.eventSourceArn = rawEvent.eventSourceArn;
+
             if (rawEvent.records.hasOwnProperty(key)) {
-                const topic = new KafkaTopicModel();
+                event.payload.topicName = rawEvent.records[key][0].topic;
                 for(const topicRecord of rawEvent.records[key]){
-                    const record = new KafkaTopicRecordModel();
-                    record.offset = topicRecord.offset;
-                    record.partition = topicRecord.partition;
-                    record.timestamp = new Date(topicRecord.timestamp);
-                    record.timestampType = topicRecord.timestampType;
-                    record.topicName = topicRecord.topic;
+                    const message = new KafkaMessageModel();
+                    message.offset = topicRecord.offset;
+                    message.partition = topicRecord.partition;
+                    message.timestamp = new Date(topicRecord.timestamp);
+                    message.timestampType = topicRecord.timestampType;
                     const decodedValue = new Buffer(topicRecord.value, 'base64').toString('ascii');
                     try {
-                        record.value = JSON.parse(decodedValue);
+                        message.value = JSON.parse(decodedValue);
                     } catch (e) {
-                        record.value = decodedValue;
+                        message.value = decodedValue;
                     }
-                    topic.records.push(record);
+                    event.payload.messages.push(message);
                 }
-                event.payload.topics.push(topic);
             }
+            parsedEvents.push(event);
         }
-        return event;
+        return parsedEvents;
     }
 
     supports(event: any): boolean {

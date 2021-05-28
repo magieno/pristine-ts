@@ -1,5 +1,5 @@
-export class KafkaTopicRecordModel {
-    topicName: string;
+
+export class KafkaMessageModel {
     partition: number;
     offset: number;
     timestamp: Date;
