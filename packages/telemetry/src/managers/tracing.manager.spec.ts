@@ -15,6 +15,8 @@ describe("Tracing Manager", () => {
     })
 
     it("should call the tracers when the startSpan method is called", async () => {
+        let i = 0;
+
         return new Promise<void>(resolve => {
 
             // @ts-ignore
@@ -27,7 +29,14 @@ describe("Tracing Manager", () => {
                         }
                     });
                     readableStream.on('data', chunk => {
-                        expect(chunk.keyname).toBe("SpanKeyname");
+                        if(i == 0) {
+                            expect(chunk.keyname).toBe("root.execution");
+                        }
+                        else if(i == 1) {
+                            expect(chunk.keyname).toBe("SpanKeyname");
+                        }
+
+                        i++;
                         resolve();
                     });
 
@@ -38,10 +47,10 @@ describe("Tracing Manager", () => {
             const tracingManager: TracingManager = new TracingManager([tracer]);
 
             tracingManager.startTracing();
-
+            expect.assertions(2);
             tracingManager.startSpan("SpanKeyname");
 
-            expect.assertions(1);
+
         })
     })
 
@@ -58,7 +67,8 @@ describe("Tracing Manager", () => {
                         }
                     });
                     readableStream.on('data', chunk => {
-                        expect(chunk.keyname).toBe("SpanKeyname");
+                            expect(chunk.keyname).toBe("SpanKeyname");
+
                         resolve();
                     });
 
