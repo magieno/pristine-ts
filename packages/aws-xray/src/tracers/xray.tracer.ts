@@ -66,8 +66,9 @@ export class XrayTracer implements TracerInterface{
         console.log("XRay trace started")
         console.log(trace)
 
-        const segment = AWSXRay.getSegment() as Segment;
-        segment.addMetadata("pristine_trace_id", trace.id)
+        const segment = new AWSXRay.Segment(trace.rootSpan.keyname);
+        segment.id = trace.id;
+        segment.trace_id = trace.id;
 
         if(trace.rootSpan.context) {
             Object.keys(trace.rootSpan.context).forEach(key => {
