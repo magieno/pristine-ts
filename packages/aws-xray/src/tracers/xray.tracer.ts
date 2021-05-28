@@ -30,6 +30,7 @@ export class XrayTracer implements TracerInterface{
      * @param trace
      */
     private traceEnded(trace: Trace) {
+<<<<<<< HEAD
         const segment = this.captureRoot(trace);
         const subsegment = this.captureSpan(trace.rootSpan, segment);
 
@@ -41,13 +42,15 @@ export class XrayTracer implements TracerInterface{
     }
 
     private captureRoot(trace: Trace): Segment {
+=======
+>>>>>>> master
         const segment = AWSXRay.getSegment() as Segment;
-        segment.id = trace.id;
-        segment.start_time = trace.startDate;
-        segment.end_time = trace.endDate;
-        segment.trace_id = trace.id;
+        this.captureSpan(trace.rootSpan, segment);
+        segment.close()
+        segment.flush()
 
-        return segment;
+        console.log("Xray trace ended")
+        console.log(trace);
     }
 
     /**
@@ -59,10 +62,16 @@ export class XrayTracer implements TracerInterface{
     private captureSpan(span: Span, segment: Segment | Subsegment): Subsegment {
         const subsegment: Subsegment = new Subsegment(span.keyname);
         subsegment.start_time = span.startDate / 1000;
+<<<<<<< HEAD
         subsegment["end_time"] = span.endDate? (span.endDate / 1000) : (Date.now() / 1000);
         subsegment.addMetadata("span_id", span.id);
         subsegment.addMetadata("trace_id", span.trace.id);
         segment.addSubsegment(subsegment);
+=======
+        subsegment["end_time"] = span.endDate? span.endDate / 1000: Date.now() / 1000;
+        subsegment.addMetadata("span_id", span.id);
+        subsegment.addMetadata("trace_id", span.trace.id);
+>>>>>>> master
 
         if(span.context) {
             Object.keys(span.context).forEach(key => {
@@ -73,6 +82,7 @@ export class XrayTracer implements TracerInterface{
             })
         }
 
+<<<<<<< HEAD
         this.loghandler.debug("X-Ray capture span", {
             span,
             segment,
@@ -86,8 +96,17 @@ export class XrayTracer implements TracerInterface{
             })
 
             this.captureSpan(childSpan, segment);
+=======
+        segment.addSubsegment(subsegment);
+
+        span.childSpans?.forEach(childSpan => {
+            console.log("Xray Child span")
+            console.log(childSpan);
+            this.captureSpan(childSpan, subsegment);
+>>>>>>> master
         })
 
+        subsegment.close();
         return subsegment;
     }
 }
