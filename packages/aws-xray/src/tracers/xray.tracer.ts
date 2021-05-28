@@ -63,6 +63,9 @@ export class XrayTracer implements TracerInterface{
     }
 
     private traceStarted(trace: Trace): Segment {
+        console.log("XRay trace started")
+        console.log(trace)
+
         const segment = AWSXRay.getSegment() as Segment;
         segment.addMetadata("pristine_trace_id", trace.id)
 
@@ -76,6 +79,7 @@ export class XrayTracer implements TracerInterface{
         }
 
         this.segment[trace.id] = segment;
+        console.log(segment)
         return segment;
     }
 
@@ -84,11 +88,16 @@ export class XrayTracer implements TracerInterface{
      * @param trace
      */
     private traceEnded(trace: Trace) {
+        console.log("XRay trace ended")
+        console.log(trace)
         this.segment[trace.id]?.close()
         this.segment[trace.id]?.flush();
     }
 
     private spanStarted(span: Span): Subsegment {
+        console.log("XRay span started")
+        console.log(span)
+
         const subsegment = new Subsegment(span.keyname);
         subsegment.id = span.id;
 
@@ -109,10 +118,16 @@ export class XrayTracer implements TracerInterface{
 
         this.subsegmentMap[subsegment.id] = subsegment;
 
+        console.log(subsegment)
+
         return subsegment;
     }
 
     private spanEnded(span: Span) {
+        console.log("XRay span ended")
+        console.log(span)
+        console.log(this.subsegmentMap[span.id])
+
         this.subsegmentMap[span.id].close();
     }
 }
