@@ -5,39 +5,44 @@ import {DynamodbEventPayload} from "../event-payloads/dynamodb.event-payload";
 import {DynamodbEventType} from "../enums/dynamodb-event-type.enum";
 
 describe("Dynamodb event parser", () => {
+    // https://docs.aws.amazon.com/lambda/latest/dg/with-ddb-example.html
     const rawEvent = {
-        "eventID":"1",
-        "eventName":"INSERT",
-        "eventVersion":"1.0",
-        "eventSource":"aws:dynamodb",
-        "awsRegion":"us-east-1",
-        "dynamodb":{
-            "Keys":{
-                "Id":{
-                    "N":"101"
-                }
-            },
-            "NewImage":{
-                "Message":{
-                    "S":"New item!"
+        "Records": [
+            {
+                "eventID": "1",
+                "eventName": "INSERT",
+                "eventVersion": "1.0",
+                "eventSource": "aws:dynamodb",
+                "awsRegion": "us-east-1",
+                "dynamodb": {
+                    "Keys": {
+                        "Id": {
+                            "N": "101"
+                        }
+                    },
+                    "NewImage": {
+                        "Message": {
+                            "S": "New item!"
+                        },
+                        "Id": {
+                            "N": "101"
+                        }
+                    },
+                    "OldImage": {
+                        "Message": {
+                            "S": "New item!"
+                        },
+                        "Id": {
+                            "N": "102"
+                        }
+                    },
+                    "SequenceNumber": "111",
+                    "SizeBytes": 26,
+                    "StreamViewType": "NEW_AND_OLD_IMAGES"
                 },
-                "Id":{
-                    "N":"101"
-                }
-            },
-            "OldImage":{
-                "Message":{
-                    "S":"New item!"
-                },
-                "Id":{
-                    "N":"102"
-                }
-            },
-            "SequenceNumber":"111",
-            "SizeBytes":26,
-            "StreamViewType":"NEW_AND_OLD_IMAGES"
-        },
-        "eventSourceARN":"arn:dynamodb/table-name"
+                "eventSourceARN": "arn:dynamodb/table-name"
+            }
+            ]
     };
 
     it("should support an event from dynamodb", () => {
@@ -119,6 +124,6 @@ describe("Dynamodb event parser", () => {
                 "eventSourceArn":"arn:dynamodb/table-name"
             }
         }
-        expect(dynamodbEventParser.parse(rawEvent)).toEqual(dynamodbEvent);
+        expect(dynamodbEventParser.parse(rawEvent)).toEqual([dynamodbEvent]);
     })
 })

@@ -45,7 +45,7 @@ export class EventTransformer {
      * This method takes the raw event, loops over all the EventParsers, and converts it into an Event object.
      * @param event
      */
-    transform(event: any): Event<any> {
+    transform(event: any): Event<any>[] {
         this.loghandler.debug("Starting the isSupported method.", {
             event,
         })
@@ -53,15 +53,15 @@ export class EventTransformer {
         // Loop over the event parsers and if one supports the
         for (const eventParser of this.eventParsers) {
             if(eventParser.supports(event)) {
-                const parsedEvent = eventParser.parse(event);
+                const parsedEvents = eventParser.parse(event);
 
                 this.loghandler.debug("Event Parser supports the event.", {
                     event,
                     eventParser: eventParser.constructor.name,
-                    parsedEvent,
+                    parsedEvents,
                 });
 
-                return parsedEvent;
+                return parsedEvents;
             }
 
             this.loghandler.debug("Event Parser doesn't support the event.", {

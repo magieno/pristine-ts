@@ -24,47 +24,54 @@ export class S3EventParser implements EventParserInterface<S3EventPayload>{
         return S3EventType.UnknownS3Event;
     }
 
-    parse(rawEvent: any): Event<S3EventPayload> {
-        const event = new Event<S3EventPayload>();
-        event.type = this.findEnum(rawEvent.eventName);
-        event.payload =  new S3EventPayload();
+    parse(rawEvent: any): Event<S3EventPayload>[] {
+        const parsedEvents: Event<S3EventPayload>[] = [];
+        for(const record of rawEvent.Records) {
+            const event = new Event<S3EventPayload>();
+            event.type = this.findEnum(record.eventName);
+            event.payload = new S3EventPayload();
 
-        event.payload.eventVersion = rawEvent.eventVersion;
-        event.payload.eventSource = rawEvent.eventSource;
-        event.payload.awsRegion = rawEvent.awsRegion;
-        event.payload.eventTime = new Date(rawEvent.eventTime);
-        event.payload.eventName = rawEvent.eventName;
-        event.payload.userIdentity = new IdentityModel();
-        event.payload.userIdentity.principalId = rawEvent.userIdentity?.principalId
-        event.payload.requestParameters = new RequestParametersModel();
-        event.payload.requestParameters.sourceIPAddress = rawEvent.requestParameters?.sourceIPAddress;
-        event.payload.responseElements = new ResponseElementsModel();
-        if(rawEvent.responseElements){
-            event.payload.responseElements["x-amz-request-id"] =  rawEvent.responseElements["x-amz-request-id"];
-            event.payload.responseElements["x-amz-id-2"] = rawEvent.responseElements["x-amz-id-2"];
+            event.payload.eventVersion = record.eventVersion;
+            event.payload.eventSource = record.eventSource;
+            event.payload.awsRegion = record.awsRegion;
+            event.payload.eventTime = new Date(record.eventTime);
+            event.payload.eventName = record.eventName;
+            event.payload.userIdentity = new IdentityModel();
+            event.payload.userIdentity.principalId = record.userIdentity?.principalId
+            event.payload.requestParameters = new RequestParametersModel();
+            event.payload.requestParameters.sourceIPAddress = record.requestParameters?.sourceIPAddress;
+            event.payload.responseElements = new ResponseElementsModel();
+            if (record.responseElements) {
+                event.payload.responseElements["x-amz-request-id"] = record.responseElements["x-amz-request-id"];
+                event.payload.responseElements["x-amz-id-2"] = record.responseElements["x-amz-id-2"];
+            }
+
+            event.payload.s3 = new S3Model();
+            event.payload.s3.s3SchemaVersion = record.s3.s3SchemaVersion;
+            event.payload.s3.configurationId = record.s3.configurationId;
+            event.payload.s3.bucket = new S3BucketModel();
+            event.payload.s3.bucket.ownerIdentity = new IdentityModel();
+            event.payload.s3.bucket.ownerIdentity.principalId = record.s3.bucket?.ownerIdentity?.principalId;
+            event.payload.s3.bucket.name = record.s3.bucket?.name;
+            event.payload.s3.bucket.arn = record.s3.bucket?.arn;
+            event.payload.s3.object = new S3ObjectModel();
+            event.payload.s3.object.key = record.s3.object.key;
+            event.payload.s3.object.size = record.s3.object.size;
+            event.payload.s3.object.eTag = record.s3.object.eTag;
+            event.payload.s3.object.versionId = record.s3.object.versionId;
+            event.payload.s3.object.sequencer = record.s3.object.sequencer;
+
+            parsedEvents.push(event);
         }
-
-        event.payload.s3 = new S3Model();
-        event.payload.s3.s3SchemaVersion = rawEvent.s3.s3SchemaVersion;
-        event.payload.s3.configurationId = rawEvent.s3.configurationId;
-        event.payload.s3.bucket = new S3BucketModel();
-        event.payload.s3.bucket.ownerIdentity = new IdentityModel();
-        event.payload.s3.bucket.ownerIdentity.principalId = rawEvent.s3.bucket?.ownerIdentity?.principalId;
-        event.payload.s3.bucket.name = rawEvent.s3.bucket?.name;
-        event.payload.s3.bucket.arn = rawEvent.s3.bucket?.arn;
-        event.payload.s3.object = new S3ObjectModel();
-        event.payload.s3.object.key = rawEvent.s3.object.key;
-        event.payload.s3.object.size = rawEvent.s3.object.size;
-        event.payload.s3.object.eTag = rawEvent.s3.object.eTag;
-        event.payload.s3.object.versionId = rawEvent.s3.object.versionId;
-        event.payload.s3.object.sequencer = rawEvent.s3.object.sequencer;
-        return event;
+        return parsedEvents;
     }
 
     supports(event: any): boolean {
-        return event.hasOwnProperty("eventSource") &&
-            event.eventSource === "aws:s3" &&
-            event.hasOwnProperty("s3")
+        return event.hasOwnProperty("Records") &&
+            Array.isArray(event.Records) &&
+            event.Records[0].hasOwnProperty("eventSource") &&
+            event.Records[0].eventSource === "aws:s3" &&
+            event.Records[0].hasOwnProperty("s3")
     }
 
 }

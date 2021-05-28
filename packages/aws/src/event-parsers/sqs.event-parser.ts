@@ -9,41 +9,48 @@ import {SqsEventType} from "../enums/sqs-event-type.enum";
 @injectable()
 export class SqsEventParser implements EventParserInterface<SqsEventPayload>{
 
-    parse(rawEvent: any): Event<SqsEventPayload> {
-        const event = new Event<SqsEventPayload>();
-        event.type = SqsEventType.SqsEvent;
-        event.payload =  new SqsEventPayload();
+    parse(rawEvent: any): Event<SqsEventPayload>[] {
+        const parsedEvents: Event<SqsEventPayload>[] = [];
+        for(const record of rawEvent.Records) {
+            const event = new Event<SqsEventPayload>();
+            event.type = SqsEventType.SqsEvent;
+            event.payload = new SqsEventPayload();
 
-        event.payload.eventSource = rawEvent.eventSource;
-        event.payload.awsRegion = rawEvent.awsRegion;
-        event.payload.body = rawEvent.body;
-        event.payload.eventSourceArn = rawEvent.eventSourceARN;
-        event.payload.md5OfBody = rawEvent.md5OfBody;
-        event.payload.messageAttributes = rawEvent.messageAttributes;
-        event.payload.receiptHandle = rawEvent.receiptHandle;
-        event.payload.messageId = rawEvent.messageId;
+            event.payload.eventSource = record.eventSource;
+            event.payload.awsRegion = record.awsRegion;
+            event.payload.body = record.body;
+            event.payload.eventSourceArn = record.eventSourceARN;
+            event.payload.md5OfBody = record.md5OfBody;
+            event.payload.messageAttributes = record.messageAttributes;
+            event.payload.receiptHandle = record.receiptHandle;
+            event.payload.messageId = record.messageId;
 
-        if(rawEvent.attributes) {
-            event.payload.attributes = new SqsAttributesModel();
-            if(isNaN(+rawEvent.attributes.ApproximateFirstReceiveTimestamp) === false){
-                event.payload.attributes.approximateFirstReceiveTime = new Date(+rawEvent.attributes.ApproximateFirstReceiveTimestamp);
+            if (record.attributes) {
+                event.payload.attributes = new SqsAttributesModel();
+                if (isNaN(+record.attributes.ApproximateFirstReceiveTimestamp) === false) {
+                    event.payload.attributes.approximateFirstReceiveTime = new Date(+record.attributes.ApproximateFirstReceiveTimestamp);
+                }
+                if (isNaN(+record.attributes.SentTimestamp) === false) {
+                    event.payload.attributes.sentTime = new Date(+record.attributes.SentTimestamp);
+                }
+                event.payload.attributes.senderId = record.attributes.SenderId;
+                event.payload.attributes.approximateReceiveCount = isNaN(+record.attributes.ApproximateReceiveCount) ? undefined : +record.attributes.ApproximateReceiveCount;
+
+                event.payload.attributes.messageGroupId = record.attributes.MessageGroupId;
+                event.payload.attributes.messageDeduplicationId = record.attributes.MessageDeduplicationId;
+                event.payload.attributes.sequenceNumber = record.attributes.SequenceNumber;
             }
-            if(isNaN(+rawEvent.attributes.SentTimestamp) === false) {
-                event.payload.attributes.sentTime = new Date(+rawEvent.attributes.SentTimestamp);
-            }
-            event.payload.attributes.senderId = rawEvent.attributes.SenderId;
-            event.payload.attributes.approximateReceiveCount = isNaN(+rawEvent.attributes.ApproximateReceiveCount) ? undefined : +rawEvent.attributes.ApproximateReceiveCount;
 
-            event.payload.attributes.messageGroupId = rawEvent.attributes.MessageGroupId;
-            event.payload.attributes.messageDeduplicationId = rawEvent.attributes.MessageDeduplicationId;
-            event.payload.attributes.sequenceNumber = rawEvent.attributes.SequenceNumber;
+            parsedEvents.push(event);
         }
-        return event;
+        return parsedEvents;
     }
 
     supports(event: any): boolean {
-        return event.hasOwnProperty("eventSource") &&
-            event.eventSource === "aws:sqs"
+        return event.hasOwnProperty("Records") &&
+            Array.isArray(event.Records) &&
+            event.Records[0].hasOwnProperty("eventSource") &&
+            event.Records[0].eventSource === "aws:sqs"
     }
 
 }
