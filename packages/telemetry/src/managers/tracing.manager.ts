@@ -52,6 +52,11 @@ export class TracingManager implements TracingManagerInterface {
             tracer.traceStartedStream?.push(this.trace);
         })
 
+        // Notify the Tracers that a new span was started.
+        this.tracers.forEach( (tracer:TracerInterface) => {
+            tracer.spanStartedStream?.push(span);
+        })
+
         return span;
     }
 
