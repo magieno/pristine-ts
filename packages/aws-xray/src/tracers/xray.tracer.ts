@@ -62,16 +62,10 @@ export class XrayTracer implements TracerInterface{
     private captureSpan(span: Span, segment: Segment | Subsegment): Subsegment {
         const subsegment: Subsegment = new Subsegment(span.keyname);
         subsegment.start_time = span.startDate / 1000;
-<<<<<<< HEAD
-        subsegment["end_time"] = span.endDate? (span.endDate / 1000) : (Date.now() / 1000);
-        subsegment.addMetadata("span_id", span.id);
-        subsegment.addMetadata("trace_id", span.trace.id);
-        segment.addSubsegment(subsegment);
-=======
+
         subsegment["end_time"] = span.endDate? span.endDate / 1000: Date.now() / 1000;
         subsegment.addMetadata("span_id", span.id);
         subsegment.addMetadata("trace_id", span.trace.id);
->>>>>>> master
 
         if(span.context) {
             Object.keys(span.context).forEach(key => {
@@ -82,31 +76,25 @@ export class XrayTracer implements TracerInterface{
             })
         }
 
-<<<<<<< HEAD
         this.loghandler.debug("X-Ray capture span", {
             span,
             segment,
+            subsegment,
         })
 
         span.childSpans?.forEach(childSpan => {
             this.loghandler.debug("X-Ray before capturing span", {
                 span,
                 segment,
+                subsegment,
                 childSpan,
             })
 
             this.captureSpan(childSpan, segment);
-=======
+        });
+
         segment.addSubsegment(subsegment);
 
-        span.childSpans?.forEach(childSpan => {
-            console.log("Xray Child span")
-            console.log(childSpan);
-            this.captureSpan(childSpan, subsegment);
->>>>>>> master
-        })
-
-        subsegment.close();
         return subsegment;
     }
 }
