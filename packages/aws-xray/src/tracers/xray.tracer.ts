@@ -8,34 +8,10 @@ import {AwsXrayModuleKeyname} from "../aws-xray.module.keyname";
 @moduleScoped(AwsXrayModuleKeyname)
 @tag(ServiceDefinitionTagEnum.Tracer)
 @injectable()
-@scoped(Lifecycle.ContainerScoped)
 export class XrayTracer implements TracerInterface{
-    segment: {[id: string]: Segment} = {};
-    subsegmentMap: {[id: string]: Subsegment} = {};
-    spanStartedStream: Readable;
-    spanEndedStream: Readable;
-    traceStartedStream: Readable;
     traceEndedStream: Readable;
 
     public constructor() {
-        this.spanStartedStream = new Readable({
-            objectMode: true,
-            read(size: number) {
-                return true;
-            }
-        });
-        this.spanEndedStream = new Readable({
-            objectMode: true,
-            read(size: number) {
-                return true;
-            }
-        });
-        this.traceStartedStream = new Readable({
-            objectMode: true,
-            read(size: number) {
-                return true;
-            }
-        });
         this.traceEndedStream = new Readable({
             objectMode: true,
             read(size: number) {
@@ -43,42 +19,9 @@ export class XrayTracer implements TracerInterface{
             }
         });
 
-        this.spanStartedStream.on('data', (span: Span) => {
-            this.spanStarted(span);
-        });
-
-        this.spanEndedStream.on('data', (span: Span) => {
-            this.spanEnded(span);
-        });
-
-        this.traceStartedStream.on('data', (trace: Trace) => {
-            this.traceStarted(trace);
-        });
-
         this.traceEndedStream.on('data', (trace: Trace) => {
             this.traceEnded(trace);
         });
-    }
-
-    private traceStarted(trace: Trace): Segment {
-        console.log("XRay trace started")
-        console.log(trace)
-
-        const segment = AWSXRay.getSegment() as Segment;
-        segment.addMetadata("pristine_trace_id", trace.id)
-
-        if(trace.rootSpan.context) {
-            Object.keys(trace.rootSpan.context).forEach(key => {
-                const value = trace.rootSpan.context[key];
-                if (value) {
-                    segment.addMetadata(key, value);
-                }
-            })
-        }
-
-        this.segment[trace.id] = segment;
-        console.log(segment)
-        return segment;
     }
 
     /**
@@ -86,18 +29,31 @@ export class XrayTracer implements TracerInterface{
      * @param trace
      */
     private traceEnded(trace: Trace) {
-        console.log("XRay trace ended")
-        console.log(trace)
-        this.segment[trace.id]?.close()
-        this.segment[trace.id]?.flush();
+        const segment = this.captureRoot(trace);
+        this.captureSpan(trace.rootSpan, segment);
     }
 
-    private spanStarted(span: Span): Subsegment {
-        console.log("XRay span started")
-        console.log(span)
+    private captureRoot(trace: Trace): Segment {
+        const segment = AWSXRay.getSegment() as Segment;
+        segment.id = trace.id;
+        segment.start_time = trace.startDate;
+        segment.end_time = trace.endDate;
+        segment.trace_id = trace.id;
 
-        const subsegment = new Subsegment(span.keyname);
-        subsegment.id = span.id;
+        return segment;
+    }
+
+    /**
+     * This method captures the spans recursively and creates the root segment.
+     * @param span
+     * @param segment
+     * @private
+     */
+    private captureSpan(span: Span, segment: Segment | Subsegment): Subsegment {
+        const subsegment = new Subsegment(span.id);
+        subsegment.start_time = span.startDate;
+        subsegment["end_time"] = span.endDate;
+        segment.addSubsegment(subsegment);
 
         if(span.context) {
             Object.keys(span.context).forEach(key => {
@@ -108,24 +64,10 @@ export class XrayTracer implements TracerInterface{
             })
         }
 
-        if(span.parentSpan) {
-            this.subsegmentMap[span.parentSpan.id]?.addSubsegment(subsegment);
-        } else {
-            this.segment[span.trace.id]?.addSubsegment(subsegment);
-        }
-
-        this.subsegmentMap[subsegment.id] = subsegment;
-
-        console.log(subsegment)
+        span.childSpans?.forEach(childSpan => {
+            this.captureSpan(childSpan, segment);
+        })
 
         return subsegment;
-    }
-
-    private spanEnded(span: Span) {
-        console.log("XRay span ended")
-        console.log(span)
-        console.log(this.subsegmentMap[span.id])
-
-        this.subsegmentMap[span.id].close();
     }
 }
