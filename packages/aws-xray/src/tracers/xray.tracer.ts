@@ -84,6 +84,7 @@ export class XrayTracer implements TracerInterface{
      * @param trace
      */
     private traceEnded(trace: Trace) {
+        this.segment[trace.id]?.close()
         this.segment[trace.id]?.flush();
     }
 
