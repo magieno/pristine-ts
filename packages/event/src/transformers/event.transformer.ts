@@ -26,7 +26,7 @@ export class EventTransformer {
             if(eventParser.supports(event)) {
                 this.loghandler.debug("Event Parser supports the event.", {
                     event,
-                    eventParser,
+                    eventParser: eventParser.constructor.name,
                 })
 
                 return true
@@ -34,7 +34,7 @@ export class EventTransformer {
 
             this.loghandler.debug("Event Parser doesn't support the event.", {
                 event,
-                eventParser,
+                eventParser: eventParser.constructor.name,
             })
         }
 
