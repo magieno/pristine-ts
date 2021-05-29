@@ -5,6 +5,7 @@ import {SecurityModule} from "@pristine-ts/security";
 import {ModuleInterface, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {AwsModule, KafkaEventPayload} from "@pristine-ts/aws";
 import {Event, EventListenerInterface, EventTransformError} from "@pristine-ts/event";
+import {KafkaEventType} from "@pristine-ts/aws/dist/lib/esm/enums/kafka-event-type.enum";
 
 
 
@@ -39,7 +40,7 @@ describe("Handle events", () => {
         });
     });
     describe("Handle kafka events", () => {
-        let valueToBeModified;
+        let valuesToBeModified = [];
         const rawEvent = {
             "eventSource": "aws:kafka",
             "eventSourceArn": "arn:aws:kafka:us-east-1:account:cluster/vpc/uuid",
@@ -70,7 +71,7 @@ describe("Handle events", () => {
         @tag(ServiceDefinitionTagEnum.EventListener)
         class KafkaEventListener implements EventListenerInterface{
             async handle<T>(event: Event<T>): Promise<void> {
-                valueToBeModified = event;
+                valuesToBeModified.push(event);
             }
 
             supports<T>(event: Event<T>): boolean {
@@ -87,43 +88,45 @@ describe("Handle events", () => {
 
             const response = await kernel.handleRawEvent(rawEvent);
 
-            const expectedEvent = {
-                "payload": {
-                    "eventSource": "aws:kafka",
-                    "eventSourceArn": "arn:aws:kafka:us-east-1:account:cluster/vpc/uuid",
-                    "topics": [
+            const kafkaEvent1: Event<KafkaEventPayload> = {
+                type: KafkaEventType.KafkaEvent,
+                payload: {
+                    eventSource: "aws:kafka",
+                    eventSourceArn: "arn:aws:kafka:us-east-1:account:cluster/vpc/uuid",
+                    topicName: "mytopic0",
+                    messages: [
                         {
-                            "records": [
-                                {
-                                    "offset": 15,
-                                    "partition": 0,
-                                    "timestamp": new Date(1596480920837),
-                                    "timestampType": "CREATE_TIME",
-                                    "topicName": "mytopic0",
-                                    "value": "hello from kafka"
-                                }
-                            ]
-                        },
-                        {
-                            "records": [
-                                {
-                                    "offset": 15,
-                                    "partition": 0,
-                                    "timestamp": new Date(1596480920837),
-                                    "timestampType": "CREATE_TIME",
-                                    "topicName": "mytopic1",
-                                    "value": {
-                                        "key": "value"
-                                    }
-                                }
-                            ]
+                            offset: 15,
+                            partition: 0,
+                            timestamp: new Date(1596480920837),
+                            timestampType: "CREATE_TIME",
+                            value: "hello from kafka"
                         }
                     ]
-                },
-                "type": "KAFKA_EVENT"
-            }
+                }
+            };
 
-            expect(valueToBeModified).toEqual(expectedEvent);
+            const kafkaEvent2: Event<KafkaEventPayload> = {
+                type: KafkaEventType.KafkaEvent,
+                payload: {
+                    eventSource: "aws:kafka",
+                    eventSourceArn: "arn:aws:kafka:us-east-1:account:cluster/vpc/uuid",
+                    topicName: "mytopic1",
+                    messages: [
+                        {
+                            offset: 15,
+                            partition: 0,
+                            timestamp: new Date(1596480920837),
+                            timestampType: "CREATE_TIME",
+                            value: {
+                                key:"value"
+                            }
+                        }
+                    ]
+                }
+            };
+
+            expect(valuesToBeModified).toEqual([kafkaEvent1, kafkaEvent2]);
         })
     });
 });
