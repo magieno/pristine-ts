@@ -3,9 +3,8 @@ import {CoreModule, Kernel} from "@pristine-ts/core";
 import {NetworkingModule} from "@pristine-ts/networking";
 import {SecurityModule} from "@pristine-ts/security";
 import {ModuleInterface, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
-import {AwsModule, KafkaEventPayload} from "@pristine-ts/aws";
+import {AwsModule, KafkaEventPayload, KafkaEventType} from "@pristine-ts/aws";
 import {Event, EventListenerInterface, EventTransformError} from "@pristine-ts/event";
-import {KafkaEventType} from "@pristine-ts/aws/dist/lib/esm/enums/kafka-event-type.enum";
 
 
 
@@ -40,7 +39,7 @@ describe("Handle events", () => {
         });
     });
     describe("Handle kafka events", () => {
-        let valuesToBeModified = [];
+        let valuesToBeModified: any[] = [];
         const rawEvent = {
             "eventSource": "aws:kafka",
             "eventSourceArn": "arn:aws:kafka:us-east-1:account:cluster/vpc/uuid",
@@ -70,7 +69,7 @@ describe("Handle events", () => {
 
         @tag(ServiceDefinitionTagEnum.EventListener)
         class KafkaEventListener implements EventListenerInterface{
-            async handle<T>(event: Event<T>): Promise<void> {
+            async handle<KafkaEventPayload>(event: Event<KafkaEventPayload>): Promise<void> {
                 valuesToBeModified.push(event);
             }
 
