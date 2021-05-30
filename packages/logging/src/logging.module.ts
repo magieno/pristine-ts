@@ -27,27 +27,27 @@ export const LoggingModule: ModuleInterface = {
         },
         {
             parameterName: LoggingModuleKeyname + ".logDebugDepthConfiguration",
-            defaultValue: 10,
+            defaultValue: 5,
             isRequired: false,
         },
         {
             parameterName: LoggingModuleKeyname + ".logInfoDepthConfiguration",
-            defaultValue: 10,
+            defaultValue: 5,
             isRequired: false,
         },
         {
             parameterName: LoggingModuleKeyname + ".logWarningDepthConfiguration",
-            defaultValue: 10,
+            defaultValue: 5,
             isRequired: false,
         },
         {
             parameterName: LoggingModuleKeyname + ".logErrorDepthConfiguration",
-            defaultValue: 10,
+            defaultValue: 5,
             isRequired: false,
         },
         {
             parameterName: LoggingModuleKeyname + ".logCriticalDepthConfiguration",
-            defaultValue: 10,
+            defaultValue: 5,
             isRequired: false,
         },
         {

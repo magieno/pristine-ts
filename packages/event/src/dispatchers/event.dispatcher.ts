@@ -24,6 +24,8 @@ export class EventDispatcher {
 
         this.loghandler.debug("Dispatch the event", {
             event,
+            eventListeners: this.eventListeners,
+            eventListenerNames: this.eventListeners.map(eventListener => eventListener.constructor.name),
         });
 
         this.eventListeners.forEach( (eventListener: EventListenerInterface) => {
