@@ -1,14 +1,18 @@
 import {Event, EventParserInterface} from "@pristine-ts/event";
 import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
-import {injectable} from "tsyringe";
+import {injectable, inject} from "tsyringe";
 import {DynamodbEventType} from "../enums/dynamodb-event-type.enum";
 import {DynamodbEventPayload} from "../event-payloads/dynamodb.event-payload";
 import {DynamodbModel} from "../models/dynamodb.model";
 import {DynamodbKeysModel} from "../models/dynamodb-keys.model";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 
 @tag(ServiceDefinitionTagEnum.EventParser)
 @injectable()
 export class DynamodbEventParser implements EventParserInterface<DynamodbEventPayload>{
+
+    public constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface) {
+    }
 
     private findEnum(eventName: string): DynamodbEventType{
         const keys = Object.keys(DynamodbEventType).filter(key => isNaN(Number(key)));

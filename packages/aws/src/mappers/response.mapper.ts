@@ -1,9 +1,13 @@
-import {injectable} from "tsyringe";
+import {injectable, inject} from "tsyringe";
 import {Response} from "@pristine-ts/networking";
 import {ApiGatewayResponseModel} from "../models/api-gateway-response.model";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 
 @injectable()
 export class ResponseMapper {
+    constructor( @inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface) {
+    }
+
     reverseMap(response: Response): ApiGatewayResponseModel {
         const apiGatewayResponse = new ApiGatewayResponseModel();
         apiGatewayResponse.statusCode = response.status;
@@ -22,6 +26,11 @@ export class ResponseMapper {
         } else if(typeof response.body === "object"){
             apiGatewayResponse.body = JSON.stringify(response.body);
         }
+
+        this.loghandler.debug("Reverse mapping the response into a 'ApiGatewayResponseModel'.", {
+            response,
+            apiGatewayResponse,
+        })
 
         return apiGatewayResponse;
     }
