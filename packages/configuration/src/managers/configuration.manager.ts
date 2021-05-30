@@ -1,15 +1,16 @@
-import {injectable, DependencyContainer} from "tsyringe";
+import {injectable, DependencyContainer, inject} from "tsyringe";
 import {ConfigurationDefinitionAlreadyExistsError} from "../errors/configuration-definition-already-exists.error";
 import {ModuleConfigurationValue} from "../types/module-configuration.value";
 import {ConfigurationParser} from "../parsers/configuration.parser";
 import {ConfigurationValidationError} from "../errors/configuration-validation.error";
 import {ConfigurationDefinition} from "@pristine-ts/common";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 
 @injectable()
 export class ConfigurationManager {
     public configurationDefinitions: {[key: string]: ConfigurationDefinition} = {};
 
-    public constructor(private readonly configurationParser: ConfigurationParser) {
+    public constructor(private readonly configurationParser: ConfigurationParser, @inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface) {
     }
 
     /**
@@ -20,6 +21,11 @@ export class ConfigurationManager {
      */
     public register(configurationDefinition: ConfigurationDefinition) {
         if(this.configurationDefinitions.hasOwnProperty(configurationDefinition.parameterName)) {
+            this.loghandler.error("Cannot Register a configuration definition since there's already one for this parameter.", {
+                configurationDefinition,
+                configurationDefinitions: this.configurationDefinitions,
+            });
+
             throw new ConfigurationDefinitionAlreadyExistsError("There is already a configuration definition registered for this parameter name.",  configurationDefinition.parameterName);
         }
 
@@ -74,6 +80,9 @@ export class ConfigurationManager {
                 continue;
             }
 
+            // Start by looping over the DefaultResolvers in case one resolvers to something meaningful, else use the default value.
+            //if(configurationDefinition.
+
             const resolvedConfigurationValue = await this.configurationParser.resolve(configurationDefinition.defaultValue, container);
 
             // Register the configuration in the container
@@ -81,6 +90,11 @@ export class ConfigurationManager {
         }
 
         if(validationErrors.length !== 0) {
+            this.loghandler.error("There are validation errors with the configurations.", {
+                validationErrors,
+                moduleConfigurationValues,
+                configurationDefinitions: this.configurationDefinitions,
+            })
             throw new ConfigurationValidationError(validationErrors);
         }
 

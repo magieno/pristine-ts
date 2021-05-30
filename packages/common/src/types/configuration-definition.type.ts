@@ -1,4 +1,5 @@
 import {DynamicConfigurationResolverInterface} from "../interfaces/dynamic-configuration-resolver.interface";
+import {ModuleConfigurationValue} from "@pristine-ts/configuration";
 
 export type ConfigurationDefinition = {
     parameterName: string;
@@ -8,5 +9,8 @@ export type ConfigurationDefinition = {
     parameterName: string;
 
     isRequired: false;
-    defaultValue: string | boolean | number | DynamicConfigurationResolverInterface<any>;
+
+    defaultValue: ModuleConfigurationValue;
+
+    defaultResolvers?: ModuleConfigurationValue[];
 }

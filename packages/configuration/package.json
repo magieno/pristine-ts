@@ -14,7 +14,8 @@
     "dist"
   ],
   "dependencies": {
-    "@pristine-ts/common": "file:../common"
+    "@pristine-ts/common": "file:../common",
+    "@pristine-ts/logging": "file:../logging"
   },
   "author": "",
   "license": "ISC",

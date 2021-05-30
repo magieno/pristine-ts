@@ -3,6 +3,7 @@ import {LogHandler} from "./handlers/log.handler";
 import {ConsoleLogger} from "./loggers/console.logger";
 import {FileLogger} from "./loggers/file.logger";
 import {LoggingModuleKeyname} from "./logging.module.keyname";
+import {EnvironmentVariableResolver} from "@pristine-ts/configuration";
 
 export * from "./enums/enums";
 export * from "./handlers/handlers";
