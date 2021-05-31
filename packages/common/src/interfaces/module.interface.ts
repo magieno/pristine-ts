@@ -13,12 +13,6 @@ export interface ModuleInterface {
     keyname: string;
 
     /**
-     * TypeScript needs to have a reference to the classes in order to use them. Therefore, we provide this array
-     * where you can list all your services (managers, repositories, controllers, etc..) so that they are accessible.
-     */
-    importServices?: Function[];
-
-    /**
      * The packages to import before to initialize this module. This module might need other packages to be initialized
      * before being able to initialize itself.
      */

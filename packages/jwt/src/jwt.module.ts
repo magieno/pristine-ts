@@ -40,7 +40,6 @@ export const JwtModule: ModuleInterface = {
             defaultValue: "",
         },
     ],
-    importServices: [],
     importModules: [
         NetworkingModule,
     ],

@@ -7,7 +7,6 @@ import {ConfigurationModule} from "@pristine-ts/configuration";
 
 export const CoreModule: ModuleInterface =  {
     keyname: CoreModuleKeyname,
-    importServices: [],
     importModules: [
         ConfigurationModule,
         NetworkingModule,

@@ -10,7 +10,6 @@ export * from "./validation.module.keyname";
 
 export const ValidationModule: ModuleInterface = {
     keyname: ValidationModuleKeyname,
-    importServices: [],
     importModules: [
         CoreModule,
         NetworkingModule,

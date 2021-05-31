@@ -11,7 +11,6 @@ export * from "./security.module.keyname";
 
 export const SecurityModule: ModuleInterface = {
     keyname: SecurityModuleKeyname,
-    importServices: [],
     importModules: [
         LoggingModule,
     ],

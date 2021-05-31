@@ -110,12 +110,6 @@ export const LoggingModule: ModuleInterface = {
             ]
         },
     ],
-    importServices: [
-        LogHandler,
-
-        ConsoleLogger,
-        FileLogger,
-    ],
     importModules: [
         ConfigurationModule,
     ],

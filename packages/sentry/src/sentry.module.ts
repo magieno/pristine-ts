@@ -40,7 +40,6 @@ export const SentryModule: ModuleInterface = {
             ]
         },
     ],
-    importServices: [],
     importModules: [],
     providerRegistrations: [
         {

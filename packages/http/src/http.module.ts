@@ -12,7 +12,6 @@ export * from "./utils/utils";
 
 export const HttpModule: ModuleInterface = {
     keyname: HttpModuleKeyname,
-    importServices: [],
     importModules: [LoggingModule],
     configurationDefinitions: [
     ],

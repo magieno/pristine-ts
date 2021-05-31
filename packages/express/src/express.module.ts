@@ -11,12 +11,6 @@ import {ExpressModuleKeyname} from "./express.module.keyname";
 
 export const ExpressModule: ModuleInterface = {
     keyname: ExpressModuleKeyname,
-    importServices: [
-        RequestMapper,
-        HttpHeadersMapper,
-        MethodMapper,
-        ResponseMapper,
-    ],
     importModules: [
         CoreModule,
     ]

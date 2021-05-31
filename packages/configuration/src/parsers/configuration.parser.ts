@@ -2,7 +2,7 @@ import {ConfigurationValidationError} from "../errors/configuration-validation.e
 import {injectable, DependencyContainer} from "tsyringe";
 import {ModuleConfigurationValue} from "../types/module-configuration.value";
 import {DynamicConfigurationResolverInterface} from "@pristine-ts/common";
-import {ResolverInterface} from "@pristine-ts/common/dist/lib/esm/interfaces/resolver.interface";
+import {ResolverInterface} from "@pristine-ts/common";
 
 @injectable()
 export class ConfigurationParser {

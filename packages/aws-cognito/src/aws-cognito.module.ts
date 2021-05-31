@@ -30,8 +30,6 @@ export const AwsCognitoModule: ModuleInterface = {
         HttpModule,
     ],
 
-    importServices: [],
-
     /**
      * This property allows you to custom register specific services. For example, you can assign a tag or use a factory
      * to instantiate a specific class.

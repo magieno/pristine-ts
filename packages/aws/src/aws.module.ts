@@ -45,22 +45,6 @@ export const AwsModule: ModuleInterface = {
             ]
         }
     ],
-    importServices: [
-        DynamodbClient,
-
-        DynamodbEventParser,
-        S3EventParser,
-        SnsEventParser,
-        SqsEventParser,
-
-        RequestMapperFactory,
-
-        HttpRequestMapper,
-        MethodMapper,
-        RequestMapper,
-        ResponseMapper,
-        RestApiRequestMapper,
-    ],
     importModules: [LoggingModule],
     providerRegistrations: [
     ],
