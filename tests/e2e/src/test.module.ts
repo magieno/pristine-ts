@@ -7,8 +7,9 @@ import {Voter2Model} from "./models/voter2.model";
 import {TestController} from "./controllers/test.controller";
 import {TestGuard} from "./guards/test.guard";
 import {SecurityModule} from "@pristine-ts/security";
+import {AppModuleInterface} from "@pristine-ts/common";
 
-export const testModule: ModuleInterface = {
+export const testModule: AppModuleInterface = {
     keyname: "test",
     importServices: [TestController],
     importModules: [CoreModule, SecurityModule],

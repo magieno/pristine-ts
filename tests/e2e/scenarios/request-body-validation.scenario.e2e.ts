@@ -36,8 +36,6 @@ describe("Request Body Validation", () => {
         kernel = new Kernel();
         await kernel.init({
             keyname: "pristine.validation.test",
-            importServices: [
-            ],
             importModules: [CoreModule, NetworkingModule, ValidationModule],
             providerRegistrations: []
         });
