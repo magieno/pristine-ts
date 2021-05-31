@@ -34,7 +34,7 @@ describe("JWT Module instantiation in the Kernel", () => {
             ],
             importModules: [CoreModule, NetworkingModule, JwtModule],
             providerRegistrations: []
-        } as AppModuleInterface,, {
+        } as AppModuleInterface, {
             "pristine.jwt.algorithm": "RS256",
             "pristine.jwt.publicKey": JWTKeys.RS256.withoutPassphrase.public,
         });
