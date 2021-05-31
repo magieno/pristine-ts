@@ -35,43 +35,49 @@ export class DynamodbEventParser implements EventParserInterface<DynamodbEventPa
         return parsedKeys;
     }
 
-    parse(rawEvent: any): Event<DynamodbEventPayload> {
-        const event = new Event<DynamodbEventPayload>();
-        event.type = this.findEnum(rawEvent.eventName);
-        event.payload =  new DynamodbEventPayload();
+    parse(rawEvent: any): Event<DynamodbEventPayload>[] {
+        const parsedEvents: Event<DynamodbEventPayload>[] = [];
+        for(const record of rawEvent.Records) {
+            const event = new Event<DynamodbEventPayload>();
+            event.type = this.findEnum(record.eventName);
+            event.payload = new DynamodbEventPayload();
 
-        event.payload.eventVersion = rawEvent.eventVersion;
-        event.payload.eventSource = rawEvent.eventSource;
-        if(rawEvent.dynamodb.ApproximateCreationDateTime) {
-            event.payload.eventTime = new Date(rawEvent.dynamodb.ApproximateCreationDateTime);
+            event.payload.eventVersion = record.eventVersion;
+            event.payload.eventSource = record.eventSource;
+            if (record.dynamodb.ApproximateCreationDateTime) {
+                event.payload.eventTime = new Date(record.dynamodb.ApproximateCreationDateTime);
+            }
+            event.payload.awsRegion = record.awsRegion;
+            event.payload.eventName = record.eventName;
+            event.payload.eventId = record.eventID;
+            event.payload.eventSourceArn = record.eventSourceARN;
+            event.payload.dynamodb = new DynamodbModel();
+            event.payload.dynamodb.sequenceNumber = record.dynamodb.SequenceNumber;
+            event.payload.dynamodb.sizeBytes = record.dynamodb.SizeBytes;
+            event.payload.dynamodb.streamViewType = record.dynamodb.StreamViewType;
+            event.payload.dynamodb.keys = record.dynamodb.Keys;
+            event.payload.dynamodb.parsedKeys = this.parseKeys(record.dynamodb.Keys);
+            if (record.dynamodb.NewImage) {
+                event.payload.dynamodb.newImage = record.dynamodb.NewImage;
+                event.payload.dynamodb.parsedNewImage = this.parseKeys(record.dynamodb.NewImage)
+            }
+            if (record.dynamodb.OldImage) {
+                event.payload.dynamodb.oldImage = record.dynamodb.OldImage;
+                event.payload.dynamodb.parsedOldImage = this.parseKeys(record.dynamodb.OldImage)
+            }
+            event.payload.dynamodb.tableName = record.eventSourceARN.split("/")[1];
+            parsedEvents.push(event);
         }
-        event.payload.awsRegion = rawEvent.awsRegion;
-        event.payload.eventName = rawEvent.eventName;
-        event.payload.eventId = rawEvent.eventID;
-        event.payload.eventSourceArn = rawEvent.eventSourceARN;
-        event.payload.dynamodb = new DynamodbModel();
-        event.payload.dynamodb.sequenceNumber = rawEvent.dynamodb.SequenceNumber;
-        event.payload.dynamodb.sizeBytes = rawEvent.dynamodb.SizeBytes;
-        event.payload.dynamodb.streamViewType = rawEvent.dynamodb.StreamViewType;
-        event.payload.dynamodb.keys = rawEvent.dynamodb.Keys;
-        event.payload.dynamodb.parsedKeys = this.parseKeys(rawEvent.dynamodb.Keys);
-        if(rawEvent.dynamodb.NewImage){
-            event.payload.dynamodb.newImage = rawEvent.dynamodb.NewImage;
-            event.payload.dynamodb.parsedNewImage = this.parseKeys(rawEvent.dynamodb.NewImage)
-        }
-        if(rawEvent.dynamodb.OldImage){
-            event.payload.dynamodb.oldImage = rawEvent.dynamodb.OldImage;
-            event.payload.dynamodb.parsedOldImage = this.parseKeys(rawEvent.dynamodb.OldImage)
-        }
-        event.payload.dynamodb.tableName = rawEvent.eventSourceARN.split("/")[1];
 
-        return event;
+        return parsedEvents;
     }
 
     supports(event: any): boolean {
-        return event.hasOwnProperty("eventSource") &&
-            event.eventSource === "aws:dynamodb" &&
-            event.hasOwnProperty("dynamodb")
+        return event.hasOwnProperty("Records") &&
+            Array.isArray(event.Records) &&
+            event.Records[0].hasOwnProperty("eventSource") &&
+            event.Records[0].eventSource === "aws:dynamodb" &&
+            event.Records[0].hasOwnProperty("dynamodb")
     }
 
 }

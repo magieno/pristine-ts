@@ -28,13 +28,13 @@ describe("Event Transformer", () => {
                 return true;
             },
 
-            parse(event: any): Event<Payload> {
-                return {
+            parse(event: any): Event<Payload>[] {
+                return [{
                     payload: {
                         id: "identifier"
                     },
                     type: "type",
-                }
+                }]
             }
         }
 
@@ -43,13 +43,13 @@ describe("Event Transformer", () => {
                 return false;
             },
 
-            parse(event: any): Event<Payload> {
-                return {
+            parse(event: any): Event<Payload>[] {
+                return [{
                     payload: {
                         id: "identifier2"
                     },
                     type: "type2",
-                }
+                }]
             }
         }
 

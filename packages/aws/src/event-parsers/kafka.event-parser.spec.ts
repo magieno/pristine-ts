@@ -1,8 +1,5 @@
 import "reflect-metadata"
 import {Event} from "@pristine-ts/event";
-import {SqsEventParser} from "./sqs.event-parser";
-import {SqsEventType} from "../enums/sqs-event-type.enum";
-import {SqsEventPayload} from "../event-payloads/sqs.event-payload";
 import {KafkaEventParser} from "./kafka.event-parser";
 import {KafkaEventType} from "../enums/kafka-event-type.enum";
 import {KafkaEventPayload} from "../event-payloads/kafka.event-payload";
@@ -45,41 +42,43 @@ describe("Kafka event parser", () => {
 
         const kafkaEventParser = new KafkaEventParser();
 
-        const kafkaEvent: Event<KafkaEventPayload> = {
+        const kafkaEvent1: Event<KafkaEventPayload> = {
             type: KafkaEventType.KafkaEvent,
             payload: {
                 eventSource: "aws:kafka",
-                eventSourceArn:"arn:aws:kafka:us-east-1:account:cluster/vpc/uuid",
-                topics: [
+                eventSourceArn: "arn:aws:kafka:us-east-1:account:cluster/vpc/uuid",
+                topicName: "mytopic0",
+                messages: [
                     {
-                        records: [
-                            {
-                                topicName: "mytopic0",
-                                offset: 15,
-                                partition: 0,
-                                timestamp: new Date(1596480920837),
-                                timestampType: "CREATE_TIME",
-                                value: "hello from kafka"
-                            }
-                        ]
-                    },
-                    {
-                        records: [
-                            {
-                                topicName: "mytopic1",
-                                offset: 15,
-                                partition: 0,
-                                timestamp: new Date(1596480920837),
-                                timestampType: "CREATE_TIME",
-                                value: {
-                                    key:"value"
-                                }
-                            }
-                        ]
+                        offset: 15,
+                        partition: 0,
+                        timestamp: new Date(1596480920837),
+                        timestampType: "CREATE_TIME",
+                        value: "hello from kafka"
                     }
                 ]
             }
-        }
-        expect(kafkaEventParser.parse(rawEvent)).toEqual(kafkaEvent);
+        };
+
+        const kafkaEvent2: Event<KafkaEventPayload> = {
+            type: KafkaEventType.KafkaEvent,
+            payload: {
+                eventSource: "aws:kafka",
+                eventSourceArn: "arn:aws:kafka:us-east-1:account:cluster/vpc/uuid",
+                topicName: "mytopic1",
+                messages: [
+                    {
+                        offset: 15,
+                        partition: 0,
+                        timestamp: new Date(1596480920837),
+                        timestampType: "CREATE_TIME",
+                        value: {
+                            key:"value"
+                        }
+                    }
+                ]
+            }
+        };
+        expect(kafkaEventParser.parse(rawEvent)).toEqual([kafkaEvent1, kafkaEvent2]);
     })
 })

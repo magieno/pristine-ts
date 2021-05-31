@@ -20,46 +20,52 @@ export class SnsEventParser implements EventParserInterface<SnsEventPayload>{
         return SnsEventType.UnknownSnsEvent;
     }
 
-    parse(rawEvent: any): Event<SnsEventPayload> {
-        const event = new Event<SnsEventPayload>();
-        event.type = this.findEnum(rawEvent.Sns.Type)
-        event.payload =  new SnsEventPayload();
+    parse(rawEvent: any): Event<SnsEventPayload>[] {
+        const parsedEvents: Event<SnsEventPayload>[] = [];
+        for(const record of rawEvent.Records) {
+            const event = new Event<SnsEventPayload>();
+            event.type = this.findEnum(record.Sns.Type)
+            event.payload = new SnsEventPayload();
 
-        event.payload.eventSource = rawEvent.EventSource;
-        event.payload.eventSubscriptionArn = rawEvent.EventSubscriptionArn;
-        event.payload.eventVersion = rawEvent.EventVersion;
-        event.payload.sns = new SnsModel();
-        event.payload.sns.signatureVersion = rawEvent.Sns.SignatureVersion;
-        event.payload.sns.eventTime = new Date(rawEvent.Sns.Timestamp);
-        event.payload.sns.signature = rawEvent.Sns.Signature;
-        event.payload.sns.signingCertUrl = rawEvent.Sns.SigningCertUrl;
-        event.payload.sns.messageId = rawEvent.Sns.MessageId;
-        event.payload.sns.message = rawEvent.Sns.Message;
-        event.payload.sns.type = rawEvent.Sns.Type;
-        event.payload.sns.unsubscribeUrl = rawEvent.Sns.UnsubscribeUrl;
-        event.payload.sns.topicArn = rawEvent.Sns.TopicArn;
-        event.payload.sns.subject = rawEvent.Sns.Subject;
+            event.payload.eventSource = record.EventSource;
+            event.payload.eventSubscriptionArn = record.EventSubscriptionArn;
+            event.payload.eventVersion = record.EventVersion;
+            event.payload.sns = new SnsModel();
+            event.payload.sns.signatureVersion = record.Sns.SignatureVersion;
+            event.payload.sns.eventTime = new Date(record.Sns.Timestamp);
+            event.payload.sns.signature = record.Sns.Signature;
+            event.payload.sns.signingCertUrl = record.Sns.SigningCertUrl;
+            event.payload.sns.messageId = record.Sns.MessageId;
+            event.payload.sns.message = record.Sns.Message;
+            event.payload.sns.type = record.Sns.Type;
+            event.payload.sns.unsubscribeUrl = record.Sns.UnsubscribeUrl;
+            event.payload.sns.topicArn = record.Sns.TopicArn;
+            event.payload.sns.subject = record.Sns.Subject;
 
-        if(rawEvent.Sns.hasOwnProperty("MessageAttributes")) {
-            event.payload.sns.messageAttributes = [];
-            for (const key in rawEvent.Sns.MessageAttributes){
-                if(rawEvent.Sns.MessageAttributes.hasOwnProperty(key)){
-                    const attribute = new SnsMessageAttributeModel();
-                    attribute.key = key;
-                    attribute.type = rawEvent.Sns.MessageAttributes[key].Type;
-                    attribute.value = rawEvent.Sns.MessageAttributes[key].Value;
-                    event.payload.sns.messageAttributes.push(attribute);
+            if (record.Sns.hasOwnProperty("MessageAttributes")) {
+                event.payload.sns.messageAttributes = [];
+                for (const key in record.Sns.MessageAttributes) {
+                    if (record.Sns.MessageAttributes.hasOwnProperty(key)) {
+                        const attribute = new SnsMessageAttributeModel();
+                        attribute.key = key;
+                        attribute.type = record.Sns.MessageAttributes[key].Type;
+                        attribute.value = record.Sns.MessageAttributes[key].Value;
+                        event.payload.sns.messageAttributes.push(attribute);
+                    }
                 }
             }
+            parsedEvents.push(event);
         }
 
-        return event;
+        return parsedEvents;
     }
 
     supports(event: any): boolean {
-        return event.hasOwnProperty("EventSource") &&
-            event.EventSource === "aws:sns" &&
-            event.hasOwnProperty("Sns")
+        return event.hasOwnProperty("Records") &&
+            Array.isArray(event.Records) &&
+            event.Records[0].hasOwnProperty("EventSource") &&
+            event.Records[0].EventSource === "aws:sns" &&
+            event.Records[0].hasOwnProperty("Sns")
     }
 
 }

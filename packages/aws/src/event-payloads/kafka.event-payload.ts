@@ -1,7 +1,8 @@
-import {KafkaTopicModel} from "../models/kafka-topic.model";
+import {KafkaMessageModel} from "../models/kafka-message.model";
 
 export class KafkaEventPayload {
     eventSource: string;
     eventSourceArn: string;
-    topics: KafkaTopicModel[] = [];
+    topicName: string;
+    messages: KafkaMessageModel[] = [];
 }

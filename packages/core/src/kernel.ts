@@ -224,13 +224,13 @@ export class Kernel {
      * @param container
      * @private
      */
-    private async executeRawEventInterceptors(event: any, container: DependencyContainer): Promise<any> {
+    private async executeRawEventInterceptors(event: any): Promise<any> {
         // Execute all the event interceptors
         let interceptedEvent = event;
 
         // Check first if there are any EventInterceptors
-        if (container.isRegistered(ServiceDefinitionTagEnum.EventInterceptor, true)) {
-            const interceptors: any[] = container.resolveAll(ServiceDefinitionTagEnum.EventInterceptor);
+        if (this.container.isRegistered(ServiceDefinitionTagEnum.EventInterceptor, true)) {
+            const interceptors: any[] = this.container.resolveAll(ServiceDefinitionTagEnum.EventInterceptor);
 
             for (const interceptor of interceptors) {
                 // We don't have a guarantee that the event interceptors will implement the Interface, even though we specify it should.
@@ -391,29 +391,43 @@ export class Kernel {
      * @param rawEvent
      */
     public async handleRawEvent(rawEvent: object): Promise<void> {
-        // Start by creating a child container and we will use this container to instantiate the dependencies for this event
-        const childContainer = this.container.createChildContainer();
-
-        const tracingManager: TracingManagerInterface = childContainer.resolve("TracingManagerInterface");
+        const tracingManager: TracingManagerInterface = this.container.resolve("TracingManagerInterface");
         tracingManager.startTracing();
 
         const eventSpan = tracingManager.startSpan(SpanKeynamesEnum.Event);
 
-        const interceptedRawEvent = await this.executeRawEventInterceptors(rawEvent, childContainer);
+        const interceptedRawEvent = await this.executeRawEventInterceptors(rawEvent);
 
-        const eventTransformer: EventTransformer = childContainer.resolve(EventTransformer);
-        const eventDispatcher: EventDispatcher = childContainer.resolve(EventDispatcher);
+        const eventTransformer: EventTransformer = this.container.resolve(EventTransformer);
 
         // Transform the raw event into an object
-        let event: Event<any> = eventTransformer.transform(interceptedRawEvent);
+        let events: Event<any>[] = eventTransformer.transform(interceptedRawEvent);
 
-        event = await this.executeEventInterceptors(event, childContainer);
-
-        // Dispatch the Event to the EventListeners
-        await eventDispatcher.dispatch(event);
+        const promises: Promise<void>[] = [];
+        for(let event of events) {
+            promises.push(this.handleParsedEvent(event));
+        }
+        await Promise.allSettled(promises);
 
         eventSpan.end();
         tracingManager.endTrace();
+    }
+
+    /**
+     *  This method takes the parsed Event, transforms it into an Event object and then dispatches it to the Event Listeners
+     *
+     * @param rawEvent
+     */
+    private async handleParsedEvent(parsedEvent: Event<any>) {
+        // Start by creating a child container and we will use this container to instantiate the dependencies for this event
+        const childContainer = this.container.createChildContainer();
+
+        const eventDispatcher: EventDispatcher = childContainer.resolve(EventDispatcher);
+
+        parsedEvent = await this.executeEventInterceptors(parsedEvent, childContainer);
+
+        // Dispatch the Event to the EventListeners
+        await eventDispatcher.dispatch(parsedEvent);
     }
 
     /**
