@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/event",
-  "version": "0.0.85",
+  "version": "0.0.86",
   "description": "",
   "module": "dist/lib/esm/event.module.js",
   "main": "dist/lib/cjs/event.module.js",
