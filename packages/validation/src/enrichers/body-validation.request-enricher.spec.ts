@@ -1,3 +1,4 @@
+import "reflect-metadata"
 import {BodyValidationRequestEnricher} from "./body-validation.request-enricher";
 import {MethodRouterNode, PathRouterNode, Request, Route} from "@pristine-ts/networking";
 import {HttpMethod} from "@pristine-ts/common";
