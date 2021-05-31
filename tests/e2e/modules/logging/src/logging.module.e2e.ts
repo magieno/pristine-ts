@@ -27,7 +27,6 @@ describe("Logging Module instantiation in the Kernel", () => {
         await kernel.init({
             keyname: "logging.test",
             importModules: [CoreModule, NetworkingModule, LoggingModule],
-            importServices: [],
             providerRegistrations: []
         }, {
             "pristine.logging.numberOfStackedLogs": 10,

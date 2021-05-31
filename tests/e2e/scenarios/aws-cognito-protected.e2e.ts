@@ -81,7 +81,6 @@ class TestController {
 
 const moduleTest: ModuleInterface = {
     keyname: "Module",
-    importServices: [],
     importModules: [
         CoreModule,
         NetworkingModule,
