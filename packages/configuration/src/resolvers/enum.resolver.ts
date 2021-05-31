@@ -1,4 +1,4 @@
-import {ResolverInterface} from "../interfaces/resolver.interface";
+import {ResolverInterface} from "@pristine-ts/common";
 import {ConfigurationResolverError} from "../errors/configuration-resolver.error";
 
 /**

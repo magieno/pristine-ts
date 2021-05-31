@@ -11,7 +11,8 @@
     "test": "jest"
   },
   "dependencies": {
-    "@pristine-ts/common": "file:../common"
+    "@pristine-ts/common": "file:../common",
+    "@pristine-ts/configuration": "file:../configuration"
   },
   "files": [
     "dist"

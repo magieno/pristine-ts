@@ -6,6 +6,7 @@ import {TokenHeaderInterface} from "../interfaces/token-header.interface";
 import {ClaimInterface} from "../interfaces/claim.interface";
 import {AuthenticatorInterface} from "@pristine-ts/security";
 import {HttpClientInterface, ResponseTypeEnum} from "@pristine-ts/http";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 
 const jwkToPem = require("jwk-to-pem");
 
@@ -21,6 +22,7 @@ export class AwsCognitoAuthenticator implements AuthenticatorInterface{
     constructor(@inject(`%${AwsCognitoModuleKeyname}.region%`) private readonly region: string,
                 @inject(`%${AwsCognitoModuleKeyname}.poolId%`) private readonly poolId: string,
                 @inject("HttpClientInterface") private readonly httpClient: HttpClientInterface,
+                @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
                 ) {
         this.cognitoIssuer = this.getCognitoIssuer();
         this.publicKeyUrl = this.getPublicKeyUrl();
@@ -38,7 +40,9 @@ export class AwsCognitoAuthenticator implements AuthenticatorInterface{
 
         const claim = this.getAndVerifyClaims(token, key);
 
-        console.log(`claim confirmed for ${claim["cognito:username"]}`);
+        this.logHandler.debug("Claim confirmed", {
+            claim,
+        });
 
         return {
             id: claim["cognito:username"],

@@ -3,6 +3,7 @@ import {Event} from "@pristine-ts/event";
 import {DynamodbEventParser} from "./dynamodb.event-parser";
 import {DynamodbEventPayload} from "../event-payloads/dynamodb.event-payload";
 import {DynamodbEventType} from "../enums/dynamodb-event-type.enum";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 
 describe("Dynamodb event parser", () => {
     // https://docs.aws.amazon.com/lambda/latest/dg/with-ddb-example.html

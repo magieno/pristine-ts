@@ -5,7 +5,7 @@ import {controller, NetworkingModule, route} from "@pristine-ts/networking";
 import {JwtModule, jwtPayload, JwtProtectedGuard} from "@pristine-ts/jwt";
 import {CoreModule} from "@pristine-ts/core";
 import {JWTKeys} from "./jwt.keys";
-import {HttpMethod, RequestInterface} from "@pristine-ts/common";
+import {AppModuleInterface, HttpMethod, RequestInterface} from "@pristine-ts/common";
 import {guard} from "@pristine-ts/security";
 
 describe("JWT Module instantiation in the Kernel", () => {
@@ -34,7 +34,7 @@ describe("JWT Module instantiation in the Kernel", () => {
             ],
             importModules: [CoreModule, NetworkingModule, JwtModule],
             providerRegistrations: []
-        }, {
+        } as AppModuleInterface, {
             "pristine.jwt.algorithm": "RS256",
             "pristine.jwt.publicKey": JWTKeys.RS256.withoutPassphrase.public,
         });
@@ -70,7 +70,7 @@ describe("JWT Module instantiation in the Kernel", () => {
             ],
             importModules: [CoreModule, NetworkingModule, JwtModule],
             providerRegistrations: []
-        }, {
+        } as AppModuleInterface, {
             "pristine.jwt.algorithm": "RS256",
             "pristine.jwt.publicKey": JWTKeys.RS256.withoutPassphrase.public,
         });

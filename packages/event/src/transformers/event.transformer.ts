@@ -20,6 +20,7 @@ export class EventTransformer {
     isSupported(event: any): boolean {
         this.loghandler.debug("Starting the isSupported method.", {
             event,
+            eventParsers: this.eventParsers,
         })
 
         for (const eventParser of this.eventParsers) {

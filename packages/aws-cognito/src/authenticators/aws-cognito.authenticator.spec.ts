@@ -3,6 +3,20 @@ import {AwsCognitoAuthenticator} from "./aws-cognito.authenticator";
 import {HttpMethod, RequestInterface} from "@pristine-ts/common";
 import * as jwt from "jsonwebtoken";
 import {HttpClientInterface, HttpRequestInterface, HttpResponseInterface} from "@pristine-ts/http";
+import {LogHandlerInterface} from "@pristine-ts/logging";
+
+const logHandlerMock: LogHandlerInterface = {
+    debug(message: string, extra?: any) {
+    },
+    info(message: string, extra?: any) {
+    },
+    error(message: string, extra?: any) {
+    }
+    ,critical(message: string, extra?: any) {
+    },
+    warning(message: string, extra?: any) {
+    },
+}
 
 const privateKey = "-----BEGIN RSA PRIVATE KEY-----\n" +
     "MIIBOQIBAAJAXmWi+JMuW8v5Ng5sDso+H6wl+i9u7lwMxJrZ+j0VQNEh4E7EwHQM\n" +
@@ -78,17 +92,17 @@ describe("AWS Cognito authenticator ", () => {
     });
 
     it("should get cognito issuer", async () => {
-        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient());
+        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
         expect(cognitoAuthenticator["getCognitoIssuer"]()).toBe("https://cognito-idp.us-east-1.amazonaws.com/poolId");
     });
 
     it("should get url", async () => {
-        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient());
+        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
         expect(cognitoAuthenticator["getPublicKeyUrl"]()).toBe("https://cognito-idp.us-east-1.amazonaws.com/poolId/.well-known/jwks.json");
     });
 
     it("should get pems", async () => {
-        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient());
+        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
         expect(await cognitoAuthenticator["getPems"]()).toEqual({
             "687dfb71-7ce9-42b5-b77c-c39ac2dfd21e": publicKey1,
             "fgjhlkhjlkhexample=": "-----BEGIN PUBLIC KEY-----\nMDEwDQYJKoZIhvcNAQEBBQADIAAwHQIWALII4ZZOo6ffLoKffLqd+IaXsWpqZQID\nAQAB\n-----END PUBLIC KEY-----\n"
@@ -96,7 +110,7 @@ describe("AWS Cognito authenticator ", () => {
     });
 
     it("should validateRequestAndReturnToken", async () => {
-        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient());
+        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
 
         const request: RequestInterface = {
             body: {},
@@ -110,7 +124,7 @@ describe("AWS Cognito authenticator ", () => {
     });
 
     it("should not validateRequestAndReturnToken if not headers", async () => {
-        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient());
+        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
 
         const request: RequestInterface = {
             body: {},
@@ -122,7 +136,7 @@ describe("AWS Cognito authenticator ", () => {
     });
 
     it("should not validateRequestAndReturnToken if no authorization header", async () => {
-        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient());
+        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
 
         const request: RequestInterface = {
             body: {},
@@ -136,7 +150,7 @@ describe("AWS Cognito authenticator ", () => {
     });
 
     it("should not validateRequestAndReturnToken if authorization header undefined", async () => {
-        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient());
+        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
 
         const request: RequestInterface = {
             body: {},
@@ -151,7 +165,7 @@ describe("AWS Cognito authenticator ", () => {
     });
 
     it("should not validateRequestAndReturnToken if authorization header does not start with Bearer", async () => {
-        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient());
+        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
 
         const request: RequestInterface = {
             body: {},
@@ -166,34 +180,34 @@ describe("AWS Cognito authenticator ", () => {
     });
 
     it("should getAndVerifyClaims", async () => {
-        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient());
+        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
         const token = jwt.sign(payload, privateKey, { algorithm: 'RS256'});
         expect(cognitoAuthenticator["getAndVerifyClaims"](token, publicKey1)).toEqual(payload);
     });
 
     it("should not getAndVerifyClaims if expired", async () => {
-        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient());
+        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
         payload.exp = 1500000;
         const token = jwt.sign(payload, privateKey, { algorithm: 'RS256'});
         expect(() => cognitoAuthenticator["getAndVerifyClaims"](token, publicKey1)).toThrow(new Error("Invalid jwt: jwt expired"));
     });
 
     it("should not getAndVerifyClaims if auth time after", async () => {
-        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient());
+        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
         payload.auth_time = 1500000000000;
         const token = jwt.sign(payload, privateKey, { algorithm: 'RS256'});
         expect(() => cognitoAuthenticator["getAndVerifyClaims"](token, publicKey1)).toThrow(new Error('Claim is expired or invalid'));
     });
 
     it("should not getAndVerifyClaims if issuer different", async () => {
-        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient());
+        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
         payload.iss = "issuer";
         const token = jwt.sign(payload, privateKey, { algorithm: 'RS256'});
         expect(() => cognitoAuthenticator["getAndVerifyClaims"](token, publicKey1)).toThrow(new Error('Claim issuer is invalid'));
     });
 
     it("should getKeyFromToken", async () => {
-        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient());
+        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
         const token = jwt.sign(payload, privateKey, { algorithm: 'RS256', keyid: "687dfb71-7ce9-42b5-b77c-c39ac2dfd21e"});
         const pems = {
             "687dfb71-7ce9-42b5-b77c-c39ac2dfd21e": publicKey1,
@@ -203,7 +217,7 @@ describe("AWS Cognito authenticator ", () => {
     });
 
     it("should not getKeyFromToken if unknow kid", async () => {
-        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient());
+        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
         const token = jwt.sign(payload, privateKey, { algorithm: 'RS256', keyid: "hello"});
         const pems = {
             "687dfb71-7ce9-42b5-b77c-c39ac2dfd21e": publicKey1,
@@ -213,19 +227,19 @@ describe("AWS Cognito authenticator ", () => {
     });
 
     it("should getTokenHeader", async () => {
-        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient());
+        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
         const token = jwt.sign(payload, privateKey, { algorithm: 'RS256', keyid: tokenHeader.kid});
         expect(cognitoAuthenticator["getTokenHeader"](token)).toEqual(tokenHeader);
     });
 
     it("should not getTokenHeader with invalid token", async () => {
-        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient());
+        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
         const token = "hello";
         expect(() => cognitoAuthenticator["getTokenHeader"](token)).toThrow('Token is invalid');
     });
 
     it("should authenticate", async () => {
-        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient());
+        const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
 
         const request: RequestInterface = {
             body: {},

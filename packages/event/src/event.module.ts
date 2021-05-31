@@ -14,7 +14,6 @@ export * from "./event.module.keyname";
 
 export const EventModule: ModuleInterface =  {
     keyname: EventModuleKeyname,
-    importServices: [],
     importModules: [
         NetworkingModule,
         TelemetryModule,

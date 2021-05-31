@@ -10,7 +10,6 @@ export * from "./tracers/basic.tracer";
 
 export const TelemetryModule: ModuleInterface = {
     keyname: TelemetryModuleKeyname,
-    importServices: [],
     importModules: [
         LoggingModule,
     ],

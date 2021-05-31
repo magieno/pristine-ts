@@ -10,7 +10,6 @@ import {Event, EventListenerInterface, EventTransformError} from "@pristine-ts/e
 
 const moduleTest: ModuleInterface = {
     keyname: "Module",
-    importServices: [],
     importModules: [
         CoreModule,
         AwsModule,

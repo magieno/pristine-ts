@@ -16,9 +16,6 @@ export * from "./router";
 
 export const NetworkingModule: ModuleInterface = {
     keyname: NetworkingModuleKeyname,
-
-    importServices: [],
-
     /**
      * This property allows you to custom register specific services. For example, you can assign a tag or use a factory
      * to instantiate a specific class.

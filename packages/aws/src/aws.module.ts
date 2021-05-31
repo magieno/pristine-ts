@@ -17,6 +17,7 @@ import {RequestMapperFactory} from "./factories/request-mapper.factory";
 import {AwsModuleKeyname} from "./aws.module.keyname";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {TelemetryModule} from "@pristine-ts/telemetry";
+import {EnvironmentVariableResolver} from "@pristine-ts/configuration";
 
 export * from "./clients/clients";
 export * from "./decorators/decorators";
@@ -39,23 +40,10 @@ export const AwsModule: ModuleInterface = {
             parameterName: AwsModuleKeyname + ".region",
             isRequired: false,
             defaultValue: "us-east-1",
+            defaultResolvers: [
+                new EnvironmentVariableResolver("AWS_REGION"),
+            ]
         }
-    ],
-    importServices: [
-        DynamodbClient,
-
-        DynamodbEventParser,
-        S3EventParser,
-        SnsEventParser,
-        SqsEventParser,
-
-        RequestMapperFactory,
-
-        HttpRequestMapper,
-        MethodMapper,
-        RequestMapper,
-        ResponseMapper,
-        RestApiRequestMapper,
     ],
     importModules: [LoggingModule],
     providerRegistrations: [

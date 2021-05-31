@@ -3,11 +3,12 @@ import {NetworkingModule} from "@pristine-ts/networking";
 import {CoreModuleKeyname} from "./core.module.keyname";
 import {TelemetryModule} from "@pristine-ts/telemetry";
 import {EventModule} from "@pristine-ts/event";
+import {ConfigurationModule} from "@pristine-ts/configuration";
 
 export const CoreModule: ModuleInterface =  {
     keyname: CoreModuleKeyname,
-    importServices: [],
     importModules: [
+        ConfigurationModule,
         NetworkingModule,
         TelemetryModule,
         EventModule,

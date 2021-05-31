@@ -10,8 +10,6 @@ export const AwsXrayModule: ModuleInterface = {
     configurationDefinitions: [
     ],
 
-    importServices: [],
-
     importModules:[
         TelemetryModule,
         LoggingModule,

@@ -83,7 +83,7 @@ describe("Kernel.ts", () => {
                 importModules: [
                     CoreModule,
                 ],
-                importServices: [],
+                
                 providerRegistrations: [
                     {
                         token: ServiceDefinitionTagEnum.RequestInterceptor,
@@ -132,7 +132,7 @@ describe("Kernel.ts", () => {
 
             const module: ModuleInterface = {
                 keyname: "test",
-                importServices: [],
+                
                 importModules: [
                     CoreModule,
                 ],
@@ -189,7 +189,7 @@ describe("Kernel.ts", () => {
 
             const module: ModuleInterface = {
                 keyname: "test",
-                importServices: [],
+                
                 importModules: [
                     CoreModule,
                 ],
@@ -256,7 +256,7 @@ describe("Kernel.ts", () => {
 
             const module: ModuleInterface = {
                 keyname: "test",
-                importServices: [],
+                
                 importModules: [
                     CoreModule,
                 ],
@@ -299,7 +299,7 @@ describe("Kernel.ts", () => {
 
             const module: ModuleInterface = {
                 keyname: "test",
-                importServices: [],
+                
                 importModules: [
                     CoreModule,
                 ],
@@ -340,7 +340,7 @@ describe("Kernel.ts", () => {
 
             const module: ModuleInterface = {
                 keyname: "test",
-                importServices: [],
+                
 
                 importModules: [
                     CoreModule,
@@ -406,9 +406,6 @@ describe("Kernel.ts", () => {
 
         const module: ModuleInterface = {
             keyname: "test",
-            importServices: [
-            ],
-
             importModules: [
                 CoreModule,
             ],
@@ -458,23 +455,23 @@ describe("Kernel.ts", () => {
 
         const testModule1: ModuleInterface = {
             keyname: module1Keyname,
-            importServices: [],
+            
         }
 
         const testModule2: ModuleInterface = {
             keyname: module2Keyname,
-            importServices: [],
+            
         }
 
         const testModule3: ModuleInterface = {
             keyname: module3Keyname,
-            importServices: [],
+            
         }
 
         it("should only resolve classes from imported modules", async () => {
             const module: ModuleInterface = {
                 keyname: "Module",
-                importServices: [],
+                
                 importModules: [
                     CoreModule,
                     testModule1,
