@@ -59,4 +59,12 @@ describe("Configuration Parser", () => {
         expect(spy).toHaveBeenCalledWith(test);
         expect(resolvedValue).toBe("property");
     })
+
+    it("should execute the default resolvers until one resolves something when the configuration isRequired", () => {
+
+    })
+
+    it("should execute the default resolvers until one resolves something when the configuration is not required", () => {
+
+    })
 });

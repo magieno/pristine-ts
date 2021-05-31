@@ -14,6 +14,5 @@ export const ConfigurationModule: ModuleInterface = {
     keyname: ConfigurationModuleKeyname,
 
     importModules:[
-        LoggingModule,
     ],
 }
