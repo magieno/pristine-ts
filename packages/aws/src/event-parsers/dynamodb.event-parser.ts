@@ -11,7 +11,7 @@ import {LogHandlerInterface} from "@pristine-ts/logging";
 @injectable()
 export class DynamodbEventParser implements EventParserInterface<DynamodbEventPayload>{
 
-    public constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface) {
+    public constructor() {
     }
 
     private findEnum(eventName: string): DynamodbEventType{
