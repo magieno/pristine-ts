@@ -41,7 +41,7 @@ export const AwsModule: ModuleInterface = {
             isRequired: false,
             defaultValue: "us-east-1",
             defaultResolvers: [
-                await (new EnvironmentVariableResolver("AWS_REGION").resolve())
+                new EnvironmentVariableResolver("AWS_REGION"),
             ]
         }
     ],

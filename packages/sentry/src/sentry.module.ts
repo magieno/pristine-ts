@@ -13,14 +13,14 @@ export const SentryModule: ModuleInterface = {
             parameterName: SentryModuleKeyname + ".sentryDsn",
             isRequired: true,
             defaultResolvers: [
-                await (new EnvironmentVariableResolver("PRISTINE_SENTRY_DSN").resolve())
+                new EnvironmentVariableResolver("PRISTINE_SENTRY_DSN"),
             ]
         },
         {
             parameterName: SentryModuleKeyname + ".tagRelease",
             isRequired: true,
             defaultResolvers: [
-                await (new EnvironmentVariableResolver("PRISTINE_SENTRY_TAG_RELEASE").resolve())
+                new EnvironmentVariableResolver("PRISTINE_SENTRY_TAG_RELEASE"),
             ]
         },
         {
@@ -28,7 +28,7 @@ export const SentryModule: ModuleInterface = {
             isRequired: false,
             defaultValue: 0.1,
             defaultResolvers: [
-                await (new NumberResolver(new EnvironmentVariableResolver("PRISTINE_SENTRY_SAMPLE_RATE")).resolve())
+                new NumberResolver(new EnvironmentVariableResolver("PRISTINE_SENTRY_SAMPLE_RATE")),
             ]
         },
         {
@@ -36,7 +36,7 @@ export const SentryModule: ModuleInterface = {
             isRequired: false,
             defaultValue: false,
             defaultResolvers: [
-                await (new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_SENTRY_ACTIVATED")).resolve())
+                new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_SENTRY_ACTIVATED")),
             ]
         },
     ],

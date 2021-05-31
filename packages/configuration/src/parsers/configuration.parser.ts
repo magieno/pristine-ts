@@ -1,27 +1,35 @@
 import {ConfigurationValidationError} from "../errors/configuration-validation.error";
 import {injectable, DependencyContainer} from "tsyringe";
 import {ModuleConfigurationValue} from "../types/module-configuration.value";
+import {DynamicConfigurationResolverInterface} from "@pristine-ts/common";
+import {ResolverInterface} from "@pristine-ts/common/dist/lib/esm/interfaces/resolver.interface";
 
 @injectable()
 export class ConfigurationParser {
 
     async resolve(moduleConfigurationValue: ModuleConfigurationValue, container: DependencyContainer): Promise<number | boolean | string> {
-        if(typeof moduleConfigurationValue === "boolean" || typeof moduleConfigurationValue === "number" || typeof moduleConfigurationValue === "string") {
-            return moduleConfigurationValue;
+        const resolvedValue = await Promise.resolve(moduleConfigurationValue)
+
+        if(typeof resolvedValue === "boolean" || typeof resolvedValue === "number" || typeof resolvedValue === "string") {
+            return resolvedValue;
         }
 
-        if(typeof moduleConfigurationValue === "object") {
-            if (typeof moduleConfigurationValue.dynamicResolve === "function") {
+        if(typeof resolvedValue === "object") {
+            const dynamicConfigurationResolver = (resolvedValue as DynamicConfigurationResolverInterface<any>)
+            if ( dynamicConfigurationResolver.dynamicResolve !== undefined && typeof dynamicConfigurationResolver.dynamicResolve === "function") {
                 let instantiatedClass;
 
-                if(moduleConfigurationValue.injectionToken) {
-                    instantiatedClass = container.resolve(moduleConfigurationValue.injectionToken);
+                if(dynamicConfigurationResolver.injectionToken) {
+                    instantiatedClass = container.resolve(dynamicConfigurationResolver.injectionToken);
                 }
 
-                return Promise.resolve(moduleConfigurationValue.dynamicResolve(instantiatedClass));
+                return Promise.resolve(dynamicConfigurationResolver.dynamicResolve(instantiatedClass));
+            }
+            else if(typeof (resolvedValue as ResolverInterface<any>).resolve === "function") {
+                return Promise.resolve((resolvedValue as ResolverInterface<any>).resolve());
             }
         }
 
-        throw new ConfigurationValidationError(["The configuration value passed contains an unsupported type. Unsupported type: '" + typeof moduleConfigurationValue+ "'"])
+        throw new ConfigurationValidationError(["The configuration value passed contains an unsupported type. Unsupported type: '" + typeof resolvedValue+ "'"])
     }
 }

@@ -7,6 +7,21 @@ import {RequestMapper} from "./request.mapper";
 import {RequestMapperFactory} from "../factories/request-mapper.factory";
 import {RestApiRequestMapper} from "./rest-api-request.mapper";
 import {BodyMapper} from "./body-mapper";
+import {LogHandlerInterface} from "@pristine-ts/logging";
+
+
+const logHandlerMock: LogHandlerInterface = {
+    debug(message: string, extra?: any) {
+    },
+    info(message: string, extra?: any) {
+    },
+    error(message: string, extra?: any) {
+    }
+    ,critical(message: string, extra?: any) {
+    },
+    warning(message: string, extra?: any) {
+    },
+}
 
 describe("Request mapper", () => {
     const rawRestEvent = {
@@ -163,7 +178,7 @@ describe("Request mapper", () => {
     it("should map a rest request properly", () => {
         const methodMapper = new MethodMapper();
         const bodyMapper = new BodyMapper();
-        const requestMapper = new RequestMapper(new RequestMapperFactory(new HttpRequestMapper(methodMapper, bodyMapper), new RestApiRequestMapper(methodMapper, bodyMapper)));
+        const requestMapper = new RequestMapper(new RequestMapperFactory(new HttpRequestMapper(methodMapper, bodyMapper), new RestApiRequestMapper(methodMapper, bodyMapper)), logHandlerMock);
 
         const expectedRequest: RequestInterface = {
             url: "/my/path",
@@ -182,7 +197,7 @@ describe("Request mapper", () => {
     it("should map an http request properly", () => {
         const methodMapper = new MethodMapper();
         const bodyMapper = new BodyMapper();
-        const requestMapper = new RequestMapper(new RequestMapperFactory(new HttpRequestMapper(methodMapper, bodyMapper), new RestApiRequestMapper(methodMapper, bodyMapper)));
+        const requestMapper = new RequestMapper(new RequestMapperFactory(new HttpRequestMapper(methodMapper, bodyMapper), new RestApiRequestMapper(methodMapper, bodyMapper)), logHandlerMock);
 
         const expectedRequest: RequestInterface = {
             url: "/my/path",

@@ -22,7 +22,7 @@ export const JwtModule: ModuleInterface = {
             isRequired: false,
             defaultValue: "HS256",
             defaultResolvers: [
-                await (new EnvironmentVariableResolver("PRISTINE_JWT_ALGORITHM").resolve())
+                new EnvironmentVariableResolver("PRISTINE_JWT_ALGORITHM"),
             ]
         },
         {

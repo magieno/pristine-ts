@@ -1,5 +1,4 @@
 import {ModuleInterface} from "@pristine-ts/common";
-import {LoggingModule} from "@pristine-ts/logging";
 import {ConfigurationModuleKeyname} from "./configuration.module.keyname";
 
 export * from "./errors/errors";

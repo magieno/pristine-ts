@@ -15,14 +15,14 @@ export const AwsCognitoModule: ModuleInterface = {
             isRequired: false,
             defaultValue: "us-east-1",
             defaultResolvers: [
-                await (new EnvironmentVariableResolver("AWS_REGION").resolve())
+                new EnvironmentVariableResolver("AWS_REGION"),
             ]
         },
         {
             parameterName: AwsCognitoModuleKeyname + ".poolId",
             isRequired: true,
             defaultResolvers: [
-                await (new EnvironmentVariableResolver("PRISTINE_AWS_COGNITO_POOL_ID").resolve())
+                new EnvironmentVariableResolver("PRISTINE_AWS_COGNITO_POOL_ID"),
             ]
         }
     ],

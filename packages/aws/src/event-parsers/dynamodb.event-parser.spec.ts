@@ -3,6 +3,21 @@ import {Event} from "@pristine-ts/event";
 import {DynamodbEventParser} from "./dynamodb.event-parser";
 import {DynamodbEventPayload} from "../event-payloads/dynamodb.event-payload";
 import {DynamodbEventType} from "../enums/dynamodb-event-type.enum";
+import {LogHandlerInterface} from "@pristine-ts/logging";
+
+
+const logHandlerMock: LogHandlerInterface = {
+    debug(message: string, extra?: any) {
+    },
+    info(message: string, extra?: any) {
+    },
+    error(message: string, extra?: any) {
+    }
+    ,critical(message: string, extra?: any) {
+    },
+    warning(message: string, extra?: any) {
+    },
+}
 
 describe("Dynamodb event parser", () => {
     const rawEvent = {
@@ -41,14 +56,14 @@ describe("Dynamodb event parser", () => {
     };
 
     it("should support an event from dynamodb", () => {
-        const dynamodbEventParser = new DynamodbEventParser();
+        const dynamodbEventParser = new DynamodbEventParser(logHandlerMock);
 
         expect(dynamodbEventParser.supports(rawEvent)).toBeTruthy();
     })
 
     it("should transform an event from dynamodb", () => {
 
-        const dynamodbEventParser = new DynamodbEventParser();
+        const dynamodbEventParser = new DynamodbEventParser(logHandlerMock);
 
         const dynamodbEvent: Event<DynamodbEventPayload> = {
             type: DynamodbEventType.Insert,

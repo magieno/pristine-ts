@@ -1,5 +1,5 @@
 import {BooleanResolver} from "./boolean.resolver";
-import {ResolverInterface} from "../interfaces/resolver.interface";
+import {ResolverInterface} from "@pristine-ts/common/dist/lib/esm/interfaces/resolver.interface";
 
 describe("Boolean Resolver", () => {
     it("should transform a string with value '1', '0', 'true', 'false', 'TRUE', 'FALSE' into the appropriate boolean", async () => {
