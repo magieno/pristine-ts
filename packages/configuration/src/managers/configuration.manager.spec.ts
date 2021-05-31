@@ -3,6 +3,8 @@ import {ModuleConfigurationValue} from "../types/module-configuration.value";
 import {injectable, DependencyContainer, container} from "tsyringe";
 import {ConfigurationManager} from "./configuration.manager";
 import {ConfigurationValidationError} from "../errors/configuration-validation.error";
+import {NumberResolver} from "../resolvers/number.resolver";
+import {BooleanResolver} from "../resolvers/boolean.resolver";
 
 
 describe("Configuration Manager", () => {
@@ -90,6 +92,39 @@ describe("Configuration Manager", () => {
 
             expect(container.resolve("%pristine.test.parameter1%")).toBeTruthy();
             expect(container.resolve("%pristine.test.parameter2%")).toBe("defaultValue");
+        })
+
+
+        it("should execute the default resolvers until one resolves something when the configuration isRequired", async () => {
+            const configurationManager: ConfigurationManager = new ConfigurationManager(getConfigurationParserMock("testResolved"));
+
+            configurationManager.register({
+                parameterName: "pristine.test.parameter1",
+                isRequired: true,
+                defaultResolvers: [
+                    true,
+                ]
+            });
+            await configurationManager.load({}, container);
+
+            expect(container.resolve("%pristine.test.parameter1%")).toBeTruthy();
+        })
+
+        it("should execute the default resolvers until one resolves something when the configuration is not required", async () => {
+            const configurationManager: ConfigurationManager = new ConfigurationManager(getConfigurationParserMock("testResolved"));
+            const resolver: NumberResolver = new NumberResolver(5);
+
+            configurationManager.register({
+                parameterName: "pristine.test.parameter2",
+                isRequired: false,
+                defaultValue: 0,
+                defaultResolvers: [
+                    await resolver.resolve(),
+                ],
+            });
+            await configurationManager.load({}, container);
+
+            expect(container.resolve("%pristine.test.parameter2%")).toBe(5);
         })
     })
 });

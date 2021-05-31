@@ -4,6 +4,7 @@ import {JwtManager} from "./managers/jwt.manager";
 import {JwtManagerInterface} from "./interfaces/jwt-manager.interface";
 import {JwtPayloadParameterDecoratorResolver} from "./resolvers/jwt-payload-parameter-decorator.resolver";
 import {JwtModuleKeyname} from "./jwt.module.keyname";
+import {EnvironmentVariableResolver} from "@pristine-ts/configuration";
 
 export * from "./decorators/decorators";
 export * from "./errors/errors";
@@ -20,6 +21,9 @@ export const JwtModule: ModuleInterface = {
             parameterName: JwtModuleKeyname + ".algorithm",
             isRequired: false,
             defaultValue: "HS256",
+            defaultResolvers: [
+                await (new EnvironmentVariableResolver("PRISTINE_JWT_ALGORITHM").resolve())
+            ]
         },
         {
             parameterName: JwtModuleKeyname + ".publicKey",

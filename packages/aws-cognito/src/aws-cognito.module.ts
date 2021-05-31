@@ -1,6 +1,7 @@
 import {ModuleInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {AwsCognitoModuleKeyname} from "./aws-cognito.module.keyname";
 import {HttpModule} from "@pristine-ts/http";
+import {EnvironmentVariableResolver} from "@pristine-ts/configuration";
 
 export * from "./authenticators/authenticators";
 export * from "./guards/guards";
@@ -13,10 +14,16 @@ export const AwsCognitoModule: ModuleInterface = {
             parameterName: AwsCognitoModuleKeyname + ".region",
             isRequired: false,
             defaultValue: "us-east-1",
+            defaultResolvers: [
+                await (new EnvironmentVariableResolver("AWS_REGION").resolve())
+            ]
         },
         {
             parameterName: AwsCognitoModuleKeyname + ".poolId",
             isRequired: true,
+            defaultResolvers: [
+                await (new EnvironmentVariableResolver("PRISTINE_AWS_COGNITO_POOL_ID").resolve())
+            ]
         }
     ],
     importModules: [
