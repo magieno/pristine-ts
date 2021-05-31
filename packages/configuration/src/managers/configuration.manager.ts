@@ -4,13 +4,12 @@ import {ModuleConfigurationValue} from "../types/module-configuration.value";
 import {ConfigurationParser} from "../parsers/configuration.parser";
 import {ConfigurationValidationError} from "../errors/configuration-validation.error";
 import {ConfigurationDefinition} from "@pristine-ts/common";
-import {LogHandlerInterface} from "@pristine-ts/logging";
 
 @injectable()
 export class ConfigurationManager {
-    public configurationDefinitions: {[key: string]: ConfigurationDefinition} = {};
+    public configurationDefinitions: { [key: string]: ConfigurationDefinition } = {};
 
-    public constructor(private readonly configurationParser: ConfigurationParser, @inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface) {
+    public constructor(private readonly configurationParser: ConfigurationParser) {
     }
 
     /**
@@ -20,13 +19,8 @@ export class ConfigurationManager {
      * @param configurationDefinition
      */
     public register(configurationDefinition: ConfigurationDefinition) {
-        if(this.configurationDefinitions.hasOwnProperty(configurationDefinition.parameterName)) {
-            this.loghandler.error("Cannot Register a configuration definition since there's already one for this parameter.", {
-                configurationDefinition,
-                configurationDefinitions: this.configurationDefinitions,
-            });
-
-            throw new ConfigurationDefinitionAlreadyExistsError("There is already a configuration definition registered for this parameter name.",  configurationDefinition.parameterName);
+        if (this.configurationDefinitions.hasOwnProperty(configurationDefinition.parameterName)) {
+            throw new ConfigurationDefinitionAlreadyExistsError("There is already a configuration definition registered for this parameter name.", configurationDefinition.parameterName);
         }
 
         this.configurationDefinitions[configurationDefinition.parameterName] = configurationDefinition;
@@ -42,16 +36,16 @@ export class ConfigurationManager {
      * @param moduleConfigurationValues
      * @param container
      */
-    public async load(moduleConfigurationValues: {[key: string]: ModuleConfigurationValue}, container: DependencyContainer) {
+    public async load(moduleConfigurationValues: { [key: string]: ModuleConfigurationValue }, container: DependencyContainer) {
         const validationErrors: string[] = [];
 
-        for(const key of Object.keys(moduleConfigurationValues)) {
-            if(moduleConfigurationValues.hasOwnProperty(key) === false) {
+        for (const key of Object.keys(moduleConfigurationValues)) {
+            if (moduleConfigurationValues.hasOwnProperty(key) === false) {
                 continue;
             }
 
-            if(this.configurationDefinitions.hasOwnProperty(key) === false) {
-                validationErrors.push("There are no ConfigurationDefinition in any of the modules for the following key: '" + key +"'.");
+            if (this.configurationDefinitions.hasOwnProperty(key) === false) {
+                validationErrors.push("There are no ConfigurationDefinition in any of the modules for the following key: '" + key + "'.");
                 continue;
             }
 
@@ -68,20 +62,38 @@ export class ConfigurationManager {
 
         // Load all the remaining configurationDefinitions into the container. For each remaining configurationDefinition, we expect
         // the isRequired property to be false and to have a default value.
-        for(const key of Object.keys(this.configurationDefinitions)) {
-            if(this.configurationDefinitions.hasOwnProperty(key) === false) {
+        for (const key of Object.keys(this.configurationDefinitions)) {
+            if (this.configurationDefinitions.hasOwnProperty(key) === false) {
                 continue;
             }
 
             const configurationDefinition = this.configurationDefinitions[key];
 
-            if(configurationDefinition.isRequired === true) {
-                validationErrors.push("The Configuration with key: '" + key +"' is required and must be defined.");
-                continue;
+            // Start by looping over the DefaultResolvers in case one resolvers, resolves a value, else use the default value.
+            if (configurationDefinition.defaultResolvers && Array.isArray(configurationDefinition.defaultResolvers)) {
+                let isConfigurationResolvedByDefaultResolver = false;
+
+                for (let defaultResolver of configurationDefinition.defaultResolvers) {
+                    try {
+                        const resolvedConfigurationValue = await this.configurationParser.resolve(defaultResolver, container);
+
+                        this.registerConfigurationValue(key, resolvedConfigurationValue, container);
+
+                        isConfigurationResolvedByDefaultResolver = true;
+                    } catch (e) {
+                        // Simply ignore and continue
+                    }
+                }
+
+                if(isConfigurationResolvedByDefaultResolver) {
+                    continue;
+                }
             }
 
-            // Start by looping over the DefaultResolvers in case one resolvers to something meaningful, else use the default value.
-            //if(configurationDefinition.
+            if (configurationDefinition.isRequired === true) {
+                validationErrors.push("The Configuration with key: '" + key + "' is required and must be defined.");
+                continue;
+            }
 
             const resolvedConfigurationValue = await this.configurationParser.resolve(configurationDefinition.defaultValue, container);
 
@@ -89,12 +101,7 @@ export class ConfigurationManager {
             this.registerConfigurationValue(key, resolvedConfigurationValue, container);
         }
 
-        if(validationErrors.length !== 0) {
-            this.loghandler.error("There are validation errors with the configurations.", {
-                validationErrors,
-                moduleConfigurationValues,
-                configurationDefinitions: this.configurationDefinitions,
-            })
+        if (validationErrors.length !== 0) {
             throw new ConfigurationValidationError(validationErrors);
         }
 
@@ -108,7 +115,7 @@ export class ConfigurationManager {
      * @param value
      * @param container
      */
-    public registerConfigurationValue(configurationKey: string, value: boolean | number |  string, container: DependencyContainer) {
+    public registerConfigurationValue(configurationKey: string, value: boolean | number | string, container: DependencyContainer) {
         // Register the configuration in the container
         container.registerInstance("%" + configurationKey + "%", value);
     }

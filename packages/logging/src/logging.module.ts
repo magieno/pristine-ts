@@ -3,7 +3,7 @@ import {LogHandler} from "./handlers/log.handler";
 import {ConsoleLogger} from "./loggers/console.logger";
 import {FileLogger} from "./loggers/file.logger";
 import {LoggingModuleKeyname} from "./logging.module.keyname";
-import {EnvironmentVariableResolver} from "@pristine-ts/configuration";
+import {ConfigurationModule} from "@pristine-ts/configuration";
 
 export * from "./enums/enums";
 export * from "./handlers/handlers";
@@ -78,6 +78,8 @@ export const LoggingModule: ModuleInterface = {
         ConsoleLogger,
         FileLogger,
     ],
-    importModules: [],
+    importModules: [
+        ConfigurationModule,
+    ],
     providerRegistrations: []
 }

@@ -1,16 +1,17 @@
 import {DynamicConfigurationResolverInterface} from "../interfaces/dynamic-configuration-resolver.interface";
-import {ModuleConfigurationValue} from "@pristine-ts/configuration";
 
 export type ConfigurationDefinition = {
     parameterName: string;
 
     isRequired: true;
+
+    defaultResolvers?:  (string | boolean | number | DynamicConfigurationResolverInterface<any>)[];
 } | {
     parameterName: string;
 
     isRequired: false;
 
-    defaultValue: ModuleConfigurationValue;
+    defaultValue:  string | boolean | number | DynamicConfigurationResolverInterface<any>;
 
-    defaultResolvers?: ModuleConfigurationValue[];
+    defaultResolvers?:  (string | boolean | number | DynamicConfigurationResolverInterface<any>)[];
 }
