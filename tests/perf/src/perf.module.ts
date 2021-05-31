@@ -221,9 +221,10 @@ import {WormController} from "./controllers/worm.controller";
 import {WrenController} from "./controllers/wren.controller";
 import {YakController} from "./controllers/yak.controller";
 import {ZebraController } from "./controllers/zebra.controller";
+import {AppModuleInterface} from "@pristine-ts/common";
 
 
-export const perfModule: ModuleInterface = {
+export const perfModule: AppModuleInterface = {
     keyname: "perf",
     importServices: [
         AardvarkController,
