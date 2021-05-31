@@ -9,7 +9,7 @@ import {
     Route,
     RouterInterface,
     HttpError,
-    NetworkingModule,
+    NetworkingModule, route,
 } from "@pristine-ts/networking";
 import {
     ServiceDefinitionTagEnum,
@@ -112,7 +112,9 @@ describe("Kernel.ts", () => {
             const kernel = new Kernel();
             await kernel.init(module);
             // Force set the router
-            kernel["router"] = router;
+            kernel["setupRouter"] = () => {
+                kernel["router"] = router
+            };
             await kernel.handleRequest({url: "", httpMethod: HttpMethod.Get});
         })
 
@@ -283,7 +285,9 @@ describe("Kernel.ts", () => {
             const kernel = new Kernel();
             await kernel.init(module);
             // Force set the router
-            kernel["router"] = router;
+            kernel["setupRouter"] = () => {
+                kernel["router"] = router
+            };
             const response = await kernel.handleRequest({url: "", httpMethod: HttpMethod.Get});
 
             // @ts-ignore

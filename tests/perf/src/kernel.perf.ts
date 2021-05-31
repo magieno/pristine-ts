@@ -17,6 +17,7 @@ describe("Kernel.ts", () => {
             var start = process.hrtime();
             const kernel = new Kernel();
             await kernel.init(perfModule);
+            await kernel["setupRouter"]();
 
             const timeElapsedInMiliseconds = process.hrtime(start)[1] / 1000000;
             elapsedTimes.push(timeElapsedInMiliseconds);
