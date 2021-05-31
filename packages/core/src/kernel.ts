@@ -68,9 +68,6 @@ export class Kernel {
         // Register the configuration
         await this.initConfiguration(moduleConfigurationValues);
 
-        // Setup the router
-        this.setupRouter();
-
         await this.afterInitModule(module);
     }
 
@@ -437,6 +434,9 @@ export class Kernel {
      * @param requestInterface
      */
     public async handleRequest(requestInterface: RequestInterface): Promise<Response> {
+        // Setup the router
+        this.setupRouter();
+
         const request = new Request(requestInterface);
 
         return new Promise(async (resolve) => {
@@ -487,6 +487,9 @@ export class Kernel {
      * @private
      */
     private setupRouter() {
+        if(this.router) {
+            return;
+        }
         this.router = this.container.resolve(Router);
 
         // Init the controllers
