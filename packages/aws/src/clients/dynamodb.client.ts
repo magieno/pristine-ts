@@ -8,10 +8,10 @@ import {DynamodbItemAlreadyExistsError} from "../errors/dynamodb-item-already-ex
 import {DynamodbTableNotFoundError} from "../errors/dynamodb-table-not-found.error";
 import {DynamodbValidationError} from "../errors/dynamodb-validation.error";
 import {DynamodbError} from "../errors/dynamodb.error";
-import {LogHandler} from "@pristine-ts/logging";
 import {LogHandlerInterface} from "@pristine-ts/logging";
+import {tag} from "@pristine-ts/common";
 
-
+@tag("DynamodbClientInterface")
 @injectable()
 export class DynamodbClient {
 

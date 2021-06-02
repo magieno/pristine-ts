@@ -5,6 +5,7 @@ import { EnvironmentVariableResolver, NumberResolver} from "@pristine-ts/configu
 
 export * from "./clients/clients";
 export * from "./errors/errors";
+export * from "./interfaces/interfaces";
 
 export const RedisModule: ModuleInterface = {
     keyname: RedisModuleKeyname,

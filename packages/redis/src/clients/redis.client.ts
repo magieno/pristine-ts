@@ -2,8 +2,9 @@ import {injectable, inject} from "tsyringe";
 import {createClient, RedisClient as Redis} from "redis";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {RedisError} from "../errors/redis.error";
+import {tag} from "@pristine-ts/common";
 
-
+@tag("RedisClientInterface")
 @injectable()
 export class RedisClient {
     public constructor(@inject("%pristine.redis.host%") private readonly host: string,
