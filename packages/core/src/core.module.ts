@@ -18,7 +18,7 @@ export const CoreModule: ModuleInterface =  {
 
 export * from "./kernel";
 
-export * from "./enums/enums";
+//export * from "./enums/enums";
 export * from "./errors/errors";
 export * from "./interceptors/interceptors";
 export * from "./interfaces/interfaces";

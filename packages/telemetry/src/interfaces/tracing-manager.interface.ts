@@ -8,5 +8,7 @@ export interface TracingManagerInterface {
 
     startSpan(keyname: string, parentId?: string, context?: any): Span;
 
+    addSpan(span: Span, parentId?: string, context?: any);
+
     endSpan(span: Span);
 }

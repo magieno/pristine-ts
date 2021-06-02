@@ -1,6 +1,7 @@
 import {ModuleInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {TelemetryModuleKeyname} from "./telemetry.module.keyname";
 import {LoggingModule} from "@pristine-ts/logging";
+import {BooleanResolver, EnvironmentVariableResolver} from "@pristine-ts/configuration";
 
 export * from "./enums/enums";
 export * from "./interfaces/interfaces";
@@ -14,5 +15,13 @@ export const TelemetryModule: ModuleInterface = {
         LoggingModule,
     ],
     providerRegistrations: [
-    ]
+    ],
+    configurationDefinitions: [{
+        parameterName: TelemetryModuleKeyname + ".active",
+        defaultValue: true,
+        isRequired: false,
+        defaultResolvers: [
+            new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_TRACING_IS_ACTIVE")),
+        ]
+    }]
 }

@@ -20,7 +20,7 @@ const logHandlerMock: LogHandlerInterface = {
 
 describe("Tracing Manager", () => {
     it("should start the tracing by creating the trace and the root span", () => {
-        const tracingManager: TracingManager = new TracingManager([], logHandlerMock);
+        const tracingManager: TracingManager = new TracingManager([], logHandlerMock, true);
 
         tracingManager.startTracing();
 
@@ -58,7 +58,7 @@ describe("Tracing Manager", () => {
                 })(),
             }
 
-            const tracingManager: TracingManager = new TracingManager([tracer], logHandlerMock);
+            const tracingManager: TracingManager = new TracingManager([tracer], logHandlerMock, true);
 
             tracingManager.startTracing();
             expect.assertions(2);
@@ -96,7 +96,7 @@ describe("Tracing Manager", () => {
                 }),
             }
 
-            const tracingManager: TracingManager = new TracingManager([tracer], logHandlerMock);
+            const tracingManager: TracingManager = new TracingManager([tracer], logHandlerMock, true);
 
             tracingManager.startTracing();
 
@@ -139,7 +139,7 @@ describe("Tracing Manager", () => {
                 })(),
             }
 
-            const tracingManager: TracingManager = new TracingManager([tracer], logHandlerMock);
+            const tracingManager: TracingManager = new TracingManager([tracer], logHandlerMock, true);
 
             tracingManager.startTracing();
             tracingManager.endTrace();
