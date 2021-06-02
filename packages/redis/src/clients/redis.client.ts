@@ -20,19 +20,25 @@ export class RedisClient {
         })
     }
 
-    set(table: string, key: string, value: string, ttl: number = 3600): Promise<void> {
+    set(table: string, key: string, value: string, ttl?: number): Promise<void> {
         return new Promise<void>(((resolve, reject) => {
             const client = this.getClient();
             const redisKey = this.getKey(table, key);
-            // EX means ttl is in second https://redis.io/commands/set
-            client.set(redisKey, value, 'EX', ttl,(err, reply) => {
+            const callback = (err, reply) => {
                 if(err) {
                     const redisError = new RedisError("Error setting in redis", err, table, key, redisKey);
                     return this.quit(client).then(() => reject(redisError)).catch((error) => reject(error));
                 }
 
                 return this.quit(client).then(() => resolve()).catch((error) => reject(error));
-            })
+            };
+
+            if (ttl) {
+                // EX means ttl is in second https://redis.io/commands/set
+                client.set(redisKey, value, 'EX', ttl, callback);
+            } else {
+                client.set(redisKey, value, callback);
+            }
         }))
     }
 
