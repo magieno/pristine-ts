@@ -49,6 +49,7 @@
     "@pristine-ts/jwt": "file:packages/jwt",
     "@pristine-ts/logging": "file:packages/logging",
     "@pristine-ts/networking": "file:packages/networking",
+    "@pristine-ts/redis": "file:packages/redis",
     "@pristine-ts/security": "file:packages/security",
     "@pristine-ts/sentry": "file:packages/sentry",
     "@pristine-ts/telemetry": "file:packages/telemetry",
