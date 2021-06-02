@@ -18,6 +18,9 @@
   "publishConfig": {
     "access": "public"
   },
+  "devDependencies": {
+    "@types/jwk-to-pem": "^2.0.0"
+  },
   "dependencies": {
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/http": "file:../http",

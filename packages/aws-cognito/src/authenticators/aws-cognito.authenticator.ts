@@ -7,8 +7,8 @@ import {ClaimInterface} from "../interfaces/claim.interface";
 import {AuthenticatorInterface} from "@pristine-ts/security";
 import {HttpClientInterface, ResponseTypeEnum} from "@pristine-ts/http";
 import {LogHandlerInterface} from "@pristine-ts/logging";
+import jwkToBuffer from "jwk-to-pem";
 
-const jwkToPem = require("jwk-to-pem");
 
 @singleton()
 @injectable()
@@ -69,7 +69,7 @@ export class AwsCognitoAuthenticator implements AuthenticatorInterface{
         const publicKeys = publicKeysResponse.body;
 
         const pems: {[key: string]: string} = publicKeys.keys.reduce((agg, current) => {
-            agg[current.kid] = jwkToPem(current);
+            agg[current.kid] = jwkToBuffer(current);
             return agg;
         }, {} as {[key: string]: string});
 
