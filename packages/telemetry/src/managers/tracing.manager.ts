@@ -25,7 +25,8 @@ export class TracingManager implements TracingManagerInterface {
     public spans: {[keyname: string]: Span} = {};
 
     public constructor(@injectAll(ServiceDefinitionTagEnum.Tracer) private readonly tracers: TracerInterface[],
-                       @inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface) {
+                       @inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface,
+                       @inject("%pristine.telemetry.isActive%") private readonly isActive: boolean) {
     }
 
     /**
@@ -49,6 +50,14 @@ export class TracingManager implements TracingManagerInterface {
         this.trace.rootSpan = span;
 
         this.spans[span.keyname] = span;
+
+        if(this.isActive === false) {
+            this.loghandler.warning("The tracing is deactivated.", {
+                isActive: this.isActive
+            });
+
+            return span;
+        }
 
         // Log that we are starting the tracing
         this.loghandler.debug("Start Tracing", {
@@ -129,6 +138,12 @@ export class TracingManager implements TracingManagerInterface {
         // Add it to the map of spans
         this.spans[span.keyname] = span;
 
+        if(this.isActive === false) {
+            this.loghandler.warning("The tracing is deactivated.", {
+                isActive: this.isActive
+            });
+        }
+
         this.loghandler.debug("Start Span", {
             keyname: span.keyname,
             parentId,
@@ -182,6 +197,12 @@ export class TracingManager implements TracingManagerInterface {
         span.endDate = Date.now();
         span.inProgress = false;
 
+        if(this.isActive === false) {
+            this.loghandler.warning("The tracing is deactivated.", {
+                isActive: this.isActive
+            });
+        }
+
         this.loghandler.debug("End Span", {
             trace: this.trace,
             span,
@@ -222,6 +243,12 @@ export class TracingManager implements TracingManagerInterface {
 
         // End the trace by setting the end date.
         this.trace.endDate = Date.now();
+
+        if(this.isActive === false) {
+            this.loghandler.warning("The tracing is deactivated.", {
+                isActive: this.isActive
+            });
+        }
 
         this.loghandler.debug("End Trace", {
             trace: this.trace,
