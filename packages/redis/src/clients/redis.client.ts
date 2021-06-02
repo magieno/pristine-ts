@@ -42,11 +42,44 @@ export class RedisClient {
         }))
     }
 
+    setList(table: string, key: string, value: string[], ttl?: number): Promise<void> {
+        return new Promise<void>(((resolve, reject) => {
+            const client = this.getClient();
+            const redisKey = this.getKey(table, key);
+            const callback = (err, reply) => {
+                if(err) {
+                    const redisError = new RedisError("Error setting list in redis", err, table, key, redisKey);
+                    return this.quit(client).then(() => reject(redisError)).catch((error) => reject(error));
+                }
+
+                return this.quit(client).then(() => resolve()).catch((error) => reject(error));
+            };
+
+            client.rpush(redisKey, value, callback);
+        }))
+    }
+
     get(table: string, key: string): Promise<string | null> {
         return new Promise<string | null>(((resolve, reject) => {
             const client = this.getClient();
             const redisKey = this.getKey(table, key);
             client.get(redisKey, (err, reply) => {
+                if(err) {
+                    const redisError = new RedisError("Error getting in redis", err, table, key, redisKey);
+
+                    return this.quit(client).then(() => reject(redisError)).catch((error) => reject(error));
+                }
+
+                return this.quit(client).then(() => resolve(reply)).catch((error) => reject(error));
+            })
+        }))
+    }
+
+    getList(table: string, key: string, start: number = 0, stop: number = -1): Promise<string[]> {
+        return new Promise<string[]>(((resolve, reject) => {
+            const client = this.getClient();
+            const redisKey = this.getKey(table, key);
+            client.lrange(redisKey, start, stop, (err, reply) => {
                 if(err) {
                     const redisError = new RedisError("Error getting in redis", err, table, key, redisKey);
 
