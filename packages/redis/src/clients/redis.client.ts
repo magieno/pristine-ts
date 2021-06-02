@@ -3,10 +3,11 @@ import {createClient, RedisClient as Redis} from "redis";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {RedisError} from "../errors/redis.error";
 import {tag} from "@pristine-ts/common";
+import {RedisClientInterface} from "../interfaces/redis-client.interface";
 
 @tag("RedisClientInterface")
 @injectable()
-export class RedisClient {
+export class RedisClient implements RedisClientInterface{
     public constructor(@inject("%pristine.redis.host%") private readonly host: string,
                        @inject("%pristine.redis.port%") private readonly port: number,
                        @inject("%pristine.redis.namespace%") private readonly namespace: string,

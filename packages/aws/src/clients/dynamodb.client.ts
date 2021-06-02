@@ -10,10 +10,11 @@ import {DynamodbValidationError} from "../errors/dynamodb-validation.error";
 import {DynamodbError} from "../errors/dynamodb.error";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {tag} from "@pristine-ts/common";
+import {DynamodbClientInterface} from "../interfaces/dynamodb-client.interface";
 
 @tag("DynamodbClientInterface")
 @injectable()
-export class DynamodbClient {
+export class DynamodbClient implements DynamodbClientInterface{
 
     private client: any;
     private documentClient: any;
