@@ -26,7 +26,7 @@ export class TracingManager implements TracingManagerInterface {
 
     public constructor(@injectAll(ServiceDefinitionTagEnum.Tracer) private readonly tracers: TracerInterface[],
                        @inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface,
-                       @inject("%pristine.telemetry.isActive%") private readonly isActive: boolean) {
+                       @inject("%pristine.telemetry.active%") private readonly isActive: boolean) {
     }
 
     /**
