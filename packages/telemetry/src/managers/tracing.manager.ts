@@ -40,11 +40,11 @@ export class TracingManager implements TracingManagerInterface {
         this.trace.id = traceId ?? uuidv4();
         this.trace.context = context ?? this.trace.context;
 
-        const span = new Span(this);
+        const span = new Span(spanRootKeyname);
         span.id = uuidv4();
-        span.keyname = spanRootKeyname
         span.trace = this.trace;
         span.context = context ?? span.context;
+        span.tracingManager = this;
 
         this.trace.rootSpan = span;
 
@@ -90,10 +90,31 @@ export class TracingManager implements TracingManagerInterface {
      * @param context
      */
     public startSpan(keyname: string, parentId?: string, context?: any): Span {
+        // Create the new span
+        const span = new Span(keyname);
+        span.id = uuidv4();
+        span.trace = this.trace!;
+        span.context = context ?? span.context;
+
+        this.addSpan(span);
+
+        return span;
+    }
+
+    /**
+     * This methods adds an already created Span.
+     * @param span
+     * @param parentId
+     * @param context
+     */
+    public addSpan(span: Span, parentId?: string, context?: any): Span  {
         // Check if there's an active trace. If not, start one.
         if(this.trace === undefined) {
             this.startTracing(SpanKeynameEnum.RootExecution, undefined, context);
         }
+
+        // Assign the tracing manager
+        span.tracingManager = this;
 
         let parentSpan: Span = this.trace!.rootSpan;
 
@@ -102,12 +123,6 @@ export class TracingManager implements TracingManagerInterface {
             parentSpan = this.spans[parentId] ?? parentSpan;
         }
 
-        // Create the new span
-        const span = new Span(this);
-        span.id = uuidv4();
-        span.keyname = keyname
-        span.trace = this.trace!;
-        span.context = context ?? span.context;
         span.parentSpan = parentSpan;
         parentSpan.childSpans.push(span);
 
@@ -115,7 +130,7 @@ export class TracingManager implements TracingManagerInterface {
         this.spans[span.keyname] = span;
 
         this.loghandler.debug("Start Span", {
-            keyname,
+            keyname: span.keyname,
             parentId,
             context,
             trace: this.trace,
@@ -125,7 +140,7 @@ export class TracingManager implements TracingManagerInterface {
         // Notify the Tracers that a new span was started.
         this.tracers.forEach( (tracer:TracerInterface) => {
             this.loghandler.debug("Pushing the span into the spanStartedStream.", {
-                keyname,
+                keyname: span.keyname,
                 parentId,
                 context,
                 trace: this.trace,
@@ -160,11 +175,12 @@ export class TracingManager implements TracingManagerInterface {
      * @param span
      */
     public endSpan(span: Span) {
-        if(span.endDate !== undefined) {
+        if(span.inProgress === false) {
             return;
         }
 
         span.endDate = Date.now();
+        span.inProgress = false;
 
         this.loghandler.debug("End Span", {
             trace: this.trace,

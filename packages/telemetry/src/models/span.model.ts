@@ -4,7 +4,7 @@ import {TracingManagerInterface} from "../interfaces/tracing-manager.interface";
 export class Span {
     public id: string;
 
-    public keyname: string;
+    public tracingManager?: TracingManagerInterface
 
     public trace: Trace;
 
@@ -18,8 +18,9 @@ export class Span {
 
     public context: { [key: string]: string } = {};
 
+    public inProgress = true;
 
-    public constructor(private readonly tracingManagerInterface: TracingManagerInterface) {
+    public constructor(public keyname: string) {
     }
 
     public getDuration(): number {
@@ -27,6 +28,6 @@ export class Span {
     }
 
     public end() {
-        this.tracingManagerInterface.endSpan(this);
+        this.tracingManager?.endSpan(this);
     }
 }

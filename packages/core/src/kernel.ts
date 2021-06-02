@@ -34,8 +34,7 @@ import {ResponseInterceptionExecutionError} from "./errors/response-interception
 import {RequestInterceptionExecutionError} from "./errors/request-interception-execution.error";
 import {EventInterceptionExecutionError} from "./errors/event-interception-execution.error";
 import {EventInterceptorInterface} from "./interfaces/event-interceptor.interface";
-import {SpanKeynamesEnum} from "./enums/span-keynames.enum";
-import {TracingManagerInterface} from "@pristine-ts/telemetry";
+import {Span, SpanKeynameEnum, TracingManagerInterface} from "@pristine-ts/telemetry";
 
 /**
  * This is the central class that manages the lifecyle of this library.
@@ -56,6 +55,8 @@ export class Kernel {
      */
     private router?: RouterInterface;
 
+    private initializationSpan: Span = new Span(SpanKeynameEnum.KernelInitialization);
+
     public constructor() {
     }
 
@@ -69,6 +70,8 @@ export class Kernel {
         await this.initConfiguration(moduleConfigurationValues);
 
         await this.afterInitModule(module);
+
+        this.initializationSpan.endDate = Date.now();
     }
 
     /**
@@ -96,6 +99,7 @@ export class Kernel {
             throw new ProviderRegistrationError("There was an registering the providerRegistration: ", providerRegistration, this);
         }
     }
+
 
     /**
      * This method receives a module and recursively calls back this method with the module dependencies
@@ -390,8 +394,10 @@ export class Kernel {
     public async handleRawEvent(rawEvent: object): Promise<void> {
         const tracingManager: TracingManagerInterface = this.container.resolve("TracingManagerInterface");
         tracingManager.startTracing();
+        tracingManager.addSpan(this.initializationSpan);
+        this.initializationSpan.end();
 
-        const eventSpan = tracingManager.startSpan(SpanKeynamesEnum.Event);
+        const eventSpan = tracingManager.startSpan(SpanKeynameEnum.EventExecution);
 
         const interceptedRawEvent = await this.executeRawEventInterceptors(rawEvent);
 
@@ -450,8 +456,10 @@ export class Kernel {
 
             const tracingManager: TracingManagerInterface = childContainer.resolve("TracingManagerInterface");
             tracingManager.startTracing();
+            tracingManager.addSpan(this.initializationSpan);
+            this.initializationSpan.end();
 
-            const requestSpan = tracingManager.startSpan(SpanKeynamesEnum.Request);
+            const requestSpan = tracingManager.startSpan(SpanKeynameEnum.RequestExecution);
 
             try {
                 const interceptedRequest = await this.executeRequestInterceptors(request, childContainer);
