@@ -2,10 +2,12 @@ import {injectable, inject} from "tsyringe";
 import {createClient, RedisClient as Redis} from "redis";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {RedisError} from "../errors/redis.error";
+import {tag} from "@pristine-ts/common";
+import {RedisClientInterface} from "../interfaces/redis-client.interface";
 
-
+@tag("RedisClientInterface")
 @injectable()
-export class RedisClient {
+export class RedisClient implements RedisClientInterface{
     public constructor(@inject("%pristine.redis.host%") private readonly host: string,
                        @inject("%pristine.redis.port%") private readonly port: number,
                        @inject("%pristine.redis.namespace%") private readonly namespace: string,
@@ -23,14 +25,38 @@ export class RedisClient {
         return new Promise<void>(((resolve, reject) => {
             const client = this.getClient();
             const redisKey = this.getKey(table, key);
-            client.set(redisKey, value, (err, reply) => {
+            const callback = (err, reply) => {
                 if(err) {
                     const redisError = new RedisError("Error setting in redis", err, table, key, redisKey);
                     return this.quit(client).then(() => reject(redisError)).catch((error) => reject(error));
                 }
 
                 return this.quit(client).then(() => resolve()).catch((error) => reject(error));
-            })
+            };
+
+            if (ttl) {
+                // EX means ttl is in second https://redis.io/commands/set
+                client.set(redisKey, value, 'EX', ttl, callback);
+            } else {
+                client.set(redisKey, value, callback);
+            }
+        }))
+    }
+
+    setList(table: string, key: string, value: string[], ttl?: number): Promise<void> {
+        return new Promise<void>(((resolve, reject) => {
+            const client = this.getClient();
+            const redisKey = this.getKey(table, key);
+            const callback = (err, reply) => {
+                if(err) {
+                    const redisError = new RedisError("Error setting list in redis", err, table, key, redisKey);
+                    return this.quit(client).then(() => reject(redisError)).catch((error) => reject(error));
+                }
+
+                return this.quit(client).then(() => resolve()).catch((error) => reject(error));
+            };
+
+            client.rpush(redisKey, value, callback);
         }))
     }
 
@@ -39,6 +65,22 @@ export class RedisClient {
             const client = this.getClient();
             const redisKey = this.getKey(table, key);
             client.get(redisKey, (err, reply) => {
+                if(err) {
+                    const redisError = new RedisError("Error getting in redis", err, table, key, redisKey);
+
+                    return this.quit(client).then(() => reject(redisError)).catch((error) => reject(error));
+                }
+
+                return this.quit(client).then(() => resolve(reply)).catch((error) => reject(error));
+            })
+        }))
+    }
+
+    getList(table: string, key: string, start: number = 0, stop: number = -1): Promise<string[]> {
+        return new Promise<string[]>(((resolve, reject) => {
+            const client = this.getClient();
+            const redisKey = this.getKey(table, key);
+            client.lrange(redisKey, start, stop, (err, reply) => {
                 if(err) {
                     const redisError = new RedisError("Error getting in redis", err, table, key, redisKey);
 
