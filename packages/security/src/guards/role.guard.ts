@@ -1,10 +1,11 @@
 import {inject, injectable} from "tsyringe";
 import {IdentityInterface, RequestInterface} from "@pristine-ts/common";
-import {GuardContextInterface, GuardInterface} from "@pristine-ts/security";
+import {GuardInterface} from "../interfaces/guard.interface";
+import {GuardContextInterface} from "../interfaces/guard-context.interface";
 
 @injectable()
-export class Auth0RoleGuard implements GuardInterface {
-    public keyname = "auth0.role";
+export class RoleGuard implements GuardInterface {
+    public keyname = "role";
 
     public guardContext: GuardContextInterface;
 
@@ -19,12 +20,15 @@ export class Auth0RoleGuard implements GuardInterface {
         if(this.guardContext.options && this.guardContext.options.hasOwnProperty("roles") && Array.isArray(this.guardContext.options.roles)){
             neededRoles.push(... this.guardContext.options.roles);
         }
-
-        if(neededRoles.length > 0 && (identity?.claims?.hasOwnProperty("roles") === false || !Array.isArray(identity?.claims["roles"]))){
+        let rolesClaimKey = "roles";
+        if(this.guardContext.options && this.guardContext.options.hasOwnProperty("rolesClaimKey")) {
+            rolesClaimKey = this.guardContext.options.rolesClaimKey;
+        }
+        if(neededRoles.length > 0 && (identity?.claims?.hasOwnProperty(rolesClaimKey) === false || !Array.isArray(identity?.claims[rolesClaimKey]))){
             return false;
         }
-        for(const group of neededRoles) {
-            if(!identity?.claims["roles"].includes(group)){
+        for(const role of neededRoles) {
+            if(!identity?.claims[rolesClaimKey].includes(role)){
                 return false;
             }
         }
