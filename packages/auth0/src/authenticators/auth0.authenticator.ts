@@ -115,13 +115,13 @@ export class Auth0Authenticator implements AuthenticatorInterface{
             throw new Error('Claim issuer is invalid');
         }
 
-        if(this.context.expectedAudience && claim.aud.includes(this.context.expectedAudience) === false) {
+        if(this.context.options?.expectedAudience && claim.aud.includes(this.context.options?.expectedAudience) === false) {
             throw new Error('Claim audience does not include expected audience');
         }
 
-        if(this.context.expectedScopes) {
+        if(this.context.options?.expectedScopes) {
             const providedScopes: string[] = claim.scope.split(' ');
-            const expectedScopes = Array.isArray(this.context.expectedScopes) === false ? [this.context.expectedScopes] : this.context.expectedScopes
+            const expectedScopes = Array.isArray(this.context.options?.expectedScopes) === false ? [this.context.options?.expectedScopes] : this.context.options?.expectedScopes
             for(const scope of expectedScopes){
                 if(providedScopes.includes(scope) === false) {
                     throw new Error("Claim does not contain the required scope: '" + scope + "'");

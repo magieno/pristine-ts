@@ -105,6 +105,9 @@ export class Router implements RouterInterface {
                 });
 
                 // Todo: check if the error is an UnauthorizedHttpError, else create one.
+                if(error instanceof ForbiddenHttpError === false){
+                    error = new ForbiddenHttpError("You are not allowed to access this.");
+                }
                 return reject(error);
             }
 

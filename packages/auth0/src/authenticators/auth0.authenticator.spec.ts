@@ -183,8 +183,10 @@ describe("Auth0 authenticator ", () => {
         const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
         const token = jwt.sign(payload, privateKey, { algorithm: 'RS256'});
         const context = {
-            expectedAudience:"https://pristine-ts.com",
-            expectedScopes: ["read:messages"]
+            options: {
+                expectedAudience: "https://pristine-ts.com",
+                expectedScopes: ["read:messages"]
+            }
         }
         await auth0Authenticator.setContext(context);
         expect(auth0Authenticator["getAndVerifyClaims"](token, publicKey1)).toEqual(payload);
@@ -194,8 +196,10 @@ describe("Auth0 authenticator ", () => {
         const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
         const token = jwt.sign(payload, privateKey, { algorithm: 'RS256'});
         const context = {
-            expectedAudience:"https://pristine-ts.com123",
-            expectedScopes: ["read:messages"]
+            options: {
+                expectedAudience: "https://pristine-ts.com123",
+                expectedScopes: ["read:messages"]
+            }
         }
         await auth0Authenticator.setContext(context);
         expect(() => auth0Authenticator["getAndVerifyClaims"](token, publicKey1)).toThrow(new Error('Claim audience does not include expected audience'));
@@ -206,8 +210,10 @@ describe("Auth0 authenticator ", () => {
         const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
         const token = jwt.sign(payload, privateKey, { algorithm: 'RS256'});
         const context = {
-            expectedAudience:"https://pristine-ts.com",
-            expectedScopes: ["read:users"]
+            options: {
+                expectedAudience: "https://pristine-ts.com",
+                expectedScopes: ["read:users"]
+            }
         }
         await auth0Authenticator.setContext(context);
         expect(() => auth0Authenticator["getAndVerifyClaims"](token, publicKey1)).toThrow(new Error("Claim does not contain the required scope: 'read:users'" ));
@@ -269,8 +275,10 @@ describe("Auth0 authenticator ", () => {
     it("should authenticate", async () => {
         const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
         const context = {
-            expectedAudience:"https://pristine-ts.com",
-            expectedScopes: ["read:messages"]
+            options: {
+                expectedAudience: "https://pristine-ts.com",
+                expectedScopes: ["read:messages"]
+            }
         }
 
         await auth0Authenticator.setContext(context);
