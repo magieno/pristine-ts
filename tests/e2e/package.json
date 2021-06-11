@@ -2,6 +2,7 @@
   "name": "@pristine-ts/e2e",
   "version": "1.0.0",
   "dependencies": {
+    "@pristine-ts/auth0": "file:../../packages/auth0",
     "@pristine-ts/common": "file:../../packages/common",
     "@pristine-ts/core": "file:../../packages/core",
     "@pristine-ts/express": "file:../../packages/express",
