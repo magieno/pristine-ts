@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/redis",
-  "version": "0.0.93",
+  "version": "0.0.94",
   "description": "",
   "module": "dist/lib/esm/redis.module.js",
   "main": "dist/lib/cjs/redis.module.js",
@@ -22,8 +22,6 @@
     "@camaro/redis": "^2.2.5",
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/logging": "file:../logging"
-  },
-  "devDependencies": {
   },
   "jest": {
     "transform": {
