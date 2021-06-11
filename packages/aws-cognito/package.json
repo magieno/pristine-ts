@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/aws-cognito",
-  "version": "0.0.94",
+  "version": "0.0.95",
   "description": "",
   "module": "dist/lib/esm/aws-cognito.module.js",
   "main": "dist/lib/cjs/aws-cognito.module.js",

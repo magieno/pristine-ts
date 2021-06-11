@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/sentry",
-  "version": "0.0.94",
+  "version": "0.0.95",
   "description": "",
   "module": "dist/lib/esm/sentry.module.js",
   "main": "dist/lib/cjs/sentry.module.js",
