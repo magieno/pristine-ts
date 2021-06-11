@@ -1,9 +1,8 @@
 export interface ClaimInterface {
-    token_use: string;
-    auth_time: number;
     iss: string;
+    sub: string;
     exp: number;
-    roles: string;
-    client_id: string;
+    aud: string[];
+    scope: string;
     [key: string]: any;
 }

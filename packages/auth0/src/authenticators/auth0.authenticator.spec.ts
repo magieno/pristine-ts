@@ -78,15 +78,16 @@ describe("Auth0 authenticator ", () => {
     beforeEach(() => {
         payload = {
             "sub": "aaaaaaaa-bbbb-cccc-dddd-example",
-            "aud": "xxxxxxxxxxxxexample",
-            "email_verified": true,
-            "token_use": "access",
-            "auth_time": 1500009400,
+            "aud": [
+                "example",
+                "https://pristine-ts.com"
+            ],
             "iss": "https://auth0.com/",
             "exp": (Date.now() + 3600000)/1000,
             "given_name": "Anaya",
             "iat": 1500009400,
-            "email": "anaya@example.com"
+            "email": "anaya@example.com",
+            "scope": "read:messages openid profile"
         }
     });
 
@@ -181,7 +182,35 @@ describe("Auth0 authenticator ", () => {
     it("should getAndVerifyClaims", async () => {
         const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
         const token = jwt.sign(payload, privateKey, { algorithm: 'RS256'});
+        const context = {
+            expectedAudience:"https://pristine-ts.com",
+            expectedScopes: ["read:messages"]
+        }
+        await auth0Authenticator.setContext(context);
         expect(auth0Authenticator["getAndVerifyClaims"](token, publicKey1)).toEqual(payload);
+    });
+
+    it("should throw error when getAndVerifyClaims and token does not have expected audience", async () => {
+        const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
+        const token = jwt.sign(payload, privateKey, { algorithm: 'RS256'});
+        const context = {
+            expectedAudience:"https://pristine-ts.com123",
+            expectedScopes: ["read:messages"]
+        }
+        await auth0Authenticator.setContext(context);
+        expect(() => auth0Authenticator["getAndVerifyClaims"](token, publicKey1)).toThrow(new Error('Claim audience does not include expected audience'));
+    });
+
+
+    it("should throw error when getAndVerifyClaims and token does not have expected scope", async () => {
+        const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
+        const token = jwt.sign(payload, privateKey, { algorithm: 'RS256'});
+        const context = {
+            expectedAudience:"https://pristine-ts.com",
+            expectedScopes: ["read:users"]
+        }
+        await auth0Authenticator.setContext(context);
+        expect(() => auth0Authenticator["getAndVerifyClaims"](token, publicKey1)).toThrow(new Error("Claim does not contain the required scope: 'read:users'" ));
     });
 
     it("should not getAndVerifyClaims if expired", async () => {
@@ -239,7 +268,12 @@ describe("Auth0 authenticator ", () => {
 
     it("should authenticate", async () => {
         const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
+        const context = {
+            expectedAudience:"https://pristine-ts.com",
+            expectedScopes: ["read:messages"]
+        }
 
+        await auth0Authenticator.setContext(context);
         const request: RequestInterface = {
             body: {},
             url: "",
