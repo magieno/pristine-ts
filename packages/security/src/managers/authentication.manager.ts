@@ -34,6 +34,7 @@ export class AuthenticationManager implements AuthenticationManagerInterface {
         catch (e) {
             this.logHandler.error(e.message);
             identity = undefined;
+            throw e;
         }
 
         return identity;
