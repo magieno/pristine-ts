@@ -1,126 +1,109 @@
 import {injectable, inject} from "tsyringe";
-import {createClient, RedisClient as Redis} from "redis";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {RedisError} from "../errors/redis.error";
 import {tag} from "@pristine-ts/common";
 import {RedisClientInterface} from "../interfaces/redis-client.interface";
+import {ClientV3} from "@camaro/redis";
 
 @tag("RedisClientInterface")
 @injectable()
-export class RedisClient implements RedisClientInterface{
+export class RedisClient implements RedisClientInterface {
+
+    private client: ClientV3;
+
     public constructor(@inject("%pristine.redis.host%") private readonly host: string,
                        @inject("%pristine.redis.port%") private readonly port: number,
                        @inject("%pristine.redis.namespace%") private readonly namespace: string,
                        @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface) {
     }
 
-    getClient(): Redis {
-        return createClient({
-            host: this.host,
-            port: this.port,
-        })
+    getClient(): ClientV3 {
+        if (this.client === undefined) {
+            this.client = new ClientV3({
+                host: this.host,
+                port: this.port,
+            });
+        }
+
+        return this.client;
     }
 
-    set(table: string, key: string, value: string, ttl?: number): Promise<void> {
-        return new Promise<void>(((resolve, reject) => {
-            const client = this.getClient();
-            const redisKey = this.getKey(table, key);
-            const callback = (err, reply) => {
-                if(err) {
-                    const redisError = new RedisError("Error setting in redis", err, table, key, redisKey);
-                    return this.quit(client).then(() => reject(redisError)).catch((error) => reject(error));
-                }
+    async set(table: string, key: string, value: string, ttl?: number): Promise<void> {
+        const client = this.getClient();
+        const redisKey = this.getKey(table, key);
 
-                return this.quit(client).then(() => resolve()).catch((error) => reject(error));
-            };
-
+        try {
+            let response;
             if (ttl) {
                 // EX means ttl is in second https://redis.io/commands/set
-                client.set(redisKey, value, 'EX', ttl, callback);
+                response = await client.SET(redisKey, value, 'EX', ttl + "");
             } else {
-                client.set(redisKey, value, callback);
+                response = client.SET(redisKey, value);
             }
-        }))
+
+            this.logHandler.debug("Redis response", {response})
+        } catch (error) {
+            throw new RedisError("Error setting in redis", error, table, key, redisKey);
+        }
     }
 
-    setList(table: string, key: string, value: string[], ttl?: number): Promise<void> {
-        return new Promise<void>(((resolve, reject) => {
-            const client = this.getClient();
-            const redisKey = this.getKey(table, key);
-            const callback = (err, reply) => {
-                if(err) {
-                    const redisError = new RedisError("Error setting list in redis", err, table, key, redisKey);
-                    return this.quit(client).then(() => reject(redisError)).catch((error) => reject(error));
-                }
+    async setList(table: string, key: string, value: string[], ttl?: number): Promise<void> {
+        const client = this.getClient();
+        const redisKey = this.getKey(table, key);
+        try {
+            const response = await client.RPUSH(redisKey, ...value);
 
-                return this.quit(client).then(() => resolve()).catch((error) => reject(error));
-            };
-
-            client.rpush(redisKey, value, callback);
-        }))
+            this.logHandler.debug("Redis response", {response})
+        } catch (error) {
+            throw new RedisError("Error setting in redis", error, table, key, redisKey);
+        }
     }
 
-    get(table: string, key: string): Promise<string | null> {
-        return new Promise<string | null>(((resolve, reject) => {
-            const client = this.getClient();
-            const redisKey = this.getKey(table, key);
-            client.get(redisKey, (err, reply) => {
-                if(err) {
-                    const redisError = new RedisError("Error getting in redis", err, table, key, redisKey);
+    async get(table: string, key: string): Promise<string | null> {
+        const client = this.getClient();
+        const redisKey = this.getKey(table, key);
 
-                    return this.quit(client).then(() => reject(redisError)).catch((error) => reject(error));
-                }
+        try {
+            const response = await client.GET(redisKey);
 
-                return this.quit(client).then(() => resolve(reply)).catch((error) => reject(error));
-            })
-        }))
+            this.logHandler.debug("Redis response", {response})
+
+            return response;
+        } catch (error) {
+            throw new RedisError("Error getting in redis", error, table, key, redisKey);
+        }
     }
 
-    getList(table: string, key: string, start: number = 0, stop: number = -1): Promise<string[]> {
-        return new Promise<string[]>(((resolve, reject) => {
-            const client = this.getClient();
-            const redisKey = this.getKey(table, key);
-            client.lrange(redisKey, start, stop, (err, reply) => {
-                if(err) {
-                    const redisError = new RedisError("Error getting in redis", err, table, key, redisKey);
+    async getList(table: string, key: string, start: number = 0, stop: number = -1): Promise<string[]> {
+        const client = this.getClient();
+        const redisKey = this.getKey(table, key);
 
-                    return this.quit(client).then(() => reject(redisError)).catch((error) => reject(error));
-                }
+        try {
+            const response = await client.LRANGE(redisKey, start, stop);
 
-                return this.quit(client).then(() => resolve(reply)).catch((error) => reject(error));
-            })
-        }))
+            this.logHandler.debug("Redis response", {response})
+
+            return response;
+        } catch (error) {
+            throw new RedisError("Error getting in redis", error, table, key, redisKey);
+        }
     }
 
-    remove(table: string, key: string): Promise<void> {
-        return new Promise<void>(((resolve, reject) => {
-            const client = this.getClient();
-            const redisKey = this.getKey(table, key);
-            client.del(redisKey, (err, reply) => {
-                if(err) {
-                    const redisError = new RedisError("Error removing in redis", err, table, key, redisKey);
-                    return this.quit(client).then(() => reject(redisError)).catch((error) => reject(error));
-                }
+    async remove(table: string, key: string): Promise<void> {
+        const client = this.getClient();
+        const redisKey = this.getKey(table, key);
 
-                return this.quit(client).then(() => resolve()).catch((error) => reject(error));
-            })
-        }))
+        try {
+            const response = await client.DEL(redisKey);
+
+            this.logHandler.debug("Redis response", {response})
+
+        } catch (error) {
+            throw new RedisError("Error removing in redis", error, table, key, redisKey);
+        }
     }
 
     getKey(table: string, key: string): string {
         return this.namespace + ":" + table + ":" + key;
-    }
-
-    private quit(client: Redis): Promise<void> {
-        return new Promise<void>(((resolve, reject) => {
-            client.quit((err, reply) => {
-                if(err) {
-                    const redisError = new RedisError("Error quitting redis", err);
-                    return reject(redisError);
-                }
-
-                return resolve();
-            })
-        }))
     }
 }

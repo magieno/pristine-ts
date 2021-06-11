@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/auth0",
-  "version": "0.0.92",
+  "version": "0.0.97",
   "description": "",
   "module": "dist/lib/esm/auth0.module.js",
   "main": "dist/lib/cjs/auth0.module.js",
@@ -16,9 +16,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@pristine-ts/http": "file:../http",
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/event": "file:../event",
+    "@pristine-ts/http": "file:../http",
     "@pristine-ts/logging": "file:../logging",
     "@pristine-ts/networking": "file:../networking",
     "@pristine-ts/security": "file:../security"
