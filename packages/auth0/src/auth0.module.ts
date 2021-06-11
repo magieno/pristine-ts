@@ -3,6 +3,8 @@ import {Auth0ModuleKeyname} from "./auth0.module.keyname";
 import {HttpModule} from "@pristine-ts/http";
 import {EnvironmentVariableResolver} from "@pristine-ts/configuration";
 
+export * from "./authenticators/authenticators";
+export * from "./interfaces/interfaces";
 
 export * from "./auth0.module.keyname";
 
