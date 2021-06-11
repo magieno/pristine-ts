@@ -1,7 +1,7 @@
-import {RedisClient as Redis} from "redis";
+import {ClientV3} from "@camaro/redis";
 
 export interface RedisClientInterface {
-    getClient(): Redis
+    getClient(): ClientV3;
 
     set(table: string, key: string, value: string, ttl?: number): Promise<void>
 
