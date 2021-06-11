@@ -19,13 +19,11 @@
     "access": "public"
   },
   "dependencies": {
+    "@camaro/redis": "^2.2.5",
     "@pristine-ts/common": "file:../common",
-    "@pristine-ts/logging": "file:../logging",
-    "redis": "^3.1.2"
+    "@pristine-ts/logging": "file:../logging"
   },
   "devDependencies": {
-    "@types/jsonwebtoken": "^8.5.0",
-    "@types/redis": "^2.8.29"
   },
   "jest": {
     "transform": {
