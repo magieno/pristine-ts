@@ -394,6 +394,7 @@ export class Kernel {
     public async handleRawEvent(rawEvent: object): Promise<void> {
         const tracingManager: TracingManagerInterface = this.container.resolve("TracingManagerInterface");
         tracingManager.startTracing();
+        this.initializationSpan.trace = tracingManager.trace!;
         tracingManager.addSpan(this.initializationSpan);
         this.initializationSpan.end();
 
