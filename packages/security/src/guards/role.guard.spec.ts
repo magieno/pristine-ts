@@ -88,7 +88,7 @@ describe("Auth0 roles Guard", () => {
         }, {
             id: "id",
             claims: {
-                "roles": ["USER"]
+                "http://pristine.com/roles": ["USER"]
             }
         })).toBeFalsy()
     })
@@ -111,7 +111,7 @@ describe("Auth0 roles Guard", () => {
         }, {
             id: "id",
             claims: {
-                "roles": ["USER", "ADMIN", "DEVELOPER"]
+                "http://pristine.com/roles": ["USER", "ADMIN", "DEVELOPER"]
             }
         })).toBeTruthy()
     })
