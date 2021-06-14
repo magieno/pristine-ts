@@ -117,13 +117,12 @@ describe("Auth0 roles Guard", () => {
     })
 
     it("should return find the claim when specified in options", async () => {
-        const roleGuard = new RoleGuard();
+        const roleGuard = new RoleGuard("http://pristine.com/roles");
 
         roleGuard.setContext({
             CognitoGroupGuard: RoleGuard,
             options: {
-                roles: ["ADMIN", "USER"],
-                rolesClaimKey: "http://pristine.com/roles"
+                roles: ["ADMIN", "USER"]
             }
         })
 

@@ -2,12 +2,12 @@ import "reflect-metadata"
 import {container, singleton} from "tsyringe";
 import {CoreModule, Kernel} from "@pristine-ts/core";
 import {controller, identity, NetworkingModule, route} from "@pristine-ts/networking";
-import {authenticator, guard, SecurityModule} from "@pristine-ts/security";
+import {authenticator, guard, SecurityModule, SecurityModuleKeyname} from "@pristine-ts/security";
 import {AwsCognitoGroupGuard} from "@pristine-ts/aws-cognito";
 import {HttpMethod, IdentityInterface, ModuleInterface, RequestInterface, tag} from "@pristine-ts/common";
 import * as jwt from "jsonwebtoken";
 import {HttpClientInterface, HttpRequestInterface, HttpResponseInterface} from "@pristine-ts/http";
-import {Auth0Authenticator, Auth0Module} from "@pristine-ts/auth0";
+import {Auth0Authenticator, Auth0Module, Auth0ModuleKeyname} from "@pristine-ts/auth0";
 import {RoleGuard} from "@pristine-ts/security";
 
 const privateKey = "-----BEGIN RSA PRIVATE KEY-----\n" +
@@ -69,7 +69,7 @@ export class MockHttpClient implements HttpClientInterface {
 @controller("/api")
 @singleton()
 @authenticator(Auth0Authenticator, {expectedAudience: "https://pristine-ts.com", expectedScopes: ["read:messages"]})
-@guard(RoleGuard, {roles: ["ADMIN"], rolesClaimKey: "https://pristine-ts.com/roles"})
+@guard(RoleGuard, {roles: ["ADMIN"]})
 class TestController {
 
     @route(HttpMethod.Get, "/identity")
@@ -114,7 +114,8 @@ describe("Auth0 authenticator", () => {
 
         const kernel = new Kernel();
         await kernel.init(moduleTest, {
-            "pristine.auth0.domain": "auth0.com"
+            [Auth0ModuleKeyname + ".domain"]: "auth0.com",
+            [SecurityModuleKeyname + ".rolesClaimKey"]: "https://pristine-ts.com/roles"
         });
 
         const request: RequestInterface = {
@@ -155,7 +156,8 @@ describe("Auth0 authenticator", () => {
 
         const kernel = new Kernel();
         await kernel.init(moduleTest, {
-            "pristine.auth0.domain": "auth0.com"
+            [Auth0ModuleKeyname + ".domain"]: "auth0.com",
+            [SecurityModuleKeyname + ".rolesClaimKey"]: "https://pristine-ts.com/roles"
         });
 
         const request: RequestInterface = {
@@ -197,7 +199,8 @@ describe("Auth0 authenticator", () => {
 
         const kernel = new Kernel();
         await kernel.init(moduleTest, {
-            "pristine.auth0.domain": "auth0.com"
+            [Auth0ModuleKeyname + ".domain"]: "auth0.com",
+            [SecurityModuleKeyname + ".rolesClaimKey"]: "https://pristine-ts.com/roles"
         });
 
         const request: RequestInterface = {
@@ -239,7 +242,8 @@ describe("Auth0 authenticator", () => {
 
         const kernel = new Kernel();
         await kernel.init(moduleTest, {
-            "pristine.auth0.domain": "auth0.com"
+            [Auth0ModuleKeyname + ".domain"]: "auth0.com",
+            [SecurityModuleKeyname + ".rolesClaimKey"]: "https://pristine-ts.com/roles"
         });
 
         const request: RequestInterface = {
