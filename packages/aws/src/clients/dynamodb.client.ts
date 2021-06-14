@@ -46,7 +46,11 @@ export class DynamodbClient implements DynamodbClientInterface{
             return item;
         } catch (error) {
             error = this.convertError(error, this.getTableName(classType.prototype), Object.keys(primaryKeyAndValue)[0]);
-            this.logHandler.error("DYNAMODB CLIENT - Error getting", {error, classType, primaryKeyAndValue})
+            if (error instanceof DynamodbItemNotFoundError) {
+                this.logHandler.warning("DYNAMODB CLIENT - Error getting", {error, classType, primaryKeyAndValue});
+            } else {
+                this.logHandler.error("DYNAMODB CLIENT - Error getting", {error, classType, primaryKeyAndValue});
+            }
             throw error;
         }
     }
