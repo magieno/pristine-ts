@@ -228,6 +228,7 @@ export class DynamodbClient implements DynamodbClientInterface{
     }
 
     private convertError(error: Error, tableName?: string, primaryKey?: string): Error {
+        this.logHandler.debug("Converting error to dynamodb error.", {error, tableName, primaryKey});
         if(error instanceof DynamodbError){
             return error;
         }
