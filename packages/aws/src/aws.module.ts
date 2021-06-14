@@ -57,7 +57,7 @@ const registerDynamicTableNames = (container: DependencyContainer) => {
     for (const dynamicTableName of dynamicTableNameRegistry) {
         if(container.isRegistered(dynamicTableName.tokenName) === false) {
             const logHandler: LogHandlerInterface = container.resolve("LogHandlerInterface");
-            logHandler.warning("The table token name does not exist in the container.");
+            logHandler.warning("The table token name '" + dynamicTableName.tokenName + "' does not exist in the container.");
             continue;
         }
         try {
