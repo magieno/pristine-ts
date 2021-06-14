@@ -132,6 +132,7 @@ export class TracingManager implements TracingManagerInterface {
             parentSpan = this.spans[parentId] ?? parentSpan;
         }
 
+        span.trace = this.trace!;
         span.parentSpan = parentSpan;
         parentSpan.childSpans.push(span);
 
@@ -142,6 +143,8 @@ export class TracingManager implements TracingManagerInterface {
             this.loghandler.warning("The tracing is deactivated.", {
                 isActive: this.isActive
             });
+
+            return span;
         }
 
         this.loghandler.debug("Start Span", {
@@ -201,6 +204,8 @@ export class TracingManager implements TracingManagerInterface {
             this.loghandler.warning("The tracing is deactivated.", {
                 isActive: this.isActive
             });
+
+            return;
         }
 
         this.loghandler.debug("End Span", {
@@ -248,6 +253,8 @@ export class TracingManager implements TracingManagerInterface {
             this.loghandler.warning("The tracing is deactivated.", {
                 isActive: this.isActive
             });
+
+            return;
         }
 
         this.loghandler.debug("End Trace", {
