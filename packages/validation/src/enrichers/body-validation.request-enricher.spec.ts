@@ -3,8 +3,18 @@ import {BodyValidationRequestEnricher} from "./body-validation.request-enricher"
 import {MethodRouterNode, PathRouterNode, Request, Route} from "@pristine-ts/networking";
 import {HttpMethod} from "@pristine-ts/common";
 import {IsDate, IsInt, Max, Min} from "class-validator";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 
 describe("Body Validation Request Enricher", () => {
+    const logHandlerMock: LogHandlerInterface = {
+        critical(message: string, extra?: any): void {
+        }, debug(message: string, extra?: any): void {
+        }, error(message: string, extra?: any): void {
+        }, info(message: string, extra?: any): void {
+        }, warning(message: string, extra?: any): void {
+        }
+    }
+
     class BodyPayload {
         @IsInt()
         @Min(0)
@@ -16,7 +26,7 @@ describe("Body Validation Request Enricher", () => {
     }
 
     it("should simply return the request if the bodyValidator is undefined", async () => {
-        const bodyValidationRequestEnricher = new BodyValidationRequestEnricher();
+        const bodyValidationRequestEnricher = new BodyValidationRequestEnricher(logHandlerMock);
 
         const request: Request = new Request({
             url: "url",
@@ -37,7 +47,7 @@ describe("Body Validation Request Enricher", () => {
     })
 
     it("should simply return the request if the classType is undefined", async () => {
-        const bodyValidationRequestEnricher = new BodyValidationRequestEnricher();
+        const bodyValidationRequestEnricher = new BodyValidationRequestEnricher(logHandlerMock);
 
         const request: Request = new Request({
             url: "url",
@@ -59,7 +69,7 @@ describe("Body Validation Request Enricher", () => {
     })
 
     it("should return the request if there are no errors with the classType", async () => {
-        const bodyValidationRequestEnricher = new BodyValidationRequestEnricher();
+        const bodyValidationRequestEnricher = new BodyValidationRequestEnricher(logHandlerMock);
 
         const request: Request = new Request({
             url: "url",
@@ -84,7 +94,7 @@ describe("Body Validation Request Enricher", () => {
     })
 
     it("should reject if there are validation errors. ", async () => {
-        const bodyValidationRequestEnricher = new BodyValidationRequestEnricher();
+        const bodyValidationRequestEnricher = new BodyValidationRequestEnricher(logHandlerMock);
 
         const request: Request = new Request({
             url: "url",

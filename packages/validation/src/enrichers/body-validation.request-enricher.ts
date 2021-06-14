@@ -4,20 +4,30 @@ import {validate} from "class-validator";
 import {BadRequestHttpError} from "@pristine-ts/networking";
 import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {ValidationModuleKeyname} from "../validation.module.keyname";
-import {injectable} from "tsyringe";
+import {injectable, inject} from "tsyringe";
 import { plainToClass } from 'class-transformer';
+import {LogHandlerInterface} from "@pristine-ts/logging";
 
 @moduleScoped(ValidationModuleKeyname)
 @tag(ServiceDefinitionTagEnum.RouterRequestEnricher)
 @injectable()
 export class BodyValidationRequestEnricher implements RouterRequestEnricherInterface {
-    async enrichRequest(request: Request, methodeNode: MethodRouterNode): Promise<Request> {
-        if(methodeNode.route.context.bodyValidator === undefined || methodeNode.route.context.bodyValidator.classType === undefined) {
+    constructor(@inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface) {
+    }
+
+    async enrichRequest(request: Request, methodNode: MethodRouterNode): Promise<Request> {
+        if(methodNode.route.context.bodyValidator === undefined || methodNode.route.context.bodyValidator.classType === undefined) {
             return request;
         }
 
         // Validate, else reject by throwing an error.
-        const mappedBody = plainToClass(methodeNode.route.context.bodyValidator.classType, request.body);
+        const mappedBody = plainToClass(methodNode.route.context.bodyValidator.classType, request.body);
+
+        this.loghandler.debug("BodyValidationRequestEnricher", {
+            request,
+            methodNode,
+            routeContext: methodNode.route.context,
+        })
 
         const errors = await validate(mappedBody);
 
