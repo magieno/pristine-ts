@@ -25,7 +25,7 @@ export const SecurityModule: ModuleInterface = {
             isRequired: false,
             defaultValue: "roles",
             defaultResolvers: [
-                new EnvironmentVariableResolver("PRISTINE_ROLES_CLAIM_KEY"),
+                new EnvironmentVariableResolver("PRISTINE_SECURITY_ROLES_CLAIM_KEY"),
             ]
         }
     ]
