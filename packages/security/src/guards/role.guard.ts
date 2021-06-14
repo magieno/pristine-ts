@@ -9,6 +9,9 @@ export class RoleGuard implements GuardInterface {
 
     public guardContext: GuardContextInterface;
 
+    constructor(@inject("%pristine.security.rolesClaimKey%") private readonly rolesClaimKey: string) {
+    }
+
     setContext(context: any): Promise<void> {
         this.guardContext = context;
 
@@ -20,15 +23,12 @@ export class RoleGuard implements GuardInterface {
         if(this.guardContext.options && this.guardContext.options.hasOwnProperty("roles") && Array.isArray(this.guardContext.options.roles)){
             neededRoles.push(... this.guardContext.options.roles);
         }
-        let rolesClaimKey = "roles";
-        if(this.guardContext.options && this.guardContext.options.hasOwnProperty("rolesClaimKey")) {
-            rolesClaimKey = this.guardContext.options.rolesClaimKey;
-        }
-        if(neededRoles.length > 0 && (identity?.claims?.hasOwnProperty(rolesClaimKey) === false || !Array.isArray(identity?.claims[rolesClaimKey]))){
+
+        if(neededRoles.length > 0 && (identity?.claims?.hasOwnProperty(this.rolesClaimKey) === false || !Array.isArray(identity?.claims[this.rolesClaimKey]))){
             return false;
         }
         for(const role of neededRoles) {
-            if(!identity?.claims[rolesClaimKey].includes(role)){
+            if(!identity?.claims[this.rolesClaimKey].includes(role)){
                 return false;
             }
         }

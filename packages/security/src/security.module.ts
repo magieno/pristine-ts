@@ -1,6 +1,7 @@
 import {ModuleInterface} from "@pristine-ts/common";
 import {SecurityModuleKeyname} from "./security.module.keyname";
 import {LoggingModule} from "@pristine-ts/logging";
+import {EnvironmentVariableResolver} from "@pristine-ts/configuration";
 
 export * from "./decorators/decorators";
 export * from "./enums/enums";
@@ -16,5 +17,16 @@ export const SecurityModule: ModuleInterface = {
     importModules: [
         LoggingModule,
     ],
-    providerRegistrations: []
+    providerRegistrations: [],
+    configurationDefinitions: [
+        {
+            parameterName: SecurityModuleKeyname + ".rolesClaimKey",
+            isRequired: false,
+            defaultValue: "roles",
+            defaultResolvers: [
+                new EnvironmentVariableResolver("PRISTINE_SECURITY_ROLES_CLAIM_KEY"),
+            ]
+        }
+    ]
+
 }
