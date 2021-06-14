@@ -9,7 +9,7 @@ export class RoleGuard implements GuardInterface {
 
     public guardContext: GuardContextInterface;
 
-    constructor(@inject("%pristine.security.rolesClaimKey%") private rolesClaimKey: string) {
+    constructor(@inject("%pristine.security.rolesClaimKey%") private readonly rolesClaimKey: string) {
     }
 
     setContext(context: any): Promise<void> {
