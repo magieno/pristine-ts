@@ -4,7 +4,7 @@ import {HttpMethod} from "@pristine-ts/common";
 
 describe("Auth0 roles Guard", () => {
     it("should return true when no role is needed", async () => {
-        const roleGuard = new RoleGuard();
+        const roleGuard = new RoleGuard("http://pristine.com/roles");
 
         roleGuard.setContext({
             CognitoGroupGuard: RoleGuard,
@@ -26,7 +26,7 @@ describe("Auth0 roles Guard", () => {
     })
 
     it("should return false when groups are needed but identity does not provide groups.", async () => {
-        const roleGuard = new RoleGuard();
+        const roleGuard = new RoleGuard("http://pristine.com/roles");
 
         roleGuard.setContext({
             CognitoGroupGuard: RoleGuard,
@@ -48,7 +48,7 @@ describe("Auth0 roles Guard", () => {
     })
 
     it("should return false when groups are needed but identity groups is not an array.", async () => {
-        const roleGuard = new RoleGuard();
+        const roleGuard = new RoleGuard("http://pristine.com/roles");
 
         roleGuard.setContext({
             CognitoGroupGuard: RoleGuard,
@@ -71,7 +71,7 @@ describe("Auth0 roles Guard", () => {
     })
 
     it("should return false when groups are needed that are not in the identity groups.", async () => {
-        const roleGuard = new RoleGuard();
+        const roleGuard = new RoleGuard("http://pristine.com/roles");
 
         roleGuard.setContext({
             CognitoGroupGuard: RoleGuard,
@@ -94,7 +94,7 @@ describe("Auth0 roles Guard", () => {
     })
 
     it("should return true when all groups needed are in the identity groups.", async () => {
-        const roleGuard = new RoleGuard();
+        const roleGuard = new RoleGuard("http://pristine.com/roles");
 
         roleGuard.setContext({
             CognitoGroupGuard: RoleGuard,
