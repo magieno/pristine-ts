@@ -1,7 +1,6 @@
 import {ModuleInterface} from "@pristine-ts/common";
 import {SecurityModuleKeyname} from "./security.module.keyname";
 import {LoggingModule} from "@pristine-ts/logging";
-import {AwsModuleKeyname} from "@pristine-ts/aws/dist/lib/esm/aws.module.keyname";
 import {EnvironmentVariableResolver} from "@pristine-ts/configuration";
 
 export * from "./decorators/decorators";
