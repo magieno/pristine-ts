@@ -87,7 +87,9 @@ export class DynamodbClient implements DynamodbClientInterface{
 
                     return item;
                 } catch (e) {
-                    throw this.convertError(e, this.getTableName(item.constructor.prototype));
+                    e = this.convertError(e, this.getTableName(item.constructor.prototype));
+                    this.logHandler.error("DYNAMODB CLIENT - Error creating", {e, item});
+                    throw e;
                 }
             }
 
