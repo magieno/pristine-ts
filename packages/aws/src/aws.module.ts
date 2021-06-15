@@ -49,16 +49,23 @@ export const AwsModule: ModuleInterface = {
     providerRegistrations: [
     ],
     async afterInit(container): Promise<void> {
-        registerDynamicTableNames(container);
+        await registerDynamicTableNames(container);
     }
 }
 
-const registerDynamicTableNames = (container: DependencyContainer) => {
+const registerDynamicTableNames = async (container: DependencyContainer) => {
     for (const dynamicTableName of dynamicTableNameRegistry) {
         if(container.isRegistered(dynamicTableName.tokenName) === false) {
             const logHandler: LogHandlerInterface = container.resolve("LogHandlerInterface");
-            logHandler.warning("The table token name does not exist in the container.", { tokenName: dynamicTableName.tokenName });
-            continue;
+            try {
+                logHandler.debug("The table token name was not registered, trying to load default.", {tokenName: dynamicTableName.tokenName})
+                const value = await new EnvironmentVariableResolver(dynamicTableName.tokenName).resolve();
+                container.registerInstance(dynamicTableName.tokenName, value);
+                logHandler.debug("Successfully registered table name.", {tokenName: dynamicTableName.tokenName, value})
+            } catch (e) {
+                logHandler.warning("The table token name does not exist in the container.", {tokenName: dynamicTableName.tokenName});
+                continue;
+            }
         }
         try {
             dynamicTableName.classConstructor.prototype[DynamoDbTable] = container.resolve(dynamicTableName.tokenName);
