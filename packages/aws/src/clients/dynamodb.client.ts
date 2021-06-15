@@ -147,7 +147,7 @@ export class DynamodbClient implements DynamodbClientInterface{
 
             const queryOptions: QueryOptions = {indexName: secondaryIndexName, filter: filterExpression};
 
-            this.logHandler.debug("DYNAMODB CLIENT - Querying with options", {queryOptions});
+            this.logHandler.debug("DYNAMODB CLIENT - Querying with options", {queryOptions, keyCondition});
             const iterator = (await this.getMapperClient()).query(classType, keyCondition, queryOptions);
             const items: T[] = [];
 
