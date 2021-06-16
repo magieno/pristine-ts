@@ -4,7 +4,7 @@ import {injectable} from "tsyringe";
 import {IdentityProviderInterface} from "../interfaces/identity-provider.interface";
 
 /**
- * Untile there's a fix for: https://github.com/microsoft/tsyringe/issues/63
+ * Until there's a fix for: https://github.com/microsoft/tsyringe/issues/63
  */
 @injectable()
 @tag(ServiceDefinitionTagEnum.IdentityProvider)
