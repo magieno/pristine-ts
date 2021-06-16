@@ -1,17 +1,20 @@
-import {DependencyContainer, inject, injectable} from "tsyringe";
+import {DependencyContainer, inject, injectable, injectAll} from "tsyringe";
 import {AuthenticationManagerInterface} from "../interfaces/authentication-manager.interface";
-import {IdentityInterface, moduleScoped, RequestInterface, tag} from "@pristine-ts/common";
+import {IdentityInterface, moduleScoped, RequestInterface, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {AuthenticatorInterface} from "../interfaces/authenticator.interface";
 import {AuthenticatorContextInterface} from "../interfaces/authenticator-context.interface";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {AuthenticatorFactory} from "../factories/authenticator.factory";
 import {SecurityModuleKeyname} from "../security.module.keyname";
+import {IdentityProviderInterface} from "../interfaces/identity-provider.interface";
 
 @moduleScoped(SecurityModuleKeyname)
 @tag("AuthenticationManagerInterface")
 @injectable()
 export class AuthenticationManager implements AuthenticationManagerInterface {
-    public constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
+    public constructor(
+        @injectAll(ServiceDefinitionTagEnum.IdentityProvider) private readonly identityProviders: IdentityProviderInterface[],
+        @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
                        private readonly authenticatorFactory: AuthenticatorFactory) {
     }
 
@@ -30,6 +33,16 @@ export class AuthenticationManager implements AuthenticationManagerInterface {
             await instantiatedAuthenticator.setContext(authenticatorContext);
 
             identity = await instantiatedAuthenticator.authenticate(request);
+
+            if(identity == undefined) {
+                return identity;
+            }
+
+            // Loop over the identity providers
+            for (const identityProvider of this.identityProviders) {
+                identity = await identityProvider.provide(identity);
+            }
+
         }
         catch (e) {
             this.logHandler.error(e.message);

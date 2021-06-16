@@ -20,4 +20,5 @@ export enum ServiceDefinitionTagEnum {
     Tracer = "TRACER",
     HttpRequestInterceptor = "HTTP_REQUEST_INTERCEPTOR",
     HttpResponseInterceptor = "HTTP_RESPONSE_INTERCEPTOR",
+    IdentityProvider = "IDENTITY_PROVIDER",
 }
