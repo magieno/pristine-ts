@@ -1,22 +1,9 @@
 import {ModuleInterface} from "@pristine-ts/common";
 import {dynamicTableNameRegistry} from "./decorators/dynamic-table-name.decorator";
 import {DynamoDbTable} from "@awslabs-community-fork/dynamodb-data-mapper";
-import {LoggingModule, LogHandler} from "@pristine-ts/logging";
+import {LoggingModule, LogHandlerInterface} from "@pristine-ts/logging";
 import {DependencyContainer} from "tsyringe";
-import {DynamodbClient} from "./clients/dynamodb.client";
-import {DynamodbEventParser} from "./event-parsers/dynamodb.event-parser";
-import {S3EventParser} from "./event-parsers/s3.event-parser";
-import {SnsEventParser} from "./event-parsers/sns.event-parser";
-import {SqsEventParser} from "./event-parsers/sqs.event-parser";
-import {HttpRequestMapper} from "./mappers/http-request.mapper";
-import {MethodMapper} from "./mappers/method.mapper";
-import {RequestMapper} from "./mappers/request.mapper";
-import {ResponseMapper} from "./mappers/response.mapper";
-import {RestApiRequestMapper} from "./mappers/rest-api-request.mapper";
-import {RequestMapperFactory} from "./factories/request-mapper.factory";
 import {AwsModuleKeyname} from "./aws.module.keyname";
-import {LogHandlerInterface} from "@pristine-ts/logging";
-import {TelemetryModule} from "@pristine-ts/telemetry";
 import {EnvironmentVariableResolver} from "@pristine-ts/configuration";
 
 export * from "./clients/clients";
@@ -29,6 +16,7 @@ export * from "./factories/factories";
 export * from "./interfaces/interfaces";
 export * from "./mappers/mappers";
 export * from "./models/models";
+export * from "./resolvers/resolvers";
 export * from "./types/types";
 
 export * from "./aws.module.keyname";
