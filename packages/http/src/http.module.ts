@@ -9,6 +9,7 @@ export * from "./interceptors/interceptors"
 export * from "./interfaces/interfaces"
 export * from "./options/options";
 export * from "./utils/utils";
+export * from "./wrappers/wrappers";
 
 export const HttpModule: ModuleInterface = {
     keyname: HttpModuleKeyname,
