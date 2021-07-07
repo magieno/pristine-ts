@@ -26,9 +26,9 @@ export class HttpClient implements HttpClientInterface {
         responseType: ResponseTypeEnum.Raw,
     };
 
-    constructor(@injectAll(ServiceDefinitionTagEnum.HttpRequestInterceptor) private readonly httpRequestInterceptors: HttpRequestInterceptorInterface[] = [],
+    constructor(@inject('HttpWrapperInterface') private readonly httpWrapper: HttpWrapperInterface,
+                @injectAll(ServiceDefinitionTagEnum.HttpRequestInterceptor) private readonly httpRequestInterceptors: HttpRequestInterceptorInterface[] = [],
                 @injectAll(ServiceDefinitionTagEnum.HttpResponseInterceptor) private readonly httpResponseInterceptors: HttpResponseInterceptorInterface[] = [],
-                @inject('HttpWrapperInterface') private readonly httpWrapper: HttpWrapperInterface,
     ) {
     }
 

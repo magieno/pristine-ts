@@ -8,7 +8,8 @@ import {
     HttpResponseInterface,
     ResponseTypeEnum,
     HttpRequestInterceptorInterface,
-    HttpResponseInterceptorInterface
+    HttpResponseInterceptorInterface,
+    HttpWrapper
 } from "@pristine-ts/http";
 import {HttpMethod} from "@pristine-ts/common";
 import {readFileSync} from "fs";
@@ -137,7 +138,7 @@ describe("Http Client", () => {
                 await new Promise<void>(resolve => {
                     server.listen(port, host, async () => {
                         // Make an HTTP call using the httpClient
-                        const httpClient = new HttpClient()
+                        const httpClient = new HttpClient(new HttpWrapper())
                         httpClient.defaultOptions.responseType = ResponseTypeEnum.Raw;
                         const requestBody = JSON.stringify({
                             keyname: "Value",
@@ -174,7 +175,7 @@ describe("Http Client", () => {
                 await new Promise<void>(resolve => {
                     server.listen(port, host, async () => {
                         // Make an HTTP call using the httpClient
-                        const httpClient = new HttpClient()
+                        const httpClient = new HttpClient(new HttpWrapper())
                         httpClient.defaultOptions.responseType = ResponseTypeEnum.Json;
                         const requestBody = JSON.stringify({
                             keyname: "Value",
@@ -212,7 +213,7 @@ describe("Http Client", () => {
                 await new Promise<void>(resolve => {
                     server.listen(port, host, async () => {
                         // Make an HTTP call using the httpClient
-                        const httpClient = new HttpClient()
+                        const httpClient = new HttpClient(new HttpWrapper())
                         httpClient.defaultOptions.responseType = ResponseTypeEnum.Json;
                         httpClient.defaultOptions.followRedirects = true;
 
@@ -241,7 +242,7 @@ describe("Http Client", () => {
                 await new Promise<void>(resolve => {
                     server.listen(port, host, async () => {
                         // Make an HTTP call using the httpClient
-                        const httpClient = new HttpClient()
+                        const httpClient = new HttpClient(new HttpWrapper())
                         httpClient.defaultOptions.responseType = ResponseTypeEnum.Json;
                         httpClient.defaultOptions.followRedirects = false;
 
@@ -269,7 +270,7 @@ describe("Http Client", () => {
                 await new Promise<void>(resolve => {
                     server.listen(port, host, async () => {
                         // Make an HTTP call using the httpClient
-                        const httpClient = new HttpClient()
+                        const httpClient = new HttpClient(new HttpWrapper())
                         httpClient.defaultOptions.responseType = ResponseTypeEnum.Json;
                         httpClient.defaultOptions.followRedirects = false;
                         httpClient.defaultOptions.maximumNumberOfRedirects = 1;
@@ -299,7 +300,7 @@ describe("Http Client", () => {
                 await new Promise<void>(resolve => {
                     server.listen(port, host, async () => {
                         // Make an HTTP call using the httpClient
-                        const httpClient = new HttpClient()
+                        const httpClient = new HttpClient(new HttpWrapper())
                         httpClient.defaultOptions.responseType = ResponseTypeEnum.Json;
                         httpClient.defaultOptions.followRedirects = true;
                         httpClient.defaultOptions.isRetryable = (httpRequestInterface, httpResponseInterface) => true;
@@ -330,7 +331,7 @@ describe("Http Client", () => {
                 await new Promise<void>(resolve => {
                     server.listen(port, host, async () => {
                         // Make an HTTP call using the httpClient
-                        const httpClient = new HttpClient()
+                        const httpClient = new HttpClient(new HttpWrapper())
                         httpClient.defaultOptions.responseType = ResponseTypeEnum.Json;
                         httpClient.defaultOptions.followRedirects = true;
                         httpClient.defaultOptions.isRetryable = (httpRequestInterface, httpResponseInterface) => false;
@@ -361,7 +362,7 @@ describe("Http Client", () => {
                 await new Promise<void>(resolve => {
                     server.listen(port, host, async () => {
                         // Make an HTTP call using the httpClient
-                        const httpClient = new HttpClient()
+                        const httpClient = new HttpClient(new HttpWrapper())
                         httpClient.defaultOptions.responseType = ResponseTypeEnum.Json;
                         httpClient.defaultOptions.followRedirects = true;
                         httpClient.defaultOptions.isRetryable = (httpRequestInterface, httpResponseInterface) => false;
@@ -407,7 +408,7 @@ describe("Http Client", () => {
                 await new Promise<void>(resolve => {
                     server.listen(port, host, async () => {
                         // Make an HTTP call using the httpClient
-                        const httpClient = new HttpClient([testHttpRequestInterceptor], [testHttpRequestInterceptor])
+                        const httpClient = new HttpClient(new HttpWrapper(), [testHttpRequestInterceptor], [testHttpRequestInterceptor])
                         httpClient.defaultOptions.responseType = ResponseTypeEnum.Json;
                         const requestBody = JSON.stringify({
                             keyname: "Value",
