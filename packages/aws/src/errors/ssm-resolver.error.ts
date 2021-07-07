@@ -1,10 +1,11 @@
 import {LoggableError} from "@pristine-ts/common";
 
 export class SSMResolverError extends LoggableError {
-    public constructor(message: string, value) {
+    public constructor(message: string, value: any, originalError?: any) {
         super(message, {
             value,
             type: typeof(value),
+            originalError
         });
 
         // Set the prototype explicitly.

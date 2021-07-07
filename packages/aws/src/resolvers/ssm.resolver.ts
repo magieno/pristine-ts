@@ -3,7 +3,7 @@ import {SSM, GetParameterRequest} from "@aws-sdk/client-ssm";
 import {SSMResolverError} from "../errors/ssm-resolver.error";
 
 export class SSMResolver implements ResolverInterface<string> {
-    public constructor(private readonly ssmParameterName, private readonly region: string, private readonly isSecure: boolean = false) { }
+    public constructor(private readonly ssmParameterName: string, private readonly region: string, private readonly isSecure: boolean = false) { }
 
     async resolve(): Promise<string> {
         const ssm: SSM = new SSM({apiVersion: 'latest', region: this.region});
@@ -19,7 +19,7 @@ export class SSMResolver implements ResolverInterface<string> {
             return Promise.resolve(parameterOutput.Parameter?.Value as string);
 
         } catch (e) {
-            throw new SSMResolverError("Error getting parameter from SSM.", this.ssmParameterName);
+            throw new SSMResolverError("Error getting parameter from SSM.", this.ssmParameterName, e);
         }
     }
 }
