@@ -12,7 +12,7 @@ export class HttpRequestLoggingInterceptor implements HttpRequestInterceptorInte
     }
 
     async interceptRequest(request: HttpRequestInterface, options: HttpRequestOptions): Promise<HttpRequestInterface> {
-        this.logHandler.info("Incoming http request", {request, options});
+        this.logHandler.info("Outgoing http request", {request, options});
         return request;
     }
 }

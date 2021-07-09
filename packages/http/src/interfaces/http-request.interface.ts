@@ -1,6 +1,8 @@
-import {RequestInterface} from "@pristine-ts/common";
-import {ResponseTypeEnum} from "../enums/response-type.enum";
-import {HttpRequestOptions} from "../options/http-request.options.";
+import {HttpMethod} from "@pristine-ts/common";
 
-export interface HttpRequestInterface extends RequestInterface {
+export interface HttpRequestInterface {
+    httpMethod: string | HttpMethod;
+    url: string;
+    headers?: { [key: string]: string };
+    body?: string | Buffer | Uint8Array;
 }
