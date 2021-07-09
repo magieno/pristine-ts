@@ -6,6 +6,9 @@ import {Readable} from "stream";
 import * as util from "util";
 import {Utils} from "../utils/utils";
 import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {OutputModeEnum} from "../enums/output-mode.enum";
+import format from "date-fns/format";
+
 
 @tag(ServiceDefinitionTagEnum.Logger)
 @injectable()
@@ -21,6 +24,7 @@ export class ConsoleLogger implements LoggerInterface {
                      @inject("%pristine.logging.logErrorDepthConfiguration%") private readonly logErrorDepthConfiguration: number,
                      @inject("%pristine.logging.logCriticalDepthConfiguration%") private readonly logCriticalDepthConfiguration: number,
                      @inject("%pristine.logging.consoleLoggerActivated%") private readonly consoleLoggerActivated: boolean,
+                     @inject("%pristine.logging.consoleLoggerOutputMode%") private readonly consoleLoggerOutputMode: OutputModeEnum,
                      ) {
     this.initialize();
   }
@@ -43,26 +47,71 @@ export class ConsoleLogger implements LoggerInterface {
     return this.consoleLoggerActivated;
   }
 
+  private getSeverityText(logSeverity: SeverityEnum) {
+    switch (logSeverity) {
+      case SeverityEnum.Debug:
+        return "DEBUG";
+
+      case SeverityEnum.Info:
+        return "INFO";
+
+      case SeverityEnum.Warning:
+        return "WARNING";
+
+      case SeverityEnum.Error:
+        return "ERROR";
+
+      case SeverityEnum.Critical:
+        return "CRITICAL";
+    }
+  }
+
+  private outputLog(log: LogModel): string {
+    switch (this.consoleLoggerOutputMode) {
+      case OutputModeEnum.Json:
+        switch (log.severity) {
+          case SeverityEnum.Debug:
+            return JSON.stringify(Utils.truncate(log,  this.logDebugDepthConfiguration));
+
+          case SeverityEnum.Info:
+            return JSON.stringify(Utils.truncate(log,  this.logInfoDepthConfiguration));
+
+          case SeverityEnum.Warning:
+            return JSON.stringify(Utils.truncate(log,  this.logWarningDepthConfiguration));
+
+          case SeverityEnum.Error:
+            return JSON.stringify(Utils.truncate(log,  this.logErrorDepthConfiguration));
+
+          case SeverityEnum.Critical:
+            return JSON.stringify(Utils.truncate(log,  this.logCriticalDepthConfiguration));
+        }
+      case OutputModeEnum.Simple:
+        return format(log.date, "yyyy-MM-dd HH:mm:ss") + " - " + " [" + this.getSeverityText(log.severity) + "] - " + log.message;
+    }
+  }
+
   private log(log: LogModel): void {
+    const outputLog = this.outputLog(log);
+
     switch (log.severity) {
       case SeverityEnum.Debug:
-        console.debug(JSON.stringify(Utils.truncate(log,  this.logDebugDepthConfiguration)));
+        console.debug(outputLog);
         break;
 
       case SeverityEnum.Info:
-        console.info(JSON.stringify(Utils.truncate(log,  this.logInfoDepthConfiguration)));
+        console.info(outputLog);
         break;
 
       case SeverityEnum.Warning:
-        console.warn(JSON.stringify(Utils.truncate(log,  this.logWarningDepthConfiguration)));
+        console.warn(outputLog);
         break;
 
       case SeverityEnum.Error:
-        console.error(JSON.stringify(Utils.truncate(log,  this.logErrorDepthConfiguration)));
+        console.error(outputLog);
         break;
 
       case SeverityEnum.Critical:
-        console.error(JSON.stringify(Utils.truncate(log,  this.logCriticalDepthConfiguration)));
+        console.error(outputLog);
         break;
     }
   }

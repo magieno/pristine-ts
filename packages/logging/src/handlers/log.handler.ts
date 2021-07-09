@@ -38,6 +38,7 @@ export class LogHandler implements LogHandlerInterface {
     log.extra = extra;
     log.severity = severity;
     log.message = message;
+    log.date = new Date();
 
     for(const writer of this.loggers){
       if(writer.isActive()) {
