@@ -70,11 +70,10 @@ describe("File writer", () => {
         const file = fs.readFileSync("./logs.txt", {encoding: "utf-8"});
         const logs = file.split(";\n");
 
-        expect(JSON.parse(logs[0])).toEqual(logInfo);
-        expect(JSON.parse(logs[1])).toEqual(logDebug);
-        expect(JSON.parse(logs[2])).toEqual(logWarning);
-        expect(JSON.parse(logs[3])).toEqual(logError);
-        expect(JSON.parse(logs[4])).toEqual(logCritical);
+        expect(logs[0]).toEqual(JSON.stringify(logInfo));
+        expect(logs[1]).toEqual(JSON.stringify(logWarning));
+        expect(logs[2]).toEqual(JSON.stringify(logError));
+        expect(logs[3]).toEqual(JSON.stringify(logCritical));
 
     });
 
@@ -137,10 +136,11 @@ describe("File writer", () => {
         const file = fs.readFileSync("./logs.txt", {encoding: "utf-8"});
         const logs = file.split(";\n");
 
-        expect(JSON.parse(logs[0])).toEqual(logDebug);
-        expect(JSON.parse(logs[1])).toEqual(logWarning);
-        expect(JSON.parse(logs[2])).toEqual(logError);
-        expect(JSON.parse(logs[3])).toEqual(logCritical);
+        expect(logs[0]).toEqual(JSON.stringify(logInfo));
+        expect(logs[1]).toEqual(JSON.stringify(logDebug));
+        expect(logs[2]).toEqual(JSON.stringify(logWarning));
+        expect(logs[3]).toEqual(JSON.stringify(logError));
+        expect(logs[4]).toEqual(JSON.stringify(logCritical));
     });
 
     it("should log if configuration level is warning and severity is higher", async () => {
@@ -202,9 +202,10 @@ describe("File writer", () => {
         const file = fs.readFileSync("./logs.txt", {encoding: "utf-8"});
         const logs = file.split(";\n");
 
-        expect(JSON.parse(logs[0])).toEqual(logWarning);
-        expect(JSON.parse(logs[1])).toEqual(logError);
-        expect(JSON.parse(logs[2])).toEqual(logCritical);
+
+        expect(logs[0]).toEqual(JSON.stringify(logWarning));
+        expect(logs[1]).toEqual(JSON.stringify(logError));
+        expect(logs[2]).toEqual(JSON.stringify(logCritical));
     });
 
     it("should log if configuration level is error and severity is higher", async () => {
@@ -266,8 +267,8 @@ describe("File writer", () => {
         const file = fs.readFileSync("./logs.txt", {encoding: "utf-8"});
         const logs = file.split(";\n");
 
-        expect(JSON.parse(logs[0])).toEqual(logError);
-        expect(JSON.parse(logs[1])).toEqual(logCritical);
+        expect(logs[0]).toEqual(JSON.stringify(logError));
+        expect(logs[1]).toEqual(JSON.stringify(logCritical));
     });
 
 
@@ -330,7 +331,7 @@ describe("File writer", () => {
         const file = fs.readFileSync("./logs.txt", {encoding: "utf-8"});
         const logs = file.split(";\n");
 
-        expect(JSON.parse(logs[0])).toEqual(logCritical);
+        expect(logs[0]).toEqual(JSON.stringify(logCritical));
     });
 
     it("should log stacked logs if log something", async () => {
@@ -392,11 +393,11 @@ describe("File writer", () => {
         const file = fs.readFileSync("./logs.txt", {encoding: "utf-8"});
         const logs = file.split(";\n");
 
-        expect(JSON.parse(logs[0])).toEqual(logInfo);
-        expect(JSON.parse(logs[1])).toEqual(logDebug);
-        expect(JSON.parse(logs[2])).toEqual(logWarning);
-        expect(JSON.parse(logs[3])).toEqual(logError);
-        expect(JSON.parse(logs[4])).toEqual(logCritical);
+        expect(logs[0]).toEqual(JSON.stringify(logInfo));
+        expect(logs[1]).toEqual(JSON.stringify(logDebug));
+        expect(logs[2]).toEqual(JSON.stringify(logWarning));
+        expect(logs[3]).toEqual(JSON.stringify(logError));
+        expect(logs[4]).toEqual(JSON.stringify(logCritical));
     });
 
 });
