@@ -9,7 +9,7 @@ import {
     EnvironmentVariableResolver,
     NumberResolver
 } from "@pristine-ts/configuration";
-import {OutputModeEnum} from "./enums/output.enum";
+import {OutputModeEnum} from "./enums/output-mode.enum";
 
 export * from "./enums/enums";
 export * from "./handlers/handlers";
