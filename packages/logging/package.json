@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "@pristine-ts/common": "file:../common",
-    "@pristine-ts/configuration": "file:../configuration"
+    "@pristine-ts/configuration": "file:../configuration",
+    "date-fns": "^2.22.1"
   },
   "files": [
     "dist"

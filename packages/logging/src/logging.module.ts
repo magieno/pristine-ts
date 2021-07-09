@@ -5,10 +5,11 @@ import {FileLogger} from "./loggers/file.logger";
 import {LoggingModuleKeyname} from "./logging.module.keyname";
 import {
     BooleanResolver,
-    ConfigurationModule,
+    ConfigurationModule, EnumResolver,
     EnvironmentVariableResolver,
     NumberResolver
 } from "@pristine-ts/configuration";
+import {OutputModeEnum} from "./enums/output.enum";
 
 export * from "./enums/enums";
 export * from "./handlers/handlers";
@@ -79,10 +80,18 @@ export const LoggingModule: ModuleInterface = {
         },
         {
             parameterName: LoggingModuleKeyname + ".consoleLoggerActivated",
-            defaultValue: false,
+            defaultValue: true,
             isRequired: false,
             defaultResolvers: [
                 new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_CONSOLE_LOGGER_ACTIVATED")),
+            ]
+        },
+        {
+            parameterName: LoggingModuleKeyname + ".consoleLoggerOutputMode",
+            defaultValue: OutputModeEnum.Json,
+            isRequired: false,
+            defaultResolvers: [
+                new EnumResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_CONSOLE_LOGGER_OUTPUT_MODE"), OutputModeEnum),
             ]
         },
         {
