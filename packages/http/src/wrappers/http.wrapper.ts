@@ -8,6 +8,7 @@ import Url from 'url-parse';
 import {tag} from "@pristine-ts/common";
 import {HttpClientRequestError} from "../errors/http-client-request.error";
 import {HttpWrapperInterface} from "../interfaces/http-wrapper.interface";
+import querystring from "querystring";
 
 @tag('HttpWrapperInterface')
 @injectable()
@@ -23,7 +24,7 @@ export class HttpWrapper implements HttpWrapperInterface {
             const url = new Url(request.url, true);
             const options: RequestOptions = {
                 host: url.hostname,
-                path: url.pathname + ((url.query === {}) ? "" : "?" + Object.keys(url.query).map(key => key + "=" + url.query[key]).join("&")),
+                path: url.pathname + ((url.query === {}) ? "" : "?" + querystring.escape(Object.keys(url.query).map(key => key + "=" + url.query[key]).join("&"))),
                 method: request.httpMethod,
                 headers: request.headers,
                 port: url.port,
