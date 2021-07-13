@@ -7,6 +7,7 @@ import {RestApiRequestMapper} from "./rest-api-request.mapper";
 import {BodyMapper} from "./body-mapper";
 
 describe("Rest api request mapper", () => {
+    // https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
     const rawEvent = {
         "version": "1.0",
         "resource": "/my/path",
@@ -94,6 +95,7 @@ describe("Rest api request mapper", () => {
         const expectedRequest: RequestInterface = {
             url: "/my/path",
             body: { message: "Hello from Lambda"},
+            rawBody: rawEvent.body,
             headers: {
                 "header1": "value1",
                 "header2": "value2"

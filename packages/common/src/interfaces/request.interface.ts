@@ -10,4 +10,5 @@ export interface RequestInterface {
     url: string;
     headers?: { [key: string]: string };
     body?: any;
+    rawBody?: any;
 }
