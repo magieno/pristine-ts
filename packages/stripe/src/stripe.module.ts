@@ -1,8 +1,10 @@
 import {ModuleInterface} from "@pristine-ts/common";
 import {StripeModuleKeyname} from "./stripe.module.keyname";
 
+export * from './clients/clients';
 export * from './enums/enums';
 export * from './errors/errors';
+export * from './interfaces/interfaces';
 export * from './managers/managers';
 export * from "./stripe.module.keyname";
 
