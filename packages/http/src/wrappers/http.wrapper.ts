@@ -24,7 +24,7 @@ export class HttpWrapper implements HttpWrapperInterface {
             const url = new Url(request.url, true);
             const options: RequestOptions = {
                 host: url.hostname,
-                path: url.pathname + ((url.query === {}) ? "" : "?" + querystring.escape(Object.keys(url.query).map(key => key + "=" + url.query[key]).join("&"))),
+                path: url.pathname + ((url.query === {}) ? "" : "?" + Object.keys(url.query).map(key => key + "=" + querystring.escape(url.query[key] ?? "")).join("&")),
                 method: request.httpMethod,
                 headers: request.headers,
                 port: url.port,
