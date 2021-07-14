@@ -19,6 +19,7 @@ export class HttpRequestMapper implements RequestMapperInterface {
             headers: request.headers,
             httpMethod: this.methodMapper.map(request.requestContext.http.method),
             body: this.bodyMapper.map(request.body),
+            rawBody: request.body,
         }
     }
 }

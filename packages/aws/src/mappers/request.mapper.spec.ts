@@ -183,6 +183,7 @@ describe("Request mapper", () => {
         const expectedRequest: RequestInterface = {
             url: "/my/path",
             body: "Hello from Lambda!",
+            rawBody: rawRestEvent.body,
             headers: {
                 "header1": "value1",
                 "header2": "value2"
@@ -202,6 +203,7 @@ describe("Request mapper", () => {
         const expectedRequest: RequestInterface = {
             url: "/my/path",
             body: "Hello from Lambda",
+            rawBody: rawHttpEvent.body,
             headers: {
                 "header1": "value1",
                 "header2": "value2"

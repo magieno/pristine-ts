@@ -17,6 +17,7 @@ export class RestApiRequestMapper implements RequestMapperInterface {
             headers: request.headers,
             httpMethod: this.methodMapper.map(request.httpMethod),
             body: this.bodyMapper.map(request.body),
+            rawBody: request.body,
         }
     }
 }
