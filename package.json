@@ -53,6 +53,7 @@
     "@pristine-ts/redis": "file:packages/redis",
     "@pristine-ts/security": "file:packages/security",
     "@pristine-ts/sentry": "file:packages/sentry",
+    "@pristine-ts/stripe": "file:packages/stripe",
     "@pristine-ts/telemetry": "file:packages/telemetry",
     "@pristine-ts/validation": "file:packages/validation"
   }
