@@ -103,6 +103,19 @@ export class RedisClient implements RedisClientInterface {
         }
     }
 
+    async clearAll(): Promise<void> {
+        const client = this.getClient();
+
+        try {
+            const response = await client.FLUSHALL();
+
+            this.logHandler.debug("Redis response", {response})
+
+        } catch (error) {
+            throw new RedisError("Error clearing redis", error);
+        }
+    }
+
     getKey(table: string, key: string): string {
         return this.namespace + ":" + table + ":" + key;
     }
