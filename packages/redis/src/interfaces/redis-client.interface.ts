@@ -13,5 +13,7 @@ export interface RedisClientInterface {
 
     remove(table: string, key: string): Promise<void>
 
+    clearAll(): Promise<void>
+
     getKey(table: string, key: string): string
 }
