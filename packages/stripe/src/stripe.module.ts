@@ -14,10 +14,6 @@ export const StripeModule: ModuleInterface = {
         {
             parameterName: StripeModuleKeyname + ".stripeApiKey",
             isRequired: true,
-        },
-        {
-            parameterName: StripeModuleKeyname + ".stripeEndpointSecret",
-            isRequired: true
         }
     ],
     importModules: [],
