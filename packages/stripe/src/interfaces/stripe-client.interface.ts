@@ -5,5 +5,5 @@ export interface StripeClientInterface {
 
     getStripeClient(): Stripe;
 
-    verifySignature(request: RequestInterface): Promise<Stripe.Event>;
+    verifySignature(request: RequestInterface, stripeSigningEndpointSecret: string): Promise<Stripe.Event>;
 }

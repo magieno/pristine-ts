@@ -15,7 +15,6 @@ export class StripeClient implements StripeClientInterface{
     constructor(
         @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
         @inject(`%${StripeModuleKeyname}.stripeApiKey%`) private readonly stripeApiKey: string,
-        @inject(`%${StripeModuleKeyname}.stripeEndpointSecret%`) private readonly stripeEndpointSecret: string,
     ) {
     }
 
@@ -25,7 +24,7 @@ export class StripeClient implements StripeClientInterface{
         });
     }
 
-    async verifySignature(request: RequestInterface): Promise<Stripe.Event> {
+    async verifySignature(request: RequestInterface, stripeSigningEndpointSecret: string): Promise<Stripe.Event> {
         if(!request.headers || !request.headers['stripe-signature']) {
             throw new StripeAuthenticationError(400, 'Missing headers for stripe signature');
         }
@@ -33,7 +32,7 @@ export class StripeClient implements StripeClientInterface{
         const stripeSignature = request.headers['stripe-signature'];
 
         try {
-            return this.getStripeClient().webhooks.constructEvent(request.rawBody, stripeSignature, this.stripeEndpointSecret);
+            return this.getStripeClient().webhooks.constructEvent(request.rawBody, stripeSignature, stripeSigningEndpointSecret);
         } catch (err) {
             this.logHandler.error("Error with stripe signature", {error: err, request});
             throw new StripeAuthenticationError(400, 'Raw body does not match stripe signature');
