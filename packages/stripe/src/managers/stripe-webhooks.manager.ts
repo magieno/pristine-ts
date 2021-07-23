@@ -14,8 +14,8 @@ export class StripeWebhooksManager {
         @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
     ) {}
 
-    async emitSubscriptionEvent(request: RequestInterface): Promise<void> {
-        const event = await this.stripeClient.verifySignature(request);
+    async emitSubscriptionEvent(request: RequestInterface, stripeSigningEndpointSecret: string): Promise<void> {
+        const event = await this.stripeClient.verifySignature(request, stripeSigningEndpointSecret);
 
         if(!event.type.startsWith('customer.subscription')) {
             this.logHandler.error("Stripe event is not a subscription", {event, className: StripeWebhooksManager.name});
