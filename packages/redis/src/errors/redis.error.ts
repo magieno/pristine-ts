@@ -1,5 +1,5 @@
 /**
- * This Error represents a 404 error.
+ * This Error represents a Redis error.
  */
 import {LoggableError} from "@pristine-ts/common";
 

@@ -14,6 +14,7 @@ export const RedisModule: ModuleInterface = {
     ],
     providerRegistrations: [],
     configurationDefinitions: [
+        // The host at which Redis is hosted.
         {
             parameterName: RedisModuleKeyname + ".host",
             isRequired: true,
@@ -21,6 +22,7 @@ export const RedisModule: ModuleInterface = {
                 new EnvironmentVariableResolver("PRISTINE_REDIS_HOST"),
             ]
         },
+        // The port at which Redis is hosted
         {
             parameterName: RedisModuleKeyname + ".port",
             isRequired: false,
@@ -29,6 +31,7 @@ export const RedisModule: ModuleInterface = {
                 new NumberResolver(new EnvironmentVariableResolver("PRISTINE_REDIS_PORT")),
             ]
         },
+        // The namespace in which to save the Redis keys
         {
             parameterName: RedisModuleKeyname + ".namespace",
             isRequired: true,

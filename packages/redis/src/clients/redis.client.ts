@@ -17,6 +17,9 @@ export class RedisClient implements RedisClientInterface {
                        @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface) {
     }
 
+    /**
+     * Returns the client from ClientV3 library
+     */
     getClient(): ClientV3 {
         if (this.client === undefined) {
             this.client = new ClientV3({
@@ -28,6 +31,13 @@ export class RedisClient implements RedisClientInterface {
         return this.client;
     }
 
+    /**
+     * Sets a key-value entry in Redis
+     * @param table The table name in which to save that entry. We use that to create a key such as namespace:table:key.
+     * @param key The key for the entry
+     * @param value The value of the entry
+     * @param ttl The time to live in seconds
+     */
     async set(table: string, key: string, value: string, ttl?: number): Promise<void> {
         const client = this.getClient();
         const redisKey = this.getKey(table, key);
@@ -47,6 +57,13 @@ export class RedisClient implements RedisClientInterface {
         }
     }
 
+    /**
+     * Sets a key-list entry in Redis
+     * @param table The table name in which to save that entry. We use that to create a key such as namespace:table:key.
+     * @param key The key for the entry
+     * @param value The array of values of the entry
+     * @param ttl The time to live in seconds
+     */
     async setList(table: string, key: string, value: string[], ttl?: number): Promise<void> {
         const client = this.getClient();
         const redisKey = this.getKey(table, key);
@@ -59,6 +76,11 @@ export class RedisClient implements RedisClientInterface {
         }
     }
 
+    /**
+     * Gets the value of a key in Redis.
+     * @param table The table name in which to save that entry. We use that to create a key such as namespace:table:key
+     * @param key The key for the entry
+     */
     async get(table: string, key: string): Promise<string | null> {
         const client = this.getClient();
         const redisKey = this.getKey(table, key);
@@ -74,6 +96,13 @@ export class RedisClient implements RedisClientInterface {
         }
     }
 
+    /**
+     * Gets the list of a key in Redis
+     * @param table The table name in which to save that entry. We use that to create a key such as namespace:table:key
+     * @param key The key for the entry
+     * @param start The index in the list to start.
+     * @param stop The index in the list to start. -1 means until the end of the list.
+     */
     async getList(table: string, key: string, start: number = 0, stop: number = -1): Promise<string[]> {
         const client = this.getClient();
         const redisKey = this.getKey(table, key);
@@ -89,6 +118,11 @@ export class RedisClient implements RedisClientInterface {
         }
     }
 
+    /**
+     * Removes an entry in Redis
+     * @param table The table name in which to save that entry. We use that to create a key such as namespace:table:key
+     * @param key The key for the entry
+     */
     async remove(table: string, key: string): Promise<void> {
         const client = this.getClient();
         const redisKey = this.getKey(table, key);
@@ -103,6 +137,9 @@ export class RedisClient implements RedisClientInterface {
         }
     }
 
+    /**
+     * Clears everything in Redis.
+     */
     async clearAll(): Promise<void> {
         const client = this.getClient();
 
@@ -116,6 +153,11 @@ export class RedisClient implements RedisClientInterface {
         }
     }
 
+    /**
+     * Gets the final Redis key such as: namespace:table:key
+     * @param table The table name in which to save that entry. We use that to create a key such as namespace:table:key
+     * @param key The key for the entry
+     */
     getKey(table: string, key: string): string {
         return this.namespace + ":" + table + ":" + key;
     }
