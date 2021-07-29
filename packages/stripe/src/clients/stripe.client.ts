@@ -19,16 +19,20 @@ export class StripeClient implements StripeClientInterface{
     }
 
     /**
-     * This method returns the Stripe client of the Stripe library with the api version '2020-08-27'
+     * Returns the Stripe client of the Stripe library with the api version '2020-08-27'
      */
     getStripeClient(): Stripe {
-        return this.client ?? new Stripe(this.stripeApiKey, {
-            apiVersion: '2020-08-27',
-        });
+        if (this.client === undefined) {
+            this.client = new Stripe(this.stripeApiKey, {
+                apiVersion: '2020-08-27',
+            });
+        }
+
+        return this.client;
     }
 
     /**
-     * This method verifies the signature of a webhook call made to an endpoint.
+     * Verifies the signature of a webhook call made to an endpoint.
      * @param request The whole request received to the endpoint.
      * @param stripeSigningEndpointSecret The endpoint secret that stripe uses to sign the request.
      */

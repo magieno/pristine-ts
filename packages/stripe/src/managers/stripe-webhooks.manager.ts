@@ -15,7 +15,7 @@ export class StripeWebhooksManager {
     ) {}
 
     /**
-     * This method verifies the signature and dispatches an event based on the webhook request received from Stripe.
+     * Verifies the signature and dispatches an event based on the webhook request received from Stripe.
      * @param request
      * @param stripeSigningEndpointSecret
      */
