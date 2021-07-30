@@ -27,11 +27,19 @@ export class Auth0Authenticator implements AuthenticatorInterface{
         this.publicKeyUrl = this.getPublicKeyUrl();
     }
 
+    /**
+     * Sets the context for the authenticator as it is a decorator
+     * @param context
+     */
     setContext(context: any): Promise<void> {
         this.context = context;
         return Promise.resolve();
     }
 
+    /**
+     * Gets the identity from the request
+     * @param request
+     */
     async authenticate(request: RequestInterface): Promise<IdentityInterface> {
         this.cachedPems = this.cachedPems ?? await this.getPems();
         const token = this.validateRequestAndReturnToken(request);
@@ -49,14 +57,26 @@ export class Auth0Authenticator implements AuthenticatorInterface{
         }
     }
 
+    /**
+     * Gets the issuer for Auth0
+     * @private
+     */
     private getAuth0Issuer(): string {
         return "https://" + this.domain + "/";
     }
 
+    /**
+     * Gets the url a the public key
+     * @private
+     */
     private getPublicKeyUrl(): string {
         return this.auth0Issuer + ".well-known/jwks.json";
     }
 
+    /**
+     * Gets the public keys
+     * @private
+     */
     private async getPems() {
         const publicKeysResponse = await this.httpClient.request({
             httpMethod: HttpMethod.Get,
@@ -67,6 +87,7 @@ export class Auth0Authenticator implements AuthenticatorInterface{
 
         const publicKeys = publicKeysResponse.body;
 
+        // Create a map key id : key.
         const pems: {[key: string]: string} = publicKeys.keys.reduce((agg, current) => {
             agg[current.kid] = jwkToBuffer(current);
             return agg;
@@ -75,6 +96,11 @@ export class Auth0Authenticator implements AuthenticatorInterface{
         return pems;
     }
 
+    /**
+     * Validates the request and returns the token
+     * @param request
+     * @private
+     */
     // todo: this is a copy from jwt manager should we put that somewhere common ?
     private validateRequestAndReturnToken(request: RequestInterface): string {
         if (request.headers === undefined || (request.headers.hasOwnProperty("Authorization") === false && request.headers.hasOwnProperty("authorization") === false)) {
@@ -99,6 +125,12 @@ export class Auth0Authenticator implements AuthenticatorInterface{
         return authorizationHeader.substr(7, authorizationHeader.length);
     }
 
+    /**
+     * Verifies the token and returns the claims.
+     * @param token
+     * @param key
+     * @private
+     */
     private getAndVerifyClaims(token: string, key: string): ClaimInterface {
         let claim;
         try {
@@ -107,18 +139,22 @@ export class Auth0Authenticator implements AuthenticatorInterface{
             throw new Error("Invalid jwt: " + err.message);
         }
 
+        // Verify if the token is expired or was auth_time is invalid
         const currentSeconds = Math.floor( (new Date()).valueOf() / 1000);
         if (currentSeconds > claim.exp || currentSeconds < claim.auth_time) {
             throw new Error('Claim is expired or invalid');
         }
+        // Verify if issuer is the auth0 issuer.
         if (claim.iss !== this.auth0Issuer) {
             throw new Error('Claim issuer is invalid');
         }
 
+        // If the context has an expected audience verify that this audience is included in the token.
         if(this.context.options?.expectedAudience && claim.aud.includes(this.context.options?.expectedAudience) === false) {
             throw new Error('Claim audience does not include expected audience');
         }
 
+        // If the context has expected scopes, verify that the token has those scopes.
         if(this.context.options?.expectedScopes) {
             const providedScopes: string[] = claim.scope.split(' ');
             const expectedScopes = Array.isArray(this.context.options?.expectedScopes) === false ? [this.context.options?.expectedScopes] : this.context.options?.expectedScopes
@@ -132,6 +168,12 @@ export class Auth0Authenticator implements AuthenticatorInterface{
         return claim;
     }
 
+    /**
+     * Gets the key based on the kid of the token
+     * @param token
+     * @param pems
+     * @private
+     */
     private getKeyFromToken(token: string, pems:{[key: string]: string}): string {
         const header = this.getTokenHeader(token);
         const key = pems[header.kid];
@@ -141,6 +183,11 @@ export class Auth0Authenticator implements AuthenticatorInterface{
         return key;
     }
 
+    /**
+     * Gets the token header
+     * @param token
+     * @private
+     */
     private getTokenHeader(token): TokenHeaderInterface {
         const tokenSections = (token || '').split('.');
         if (tokenSections.length < 2) {
