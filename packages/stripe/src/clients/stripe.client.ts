@@ -22,13 +22,9 @@ export class StripeClient implements StripeClientInterface{
      * Returns the Stripe client of the Stripe library with the api version '2020-08-27'
      */
     getStripeClient(): Stripe {
-        if (this.client === undefined) {
-            this.client = new Stripe(this.stripeApiKey, {
-                apiVersion: '2020-08-27',
-            });
-        }
-
-        return this.client;
+        return this.client = this.client ?? new Stripe(this.stripeApiKey, {
+            apiVersion: '2020-08-27',
+        });
     }
 
     /**
