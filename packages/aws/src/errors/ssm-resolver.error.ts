@@ -1,5 +1,8 @@
 import {LoggableError} from "@pristine-ts/common";
 
+/**
+ * This Error represents an error when resolving in SSM.
+ */
 export class SSMResolverError extends LoggableError {
     public constructor(message: string, value: any, originalError?: any) {
         super(message, {

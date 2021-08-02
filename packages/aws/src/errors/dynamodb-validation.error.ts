@@ -1,5 +1,5 @@
 /**
- * This Error represents a 404 error.
+ * This Error represents a Dynamodb error when there is a validation error.
  */
 import {DynamodbError} from "./dynamodb.error";
 
