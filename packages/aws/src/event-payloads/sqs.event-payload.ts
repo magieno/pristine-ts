@@ -1,5 +1,8 @@
 import {SqsAttributesModel} from "../models/sqs-attributes.model";
 
+/**
+ * The Pristine event payload type of a parsed SQS event
+ */
 export class SqsEventPayload {
     eventSource: string;
     eventSourceArn: string;
