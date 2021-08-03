@@ -14,6 +14,11 @@ import {S3ObjectModel} from "../models/s3-object.model";
 @injectable()
 export class S3EventParser implements EventParserInterface<S3EventPayload>{
 
+    /**
+     * Finds the enum value corresponding to the event name.
+     * @param eventName The event name of the S3 event.
+     * @private
+     */
     private findEnum(eventName: string): S3EventType{
         const keys = Object.keys(S3EventType).filter(key => isNaN(Number(key)));
         for(const key of keys){
@@ -24,6 +29,10 @@ export class S3EventParser implements EventParserInterface<S3EventPayload>{
         return S3EventType.UnknownS3Event;
     }
 
+    /**
+     * Parses the S3 event into a Pristine event.
+     * @param rawEvent The raw S3 event
+     */
     parse(rawEvent: any): Event<S3EventPayload>[] {
         const parsedEvents: Event<S3EventPayload>[] = [];
         for(const record of rawEvent.Records) {
@@ -66,6 +75,10 @@ export class S3EventParser implements EventParserInterface<S3EventPayload>{
         return parsedEvents;
     }
 
+    /**
+     * Determines if the parser supports the event.
+     * @param event The event to verify if the parser supports.
+     */
     supports(event: any): boolean {
         return event.hasOwnProperty("Records") &&
             Array.isArray(event.Records) &&

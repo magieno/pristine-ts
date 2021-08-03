@@ -9,6 +9,10 @@ import {KafkaMessageModel} from "../models/kafka-message.model";
 @injectable()
 export class KafkaEventParser implements EventParserInterface<KafkaEventPayload>{
 
+    /**
+     * Parses the Kafka event from the AWS kafka connector into a Pristine event.
+     * @param rawEvent The raw Kafka event
+     */
     parse(rawEvent: any): Event<KafkaEventPayload>[] {
         const parsedEvents: Event<KafkaEventPayload>[] = [];
 
@@ -41,6 +45,10 @@ export class KafkaEventParser implements EventParserInterface<KafkaEventPayload>
         return parsedEvents;
     }
 
+    /**
+     * Determines if the parser supports the event.
+     * @param event The event to verify if the parser supports.
+     */
     supports(event: any): boolean {
         return event.hasOwnProperty("eventSource") &&
             event.eventSource === "aws:kafka"
