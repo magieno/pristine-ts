@@ -8,6 +8,10 @@ export class ResponseMapper {
     constructor( @inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface) {
     }
 
+    /**
+     * Reverse maps a Pristine response to an Api gateway response.
+     * @param response The Pristine response.
+     */
     reverseMap(response: Response): ApiGatewayResponseModel {
         const apiGatewayResponse = new ApiGatewayResponseModel();
         apiGatewayResponse.statusCode = response.status;
