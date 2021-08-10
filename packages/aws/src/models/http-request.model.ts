@@ -1,5 +1,8 @@
 import {HttpRequestContextModel} from "./http-request-context.model";
 
+/**
+ * Model representing the http request (version 2.0) from the Api gateway event.
+ */
 export class HttpRequestModel {
     version: string;
     routeKey: string;

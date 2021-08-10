@@ -1,3 +1,6 @@
+/**
+ * Model representing the object of the s3 event.
+ */
 export class S3ObjectModel {
     key: string;
     size: number;

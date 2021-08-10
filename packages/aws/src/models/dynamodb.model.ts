@@ -1,5 +1,8 @@
 import {DynamodbKeysModel} from "./dynamodb-keys.model";
 
+/**
+ * Model representing the DynamoDb filed of the DynamoDb event payload.
+ */
 export class DynamodbModel {
     keys: any;
     newImage?: any;
