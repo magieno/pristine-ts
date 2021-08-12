@@ -19,6 +19,13 @@ export class AwsCognitoAuthenticator implements AuthenticatorInterface{
     private publicKeyUrl;
     private context;
 
+    /**
+     * The AWS cognito authenticator that can be passed to the @authenticator decorator.
+     * @param region The AWS region
+     * @param poolId The AWS cognito pool id.
+     * @param httpClient The Http client to use to make the requests to the issuer.
+     * @param logHandler The log handler to print some logs.
+     */
     constructor(@inject(`%${AwsCognitoModuleKeyname}.region%`) private readonly region: string,
                 @inject(`%${AwsCognitoModuleKeyname}.poolId%`) private readonly poolId: string,
                 @inject("HttpClientInterface") private readonly httpClient: HttpClientInterface,
@@ -28,11 +35,19 @@ export class AwsCognitoAuthenticator implements AuthenticatorInterface{
         this.publicKeyUrl = this.getPublicKeyUrl();
     }
 
+    /**
+     * Sets the context for the authenticator as it is passed in a decorator
+     * @param context
+     */
     setContext(context: any): Promise<void> {
         this.context = context;
         return Promise.resolve();
     }
 
+    /**
+     * Gets the identity from the request
+     * @param request
+     */
     async authenticate(request: RequestInterface): Promise<IdentityInterface> {
         this.cachedPems = this.cachedPems ?? await this.getPems();
         const token = this.validateRequestAndReturnToken(request);
@@ -50,14 +65,26 @@ export class AwsCognitoAuthenticator implements AuthenticatorInterface{
         }
     }
 
+    /**
+     * Gets the issuer for Cognito
+     * @private
+     */
     private getCognitoIssuer(): string {
         return "https://cognito-idp." + this.region + ".amazonaws.com/" + this.poolId
     }
 
+    /**
+     * Gets the url of the public key
+     * @private
+     */
     private getPublicKeyUrl(): string {
         return this.cognitoIssuer + "/.well-known/jwks.json";
     }
 
+    /**
+     * Gets the public keys
+     * @private
+     */
     private async getPems() {
         const publicKeysResponse = await this.httpClient.request({
             httpMethod: HttpMethod.Get,
@@ -76,6 +103,11 @@ export class AwsCognitoAuthenticator implements AuthenticatorInterface{
         return pems;
     }
 
+    /**
+     * Validates the request and returns the token
+     * @param request
+     * @private
+     */
     // todo: this is a copy from jwt manager should we put that somewhere common ?
     private validateRequestAndReturnToken(request: RequestInterface): string {
         if (request.headers === undefined || (request.headers.hasOwnProperty("Authorization") === false && request.headers.hasOwnProperty("authorization") === false)) {
@@ -100,6 +132,12 @@ export class AwsCognitoAuthenticator implements AuthenticatorInterface{
         return authorizationHeader.substr(7, authorizationHeader.length);
     }
 
+    /**
+     * Verifies the token and returns the claims.
+     * @param token
+     * @param key
+     * @private
+     */
     private getAndVerifyClaims(token: string, key: string): ClaimInterface {
         let claim;
         try {
@@ -124,6 +162,12 @@ export class AwsCognitoAuthenticator implements AuthenticatorInterface{
         return claim;
     }
 
+    /**
+     * Gets the key based on the kid of the token
+     * @param token
+     * @param pems
+     * @private
+     */
     private getKeyFromToken(token: string, pems:{[key: string]: string}): string {
         const header = this.getTokenHeader(token);
         const key = pems[header.kid];
@@ -133,6 +177,11 @@ export class AwsCognitoAuthenticator implements AuthenticatorInterface{
         return key;
     }
 
+    /**
+     * Gets the token header
+     * @param token
+     * @private
+     */
     private getTokenHeader(token): TokenHeaderInterface {
         const tokenSections = (token || '').split('.');
         if (tokenSections.length < 2) {

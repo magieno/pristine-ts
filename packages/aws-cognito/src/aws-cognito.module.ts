@@ -10,6 +10,7 @@ export * from "./interfaces/interfaces";
 export const AwsCognitoModule: ModuleInterface = {
     keyname: AwsCognitoModuleKeyname,
     configurationDefinitions: [
+        // The AWS region in which Cognito is setup.
         {
             parameterName: AwsCognitoModuleKeyname + ".region",
             isRequired: false,
@@ -18,6 +19,7 @@ export const AwsCognitoModule: ModuleInterface = {
                 new EnvironmentVariableResolver("AWS_REGION"),
             ]
         },
+        // The pool id of the Cognito user pool.
         {
             parameterName: AwsCognitoModuleKeyname + ".poolId",
             isRequired: true,
@@ -28,12 +30,5 @@ export const AwsCognitoModule: ModuleInterface = {
     ],
     importModules: [
         HttpModule,
-    ],
-
-    /**
-     * This property allows you to custom register specific services. For example, you can assign a tag or use a factory
-     * to instantiate a specific class.
-     */
-    providerRegistrations: [
     ],
 }

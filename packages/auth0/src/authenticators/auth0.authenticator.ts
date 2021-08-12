@@ -19,6 +19,12 @@ export class Auth0Authenticator implements AuthenticatorInterface{
     private publicKeyUrl;
     private context;
 
+    /**
+     * The Auth0 authenticator that can be passed to the @authenticator decorator.
+     * @param domain The Auth0 domain.
+     * @param httpClient The Http client to use to make the requests to the issuer.
+     * @param logHandler The log handler to print some logs.
+     */
     constructor(@inject(`%${Auth0ModuleKeyname}.domain%`) private readonly domain: string,
                 @inject("HttpClientInterface") private readonly httpClient: HttpClientInterface,
                 @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
@@ -28,7 +34,7 @@ export class Auth0Authenticator implements AuthenticatorInterface{
     }
 
     /**
-     * Sets the context for the authenticator as it is a decorator
+     * Sets the context for the authenticator as it is passed in a decorator
      * @param context
      */
     setContext(context: any): Promise<void> {
@@ -66,7 +72,7 @@ export class Auth0Authenticator implements AuthenticatorInterface{
     }
 
     /**
-     * Gets the url a the public key
+     * Gets the url of the public key
      * @private
      */
     private getPublicKeyUrl(): string {
