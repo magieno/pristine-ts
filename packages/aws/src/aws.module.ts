@@ -41,8 +41,13 @@ export const AwsModule: ModuleInterface = {
     }
 }
 
+/**
+ * This method takes all the classes that were added to the dynamicTableNameRegistry and resolves the name of the table from the dependency container and sets the DynamoDbTable to this name.
+ * @param container The dependency container.
+ */
 const registerDynamicTableNames = async (container: DependencyContainer) => {
     for (const dynamicTableName of dynamicTableNameRegistry) {
+        // If the token name is not already registered in the container, we try to resolve it from the environment variables.
         if(container.isRegistered(dynamicTableName.tokenName) === false) {
             const logHandler: LogHandlerInterface = container.resolve("LogHandlerInterface");
             try {
@@ -55,6 +60,7 @@ const registerDynamicTableNames = async (container: DependencyContainer) => {
                 continue;
             }
         }
+        // Set the DynamoDbTable symbol with the name of the table.
         try {
             dynamicTableName.classConstructor.prototype[DynamoDbTable] = container.resolve(dynamicTableName.tokenName);
         } catch (error){

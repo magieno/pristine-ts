@@ -6,6 +6,9 @@ import AWSXRay, {Segment, Subsegment} from "aws-xray-sdk";
 import {AwsXrayModuleKeyname} from "../aws-xray.module.keyname";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 
+/**
+ * Tracer to be able to dump Pristine traces to AWS Xray
+ */
 @moduleScoped(AwsXrayModuleKeyname)
 @tag(ServiceDefinitionTagEnum.Tracer)
 @injectable()
