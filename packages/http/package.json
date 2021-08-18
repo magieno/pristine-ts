@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/http",
-  "version": "0.0.121",
+  "version": "0.0.122",
   "description": "",
   "module": "dist/lib/esm/http.module.js",
   "main": "dist/lib/cjs/http.module.js",
