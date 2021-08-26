@@ -16,8 +16,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.11.0",
-    "@aws-sdk/client-ssm": "^3.11.0",
+    "@aws-sdk/client-dynamodb": "^3.27.0",
+    "@aws-sdk/client-sqs": "^3.27.0",
+    "@aws-sdk/client-ssm": "^3.27.0",
     "@awslabs-community-fork/dynamodb-data-mapper": "^0.7.9",
     "@awslabs-community-fork/dynamodb-data-marshaller": "^0.7.9",
     "@awslabs-community-fork/dynamodb-expressions": "^0.7.9",

@@ -17,3 +17,4 @@ export * from "./s3-object.model";
 export * from "./sns.model";
 export * from "./sns-message-attribute.model";
 export * from "./sqs-attributes.model";
+export * from "./sqs-message-sent-confirmation.model";
