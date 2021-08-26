@@ -1,7 +1,6 @@
 import {inject, injectable} from "tsyringe";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {SQSClient, ReceiveMessageCommand, SendMessageCommand} from "@aws-sdk/client-sqs";
-import {SQSClientConfig} from "@aws-sdk/client-sqs/SQSClient";
 import {SqsMessageSentConfirmationModel} from "../models/sqs-message-sent-confirmation.model";
 import {SqsSendMessageError} from "../errors/sqs-send-message.error";
 
