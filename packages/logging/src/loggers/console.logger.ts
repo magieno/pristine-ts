@@ -86,7 +86,7 @@ export class ConsoleLogger implements LoggerInterface {
             return JSON.stringify(Utils.truncate(log,  this.logCriticalDepthConfiguration));
         }
       case OutputModeEnum.Simple:
-        return format(log.date, "yyyy-MM-dd HH:mm:ss") + " - " + " [" + this.getSeverityText(log.severity) + "] - " + log.message;
+        return format(log.date, "yyyy-MM-dd HH:mm:ss") + " - " + " [" + this.getSeverityText(log.severity) + "] - " + log.message + " - " + JSON.stringify(Utils.truncate(log.extra, 2));
     }
   }
 
