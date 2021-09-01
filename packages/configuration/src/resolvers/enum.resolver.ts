@@ -5,6 +5,11 @@ import {ConfigurationResolverError} from "../errors/configuration-resolver.error
  * This class takes either another resolver or a scalar (number or string) and returns an enum value.
  */
 export class EnumResolver<E> implements ResolverInterface<E> {
+    /**
+     * The constructor for the enum resolver.
+     * @param valueOrResolver The value or resolver.
+     * @param enumClass The enum class to which the resolved value needs to be mapped.
+     */
     public constructor(
         private readonly valueOrResolver: string | number | ResolverInterface<string> | ResolverInterface<number>,
         private readonly enumClass: any,
@@ -23,6 +28,7 @@ export class EnumResolver<E> implements ResolverInterface<E> {
 
         const keys = Object.keys(enumClass).filter(key => isNaN(Number(key)));
         for(const key of keys){
+            // Verifies if the value is either equal to a key or a value of the enum.
             if (key.toLowerCase() === normalizedValue || enumClass[key] === value){
                 return enumClass[key];
             }
