@@ -5,6 +5,12 @@ import {TelemetryModule} from "@pristine-ts/telemetry";
 import {EventModule} from "@pristine-ts/event";
 import {ConfigurationModule} from "@pristine-ts/configuration";
 
+export * from "./kernel";
+export * from "./errors/errors";
+export * from "./interceptors/interceptors";
+export * from "./interfaces/interfaces";
+export * from "./core.module.keyname";
+
 export const CoreModule: ModuleInterface =  {
     keyname: CoreModuleKeyname,
     importModules: [
@@ -15,11 +21,3 @@ export const CoreModule: ModuleInterface =  {
     ],
     providerRegistrations: [],
 }
-
-export * from "./kernel";
-
-//export * from "./enums/enums";
-export * from "./errors/errors";
-export * from "./interceptors/interceptors";
-export * from "./interfaces/interfaces";
-export * from "./core.module.keyname";
