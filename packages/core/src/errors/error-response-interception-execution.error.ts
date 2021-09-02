@@ -1,9 +1,8 @@
-/**
- * This Error is thrown when there's an error that happens while the kernel or anything is being initialized.
- */
 import {LoggableError, RequestInterface} from "@pristine-ts/common";
-import {Kernel} from "../kernel";
 
+/**
+ * This Error is thrown when an error happens in the execution of an error response interceptor.
+ */
 export class ErrorResponseInterceptionExecutionError extends LoggableError {
 
     public constructor(message: string, error: Error, request: RequestInterface, interceptor, previousError?: Error) {

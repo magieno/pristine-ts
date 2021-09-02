@@ -1,8 +1,8 @@
+import {LoggableError} from "@pristine-ts/common";
+
 /**
  * This Error is thrown when there's an error that happens while the kernel or anything is being initialized.
  */
-import {LoggableError} from "@pristine-ts/common";
-
 export class KernelInitializationError extends LoggableError {
 
     public constructor(message: string) {
