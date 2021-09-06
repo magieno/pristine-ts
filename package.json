@@ -51,6 +51,7 @@
     "@pristine-ts/logging": "file:packages/logging",
     "@pristine-ts/networking": "file:packages/networking",
     "@pristine-ts/redis": "file:packages/redis",
+    "@pristine-ts/scheduling": "file:packages/scheduling",
     "@pristine-ts/security": "file:packages/security",
     "@pristine-ts/sentry": "file:packages/sentry",
     "@pristine-ts/stripe": "file:packages/stripe",
