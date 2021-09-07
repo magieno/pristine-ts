@@ -9,20 +9,26 @@ import {LogHandlerInterface} from "@pristine-ts/logging";
  */
 @injectable()
 export class EventDispatcher {
+    /**
+     * Dispatcher to dispatch the events to the event listeners that support them.
+     * @param eventListeners All the event listeners that are tagged with ServiceDefinitionTagEnum.EventListener
+     * @param logHandler
+     */
     public constructor(@injectAll(ServiceDefinitionTagEnum.EventListener) private readonly eventListeners: EventListenerInterface[],
-                       @inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface) {
+                       @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface) {
     }
 
     /**
      * This method receives an event, loops through its event listeners and if they support the event,
      * will call their handle method.
+     * Resolves once all the event listeners have settled, but does not return a response.
      *
      * @param event
      */
     async dispatch(event: Event<any>): Promise<void> {
         const promises: Promise<void>[] = [];
 
-        this.loghandler.debug("Dispatch the event", {
+        this.logHandler.debug("Dispatch the event", {
             event,
             eventListeners: this.eventListeners,
             eventListenerNames: this.eventListeners.map(eventListener => eventListener.constructor.name),
@@ -32,13 +38,13 @@ export class EventDispatcher {
             if(eventListener.supports(event)) {
                 promises.push(eventListener.handle(event))
 
-                this.loghandler.debug("The EventListener supports the event", {
+                this.logHandler.debug("The EventListener supports the event", {
                     event,
                     eventListener,
                 })
             }
             else {
-                this.loghandler.debug("The EventListener doesn't support the event", {
+                this.logHandler.debug("The EventListener doesn't support the event", {
                     event,
                     eventListener,
                 })
