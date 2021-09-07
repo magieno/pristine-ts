@@ -16,6 +16,12 @@ export class RequestLoggingInterceptor implements RequestInterceptorInterface, R
     constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface) {
     }
 
+    /**
+     * Intercepts an error in a response and logs the error.
+     * @param error
+     * @param request
+     * @param response
+     */
     async interceptError(error: Error, request: Request, response: Response): Promise<Response> {
         let extra = {
             stack: error.stack,
@@ -34,11 +40,20 @@ export class RequestLoggingInterceptor implements RequestInterceptorInterface, R
         return response;
     }
 
+    /**
+     * Intercepts a request and logs it.
+     * @param request
+     */
     async interceptRequest(request: Request): Promise<Request> {
         this.logHandler.info(request.url, request);
         return request;
     }
 
+    /**
+     * Intercepts a response and logs it.
+     * @param response
+     * @param request
+     */
     async interceptResponse(response: Response, request: Request): Promise<Response> {
         this.logHandler.info(request.url, response);
         return response;
