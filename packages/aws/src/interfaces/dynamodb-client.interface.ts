@@ -2,6 +2,9 @@ import {DynamoDB} from "@aws-sdk/client-dynamodb";
 import {DataMapper, StringToAnyObjectMap} from "@awslabs-community-fork/dynamodb-data-mapper";
 import {ZeroArgumentsConstructor} from "@awslabs-community-fork/dynamodb-data-marshaller";
 
+/**
+ * The DynamodbClient Interface defines the methods that a Dynamodb Client must implement.
+ */
 export interface DynamodbClientInterface {
     /**
      * Returns the DynamoDB client from the @aws-sdk/client-dynamodb library
