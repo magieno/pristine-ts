@@ -44,7 +44,7 @@ export class SqsClient {
 
                 const response = await client.send(command);
 
-                this.logHandler.debug("Message succesfully sent", {
+                this.logHandler.debug("Message succesfully sent to the queue", {
                     queueUrl,
                     body,
                     messageGroupId,
