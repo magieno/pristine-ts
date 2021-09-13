@@ -2,7 +2,7 @@ import {injectable, scoped, Lifecycle, inject} from "tsyringe";
 import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {AwsSchedulingModuleKeyname} from "../aws-scheduling.module.keyname";
 import {Event, EventListenerInterface} from "@pristine-ts/event";
-import {EventBridgePayload} from "@pristine-ts/aws";
+import {EventBridgePayload, EventBridgeEventTypeEnum} from "@pristine-ts/aws";
 import {SchedulerInterface} from "@pristine-ts/scheduling";
 
 @moduleScoped(AwsSchedulingModuleKeyname)
@@ -25,7 +25,7 @@ export class EventBridgeCronEventListener implements EventListenerInterface {
      * @param event
      */
     supports<T>(event: Event<T>): boolean {
-        return event.payload !== undefined && event.payload instanceof EventBridgePayload && event.payload.hasOwnProperty("source") && event.payload.source === ": string;";
+        return event.payload instanceof EventBridgePayload && event.type === EventBridgeEventTypeEnum.ScheduledEvent;
     }
 
 }
