@@ -6,9 +6,14 @@ import {EventBridgeMessageModel} from "../models/event-bridge-message.model";
 import {PutEventsRequestEntry} from "@aws-sdk/client-eventbridge/models/models_0";
 import {SqsSendMessageError} from "../errors/sqs-send-message.error";
 import {EventBridgeSendMessageError} from "../errors/event-bridge-send-message.error";
+import {EventBridgeClientInterface} from "../interfaces/event-bridge-client.interface";
+import {moduleScoped, tag} from "@pristine-ts/common";
+import {AwsModuleKeyname} from "../aws.module.keyname";
 
+@tag("EventBridgeClientInterface")
+@moduleScoped(AwsModuleKeyname)
 @injectable()
-export class EventBridgeClient {
+export class EventBridgeClient implements EventBridgeClientInterface {
     constructor(
         @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
         @inject("%pristine.aws.region%") private readonly region: string,
