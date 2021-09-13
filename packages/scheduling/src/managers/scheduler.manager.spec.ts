@@ -16,8 +16,7 @@ describe("Scheduler Manager tests", () => {
             scheduledTask,
         ]);
 
-        const event = new Event();
-        await schedulerManager.handle(event);
+        await schedulerManager.runTasks();
 
         expect(spy).toHaveBeenCalled();
     })
