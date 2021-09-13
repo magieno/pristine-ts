@@ -3,9 +3,14 @@ import {LogHandlerInterface} from "@pristine-ts/logging";
 import {SQSClient, ReceiveMessageCommand, SendMessageCommand} from "@aws-sdk/client-sqs";
 import {SqsMessageSentConfirmationModel} from "../models/sqs-message-sent-confirmation.model";
 import {SqsSendMessageError} from "../errors/sqs-send-message.error";
+import {moduleScoped, tag} from "@pristine-ts/common";
+import {AwsModuleKeyname} from "../aws.module.keyname";
+import {SqsClientInterface} from "../interfaces/sqs-client.interface";
 
+@tag("SqsClientInterface")
+@moduleScoped(AwsModuleKeyname)
 @injectable()
-export class SqsClient {
+export class SqsClient implements SqsClientInterface {
     constructor(
         @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
         @inject("%pristine.aws.region%") private readonly region: string,
@@ -44,7 +49,7 @@ export class SqsClient {
 
                 const response = await client.send(command);
 
-                this.logHandler.debug("Message succesfully sent", {
+                this.logHandler.debug("Message succesfully sent to the queue", {
                     queueUrl,
                     body,
                     messageGroupId,
