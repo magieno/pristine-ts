@@ -1,10 +1,10 @@
 {
-  "name": "@pristine-ts/scheduling",
+  "name": "@pristine-ts/aws-scheduling",
   "version": "0.0.123",
   "description": "",
-  "module": "dist/lib/esm/scheduling.module.js",
-  "main": "dist/lib/cjs/scheduling.module.js",
-  "types": "dist/types/scheduling.module.d.ts",
+  "module": "dist/lib/esm/aws-scheduling.module.js",
+  "main": "dist/lib/cjs/aws-scheduling.module.js",
+  "types": "dist/types/aws-scheduling.module.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
     "prepublish": "npm run build",
@@ -20,11 +20,8 @@
   },
   "dependencies": {
     "@pristine-ts/common": "file:../common",
-    "@pristine-ts/core": "file:../core",
-    "@pristine-ts/event": "file:../event",
-    "@pristine-ts/logging": "file:../logging"
-  },
-  "devDependencies": {
+    "@pristine-ts/logging": "file:../logging",
+    "@pristine-ts/scheduling": "file:../scheduling"
   },
   "jest": {
     "transform": {

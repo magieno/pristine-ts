@@ -39,6 +39,7 @@
     "@pristine-ts/auth0": "file:packages/auth0",
     "@pristine-ts/aws": "file:packages/aws",
     "@pristine-ts/aws-cognito": "file:packages/aws-cognito",
+    "@pristine-ts/aws-scheduling": "file:packages/aws-scheduling",
     "@pristine-ts/aws-xray": "file:packages/aws-xray",
     "@pristine-ts/common": "file:packages/common",
     "@pristine-ts/configuration": "file:packages/configuration",

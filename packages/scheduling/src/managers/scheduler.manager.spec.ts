@@ -7,7 +7,6 @@ describe("Scheduler Manager tests", () => {
     it("should call the scheduled task", async () => {
         const scheduledTask: ScheduledTaskInterface = {
             async run(): Promise<void> {
-
             }
         };
 
