@@ -32,8 +32,8 @@ describe("Event Bridge event parser", () => {
         time: '2021-09-13T19:10:20Z',
         region: 'us-east-2',
         resources: [
-        'arn:aws:events:us-east-2:151354380905:rule/bi-tool-event-bridge-ScheduledRule-PB81DWGAWOLD'
-    ],
+            'arn:aws:events:us-east-2:151354380905:rule/bi-tool-event-bridge-ScheduledRule-PB81DWGAWOLD'
+        ],
         detail: {}
     };
 
