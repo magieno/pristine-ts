@@ -479,13 +479,30 @@ export class Kernel {
         // Start by creating a child container and we will use this container to instantiate the dependencies for this event
         const childContainer = this.container.createChildContainer();
 
+        const logHandler: LogHandlerInterface =childContainer.resolve("LogHandlerInterface");
+
         const eventDispatcher: EventDispatcher = childContainer.resolve(EventDispatcher);
 
-        // Execute the interceptors
-        parsedEvent = await this.executeEventInterceptors(parsedEvent, childContainer);
+        try {
+            logHandler.debug("Executing the event interceptors", {parsedEvent}, CoreModuleKeyname)
 
-        // Dispatch the Event to the EventListeners
-        await eventDispatcher.dispatch(parsedEvent);
+            // Execute the interceptors
+            parsedEvent = await this.executeEventInterceptors(parsedEvent, childContainer);
+
+            logHandler.debug("Executed the event interceptors", {parsedEvent}, CoreModuleKeyname)
+
+            logHandler.debug("Dispatching the parsed event", {parsedEvent}, CoreModuleKeyname)
+
+            // Dispatch the Event to the EventListeners
+            await eventDispatcher.dispatch(parsedEvent);
+
+            logHandler.debug("Executed the event interceptors", {parsedEvent}, CoreModuleKeyname)
+
+        } catch (error) {
+            logHandler.error("Error handling the parsed event", {error}, CoreModuleKeyname)
+
+            throw error;
+        }
     }
 
     /**
