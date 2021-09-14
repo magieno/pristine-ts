@@ -29,7 +29,14 @@ export class SchedulerManager implements SchedulerInterface {
             this.logHandler.debug("Completed the execution of the tasks.", {scheduledTasks: this.scheduledTasks}, SchedulingModuleKeyname)
 
             Promise.allSettled(promises).then(results => {
-                this.logHandler.debug("Scheduled Task Results", {results, scheduledTasks: this.scheduledTasks}, SchedulingModuleKeyname)
+                results.forEach(result => {
+                    if(result.status === 'fulfilled') {
+                        this.logHandler.debug("Scheduled Task Fulfilled", {result}, SchedulingModuleKeyname)
+                    }
+                    else {
+                        this.logHandler.error("Scheduled Task Error", {result}, SchedulingModuleKeyname)
+                    }
+                })
 
                 return resolve();
             });
