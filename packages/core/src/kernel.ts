@@ -372,7 +372,7 @@ export class Kernel {
 
             interceptedErrorResponse.status = httpError.httpStatus
 
-            if(httpError.errors) {
+            if (httpError.errors) {
                 interceptedErrorResponse.body.errors = httpError.errors
             }
         } else {
@@ -447,18 +447,25 @@ export class Kernel {
 
         // Handle all of the parsed events
         const promises: Promise<void>[] = [];
-        for(let event of events) {
+        for (let event of events) {
             promises.push(this.handleParsedEvent(event));
         }
 
         return new Promise(resolve => {
             Promise.allSettled(promises).then(results => {
                 results.forEach(result => {
-                    if(result.status === 'fulfilled') {
+                    if (result.status === 'fulfilled') {
                         logHandler.debug("Event Fulfilled", {result}, CoreModuleKeyname)
-                    }
-                    else {
-                        logHandler.error("Event Error", {result}, CoreModuleKeyname)
+                    } else {
+                        logHandler.error("Event Error", {
+                            result: {
+                                status: result.status,
+                                reason: {
+                                    message: result?.reason?.message,
+                                    stack: result?.reason?.stack,
+                                },
+                            }
+                        }, CoreModuleKeyname)
                     }
                 });
 
@@ -479,7 +486,7 @@ export class Kernel {
         // Start by creating a child container and we will use this container to instantiate the dependencies for this event
         const childContainer = this.container.createChildContainer();
 
-        const logHandler: LogHandlerInterface =childContainer.resolve("LogHandlerInterface");
+        const logHandler: LogHandlerInterface = childContainer.resolve("LogHandlerInterface");
 
         const eventDispatcher: EventDispatcher = childContainer.resolve(EventDispatcher);
 
@@ -572,7 +579,7 @@ export class Kernel {
      * @private
      */
     private setupRouter() {
-        if(this.router) {
+        if (this.router) {
             return;
         }
         this.router = this.container.resolve(Router);
@@ -612,7 +619,7 @@ export class Kernel {
                 // the appropriate controller method
                 const route = new Route(controller.constructor, routeMethodDecorator.methodKeyname);
                 route.methodArguments = method.arguments ?? [];
-                route.context = mergeWith({}, controller.__metadata__?.controller?.__routeContext__ , method.__routeContext__);
+                route.context = mergeWith({}, controller.__metadata__?.controller?.__routeContext__, method.__routeContext__);
 
                 // Build the proper path
                 let path = routeMethodDecorator.path;

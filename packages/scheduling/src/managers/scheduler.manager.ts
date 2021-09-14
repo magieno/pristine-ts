@@ -34,7 +34,15 @@ export class SchedulerManager implements SchedulerInterface {
                         this.logHandler.debug("Scheduled Task Fulfilled", {result}, SchedulingModuleKeyname)
                     }
                     else {
-                        this.logHandler.error("Scheduled Task Error", {result}, SchedulingModuleKeyname)
+                        this.logHandler.error("Scheduled Task Error", {
+                            result: {
+                                status: result.status,
+                                reason: {
+                                    message: result?.reason?.message,
+                                    stack: result?.reason?.stack,
+                                },
+                            }
+                        }, SchedulingModuleKeyname)
                     }
                 });
 
