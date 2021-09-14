@@ -1,12 +1,12 @@
 
 export interface LogHandlerInterface {
-    error(message: string, extra?: any): void;
+    error(message: string, extra?: any, module?: string): void;
 
-    critical(message: string, extra?: any): void;
+    critical(message: string, extra?: any, module?: string): void;
 
-    debug(message: string, extra?: any): void;
+    debug(message: string, extra?: any, module?: string): void;
 
-    info(message: string, extra?: any): void;
+    info(message: string, extra?: any, module?: string): void;
 
-    warning(message: string, extra?: any): void;
+    warning(message: string, extra?: any, module?: string): void;
 }

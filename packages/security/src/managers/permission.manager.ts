@@ -4,6 +4,7 @@ import {VotingStrategyEnum} from "../enums/voting-strategy.enum";
 import {LogHandler, LogHandlerInterface} from "@pristine-ts/logging";
 import {VoteEnum} from "../enums/vote.enum";
 import {IdentityInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
+import {SecurityModuleKeyname} from "../security.module.keyname";
 
 @injectable()
 export class PermissionManager {
@@ -18,24 +19,24 @@ export class PermissionManager {
                 identity,
                 action,
                 resource,
-            });
+            }, SecurityModuleKeyname);
         }
 
         const votes: VoteEnum[] = [];
 
         for(const voter of this.voters) {
             if(voter.supports(resource) === false) {
-                this.logHandler.debug("PERMISSION MANAGER - [" + voter.constructor.name + "] - Doesn't support this resource.", {identity, action, resource, voter: voter.constructor.name} );
+                this.logHandler.debug("PERMISSION MANAGER - [" + voter.constructor.name + "] - Doesn't support this resource.", {identity, action, resource, voter: voter.constructor.name}, SecurityModuleKeyname );
                 continue;
             }
 
             try {
                 const vote = await voter.vote(identity, action, resource);
-                this.logHandler.debug("PERMISSION MANAGER - [" + voter.constructor.name + "] - Decision: " + vote, {identity, action, resource, voter: voter.constructor.name} );
+                this.logHandler.debug("PERMISSION MANAGER - [" + voter.constructor.name + "] - Decision: " + vote, {identity, action, resource, voter: voter.constructor.name}, SecurityModuleKeyname );
 
                 votes.push(vote);
             } catch (error) {
-                this.logHandler.error("Error while voting", {error, resource, voter: voter.constructor.name});
+                this.logHandler.error("Error while voting", {error, resource, voter: voter.constructor.name}, SecurityModuleKeyname);
                 throw error;
             }
 
@@ -49,7 +50,7 @@ export class PermissionManager {
             }
         }
 
-        this.logHandler.info("PERMISSION MANAGER - " + (shouldGrantAccess ? "GRANTED" : "DENIED") + " - Resource: " + resource.constructor.name, {identity, action, resource});
+        this.logHandler.info("PERMISSION MANAGER - " + (shouldGrantAccess ? "GRANTED" : "DENIED") + " - Resource: " + resource.constructor.name, {identity, action, resource}, SecurityModuleKeyname);
 
         return shouldGrantAccess;
     }

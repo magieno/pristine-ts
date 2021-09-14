@@ -54,7 +54,7 @@ export class TracingManager implements TracingManagerInterface {
         if(this.isActive === false) {
             this.loghandler.warning("The tracing is deactivated.", {
                 isActive: this.isActive
-            });
+            }, TelemetryModuleKeyname);
 
             return span;
         }
@@ -66,13 +66,13 @@ export class TracingManager implements TracingManagerInterface {
             context,
             trace: this.trace,
             span,
-        })
+        }, TelemetryModuleKeyname)
 
         this.tracers.forEach( (tracer:TracerInterface) => {
             this.loghandler.debug("Pushing the trace into the traceStartedStream.", {
                 tracer,
                 trace: this.trace,
-            });
+            }, TelemetryModuleKeyname);
 
             tracer.traceStartedStream?.push(this.trace);
         })
@@ -83,7 +83,7 @@ export class TracingManager implements TracingManagerInterface {
                 tracer,
                 trace: this.trace,
                 span,
-            });
+            }, TelemetryModuleKeyname);
 
             tracer.spanStartedStream?.push(span);
         })
@@ -142,7 +142,7 @@ export class TracingManager implements TracingManagerInterface {
         if(this.isActive === false) {
             this.loghandler.warning("The tracing is deactivated.", {
                 isActive: this.isActive
-            });
+            }, TelemetryModuleKeyname);
 
             return span;
         }
@@ -153,7 +153,7 @@ export class TracingManager implements TracingManagerInterface {
             context,
             trace: this.trace,
             span,
-        })
+        }, TelemetryModuleKeyname)
 
         // Notify the Tracers that a new span was started.
         this.tracers.forEach( (tracer:TracerInterface) => {
@@ -164,7 +164,7 @@ export class TracingManager implements TracingManagerInterface {
                 trace: this.trace,
                 span,
                 tracer,
-            })
+            }, TelemetryModuleKeyname)
 
             tracer.spanStartedStream?.push(span);
         })
@@ -203,7 +203,7 @@ export class TracingManager implements TracingManagerInterface {
         if(this.isActive === false) {
             this.loghandler.warning("The tracing is deactivated.", {
                 isActive: this.isActive
-            });
+            }, TelemetryModuleKeyname);
 
             return;
         }
@@ -211,7 +211,7 @@ export class TracingManager implements TracingManagerInterface {
         this.loghandler.debug("End Span", {
             trace: this.trace,
             span,
-        })
+        }, TelemetryModuleKeyname)
 
         // Notify the TraceListeners that the span was ended.
         this.tracers.forEach( (tracer:TracerInterface) => {
@@ -219,7 +219,7 @@ export class TracingManager implements TracingManagerInterface {
                 trace: this.trace,
                 span,
                 tracer,
-            })
+            }, TelemetryModuleKeyname)
 
             tracer.spanEndedStream?.push(span);
         })
@@ -252,21 +252,21 @@ export class TracingManager implements TracingManagerInterface {
         if(this.isActive === false) {
             this.loghandler.warning("The tracing is deactivated.", {
                 isActive: this.isActive
-            });
+            }, TelemetryModuleKeyname);
 
             return;
         }
 
         this.loghandler.debug("End Trace", {
             trace: this.trace,
-        })
+        }, TelemetryModuleKeyname)
 
         // Notify the TraceListeners that the span was ended.
         this.tracers.forEach( (tracer:TracerInterface) => {
             this.loghandler.debug("Pushing the tracer into the traceEndedStream.", {
                 trace: this.trace,
                 tracer,
-            })
+            }, TelemetryModuleKeyname)
 
             tracer.traceEndedStream?.push(this.trace);
         })

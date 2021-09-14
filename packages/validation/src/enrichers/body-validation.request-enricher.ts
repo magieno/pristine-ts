@@ -27,7 +27,7 @@ export class BodyValidationRequestEnricher implements RouterRequestEnricherInter
             request,
             methodNode,
             routeContext: methodNode.route.context,
-        })
+        }, ValidationModuleKeyname)
 
         const errors = await validate(mappedBody);
 

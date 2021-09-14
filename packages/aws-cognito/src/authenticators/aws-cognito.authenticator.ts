@@ -57,7 +57,7 @@ export class AwsCognitoAuthenticator implements AuthenticatorInterface{
 
         this.logHandler.debug("Claim confirmed", {
             claim,
-        });
+        }, AwsCognitoModuleKeyname);
 
         return {
             id: claim["cognito:username"],

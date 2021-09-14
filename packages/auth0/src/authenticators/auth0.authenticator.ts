@@ -55,7 +55,7 @@ export class Auth0Authenticator implements AuthenticatorInterface{
 
         this.logHandler.debug("Claim confirmed", {
             claim,
-        });
+        }, Auth0ModuleKeyname);
 
         return {
             id: claim.sub,

@@ -5,6 +5,7 @@ import {EventParserInterface} from "../interfaces/event-parser.interface";
 import {Event} from "../models/event";
 import {EventTransformError} from "../errors/event-transform.error";
 import {LogHandlerInterface} from "@pristine-ts/logging";
+import {EventModuleKeyname} from "../event.module.keyname";
 
 /**
  * This class has all the event parsers injected. When there's an event, it will call all the Event parsers to check if
@@ -25,7 +26,7 @@ export class EventTransformer {
         this.loghandler.debug("Starting the isSupported method.", {
             event,
             eventParsers: this.eventParsers,
-        })
+        }, EventModuleKeyname)
 
         for (const eventParser of this.eventParsers) {
             if(eventParser.supports(event)) {
@@ -33,7 +34,7 @@ export class EventTransformer {
                     event,
                     eventParserName: eventParser.constructor.name,
                     eventParser: eventParser,
-                })
+                }, EventModuleKeyname)
 
                 return true
             }
@@ -42,7 +43,7 @@ export class EventTransformer {
                 event,
                 eventParserName: eventParser.constructor.name,
                 eventParser: eventParser,
-            })
+            }, EventModuleKeyname)
         }
 
         return false;
@@ -56,7 +57,7 @@ export class EventTransformer {
     transform(event: any): Event<any>[] {
         this.loghandler.debug("Starting the transform method.", {
             event,
-        })
+        }, EventModuleKeyname)
 
         // Loop over the event parsers and the first one that supports the event type parses the event.
         for (const eventParser of this.eventParsers) {
@@ -68,7 +69,7 @@ export class EventTransformer {
                     eventParserName: eventParser.constructor.name,
                     eventParser: eventParser,
                     parsedEvents,
-                });
+                }, EventModuleKeyname);
 
                 return parsedEvents;
             }
@@ -77,7 +78,7 @@ export class EventTransformer {
                 event,
                 eventParserName: eventParser.constructor.name,
                 eventParser: eventParser,
-            })
+            }, EventModuleKeyname)
         }
 
         throw new EventTransformError("We cannot transform the raw event since no EventParser supported it.", event, this.eventParsers);
