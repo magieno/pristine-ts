@@ -1,11 +1,12 @@
 import "reflect-metadata"
-import {injectable, injectAll} from "tsyringe";
+import {injectable, injectAll, singleton} from "tsyringe";
 import {SeverityEnum} from "../enums/severity.enum";
 import {LogModel} from "../models/log.model";
 import {LoggerInterface} from "../interfaces/logger.interface";
 import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {LogHandlerInterface} from "../interfaces/log-handler.interface";
 
+@singleton()
 @tag("LogHandlerInterface")
 @injectable()
 export class LogHandler implements LogHandlerInterface {
