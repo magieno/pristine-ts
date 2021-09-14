@@ -1,5 +1,0 @@
-{"date":"2021-09-14T02:06:39.534Z","message":"Log info","severity":1,"extra":{"extra":"extra 1"}};
-{"date":"2021-09-14T02:06:39.534Z","message":"Log debug","severity":0,"extra":{"extra":"extra 1"}};
-{"date":"2021-09-14T02:06:39.534Z","message":"Log warning","severity":2,"extra":{"extra":"extra 1"}};
-{"date":"2021-09-14T02:06:39.534Z","message":"Log error","severity":3,"extra":{"extra":"extra 1"}};
-{"date":"2021-09-14T02:06:39.534Z","message":"Log critical","severity":4,"extra":{"extra":"extra 1"}};
