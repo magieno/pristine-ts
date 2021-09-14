@@ -47,46 +47,22 @@ export class ConsoleLogger implements LoggerInterface {
     return this.consoleLoggerActivated;
   }
 
-  private getSeverityText(logSeverity: SeverityEnum) {
-    switch (logSeverity) {
+  public outputLog(log: LogModel): string {
+    switch (log.severity) {
       case SeverityEnum.Debug:
-        return "DEBUG";
+        return Utils.outputLog(log, this.consoleLoggerOutputMode, this.logDebugDepthConfiguration);
 
       case SeverityEnum.Info:
-        return "INFO";
+        return Utils.outputLog(log, this.consoleLoggerOutputMode, this.logInfoDepthConfiguration);
 
       case SeverityEnum.Warning:
-        return "WARNING";
+        return Utils.outputLog(log, this.consoleLoggerOutputMode, this.logWarningDepthConfiguration)
 
       case SeverityEnum.Error:
-        return "ERROR";
+        return Utils.outputLog(log, this.consoleLoggerOutputMode, this.logErrorDepthConfiguration)
 
       case SeverityEnum.Critical:
-        return "CRITICAL";
-    }
-  }
-
-  private outputLog(log: LogModel): string {
-    switch (this.consoleLoggerOutputMode) {
-      case OutputModeEnum.Json:
-        switch (log.severity) {
-          case SeverityEnum.Debug:
-            return JSON.stringify(Utils.truncate(log,  this.logDebugDepthConfiguration));
-
-          case SeverityEnum.Info:
-            return JSON.stringify(Utils.truncate(log,  this.logInfoDepthConfiguration));
-
-          case SeverityEnum.Warning:
-            return JSON.stringify(Utils.truncate(log,  this.logWarningDepthConfiguration));
-
-          case SeverityEnum.Error:
-            return JSON.stringify(Utils.truncate(log,  this.logErrorDepthConfiguration));
-
-          case SeverityEnum.Critical:
-            return JSON.stringify(Utils.truncate(log,  this.logCriticalDepthConfiguration));
-        }
-      case OutputModeEnum.Simple:
-        return format(log.date, "yyyy-MM-dd HH:mm:ss") + " - " + " [" + this.getSeverityText(log.severity) + "] - " + log.message + " - " + JSON.stringify(Utils.truncate(log.extra, 2));
+        return Utils.outputLog(log, this.consoleLoggerOutputMode, this.logCriticalDepthConfiguration)
     }
   }
 
