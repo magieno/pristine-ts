@@ -34,7 +34,6 @@ import {RequestInterceptionExecutionError} from "./errors/request-interception-e
 import {EventInterceptionExecutionError} from "./errors/event-interception-execution.error";
 import {EventInterceptorInterface} from "./interfaces/event-interceptor.interface";
 import {Span, SpanKeynameEnum, TracingManagerInterface} from "@pristine-ts/telemetry";
-import {SchedulingModuleKeyname} from "@pristine-ts/scheduling/dist/lib/esm/scheduling.module.keyname";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {CoreModuleKeyname} from "./core.module.keyname";
 
