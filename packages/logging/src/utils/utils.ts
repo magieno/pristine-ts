@@ -7,7 +7,7 @@ export class Utils {
 
     static flatTypes = [String, Number, Boolean, Date]
 
-    public static isDefined(val){
+    public static isDefined(val) {
         return val !== null && val !== undefined;
     }
 
@@ -15,7 +15,28 @@ export class Utils {
         return !this.isDefined(val) || ~this.flatTypes.indexOf(val.constructor)
     }
 
-    public static truncate(object: any, maxDepth: number, curDepth = 0){
+    public static getDeepKeys(obj): string[] {
+        let subkeys: string[];
+        let keys: string[] = [];
+        for (var key in obj) {
+            if (typeof obj[key] === "object" && !Array.isArray(obj[key])) {
+                subkeys = Utils.getDeepKeys(obj[key]);
+                keys = keys.concat(subkeys);
+            } else if (Array.isArray(obj[key])) {
+                for (var i = 0; i < obj[key].length; i++) {
+                    subkeys = Utils.getDeepKeys(obj[key][i]);
+                    keys = keys.concat(subkeys);
+                }
+            }
+
+            keys.push(key);
+        }
+
+        return keys;
+    }
+
+
+    public static truncate(object: any, maxDepth: number, curDepth = 0) {
         if (curDepth < maxDepth) {
             const newDepth = curDepth + 1;
 
@@ -66,13 +87,20 @@ export class Utils {
         }
     }
 
-    public static outputLog(log: LogModel, outputMode: OutputModeEnum,  logDepth: number): string {
-        const jsonSortOrders = ["severity", "message", "date", "extra"];
+    public static outputLog(log: LogModel, outputMode: OutputModeEnum, logDepth: number): string {
+        const jsonSortOrders = ["severity", "message", "date"];
 
         switch (outputMode) {
             case OutputModeEnum.Json:
                 const truncatedLog: any = Utils.truncate(log, logDepth);
                 truncatedLog.severity = Utils.getSeverityText(truncatedLog.severity);
+
+                const truncatedLogKeys = Utils.getDeepKeys(truncatedLog);
+                delete truncatedLogKeys["severity"];
+                delete truncatedLogKeys["message"];
+                delete truncatedLogKeys["date"];
+
+                jsonSortOrders.push(...truncatedLogKeys);
 
                 return JSON.stringify(truncatedLog, jsonSortOrders);
             case OutputModeEnum.Simple:
