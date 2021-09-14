@@ -47,62 +47,22 @@ export class ConsoleLogger implements LoggerInterface {
     return this.consoleLoggerActivated;
   }
 
-  private getSeverityText(logSeverity: SeverityEnum) {
-    switch (logSeverity) {
+  public outputLog(log: LogModel): string {
+    switch (log.severity) {
       case SeverityEnum.Debug:
-        return "DEBUG";
+        return Utils.outputLog(log, this.consoleLoggerOutputMode, this.logDebugDepthConfiguration);
 
       case SeverityEnum.Info:
-        return "INFO";
+        return Utils.outputLog(log, this.consoleLoggerOutputMode, this.logInfoDepthConfiguration);
 
       case SeverityEnum.Warning:
-        return "WARNING";
+        return Utils.outputLog(log, this.consoleLoggerOutputMode, this.logWarningDepthConfiguration)
 
       case SeverityEnum.Error:
-        return "ERROR";
+        return Utils.outputLog(log, this.consoleLoggerOutputMode, this.logErrorDepthConfiguration)
 
       case SeverityEnum.Critical:
-        return "CRITICAL";
-    }
-  }
-
-  private outputLog(log: LogModel): string {
-    const jsonSortOrders = ["severity", "message", "date", "extra"];
-
-    switch (this.consoleLoggerOutputMode) {
-      case OutputModeEnum.Json:
-        let truncatedLog: any;
-
-        switch (log.severity) {
-          case SeverityEnum.Debug:
-            truncatedLog = Utils.truncate(log,  this.logDebugDepthConfiguration);
-            truncatedLog.severity = "DEBUG";
-            break;
-
-          case SeverityEnum.Info:
-            truncatedLog = Utils.truncate(log,  this.logInfoDepthConfiguration);
-            truncatedLog.severity = "INFO";
-            break;
-
-          case SeverityEnum.Warning:
-            truncatedLog = Utils.truncate(log,  this.logWarningDepthConfiguration)
-            truncatedLog.severity = "WARNING";
-            break;
-
-          case SeverityEnum.Error:
-            truncatedLog = Utils.truncate(log,  this.logErrorDepthConfiguration)
-            truncatedLog.severity = "ERROR";
-            break;
-
-          case SeverityEnum.Critical:
-            truncatedLog = Utils.truncate(log,  this.logCriticalDepthConfiguration)
-            truncatedLog.severity = "CRITICAL";
-            break;
-        }
-
-        return JSON.stringify(truncatedLog, jsonSortOrders);
-      case OutputModeEnum.Simple:
-        return format(log.date, "yyyy-MM-dd HH:mm:ss") + " - " + " [" + this.getSeverityText(log.severity) + "] - " + log.message + " - " + JSON.stringify(Utils.truncate(log.extra, 2));
+        return Utils.outputLog(log, this.consoleLoggerOutputMode, this.logCriticalDepthConfiguration)
     }
   }
 

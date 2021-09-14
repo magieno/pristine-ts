@@ -1,3 +1,8 @@
+import {LogModel} from "../models/log.model";
+import {OutputModeEnum} from "../enums/output-mode.enum";
+import {SeverityEnum} from "../enums/severity.enum";
+import format from "date-fns/format";
+
 export class Utils {
 
     static flatTypes = [String, Number, Boolean, Date]
@@ -40,5 +45,38 @@ export class Utils {
         }
 
         return;
+    }
+
+    public static getSeverityText(logSeverity: SeverityEnum): string {
+        switch (logSeverity) {
+            case SeverityEnum.Debug:
+                return "DEBUG";
+
+            case SeverityEnum.Info:
+                return "INFO";
+
+            case SeverityEnum.Warning:
+                return "WARNING";
+
+            case SeverityEnum.Error:
+                return "ERROR";
+
+            case SeverityEnum.Critical:
+                return "CRITICAL";
+        }
+    }
+
+    public static outputLog(log: LogModel, outputMode: OutputModeEnum,  logDepth: number): string {
+        const jsonSortOrders = ["severity", "message", "date", "extra"];
+
+        switch (outputMode) {
+            case OutputModeEnum.Json:
+                const truncatedLog: any = Utils.truncate(log, logDepth);
+                truncatedLog.severity = Utils.getSeverityText(truncatedLog.severity);
+
+                return JSON.stringify(truncatedLog, jsonSortOrders);
+            case OutputModeEnum.Simple:
+                return format(log.date, "yyyy-MM-dd HH:mm:ss") + " - " + " [" + this.getSeverityText(log.severity) + "] - " + log.message + " - " + JSON.stringify(Utils.truncate(log.extra, 2));
+        }
     }
 }
