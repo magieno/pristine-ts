@@ -17,16 +17,16 @@ export class SchedulerManager implements SchedulerInterface {
      * This method runs all the tasks that were registered.
      */
     async runTasks(): Promise<void> {
+        this.logHandler.debug("Starting the execution of the tasks.", {scheduledTasks: this.scheduledTasks}, SchedulingModuleKeyname);
+
         return new Promise(resolve => {
             const promises: Promise<void>[] = [];
 
-            this.logHandler.debug("Starting the execution of the tasks.", {scheduledTasks: this.scheduledTasks}, SchedulingModuleKeyname)
-
             this.scheduledTasks.forEach(scheduledTask => {
                 promises.push(scheduledTask.run());
-            })
+            });
 
-            this.logHandler.debug("Completed the execution of the tasks.", {scheduledTasks: this.scheduledTasks}, SchedulingModuleKeyname)
+            this.logHandler.debug("Completed the execution of the tasks.", {scheduledTasks: this.scheduledTasks}, SchedulingModuleKeyname);
 
             Promise.allSettled(promises).then(results => {
                 results.forEach(result => {
@@ -36,7 +36,7 @@ export class SchedulerManager implements SchedulerInterface {
                     else {
                         this.logHandler.error("Scheduled Task Error", {result}, SchedulingModuleKeyname)
                     }
-                })
+                });
 
                 return resolve();
             });
