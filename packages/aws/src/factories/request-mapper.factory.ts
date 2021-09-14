@@ -11,6 +11,11 @@ export class RequestMapperFactory {
                 private readonly restApiRequestMapper: RestApiRequestMapper) {
     }
 
+    /**
+     * Gets the proper request mapper based on the version of the request.
+     * AWS Api gateway has two types of requests Rest Api request (version 1) and Http request (version 2.0).
+     * @param request The api gateway request.
+     */
     getRequestMapper(request: ApiGatewayRequest): RequestMapperInterface {
         if(request.version === "2.0"){
             return this.httpRequestMapper;

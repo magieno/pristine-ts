@@ -3,6 +3,10 @@ import {HttpMethod} from "@pristine-ts/common";
 
 @injectable()
 export class MethodMapper {
+    /**
+     * Maps the http method of a request to the Enum HttpMethod.
+     * @param method The string of the http method.
+     */
     map(method: string): HttpMethod | string {
         method = method.toLowerCase();
 

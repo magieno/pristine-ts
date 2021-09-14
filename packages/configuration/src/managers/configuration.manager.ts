@@ -80,6 +80,9 @@ export class ConfigurationManager {
                         this.registerConfigurationValue(key, resolvedConfigurationValue, container);
 
                         isConfigurationResolvedByDefaultResolver = true;
+
+                        // As soon as we find a default resolver that works we stop.
+                        break;
                     } catch (e) {
                         // Simply ignore and continue
                     }

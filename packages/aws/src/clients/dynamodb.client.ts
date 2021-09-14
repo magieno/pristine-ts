@@ -17,7 +17,6 @@ import {DynamodbClientInterface} from "../interfaces/dynamodb-client.interface";
 export class DynamodbClient implements DynamodbClientInterface{
 
     private client: any;
-    private documentClient: any;
     private mapperClient: any;
 
     constructor(
@@ -26,18 +25,34 @@ export class DynamodbClient implements DynamodbClientInterface{
     ) {
     }
 
+    /**
+     * Returns the DynamoDB client from the @aws-sdk/client-dynamodb library
+     */
     public async getClient(): Promise<DynamoDB> {
         return this.client = this.client ?? new DynamoDB({region: this.region});
     }
 
+    /**
+     * Returns the mapper client from the @awslabs-community-fork/dynamodb-data-mapper library
+     */
     public async getMapperClient(): Promise<DataMapper> {
         return this.mapperClient = this.mapperClient ?? new DataMapper({client: await this.getClient()});
     }
 
-    private getTableName(classTypeProtoype: any): string {
-        return classTypeProtoype[DynamoDbTable]
+    /**
+     * Gets the table name from a class prototype.
+     * @param classTypePrototype The class prototype containing a table name in the DynamoDbTable symbol
+     * @private
+     */
+    private getTableName(classTypePrototype: any): string {
+        return classTypePrototype[DynamoDbTable]
     }
 
+    /**
+     * Gets an object from Dynamodb.
+     * @param classType The class type of the object to be retrieved.
+     * @param primaryKeyAndValue An object containing the primary key and the value of the object to get. (ie: {id: value})
+     */
     public async get<T extends StringToAnyObjectMap>(classType: ZeroArgumentsConstructor<T>, primaryKeyAndValue: {[key: string]: string}): Promise<T> {
         try {
             let item = this.createItemOfClassWithPrimaryKey(classType, primaryKeyAndValue);
@@ -55,6 +70,10 @@ export class DynamodbClient implements DynamodbClientInterface{
         }
     }
 
+    /**
+     * Lists all the objects of a type (table).
+     * @param classType The class type to list all the objects for.
+     */
     public async list<T extends StringToAnyObjectMap>(classType: ZeroArgumentsConstructor<T>): Promise<T[]> {
         try {
             const iterator = (await this.getMapperClient()).scan(classType);
@@ -73,6 +92,10 @@ export class DynamodbClient implements DynamodbClientInterface{
         }
     }
 
+    /**
+     * Creates an entry in DynamoDb if this id does not already exist.
+     * @param item The item to create.
+     */
     public async create<T extends StringToAnyObjectMap>(item: T): Promise<T> {
         try {
             const fetchedItem = await (await this.getMapperClient()).get(item);
@@ -97,6 +120,10 @@ export class DynamodbClient implements DynamodbClientInterface{
         }
     }
 
+    /**
+     * Updates an item based on the hashkey.
+     * @param item The item to update.
+     */
     public async update<T extends StringToAnyObjectMap>(item: T): Promise<T> {
         try {
             item = await (await this.getMapperClient()).update(item);
@@ -112,7 +139,8 @@ export class DynamodbClient implements DynamodbClientInterface{
     }
 
     /**
-     * Put (create or replace) item.
+     * Puts (create or replace) item.
+     * @param item The item.
      */
     public async put<T extends StringToAnyObjectMap>(item: T): Promise<T> {
         try {
@@ -127,6 +155,11 @@ export class DynamodbClient implements DynamodbClientInterface{
         }
     }
 
+    /**
+     * Deletes an item.
+     * @param classType The class type of the item to delete.
+     * @param primaryKeyAndValue An object containing the primary key and the value of this key of the object to delete. (ie: {id: value})
+     */
     public async delete<T extends StringToAnyObjectMap>(classType: ZeroArgumentsConstructor<T>, primaryKeyAndValue: {[key: string]: string}): Promise<void> {
         try {
             const item = this.createItemOfClassWithPrimaryKey(classType, primaryKeyAndValue);
@@ -141,6 +174,14 @@ export class DynamodbClient implements DynamodbClientInterface{
         }
     }
 
+    /**
+     * Lists the item by secondary index.
+     * @param classType The type of the class of the items to list.
+     * @param keyCondition The key condition for the secondary index. (ie: {secondaryId: value}).
+     * @param secondaryIndexName The name of the secondary index in DynamoDb.
+     * @param filterKeysAndValues A map containing the filters keys and values to apply when listing by secondary index. Every key in the map represents an AND and the values represent ORs.  (ie: {filterKey1: filterValue, filterKey2: [value1, value1]} means you need filterKey1 to equal filterValue AND filterKey2 to equal value1 OR value2)
+     * @param expiresAtFilter A filter to get only the ones that the expiration is later then the value. Can either be a Date or a number representing the timestamp in seconds. (ie: {expiresAt: new Date()}).
+     */
     public async findBySecondaryIndex<T extends StringToAnyObjectMap>(classType: ZeroArgumentsConstructor<T>, keyCondition: { [propertyName: string]: string | boolean | number }, secondaryIndexName: string, filterKeysAndValues?: { [key: string]: string | number | boolean | string[] | number[]}, expiresAtFilter?: { [key: string]: number | Date }): Promise<T[]> {
         try {
             const filterExpression = this.createFilterExpression(filterKeysAndValues, expiresAtFilter);
@@ -164,6 +205,11 @@ export class DynamodbClient implements DynamodbClientInterface{
         }
     }
 
+    /**
+     * Creates the filter conditions for DynamoDb.
+     * @param filterKeysAndValues A map containing the filters keys and values to apply when listing by secondary index. Every key in the map represents an AND and the values represent ORs.  (ie: {filterKey1: filterValue, filterKey2: [value1, value1]} means you need filterKey1 to equal filterValue AND filterKey2 to equal value1 OR value2)
+     * @private
+     */
     private createFilterConditions(filterKeysAndValues: { [key: string]: string | number | boolean | string[] | number[]}): ConditionExpression[]{
         const conditions: ConditionExpression[] =  [];
 
@@ -196,6 +242,12 @@ export class DynamodbClient implements DynamodbClientInterface{
         return conditions;
     }
 
+    /**
+     * Creates the final expression containing all the conditions for DyanmoDb.
+     * @param filterKeysAndValues A map containing the filters keys and values to apply when listing by secondary index. Every key in the map represents an AND and the values represent ORs.  (ie: {filterKey1: filterValue, filterKey2: [value1, value1]} means you need filterKey1 to equal filterValue AND filterKey2 to equal value1 OR value2)
+     * @param expiresAtFilter A filter to get only the ones that the expiration is later then the value. Can either be a Date or a number representing the timestamp in seconds. (ie: {expiresAt: new Date()}).
+     * @private
+     */
     private createFilterExpression(filterKeysAndValues?: { [key: string]: string | number | boolean | string[] | number[]}, expiresAtFilter?: { [key: string]: number | Date }): ConditionExpression | undefined {
 
         const conditions: ConditionExpression[] = []
@@ -222,6 +274,11 @@ export class DynamodbClient implements DynamodbClientInterface{
         return filterExpression;
     }
 
+    /**
+     * Creates the dynamodb expression for the expires at filter
+     * @param expiresAtFilter A filter to get only the ones that the expiration is later then the value. Can either be a Date or a number representing the timestamp in seconds. (ie: {expiresAt: new Date()}).
+     * @private
+     */
     private createExpiresAtFilter(expiresAtFilter: { [key: string]: number | Date }): ConditionExpression {
         let value = expiresAtFilter[Object.keys(expiresAtFilter)[0]];
         value = value instanceof Date ? Math.floor(value.getTime() / 1000) : value;
@@ -233,6 +290,13 @@ export class DynamodbClient implements DynamodbClientInterface{
         return greaterThanExpression;
     }
 
+    /**
+     * Converts an error from Dynamodb into a Pristine error type.
+     * @param error The error to be converted.
+     * @param tableName The table name on which the error happened
+     * @param primaryKey The primary key of the item for which the error happened.
+     * @private
+     */
     private convertError(error: Error, tableName?: string, primaryKey?: string): Error {
         this.logHandler.debug("Converting error to dynamodb error.", {error, tableName, primaryKey});
         if(error instanceof DynamodbError){
@@ -253,6 +317,12 @@ export class DynamodbClient implements DynamodbClientInterface{
         return new DynamodbError("Unknown dynamodb error", error, tableName, primaryKey);
     }
 
+    /**
+     * Creates an item based on the class type and the primary key and value.
+     * @param classType The class type of the item.
+     * @param primaryKeyAndValue An object representing the primary key and its value (ie: {id: value})
+     * @private
+     */
     private createItemOfClassWithPrimaryKey<T extends StringToAnyObjectMap>(classType: ZeroArgumentsConstructor<T>, primaryKeyAndValue: {[key: string]: string}): T {
         const item: T = new classType();
         const primaryKeyName: string = Object.keys(primaryKeyAndValue)[0];

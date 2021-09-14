@@ -1,4 +1,6 @@
-
+/**
+ * Model representing the attributes of the sqs event.
+ */
 export class SqsAttributesModel {
     approximateReceiveCount?: number;
     sentTime: Date;

@@ -3,6 +3,9 @@ import {RequestParametersModel} from "../models/request-parameters.model";
 import {ResponseElementsModel} from "../models/response-elements.model";
 import {S3Model} from "../models/s3.model";
 
+/**
+ * The Pristine event payload type of a parsed S3 event
+ */
 export class S3EventPayload {
     eventVersion: string;
     eventSource: string;

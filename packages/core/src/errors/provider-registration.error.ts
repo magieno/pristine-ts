@@ -1,9 +1,9 @@
-/**
- * This Error is thrown when there's an error that happens while the kernel or anything is being initialized.
- */
-import {LoggableError, RequestInterface} from "@pristine-ts/common";
+import {LoggableError} from "@pristine-ts/common";
 import {Kernel} from "../kernel";
 
+/**
+ * This Error is thrown when there's an error that happens while trying to register a Provider registration.
+ */
 export class ProviderRegistrationError extends LoggableError {
 
     public constructor(message: string, providerRegistration, kernel: Kernel) {

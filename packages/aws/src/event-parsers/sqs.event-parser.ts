@@ -9,6 +9,10 @@ import {SqsEventType} from "../enums/sqs-event-type.enum";
 @injectable()
 export class SqsEventParser implements EventParserInterface<SqsEventPayload>{
 
+    /**
+     * Parses the SQS event into a Pristine event.
+     * @param rawEvent The raw SQS event
+     */
     parse(rawEvent: any): Event<SqsEventPayload>[] {
         const parsedEvents: Event<SqsEventPayload>[] = [];
         for(const record of rawEvent.Records) {
@@ -46,6 +50,10 @@ export class SqsEventParser implements EventParserInterface<SqsEventPayload>{
         return parsedEvents;
     }
 
+    /**
+     * Determines if the parser supports the event.
+     * @param event The event to verify if the parser supports.
+     */
     supports(event: any): boolean {
         return event.hasOwnProperty("Records") &&
             Array.isArray(event.Records) &&

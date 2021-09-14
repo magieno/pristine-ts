@@ -4,6 +4,12 @@ import {Response} from "@pristine-ts/networking";
 
 @injectable()
 export class ResponseMapper {
+
+    /**
+     * Maps a Pristine response to an express http response.
+     * @param response
+     * @param expressResponse
+     */
     reverseMap(response: Response, expressResponse: ExpressResponse): ExpressResponse {
         expressResponse.status(response.status);
 

@@ -1,5 +1,8 @@
 import {RestApiRequestContextModel} from "./rest-api-request-context.model";
 
+/**
+ * Model representing the rest api request (version 1.0) from the Api gateway event.
+ */
 export class RestApiRequestModel {
     version: string;
     resource: string;

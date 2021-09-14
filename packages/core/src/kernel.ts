@@ -1,30 +1,29 @@
 import "reflect-metadata";
-import {container, DependencyContainer, isClassProvider, ValueProvider, instanceCachingFactory} from "tsyringe";
+import {container, DependencyContainer} from "tsyringe";
 import {
-    Response,
-    Request,
-    Router,
     controllerRegistry,
-    RouteMethodDecorator,
-    RouterInterface,
-    Route,
     HttpError,
+    Request,
+    Response,
+    Route,
+    RouteMethodDecorator,
+    Router,
+    RouterInterface,
 } from "@pristine-ts/networking";
-import {RequestInterface} from "@pristine-ts/common";
+import {
+    ModuleInterface,
+    moduleScopedServicesRegistry,
+    ProviderRegistration,
+    RequestInterface,
+    ServiceDefinitionTagEnum,
+    taggedProviderRegistrationsRegistry,
+    TaggedRegistrationInterface
+} from "@pristine-ts/common";
 import {ConfigurationManager, ModuleConfigurationValue} from "@pristine-ts/configuration";
-import {Event} from "@pristine-ts/event";
-import {RuntimeError} from "./errors/runtime.error";
+import {Event, EventDispatcher, EventTransformer} from "@pristine-ts/event";
 import {RequestInterceptorInterface} from "./interfaces/request-interceptor.interface";
 import {ResponseInterceptorInterface} from "./interfaces/response-interceptor.interface";
 import {ErrorResponseInterceptorInterface} from "./interfaces/error-response-interceptor.interface";
-import {
-    ServiceDefinitionTagEnum,
-    ModuleInterface,
-    ProviderRegistration,
-    taggedProviderRegistrationsRegistry, moduleScopedServicesRegistry, TaggedRegistrationInterface
-} from "@pristine-ts/common";
-import {EventTransformer, EventDispatcher} from "@pristine-ts/event";
-import util from "util";
 import {mergeWith} from "lodash"
 import {RequestHandlingError} from "./errors/request-handling.error";
 import {ProviderRegistrationError} from "./errors/provider-registration.error";
@@ -45,8 +44,16 @@ export class Kernel {
      */
     public container: DependencyContainer = container.createChildContainer();
 
+    /**
+     * Contains a map of all the modules that were instantiated indexed by the modules names.
+     * @private
+     */
     private instantiatedModules: { [id: string]: ModuleInterface } = {};
 
+    /**
+     * Contains a map of all the modules that the afterInit was run for, indexed by the modules names .
+     * @private
+     */
     private afterInstantiatedModules: { [id: string]: ModuleInterface } = {};
 
     /**
@@ -55,27 +62,39 @@ export class Kernel {
      */
     private router?: RouterInterface;
 
+    /**
+     * Contains the span for the initialization.
+     * @private
+     */
     private initializationSpan: Span = new Span(SpanKeynameEnum.KernelInitialization);
 
     public constructor() {
     }
 
+    /**
+     * This function is the entry point of the library. It initializes the module for your application (AppModule) as well as its the dependencies,
+     * it registers the services, registers the configurations and runs the afterInit for each module.
+     * @param module
+     * @param moduleConfigurationValues
+     */
     public async init(module: ModuleInterface, moduleConfigurationValues?: { [key: string]: ModuleConfigurationValue }) {
+        // Inits the application module and its dependencies.
         await this.initModule(module);
 
         // Register all the service tags in the container.
         await this.registerServiceTags();
 
-        // Register the configuration
+        // Register the configuration.
         await this.initConfiguration(moduleConfigurationValues);
 
+        // Run the after init of the module and its dependencies
         await this.afterInitModule(module);
 
         this.initializationSpan.endDate = Date.now();
     }
 
     /**
-     * Register the provider registration in the container.
+     * Registers the provider registration in the container.
      * @param providerRegistration
      * @private
      */
@@ -96,7 +115,7 @@ export class Kernel {
             // @ts-ignore
             this.container.register.apply(this.container, args);
         } catch (e) {
-            throw new ProviderRegistrationError("There was an registering the providerRegistration: ", providerRegistration, this);
+            throw new ProviderRegistrationError("There was an error registering the providerRegistration: ", providerRegistration, this);
         }
     }
 
@@ -131,13 +150,20 @@ export class Kernel {
             })
         }
 
+        // Run the onInit function for the module.
         if (module.onInit) {
             await module.onInit(this.container);
         }
 
+        // Add the module to the instantiatedModules map.
         this.instantiatedModules[module.keyname] = module;
     }
 
+    /**
+     * Registers all the configuration definitions that all the modules have defined.
+     * @param moduleConfigurationValues
+     * @private
+     */
     private async initConfiguration(moduleConfigurationValues?: { [key: string]: ModuleConfigurationValue }) {
         const configurationManager: ConfigurationManager = this.container.resolve(ConfigurationManager);
 
@@ -251,6 +277,7 @@ export class Kernel {
 
         return interceptedEvent;
     }
+
     /**
      * This method executes all the EventInterceptors and returns the event updated by the interceptors.
      *
@@ -387,7 +414,8 @@ export class Kernel {
     }
 
     /**
-     *  This method takes the raw Event, transforms it into an Event object and then dispatches it to the Event Listeners
+     *  This method takes the raw Event, transforms it into an array of Event object and then dispatches it to the Event Listeners.
+     *  It completes when all the Event Listeners have settle, and does not return a response.
      *
      * @param rawEvent
      */
@@ -404,9 +432,10 @@ export class Kernel {
 
         const eventTransformer: EventTransformer = this.container.resolve(EventTransformer);
 
-        // Transform the raw event into an object
+        // Transform the raw event into an array of Event object
         let events: Event<any>[] = eventTransformer.transform(interceptedRawEvent);
 
+        // Handle all of the parsed events
         const promises: Promise<void>[] = [];
         for(let event of events) {
             promises.push(this.handleParsedEvent(event));
@@ -418,7 +447,7 @@ export class Kernel {
     }
 
     /**
-     *  This method takes the parsed Event, transforms it into an Event object and then dispatches it to the Event Listeners
+     *  This method takes a parsed Event, executes the interceptors and dispatches it to the Event Listeners
      *
      * @param rawEvent
      */
@@ -428,6 +457,7 @@ export class Kernel {
 
         const eventDispatcher: EventDispatcher = childContainer.resolve(EventDispatcher);
 
+        // Execute the interceptors
         parsedEvent = await this.executeEventInterceptors(parsedEvent, childContainer);
 
         // Dispatch the Event to the EventListeners
@@ -455,6 +485,7 @@ export class Kernel {
             // Start by creating a child container and we will use this container to instantiate the dependencies for this request
             const childContainer = this.container.createChildContainer();
 
+            // Start the tracing
             const tracingManager: TracingManagerInterface = childContainer.resolve("TracingManagerInterface");
             tracingManager.startTracing();
             tracingManager.addSpan(this.initializationSpan);
@@ -463,13 +494,16 @@ export class Kernel {
             const requestSpan = tracingManager.startSpan(SpanKeynameEnum.RequestExecution);
 
             try {
+                // Execute all the request interceptors
                 const interceptedRequest = await this.executeRequestInterceptors(request, childContainer);
 
+                // Execute the actual request.
                 const response = await this.router.execute(interceptedRequest, childContainer);
 
                 // Execute all the response interceptors
                 const interceptedResponse = await this.executeResponseInterceptors(response, request, childContainer);
 
+                // End the tracing
                 requestSpan.end();
                 tracingManager.endTrace();
 
@@ -481,6 +515,7 @@ export class Kernel {
                 // Execute all the response interceptors
                 const interceptedResponse = await this.executeResponseInterceptors(errorResponse, request, childContainer);
 
+                // End the tracing
                 requestSpan.end();
                 tracingManager.endTrace();
 
@@ -513,6 +548,7 @@ export class Kernel {
 
             let basePath: string = controller.__metadata__?.controller?.basePath;
 
+            // Clean the base path by removing trailing slashes.
             if (basePath.endsWith("/")) {
                 basePath = basePath.slice(0, basePath.length - 1);
             }
@@ -567,6 +603,7 @@ export class Kernel {
         taggedProviderRegistrationsRegistry.forEach((taggedRegistrationType: TaggedRegistrationInterface) => {
             // Verify that if the constructor is moduleScoped, we only load it if its corresponding module is initialized.
             // If the module is not initialized, we do not load the tagged service.
+            // This is to prevent that classes that are only imported get registered event if the module is not initialized.
             const moduleScopedRegistration = moduleScopedServicesRegistry[taggedRegistrationType.constructor];
             if (moduleScopedRegistration && this.instantiatedModules.hasOwnProperty(moduleScopedRegistration.moduleKeyname) === false) {
                 return;

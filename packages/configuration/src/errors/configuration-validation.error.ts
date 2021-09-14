@@ -1,5 +1,8 @@
 import {LoggableError} from "@pristine-ts/common";
 
+/**
+ * This Error represents a configuration error when a validation fails.
+ */
 export class ConfigurationValidationError extends LoggableError {
     public constructor(messages: string[]) {
         super(messages.join("\n"));

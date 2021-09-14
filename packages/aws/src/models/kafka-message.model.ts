@@ -1,4 +1,6 @@
-
+/**
+ * Model representing the Kafka message of the Kafka event.
+ */
 export class KafkaMessageModel {
     partition: number;
     offset: number;

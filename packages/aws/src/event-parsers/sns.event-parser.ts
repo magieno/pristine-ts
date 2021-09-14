@@ -10,6 +10,11 @@ import {SnsMessageAttributeModel} from "../models/sns-message-attribute.model";
 @injectable()
 export class SnsEventParser implements EventParserInterface<SnsEventPayload>{
 
+    /**
+     * Finds the enum value corresponding to the event name.
+     * @param eventName The event name of the SNS event.
+     * @private
+     */
     private findEnum(eventName: string): SnsEventType{
         const keys = Object.keys(SnsEventType).filter(key => isNaN(Number(key)));
         for(const key of keys){
@@ -20,6 +25,10 @@ export class SnsEventParser implements EventParserInterface<SnsEventPayload>{
         return SnsEventType.UnknownSnsEvent;
     }
 
+    /**
+     * Parses the SNS event into a Pristine event.
+     * @param rawEvent The raw SNS event
+     */
     parse(rawEvent: any): Event<SnsEventPayload>[] {
         const parsedEvents: Event<SnsEventPayload>[] = [];
         for(const record of rawEvent.Records) {
@@ -60,6 +69,10 @@ export class SnsEventParser implements EventParserInterface<SnsEventPayload>{
         return parsedEvents;
     }
 
+    /**
+     * Determines if the parser supports the event.
+     * @param event The event to verify if the parser supports.
+     */
     supports(event: any): boolean {
         return event.hasOwnProperty("Records") &&
             Array.isArray(event.Records) &&

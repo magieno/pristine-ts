@@ -1,3 +1,6 @@
+/**
+ * Model representing the Api gateway response.
+ */
 export class ApiGatewayResponseModel {
     statusCode: number;
     headers?: {[key: string]: string};

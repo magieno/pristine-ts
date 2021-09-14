@@ -17,6 +17,10 @@ export class EventTransformer {
                        @inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface) {
     }
 
+    /**
+     * Verifies if the raw event is supported by at least one parser.
+     * @param event
+     */
     isSupported(event: any): boolean {
         this.loghandler.debug("Starting the isSupported method.", {
             event,
@@ -45,15 +49,16 @@ export class EventTransformer {
     }
 
     /**
-     * This method takes the raw event, loops over all the EventParsers, and converts it into an Event object.
+     * This method takes the raw event, loops over all the EventParsers, and converts it into an array of Event object.
+     * The first parser to support it parses it.
      * @param event
      */
     transform(event: any): Event<any>[] {
-        this.loghandler.debug("Starting the isSupported method.", {
+        this.loghandler.debug("Starting the transform method.", {
             event,
         })
 
-        // Loop over the event parsers and if one supports the
+        // Loop over the event parsers and the first one that supports the event type parses the event.
         for (const eventParser of this.eventParsers) {
             if(eventParser.supports(event)) {
                 const parsedEvents = eventParser.parse(event);

@@ -14,6 +14,11 @@ export class StripeWebhooksManager {
         @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
     ) {}
 
+    /**
+     * Verifies the signature and dispatches an event based on the webhook request received from Stripe.
+     * @param request
+     * @param stripeSigningEndpointSecret
+     */
     async emitSubscriptionEvent(request: RequestInterface, stripeSigningEndpointSecret: string): Promise<void> {
         const event = await this.stripeClient.verifySignature(request, stripeSigningEndpointSecret);
 

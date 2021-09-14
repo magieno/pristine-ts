@@ -3,8 +3,17 @@ import {SSM, GetParameterRequest} from "@aws-sdk/client-ssm";
 import {SSMResolverError} from "../errors/ssm-resolver.error";
 
 export class SSMResolver implements ResolverInterface<string> {
+    /**
+     * The resolver to resolve a parameter from AWS SSM
+     * @param ssmParameterName The name of the SSM parameter, or the resolver to get that name.
+     * @param region The AWS region in which the SSM parameter needs to be resolved from.
+     * @param isSecure If the parameter is secure or not.
+     */
     public constructor(private readonly ssmParameterName: string | ResolverInterface<string> , private readonly region: string | ResolverInterface<string> , private readonly isSecure: boolean = false) { }
 
+    /**
+     * Resolves a parameter from AWS SSM.
+     */
     async resolve(): Promise<string> {
         const ssmParameterName = await this.resolveArgument(this.ssmParameterName);
         const region = await this.resolveArgument(this.region);
@@ -25,6 +34,11 @@ export class SSMResolver implements ResolverInterface<string> {
         }
     }
 
+    /**
+     * Resolve the string value of an argument.
+     * @param value The value to be resolved (either already a string or another resolver).
+     * @private
+     */
     private async resolveArgument(value: string | ResolverInterface<string> ): Promise<string> {
         if(typeof value === "string") {
             return value;

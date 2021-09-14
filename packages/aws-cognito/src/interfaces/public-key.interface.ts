@@ -1,3 +1,6 @@
+/**
+ * The public key interface.
+ */
 export interface PublicKeyInterface {
     alg: string;
     e: string;

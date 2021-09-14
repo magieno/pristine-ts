@@ -10,6 +10,10 @@ export class RequestMapper {
     constructor(private readonly requestMapperFactory: RequestMapperFactory, @inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface) {
     }
 
+    /**
+     * Maps a request from Api gateway to a Pristine request.
+     * @param request The Api gateway request.
+     */
     map(request: ApiGatewayRequest): RequestInterface {
         this.loghandler.debug("Mapping the request mapper.", {
             request,

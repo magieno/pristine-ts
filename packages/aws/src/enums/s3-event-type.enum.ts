@@ -1,3 +1,6 @@
+/**
+ * Event types coming from S3 events
+ */
 export enum S3EventType {
     UnknownS3Event = "UnknownS3Event",
     ObjectCreatedPut = "ObjectCreated:Put",

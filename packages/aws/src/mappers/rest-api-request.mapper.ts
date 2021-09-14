@@ -11,6 +11,10 @@ export class RestApiRequestMapper implements RequestMapperInterface {
                 private readonly bodyMapper: BodyMapper) {
     }
 
+    /**
+     * Maps a rest api request (Api gateway version 1.0) to a Pristine request.
+     * @param request The resst api request from Api gateway.
+     */
     map(request: RestApiRequestModel): RequestInterface {
         return {
             url: request.path,

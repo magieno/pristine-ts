@@ -18,12 +18,20 @@ export class StripeClient implements StripeClientInterface{
     ) {
     }
 
+    /**
+     * Returns the Stripe client of the Stripe library with the api version '2020-08-27'
+     */
     getStripeClient(): Stripe {
-        return this.client ?? new Stripe(this.stripeApiKey, {
+        return this.client = this.client ?? new Stripe(this.stripeApiKey, {
             apiVersion: '2020-08-27',
         });
     }
 
+    /**
+     * Verifies the signature of a webhook call made to an endpoint.
+     * @param request The whole request received to the endpoint.
+     * @param stripeSigningEndpointSecret The endpoint secret that stripe uses to sign the request.
+     */
     async verifySignature(request: RequestInterface, stripeSigningEndpointSecret: string): Promise<Stripe.Event> {
         if(!request.headers || !request.headers['stripe-signature']) {
             throw new StripeAuthenticationError(400, 'Missing headers for stripe signature');

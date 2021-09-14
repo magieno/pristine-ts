@@ -5,7 +5,6 @@ import {DynamodbEventType} from "../enums/dynamodb-event-type.enum";
 import {DynamodbEventPayload} from "../event-payloads/dynamodb.event-payload";
 import {DynamodbModel} from "../models/dynamodb.model";
 import {DynamodbKeysModel} from "../models/dynamodb-keys.model";
-import {LogHandlerInterface} from "@pristine-ts/logging";
 
 @tag(ServiceDefinitionTagEnum.EventParser)
 @injectable()
@@ -14,6 +13,11 @@ export class DynamodbEventParser implements EventParserInterface<DynamodbEventPa
     public constructor() {
     }
 
+    /**
+     * Finds the enum value corresponding to the event name.
+     * @param eventName The event name of the DynamoDb event.
+     * @private
+     */
     private findEnum(eventName: string): DynamodbEventType{
         const keys = Object.keys(DynamodbEventType).filter(key => isNaN(Number(key)));
         for(const key of keys){
@@ -24,6 +28,11 @@ export class DynamodbEventParser implements EventParserInterface<DynamodbEventPa
         return DynamodbEventType.UnknownDynamoDbEvent;
     }
 
+    /**
+     * Parses the keys from the DynamoDb event
+     * @param object The keys to be parsed
+     * @private
+     */
     private parseKeys(object: any): DynamodbKeysModel[]{
         const parsedKeys: DynamodbKeysModel[] = []
         for (const key in object) {
@@ -39,6 +48,10 @@ export class DynamodbEventParser implements EventParserInterface<DynamodbEventPa
         return parsedKeys;
     }
 
+    /**
+     * Parses the DynamoDb event into a Pristine event.
+     * @param rawEvent The raw DynamoDb event
+     */
     parse(rawEvent: any): Event<DynamodbEventPayload>[] {
         const parsedEvents: Event<DynamodbEventPayload>[] = [];
         for(const record of rawEvent.Records) {
@@ -76,6 +89,10 @@ export class DynamodbEventParser implements EventParserInterface<DynamodbEventPa
         return parsedEvents;
     }
 
+    /**
+     * Determines if the parser supports the event.
+     * @param event The event to verify if the parser supports.
+     */
     supports(event: any): boolean {
         return event.hasOwnProperty("Records") &&
             Array.isArray(event.Records) &&

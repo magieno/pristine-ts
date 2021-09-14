@@ -5,7 +5,6 @@ import {EventModuleKeyname} from "./event.module.keyname";
 import {LoggingModule} from "@pristine-ts/logging";
 
 export * from "./dispatchers/dispatchers";
-export * from "./enums/enums";
 export * from "./errors/errors";
 export * from "./interfaces/interfaces";
 export * from "./models/models";

@@ -13,6 +13,10 @@ export class RequestMapper {
                 private readonly bodyMapper: BodyMapper) {
     }
 
+    /**
+     * Maps an http request from express to a Pristine request.
+     * @param request The http request from express.
+     */
     map(request: Request): RequestInterface {
         return {
             url: request.url,

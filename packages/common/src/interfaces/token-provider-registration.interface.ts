@@ -5,7 +5,13 @@ import {InjectionToken, RegistrationOptions, TokenProvider} from "tsyringe";
  * It's a simple wrapper that provides all the information necessary to register a service in the container.
  */
 export interface TokenProviderRegistrationInterface<T> extends TokenProvider<T>{
+    /**
+     * The token to use when registering the service
+     */
     token: InjectionToken<T>;
 
+    /**
+     * The registration options.
+     */
     options?: RegistrationOptions;
 }

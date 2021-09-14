@@ -1,8 +1,8 @@
+import {LoggableError} from "@pristine-ts/common";
+
 /**
  * This error is a generic error thrown when the kernel is running and you need a generic error.
  */
-import {LoggableError} from "@pristine-ts/common";
-
 export class RuntimeError extends LoggableError {
     public constructor(readonly message: string) {
         super(message);

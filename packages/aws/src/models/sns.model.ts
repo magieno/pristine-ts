@@ -1,5 +1,8 @@
 import {SnsMessageAttributeModel} from "./sns-message-attribute.model";
 
+/**
+ * Model representing the object of the sns event.
+ */
 export class SnsModel {
     signatureVersion: string;
     eventTime: Date;

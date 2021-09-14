@@ -1,3 +1,6 @@
+/**
+ * The interface of the claims in AWS Cognito.
+ */
 export interface ClaimInterface {
     token_use: string;
     auth_time: number;
