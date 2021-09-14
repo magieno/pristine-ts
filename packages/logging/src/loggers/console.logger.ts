@@ -67,24 +67,40 @@ export class ConsoleLogger implements LoggerInterface {
   }
 
   private outputLog(log: LogModel): string {
+    const jsonSortOrders = ["severity", "message", "date", "extra"];
+
     switch (this.consoleLoggerOutputMode) {
       case OutputModeEnum.Json:
+        let truncatedLog: any;
+
         switch (log.severity) {
           case SeverityEnum.Debug:
-            return JSON.stringify(Utils.truncate(log,  this.logDebugDepthConfiguration));
+            truncatedLog = Utils.truncate(log,  this.logDebugDepthConfiguration);
+            truncatedLog.severity = "DEBUG";
+            break;
 
           case SeverityEnum.Info:
-            return JSON.stringify(Utils.truncate(log,  this.logInfoDepthConfiguration));
+            truncatedLog = Utils.truncate(log,  this.logInfoDepthConfiguration);
+            truncatedLog.severity = "INFO";
+            break;
 
           case SeverityEnum.Warning:
-            return JSON.stringify(Utils.truncate(log,  this.logWarningDepthConfiguration));
+            truncatedLog = Utils.truncate(log,  this.logWarningDepthConfiguration)
+            truncatedLog.severity = "WARNING";
+            break;
 
           case SeverityEnum.Error:
-            return JSON.stringify(Utils.truncate(log,  this.logErrorDepthConfiguration));
+            truncatedLog = Utils.truncate(log,  this.logErrorDepthConfiguration)
+            truncatedLog.severity = "ERROR";
+            break;
 
           case SeverityEnum.Critical:
-            return JSON.stringify(Utils.truncate(log,  this.logCriticalDepthConfiguration));
+            truncatedLog = Utils.truncate(log,  this.logCriticalDepthConfiguration)
+            truncatedLog.severity = "CRITICAL";
+            break;
         }
+
+        return JSON.stringify(truncatedLog, jsonSortOrders);
       case OutputModeEnum.Simple:
         return format(log.date, "yyyy-MM-dd HH:mm:ss") + " - " + " [" + this.getSeverityText(log.severity) + "] - " + log.message + " - " + JSON.stringify(Utils.truncate(log.extra, 2));
     }
