@@ -34,6 +34,8 @@ import {RequestInterceptionExecutionError} from "./errors/request-interception-e
 import {EventInterceptionExecutionError} from "./errors/event-interception-execution.error";
 import {EventInterceptorInterface} from "./interfaces/event-interceptor.interface";
 import {Span, SpanKeynameEnum, TracingManagerInterface} from "@pristine-ts/telemetry";
+import {LogHandlerInterface} from "@pristine-ts/logging";
+import {CoreModuleKeyname} from "./core.module.keyname";
 
 /**
  * This is the central class that manages the lifecyle of this library.
@@ -420,6 +422,8 @@ export class Kernel {
      * @param rawEvent
      */
     public async handleRawEvent(rawEvent: object): Promise<void> {
+        const logHandler: LogHandlerInterface = this.container.resolve("LogHandlerInterface");
+
         const tracingManager: TracingManagerInterface = this.container.resolve("TracingManagerInterface");
         tracingManager.startTracing();
         this.initializationSpan.trace = tracingManager.trace!;
@@ -428,22 +432,42 @@ export class Kernel {
 
         const eventSpan = tracingManager.startSpan(SpanKeynameEnum.EventExecution);
 
+        logHandler.debug("Executing the Raw Event Interceptors", {rawEvent}, CoreModuleKeyname);
+
         const interceptedRawEvent = await this.executeRawEventInterceptors(rawEvent);
+
+        logHandler.debug("Intercepted Raw Event", {interceptedRawEvent}, CoreModuleKeyname);
 
         const eventTransformer: EventTransformer = this.container.resolve(EventTransformer);
 
         // Transform the raw event into an array of Event object
         let events: Event<any>[] = eventTransformer.transform(interceptedRawEvent);
 
+        logHandler.debug("Transformed Events", {events}, CoreModuleKeyname);
+
         // Handle all of the parsed events
         const promises: Promise<void>[] = [];
         for(let event of events) {
             promises.push(this.handleParsedEvent(event));
         }
-        await Promise.allSettled(promises);
 
-        eventSpan.end();
-        tracingManager.endTrace();
+        return new Promise(resolve => {
+            Promise.allSettled(promises).then(results => {
+                results.forEach(result => {
+                    if(result.status === 'fulfilled') {
+                        logHandler.debug("Event Fulfilled", {result}, CoreModuleKeyname)
+                    }
+                    else {
+                        logHandler.error("Event Error", {result}, CoreModuleKeyname)
+                    }
+                });
+
+                eventSpan.end();
+                tracingManager.endTrace();
+
+                return resolve();
+            });
+        })
     }
 
     /**

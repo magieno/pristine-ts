@@ -4,6 +4,7 @@ import {CoreModuleKeyname} from "./core.module.keyname";
 import {TelemetryModule} from "@pristine-ts/telemetry";
 import {EventModule} from "@pristine-ts/event";
 import {ConfigurationModule} from "@pristine-ts/configuration";
+import {LoggingModule} from "@pristine-ts/logging";
 
 export * from "./kernel";
 export * from "./errors/errors";
@@ -18,6 +19,7 @@ export const CoreModule: ModuleInterface =  {
         NetworkingModule,
         TelemetryModule,
         EventModule,
+        LoggingModule,
     ],
     providerRegistrations: [],
 }
