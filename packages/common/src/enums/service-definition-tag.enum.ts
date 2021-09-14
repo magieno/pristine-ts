@@ -21,4 +21,5 @@ export enum ServiceDefinitionTagEnum {
     HttpRequestInterceptor = "HTTP_REQUEST_INTERCEPTOR",
     HttpResponseInterceptor = "HTTP_RESPONSE_INTERCEPTOR",
     IdentityProvider = "IDENTITY_PROVIDER",
+    ScheduledTask = "SCHEDULED_TASK",
 }
