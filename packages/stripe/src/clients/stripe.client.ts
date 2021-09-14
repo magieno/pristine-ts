@@ -34,7 +34,7 @@ export class StripeClient implements StripeClientInterface{
         try {
             return this.getStripeClient().webhooks.constructEvent(request.rawBody, stripeSignature, stripeSigningEndpointSecret);
         } catch (err) {
-            this.logHandler.error("Error with stripe signature", {error: err, request});
+            this.logHandler.error("Error with stripe signature", {error: err, request}, StripeModuleKeyname);
             throw new StripeAuthenticationError(400, 'Raw body does not match stripe signature');
         }
     }

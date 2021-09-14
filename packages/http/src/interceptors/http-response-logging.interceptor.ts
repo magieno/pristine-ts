@@ -5,6 +5,7 @@ import {HttpRequestOptions} from "../options/http-request.options.";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {HttpResponseInterceptorInterface} from "../interfaces/http-response-interceptor.interface";
 import {HttpResponseInterface} from "../interfaces/http-response.interface";
+import {HttpModuleKeyname} from "../http.module.keyname";
 
 @tag(ServiceDefinitionTagEnum.HttpResponseInterceptor)
 @injectable()
@@ -13,7 +14,7 @@ export class HttpResponseLoggingInterceptor implements HttpResponseInterceptorIn
     }
 
     async interceptResponse(request: HttpRequestInterface, options: HttpRequestOptions, response: HttpResponseInterface): Promise<HttpResponseInterface> {
-        this.logHandler.info("Receiving http response", {response, options});
+        this.logHandler.info("Receiving http response", {response, options}, HttpModuleKeyname);
         return response;
     }
 

@@ -16,6 +16,7 @@ import {AuthenticationManagerInterface, AuthorizerManagerInterface} from "@prist
 import {RouterResponseEnricherInterface} from "./interfaces/router-response-enricher.interface";
 import {RouterRequestEnricherInterface} from "./interfaces/router-request-enricher.interface";
 import {LogHandlerInterface} from "@pristine-ts/logging";
+import {NetworkingModuleKeyname} from "./networking.module.keyname";
 
 @singleton()
 export class Router implements RouterInterface {
@@ -64,7 +65,7 @@ export class Router implements RouterInterface {
                 request,
                 url,
                 methodNode,
-            });
+            }, NetworkingModuleKeyname);
 
             // If node doesn't exist, throw a 404 error
             if(methodNode === null) {
@@ -72,7 +73,7 @@ export class Router implements RouterInterface {
                     rootNode: this.root,
                     request,
                     url,
-                });
+                }, NetworkingModuleKeyname);
 
                 return reject(new NotFoundHttpError("No route found for path: '" + url.pathname + "'."));
             }
@@ -86,7 +87,7 @@ export class Router implements RouterInterface {
             this.loghandler.debug("Before calling the authenticationManager", {
                 controller,
                 routeParameters
-            });
+            }, NetworkingModuleKeyname);
 
             let identity: IdentityInterface | undefined;
 
@@ -95,14 +96,14 @@ export class Router implements RouterInterface {
 
                 this.loghandler.debug("Found identity.", {
                     identity
-                });
+                }, NetworkingModuleKeyname);
             } catch (error) {
                 this.loghandler.error("Authentication error", {
                     error,
                     request,
                     context: methodNode.route.context,
                     container
-                });
+                }, NetworkingModuleKeyname);
 
                 // Todo: check if the error is an UnauthorizedHttpError, else create one.
                 if(error instanceof ForbiddenHttpError === false){
@@ -120,7 +121,7 @@ export class Router implements RouterInterface {
                         context: methodNode.route.context,
                         container,
                         identity
-                    });
+                    }, NetworkingModuleKeyname);
 
                     return reject(new ForbiddenHttpError("You are not allowed to access this."));
                 }
@@ -130,7 +131,7 @@ export class Router implements RouterInterface {
                 this.loghandler.debug("This request has been enriched", {
                     request,
                     enrichedRequest,
-                })
+                }, NetworkingModuleKeyname)
 
                 const resolvedMethodArguments: any[] = [];
 
@@ -140,7 +141,7 @@ export class Router implements RouterInterface {
 
                 this.loghandler.debug("Controller argument resolved", {
                     resolvedMethodArguments,
-                })
+                }, NetworkingModuleKeyname)
 
                 const controllerResponse = controller[methodNode.route.methodPropertyKey].apply(controller, resolvedMethodArguments);
 
@@ -150,7 +151,7 @@ export class Router implements RouterInterface {
 
                 this.loghandler.debug("The returned response by the controller", {
                     response
-                })
+                }, NetworkingModuleKeyname)
 
                 let returnedResponse: Response;
                 // If the response is already a Response object, return the response
@@ -168,14 +169,14 @@ export class Router implements RouterInterface {
                 this.loghandler.debug("This response has been enriched", {
                     returnedResponse,
                     enrichedResponse,
-                })
+                }, NetworkingModuleKeyname)
 
                 return resolve(returnedResponse);
             }
             catch (error) {
                 this.loghandler.error("There was an error trying to execute the request in the router", {
                     error,
-                })
+                }, NetworkingModuleKeyname)
 
                 return reject(error);
             }
@@ -211,7 +212,7 @@ export class Router implements RouterInterface {
                     // https://stackoverflow.com/a/27760489/684101
                     enrichedResponse = await Promise.resolve((enricher as RouterResponseEnricherInterface).enrichResponse(enrichedResponse, request, methodNode));
                 } catch (e) {
-                    this.loghandler.error("There was an exception thrown while executing the 'enrichResponse' method of the RouterResponseEnricher named: '" + enricher.constructor.name + "'.", {e});
+                    this.loghandler.error("There was an exception thrown while executing the 'enrichResponse' method of the RouterResponseEnricher named: '" + enricher.constructor.name + "'.", {e}, NetworkingModuleKeyname);
                     throw e;
                 }
             }
@@ -248,7 +249,7 @@ export class Router implements RouterInterface {
                     // https://stackoverflow.com/a/27760489/684101
                     enrichedRequest = await Promise.resolve((enricher as RouterRequestEnricherInterface).enrichRequest(enrichedRequest, methodNode));
                 } catch (e) {
-                    this.loghandler.error("There was an exception thrown while executing the 'enrichedRequest' method of the RouterRequestEnricher named: '" + enricher.constructor.name + "'.", {e});
+                    this.loghandler.error("There was an exception thrown while executing the 'enrichedRequest' method of the RouterRequestEnricher named: '" + enricher.constructor.name + "'.", {e}, NetworkingModuleKeyname);
                     throw e;
                 }
             }

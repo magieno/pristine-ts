@@ -88,7 +88,7 @@ export class Utils {
     }
 
     public static outputLog(log: LogModel, outputMode: OutputModeEnum, logDepth: number): string {
-        const jsonSortOrders = ["severity", "message", "date"];
+        const jsonSortOrders = ["severity", "module", "message", "date"];
 
         switch (outputMode) {
             case OutputModeEnum.Json:
@@ -97,6 +97,7 @@ export class Utils {
 
                 const truncatedLogKeys = Utils.getDeepKeys(truncatedLog);
                 delete truncatedLogKeys["severity"];
+                delete truncatedLogKeys["module"];
                 delete truncatedLogKeys["message"];
                 delete truncatedLogKeys["date"];
 

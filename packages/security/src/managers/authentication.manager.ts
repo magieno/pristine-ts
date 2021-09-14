@@ -45,7 +45,7 @@ export class AuthenticationManager implements AuthenticationManagerInterface {
 
         }
         catch (e) {
-            this.logHandler.error(e.message);
+            this.logHandler.error(e.message, {e}, SecurityModuleKeyname);
             identity = undefined;
             throw e;
         }

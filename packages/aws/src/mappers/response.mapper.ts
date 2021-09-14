@@ -2,6 +2,7 @@ import {injectable, inject} from "tsyringe";
 import {Response} from "@pristine-ts/networking";
 import {ApiGatewayResponseModel} from "../models/api-gateway-response.model";
 import {LogHandlerInterface} from "@pristine-ts/logging";
+import {AwsModuleKeyname} from "../aws.module.keyname";
 
 @injectable()
 export class ResponseMapper {
@@ -30,7 +31,7 @@ export class ResponseMapper {
         this.loghandler.debug("Reverse mapping the response into a 'ApiGatewayResponseModel'.", {
             response,
             apiGatewayResponse,
-        })
+        }, AwsModuleKeyname)
 
         return apiGatewayResponse;
     }

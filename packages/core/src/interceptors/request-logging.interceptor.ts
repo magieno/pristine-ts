@@ -29,18 +29,18 @@ export class RequestLoggingInterceptor implements RequestInterceptorInterface, R
             };
         }
 
-        this.logHandler.error(error.message, extra);
+        this.logHandler.error(error.message, extra, CoreModuleKeyname);
 
         return response;
     }
 
     async interceptRequest(request: Request): Promise<Request> {
-        this.logHandler.info(request.url, request);
+        this.logHandler.info(request.url, {request}, CoreModuleKeyname);
         return request;
     }
 
     async interceptResponse(response: Response, request: Request): Promise<Response> {
-        this.logHandler.info(request.url, response);
+        this.logHandler.info(request.url, {response}, CoreModuleKeyname);
         return response;
     }
 

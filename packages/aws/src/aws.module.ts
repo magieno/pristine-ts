@@ -46,12 +46,12 @@ const registerDynamicTableNames = async (container: DependencyContainer) => {
         if(container.isRegistered(dynamicTableName.tokenName) === false) {
             const logHandler: LogHandlerInterface = container.resolve("LogHandlerInterface");
             try {
-                logHandler.debug("The table token name was not registered, trying to load default.", {tokenName: dynamicTableName.tokenName})
+                logHandler.debug("The table token name was not registered, trying to load default.", {tokenName: dynamicTableName.tokenName}, AwsModuleKeyname)
                 const value = await new EnvironmentVariableResolver(dynamicTableName.tokenName).resolve();
                 container.registerInstance(dynamicTableName.tokenName, value);
-                logHandler.debug("Successfully registered table name.", {tokenName: dynamicTableName.tokenName, value})
+                logHandler.debug("Successfully registered table name.", {tokenName: dynamicTableName.tokenName, value}, AwsModuleKeyname)
             } catch (e) {
-                logHandler.warning("The table token name does not exist in the container.", {tokenName: dynamicTableName.tokenName});
+                logHandler.warning("The table token name does not exist in the container.", {tokenName: dynamicTableName.tokenName}, AwsModuleKeyname);
                 continue;
             }
         }
@@ -59,7 +59,7 @@ const registerDynamicTableNames = async (container: DependencyContainer) => {
             dynamicTableName.classConstructor.prototype[DynamoDbTable] = container.resolve(dynamicTableName.tokenName);
         } catch (error){
             const logHandler: LogHandlerInterface = container.resolve("LogHandlerInterface");
-            logHandler.error("Error resolving the dynamic table token name", {error, tokenName: dynamicTableName.tokenName});
+            logHandler.error("Error resolving the dynamic table token name", {error, tokenName: dynamicTableName.tokenName}, AwsModuleKeyname);
             continue;
         }
     }

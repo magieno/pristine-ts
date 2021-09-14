@@ -45,7 +45,7 @@ export class SqsClient implements SqsClientInterface {
                     body,
                     messageGroupId,
                     delaySeconds,
-                })
+                }, AwsModuleKeyname)
 
                 const response = await client.send(command);
 
@@ -55,7 +55,7 @@ export class SqsClient implements SqsClientInterface {
                     messageGroupId,
                     delaySeconds,
                     response,
-                })
+                }, AwsModuleKeyname)
 
                 return resolve({
                     messageId: response.MessageId,
@@ -68,7 +68,7 @@ export class SqsClient implements SqsClientInterface {
                     body,
                     messageGroupId,
                     delaySeconds,
-                });
+                }, AwsModuleKeyname);
 
                 return reject(new SqsSendMessageError());
             }
