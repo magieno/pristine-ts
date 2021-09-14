@@ -8,10 +8,6 @@ import {Utils} from "../utils/utils";
 
 describe("Console writer", () => {
 
-    const OutputModeEnum.Json, 10 = ["severity", "message", "date", "extra"];
-
-    const stringify
-
     beforeEach(async () => {
         // @ts-ignore
         global.console = {
