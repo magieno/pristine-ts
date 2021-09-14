@@ -65,7 +65,7 @@ describe("Utils", () => {
         };
 
         expect(Utils.outputLog(logCritical, OutputModeEnum.Json, 10))
-            .toEqual("{\"severity\":\"CRITICAL\",\"message\":\"Log critical\",\"date\":\"2021-01-01T00:00:00.000Z\",\"extra\":{\"potato\":\"extra 1\"}}")
+            .toEqual("{\"severity\":\"CRITICAL\",\"module\":\"application\",\"message\":\"Log critical\",\"date\":\"2021-01-01T00:00:00.000Z\",\"extra\":{\"potato\":\"extra 1\"}}")
     })
 
     it("should consider string as a flat type", async () => {
