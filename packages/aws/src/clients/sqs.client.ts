@@ -70,7 +70,7 @@ export class SqsClient implements SqsClientInterface {
                     delaySeconds,
                 }, AwsModuleKeyname);
 
-                return reject(new SqsSendMessageError());
+                return reject(new SqsSendMessageError(error, queueUrl, body, messageGroupId, delaySeconds));
             }
         })
     }
