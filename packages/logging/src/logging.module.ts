@@ -30,7 +30,7 @@ export const LoggingModule: ModuleInterface = {
         },
         {
             parameterName: LoggingModuleKeyname + ".logSeverityLevelConfiguration",
-            defaultValue: 0,
+            defaultValue: 1,
             isRequired: false,
             defaultResolvers: [
                 new NumberResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_LOG_SEVERITY_LEVEL_CONFIGURATION")),

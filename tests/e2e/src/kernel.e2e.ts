@@ -36,7 +36,10 @@ describe("Kernel.ts", () => {
 
     it("should test the Kernel", async () => {
         const kernel = new Kernel();
-        await kernel.init(testModule);
+        await kernel.init(testModule, {
+            "pristine.logging.consoleLoggerActivated": false,
+            "pristine.logging.fileLoggerActivated": false,
+        });
 
         const resolvedClassModel = kernel.container.resolve<ResolvedClassModel>(ResolvedClassModel);
         const permissionManager = kernel.container.resolveAll(PermissionManager)
@@ -50,7 +53,10 @@ describe("Kernel.ts", () => {
     describe("Networking", () => {
         it("should load the controllers", async () => {
             const kernel = new Kernel();
-            await kernel.init(testModule);
+            await kernel.init(testModule, {
+            "pristine.logging.consoleLoggerActivated": false,
+            "pristine.logging.fileLoggerActivated": false,
+        });
 
             // await kernel.handleRequest({
             //     url: "https://localhost:8080/api/2.0/services",
@@ -110,7 +116,10 @@ describe("Kernel.ts", () => {
             }
 
             const kernel = new Kernel();
-            await kernel.init(module);
+            await kernel.init(module, {
+            "pristine.logging.consoleLoggerActivated": false,
+            "pristine.logging.fileLoggerActivated": false,
+        });
             // Force set the router
             kernel["setupRouter"] = () => {
                 kernel["router"] = router
@@ -159,7 +168,10 @@ describe("Kernel.ts", () => {
             }
 
             const kernel = new Kernel();
-            await kernel.init(module);
+            await kernel.init(module, {
+            "pristine.logging.consoleLoggerActivated": false,
+            "pristine.logging.fileLoggerActivated": false,
+        });
             // Force set the router
             kernel["router"] = router;
             const response = await kernel.handleRequest({url: "", httpMethod: HttpMethod.Get});
@@ -212,7 +224,10 @@ describe("Kernel.ts", () => {
             }
 
             const kernel = new Kernel();
-            await kernel.init(module);
+            await kernel.init(module, {
+            "pristine.logging.consoleLoggerActivated": false,
+            "pristine.logging.fileLoggerActivated": false,
+        });
             // Force set the router
             kernel["router"] = router;
             const response = await kernel.handleRequest({url: "", httpMethod: HttpMethod.Get});
@@ -283,7 +298,10 @@ describe("Kernel.ts", () => {
             }
 
             const kernel = new Kernel();
-            await kernel.init(module);
+            await kernel.init(module, {
+            "pristine.logging.consoleLoggerActivated": false,
+            "pristine.logging.fileLoggerActivated": false,
+        });
             // Force set the router
             kernel["setupRouter"] = () => {
                 kernel["router"] = router
@@ -420,7 +438,10 @@ describe("Kernel.ts", () => {
 
         const kernel = new Kernel();
 
-        await kernel.init(module);
+        await kernel.init(module, {
+            "pristine.logging.consoleLoggerActivated": false,
+            "pristine.logging.fileLoggerActivated": false,
+        });
 
         const classThatHasAllTheOthersInjected = kernel.container.resolve(ClassThatHasAllTheOthersInjected);
         expect(classThatHasAllTheOthersInjected.taggedClasses.length).toBe(2);
@@ -485,7 +506,10 @@ describe("Kernel.ts", () => {
 
             const kernel = new Kernel();
 
-            await kernel.init(module);
+            await kernel.init(module, {
+            "pristine.logging.consoleLoggerActivated": false,
+            "pristine.logging.fileLoggerActivated": false,
+        });
 
             expect(kernel.container.resolveAll("CommonTag").length).toBe(2);
         })

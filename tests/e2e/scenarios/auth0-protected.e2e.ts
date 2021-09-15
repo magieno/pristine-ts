@@ -85,7 +85,7 @@ const moduleTest: ModuleInterface = {
         NetworkingModule,
         Auth0Module,
         SecurityModule,
-    ]
+    ],
 }
 
 describe("Auth0 authenticator", () => {
@@ -115,7 +115,9 @@ describe("Auth0 authenticator", () => {
         const kernel = new Kernel();
         await kernel.init(moduleTest, {
             [Auth0ModuleKeyname + ".domain"]: "auth0.com",
-            [SecurityModuleKeyname + ".rolesClaimKey"]: "https://pristine-ts.com/roles"
+            [SecurityModuleKeyname + ".rolesClaimKey"]: "https://pristine-ts.com/roles",
+            "pristine.logging.consoleLoggerActivated": false,
+            "pristine.logging.fileLoggerActivated": false,
         });
 
         const request: RequestInterface = {
@@ -157,7 +159,9 @@ describe("Auth0 authenticator", () => {
         const kernel = new Kernel();
         await kernel.init(moduleTest, {
             [Auth0ModuleKeyname + ".domain"]: "auth0.com",
-            [SecurityModuleKeyname + ".rolesClaimKey"]: "https://pristine-ts.com/roles"
+            [SecurityModuleKeyname + ".rolesClaimKey"]: "https://pristine-ts.com/roles",
+            "pristine.logging.consoleLoggerActivated": false,
+            "pristine.logging.fileLoggerActivated": false,
         });
 
         const request: RequestInterface = {
@@ -200,7 +204,9 @@ describe("Auth0 authenticator", () => {
         const kernel = new Kernel();
         await kernel.init(moduleTest, {
             [Auth0ModuleKeyname + ".domain"]: "auth0.com",
-            [SecurityModuleKeyname + ".rolesClaimKey"]: "https://pristine-ts.com/roles"
+            [SecurityModuleKeyname + ".rolesClaimKey"]: "https://pristine-ts.com/roles",
+            "pristine.logging.consoleLoggerActivated": false,
+            "pristine.logging.fileLoggerActivated": false,
         });
 
         const request: RequestInterface = {
@@ -243,7 +249,9 @@ describe("Auth0 authenticator", () => {
         const kernel = new Kernel();
         await kernel.init(moduleTest, {
             [Auth0ModuleKeyname + ".domain"]: "auth0.com",
-            [SecurityModuleKeyname + ".rolesClaimKey"]: "https://pristine-ts.com/roles"
+            [SecurityModuleKeyname + ".rolesClaimKey"]: "https://pristine-ts.com/roles",
+            "pristine.logging.consoleLoggerActivated": false,
+            "pristine.logging.fileLoggerActivated": false,
         });
 
         const request: RequestInterface = {
