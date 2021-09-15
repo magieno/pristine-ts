@@ -11,7 +11,7 @@ export class SqsSendMessageError extends LoggableError {
                        delaySeconds?: number,
     ) {
         super(
-            "There was an error sending an error to SQS",
+            "There was an error sending a message to SQS",
             {
                 originalError,
                 queueUrl,
