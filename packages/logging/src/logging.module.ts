@@ -1,7 +1,4 @@
 import {ModuleInterface} from "@pristine-ts/common";
-import {LogHandler} from "./handlers/log.handler";
-import {ConsoleLogger} from "./loggers/console.logger";
-import {FileLogger} from "./loggers/file.logger";
 import {LoggingModuleKeyname} from "./logging.module.keyname";
 import {
     BooleanResolver,
@@ -10,6 +7,7 @@ import {
     NumberResolver
 } from "@pristine-ts/configuration";
 import {OutputModeEnum} from "./enums/output-mode.enum";
+import {CommonModule} from "@pristine-ts/common";
 
 export * from "./enums/enums";
 export * from "./handlers/handlers";
@@ -120,6 +118,7 @@ export const LoggingModule: ModuleInterface = {
         },
     ],
     importModules: [
+        CommonModule,
         ConfigurationModule,
     ],
     providerRegistrations: []

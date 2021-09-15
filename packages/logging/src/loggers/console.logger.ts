@@ -1,20 +1,20 @@
-import {inject, injectable} from "tsyringe";
+import {inject, injectable, singleton } from "tsyringe";
 import {SeverityEnum} from "../enums/severity.enum";
 import {LogModel} from "../models/log.model";
 import {LoggerInterface} from "../interfaces/logger.interface";
 import {Readable} from "stream";
 import * as util from "util";
 import {Utils} from "../utils/utils";
-import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {CommonModuleKeyname, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {OutputModeEnum} from "../enums/output-mode.enum";
 import format from "date-fns/format";
 
-
+@singleton()
 @tag(ServiceDefinitionTagEnum.Logger)
 @injectable()
 export class ConsoleLogger implements LoggerInterface {
   public readableStream: Readable;
-  private stackedLogs: LogModel[] = [];
+  private stackedLogs: {[key: string]: LogModel[]} = {};
 
   public constructor(@inject("%pristine.logging.numberOfStackedLogs%") private readonly numberOfStackedLogs: number,
                      @inject("%pristine.logging.logSeverityLevelConfiguration%") private readonly logSeverityLevelConfiguration: number,
@@ -93,6 +93,8 @@ export class ConsoleLogger implements LoggerInterface {
   }
 
   private captureLog(log: LogModel): void {
+    this.setupStackedLogsArrayIfRequired(log.traceId);
+
     if (log.severity < this.logSeverityLevelConfiguration) {
       // We still add a log to the stack to ensure that when there's an error, we log everything.
       this.addStackedLog(log);
@@ -105,25 +107,51 @@ export class ConsoleLogger implements LoggerInterface {
     this.log(log);
   }
 
-  private addStackedLog(log: LogModel) {
-    // Push the log at the end of the array
-    this.stackedLogs.push(log);
+  private setupStackedLogsArrayIfRequired(traceId?: string) {
+    if(this.stackedLogs.hasOwnProperty(CommonModuleKeyname) === false) {
+      this.stackedLogs[CommonModuleKeyname] = [];
+    }
 
-    // If the stacked logs is already at the maximum number of logs, we delete the first log.
-    if (this.stackedLogs.length >= this.numberOfStackedLogs) {
-      this.stackedLogs.shift();
+    if(traceId && this.stackedLogs.hasOwnProperty(traceId) === false) {
+      this.stackedLogs[traceId] = [];
     }
   }
 
-  private outputStackedLogs() {
-    for(const log of this.stackedLogs){
+  private addStackedLog(log: LogModel) {
+    const stackedLogsKey = log.traceId ?? CommonModuleKeyname;
+
+    // Push the log at the end of the array
+    this.stackedLogs[stackedLogsKey].push(log);
+
+    // If the stacked logs is already at the maximum number of logs, we delete the first log.
+    if (this.stackedLogs[stackedLogsKey].length >= this.numberOfStackedLogs) {
+      this.stackedLogs[stackedLogsKey].shift();
+    }
+  }
+
+  private outputStackedLogs(traceId?: string) {
+    for(const log of this.stackedLogs[CommonModuleKeyname]) {
       this.log(log);
     }
 
-    this.clearStackedLogs();
+    if(traceId === undefined || this.stackedLogs.hasOwnProperty(traceId) === false) {
+      return;
+    }
+
+    for(const log of this.stackedLogs[traceId]){
+      this.log(log);
+    }
+
+    this.clearStackedLogs(traceId);
   }
 
-  private clearStackedLogs() {
-    this.stackedLogs = [];
+  private clearStackedLogs(traceId?: string) {
+    this.stackedLogs[CommonModuleKeyname] = [];
+
+    if(traceId === undefined || this.stackedLogs.hasOwnProperty(traceId) === false) {
+      return;
+    }
+
+    this.stackedLogs[traceId] = [];
   }
 }

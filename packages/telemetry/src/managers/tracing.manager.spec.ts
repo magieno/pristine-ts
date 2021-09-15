@@ -4,6 +4,7 @@ import {SpanKeynameEnum} from "../enums/span-keyname.enum";
 import {TracerInterface} from "../interfaces/tracer.interface";
 import {Readable} from "stream";
 import {LogHandlerInterface} from "@pristine-ts/logging";
+import {TracingContext} from "@pristine-ts/common";
 
 const logHandlerMock: LogHandlerInterface = {
     debug(message: string, extra?: any) {
@@ -20,7 +21,7 @@ const logHandlerMock: LogHandlerInterface = {
 
 describe("Tracing Manager", () => {
     it("should start the tracing by creating the trace and the root span", () => {
-        const tracingManager: TracingManager = new TracingManager([], logHandlerMock, true);
+        const tracingManager: TracingManager = new TracingManager([], logHandlerMock, true, new TracingContext());
 
         tracingManager.startTracing();
 
@@ -58,7 +59,7 @@ describe("Tracing Manager", () => {
                 })(),
             }
 
-            const tracingManager: TracingManager = new TracingManager([tracer], logHandlerMock, true);
+            const tracingManager: TracingManager = new TracingManager([tracer], logHandlerMock, true, new TracingContext());
 
             tracingManager.startTracing();
             expect.assertions(2);
@@ -96,7 +97,7 @@ describe("Tracing Manager", () => {
                 }),
             }
 
-            const tracingManager: TracingManager = new TracingManager([tracer], logHandlerMock, true);
+            const tracingManager: TracingManager = new TracingManager([tracer], logHandlerMock, true, new TracingContext());
 
             tracingManager.startTracing();
 
@@ -139,7 +140,7 @@ describe("Tracing Manager", () => {
                 })(),
             }
 
-            const tracingManager: TracingManager = new TracingManager([tracer], logHandlerMock, true);
+            const tracingManager: TracingManager = new TracingManager([tracer], logHandlerMock, true, new TracingContext());
 
             tracingManager.startTracing();
             tracingManager.endTrace();

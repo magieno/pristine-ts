@@ -1,11 +1,12 @@
 import "reflect-metadata";
 import {PermissionManager} from "./permission.manager";
-import {LogHandler} from "@pristine-ts/logging";
+import {LogHandler, LogHandlerInterface} from "@pristine-ts/logging";
 import {ResourceActionEnum} from "../enums/resource-action.enum";
 import {VotingStrategyEnum} from "../enums/voting-strategy.enum";
 import {VoteEnum} from "../enums/vote.enum";
 import {VoterInterface} from "../interfaces/voter.interface";
 import {IdentityInterface} from "@pristine-ts/common";
+import {log} from "util";
 
 class Resource {
     private property: string;
@@ -30,8 +31,21 @@ const voterGrant: VoterInterface = {
 }
 
 describe("", ()=> {
+    const logHandlerMock: LogHandlerInterface = {
+        debug(message: string, extra?: any) {
+        },
+        info(message: string, extra?: any) {
+        },
+        error(message: string, extra?: any) {
+        }
+        ,critical(message: string, extra?: any) {
+        },
+        warning(message: string, extra?: any) {
+        },
+    }
+
     it("should return deny if no voter and DenyOnUnanimousAbstention", async () => {
-        const permissionManager = new PermissionManager([], new LogHandler([]))
+        const permissionManager = new PermissionManager([], logHandlerMock)
 
         const identity: IdentityInterface = {
             id: "id",
@@ -44,7 +58,8 @@ describe("", ()=> {
     });
 
     it("should return granted if no voter and GrantOnUnanimousAbstention", async () => {
-        const permissionManager = new PermissionManager([], new LogHandler([]))
+
+        const permissionManager = new PermissionManager([], logHandlerMock)
 
         const identity: IdentityInterface = {
             id: "id",
@@ -57,7 +72,7 @@ describe("", ()=> {
     });
 
     it("should return deny if no voter supports and DenyOnUnanimousAbstention", async () => {
-        const permissionManager = new PermissionManager([voterGrant, voterGrant], new LogHandler([]))
+        const permissionManager = new PermissionManager([voterGrant, voterGrant], logHandlerMock)
 
         const identity: IdentityInterface = {
             id: "id",
@@ -70,7 +85,7 @@ describe("", ()=> {
     });
 
     it("should return granted if no voter supports and GrantOnUnanimousAbstention", async () => {
-        const permissionManager = new PermissionManager([voterGrant, voterGrant], new LogHandler([]))
+        const permissionManager = new PermissionManager([voterGrant, voterGrant], logHandlerMock)
 
         const identity: IdentityInterface = {
             id: "id",
@@ -83,7 +98,7 @@ describe("", ()=> {
     });
 
     it("should return granted if all voter grant", async () => {
-        const permissionManager = new PermissionManager([voterGrant, voterGrant], new LogHandler([]))
+        const permissionManager = new PermissionManager([voterGrant, voterGrant], logHandlerMock)
 
         const identity: IdentityInterface = {
             id: "id",
@@ -97,7 +112,7 @@ describe("", ()=> {
     });
 
     it("should return deny if 1 voter deny", async () => {
-        const permissionManager = new PermissionManager([voterGrant, voterDeny], new LogHandler([]))
+        const permissionManager = new PermissionManager([voterGrant, voterDeny], logHandlerMock)
 
         const identity: IdentityInterface = {
             id: "id",

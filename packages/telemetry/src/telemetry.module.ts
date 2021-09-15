@@ -2,6 +2,7 @@ import {ModuleInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {TelemetryModuleKeyname} from "./telemetry.module.keyname";
 import {LoggingModule} from "@pristine-ts/logging";
 import {BooleanResolver, EnvironmentVariableResolver} from "@pristine-ts/configuration";
+import {CommonModule} from "@pristine-ts/common";
 
 export * from "./enums/enums";
 export * from "./interfaces/interfaces";
@@ -12,6 +13,7 @@ export * from "./tracers/basic.tracer";
 export const TelemetryModule: ModuleInterface = {
     keyname: TelemetryModuleKeyname,
     importModules: [
+        CommonModule,
         LoggingModule,
     ],
     providerRegistrations: [

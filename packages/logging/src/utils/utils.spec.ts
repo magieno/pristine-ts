@@ -64,8 +64,16 @@ describe("Utils", () => {
             potato: "extra 1",
         };
 
+        expect(Utils.outputLog(logInfo, OutputModeEnum.Json, 10))
+            .toEqual("{\"severity\":\"INFO\",\"message\":\"Log info\",\"date\":\"2021-01-01T00:00:00.000Z\",\"module\":\"application\",\"extra\":{\"potato\":\"extra 1\"}}")
+        expect(Utils.outputLog(logDebug, OutputModeEnum.Json, 10))
+            .toEqual("{\"severity\":\"DEBUG\",\"message\":\"Log debug\",\"date\":\"2021-01-01T00:00:00.000Z\",\"module\":\"application\",\"extra\":{\"potato\":\"extra 1\"}}")
+        expect(Utils.outputLog(logWarning, OutputModeEnum.Json, 10))
+            .toEqual("{\"severity\":\"WARNING\",\"message\":\"Log warning\",\"date\":\"2021-01-01T00:00:00.000Z\",\"module\":\"application\",\"extra\":{\"potato\":\"extra 1\"}}")
+        expect(Utils.outputLog(logError, OutputModeEnum.Json, 10))
+            .toEqual("{\"severity\":\"ERROR\",\"message\":\"Log error\",\"date\":\"2021-01-01T00:00:00.000Z\",\"module\":\"application\",\"extra\":{\"potato\":\"extra 1\"}}")
         expect(Utils.outputLog(logCritical, OutputModeEnum.Json, 10))
-            .toEqual("{\"severity\":\"CRITICAL\",\"module\":\"application\",\"message\":\"Log critical\",\"date\":\"2021-01-01T00:00:00.000Z\",\"extra\":{\"potato\":\"extra 1\"}}")
+            .toEqual("{\"severity\":\"CRITICAL\",\"message\":\"Log critical\",\"date\":\"2021-01-01T00:00:00.000Z\",\"module\":\"application\",\"extra\":{\"potato\":\"extra 1\"}}")
     })
 
     it("should consider string as a flat type", async () => {
