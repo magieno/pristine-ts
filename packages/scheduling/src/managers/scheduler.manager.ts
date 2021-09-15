@@ -37,10 +37,7 @@ export class SchedulerManager implements SchedulerInterface {
                         this.logHandler.error("Scheduled Task Error", {
                             result: {
                                 status: result.status,
-                                reason: {
-                                    message: result?.reason?.message,
-                                    stack: result?.reason?.stack,
-                                },
+                                reason: result.reason + "",
                             }
                         }, SchedulingModuleKeyname)
                     }

@@ -460,10 +460,7 @@ export class Kernel {
                         logHandler.error("Event Error", {
                             result: {
                                 status: result.status,
-                                reason: {
-                                    message: result?.reason?.message,
-                                    stack: result?.reason?.stack,
-                                },
+                                reason: result.reason + "",
                             }
                         }, CoreModuleKeyname)
                     }
