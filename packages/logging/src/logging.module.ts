@@ -93,6 +93,14 @@ export const LoggingModule: ModuleInterface = {
             ]
         },
         {
+            parameterName: LoggingModuleKeyname + ".fileLoggerOutputMode",
+            defaultValue: OutputModeEnum.Json,
+            isRequired: false,
+            defaultResolvers: [
+                new EnumResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_FILE_LOGGER_OUTPUT_MODE"), OutputModeEnum),
+            ]
+        },
+        {
             parameterName: LoggingModuleKeyname + ".fileLoggerActivated",
             defaultValue: false,
             isRequired: false,

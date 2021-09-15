@@ -3,6 +3,8 @@ import {SeverityEnum} from "../enums/severity.enum";
 import {LogModel} from "../models/log.model";
 import {FileLogger} from "./file.logger";
 import fs from 'fs';
+import {OutputModeEnum} from "../enums/output-mode.enum";
+import {Utils} from "../utils/utils";
 
 
 describe("File writer", () => {
@@ -21,8 +23,9 @@ describe("File writer", () => {
             3,
             3,
             true,
-            "./logs.txt",
+            OutputModeEnum.Json,
             false,
+            "./logs.txt",
         );
 
         const logInfo = new LogModel();
@@ -70,10 +73,10 @@ describe("File writer", () => {
         const file = fs.readFileSync("./logs.txt", {encoding: "utf-8"});
         const logs = file.split(";\n");
 
-        expect(logs[0]).toEqual(JSON.stringify(logInfo));
-        expect(logs[1]).toEqual(JSON.stringify(logWarning));
-        expect(logs[2]).toEqual(JSON.stringify(logError));
-        expect(logs[3]).toEqual(JSON.stringify(logCritical));
+        expect(logs[0]).toEqual(Utils.outputLog(logInfo, OutputModeEnum.Json, 10));
+        expect(logs[1]).toEqual(Utils.outputLog(logWarning, OutputModeEnum.Json, 10));
+        expect(logs[2]).toEqual(Utils.outputLog(logError, OutputModeEnum.Json, 10));
+        expect(logs[3]).toEqual(Utils.outputLog(logCritical, OutputModeEnum.Json, 10));
 
     });
 
@@ -87,8 +90,9 @@ describe("File writer", () => {
             3,
             3,
             true,
-            "./logs.txt",
+            OutputModeEnum.Json,
             false,
+            "./logs.txt",
         );
 
         const logInfo = new LogModel();
@@ -136,11 +140,11 @@ describe("File writer", () => {
         const file = fs.readFileSync("./logs.txt", {encoding: "utf-8"});
         const logs = file.split(";\n");
 
-        expect(logs[0]).toEqual(JSON.stringify(logInfo));
-        expect(logs[1]).toEqual(JSON.stringify(logDebug));
-        expect(logs[2]).toEqual(JSON.stringify(logWarning));
-        expect(logs[3]).toEqual(JSON.stringify(logError));
-        expect(logs[4]).toEqual(JSON.stringify(logCritical));
+        expect(logs[0]).toEqual(Utils.outputLog(logInfo, OutputModeEnum.Json, 10));
+        expect(logs[1]).toEqual(Utils.outputLog(logDebug, OutputModeEnum.Json, 10));
+        expect(logs[2]).toEqual(Utils.outputLog(logWarning, OutputModeEnum.Json, 10));
+        expect(logs[3]).toEqual(Utils.outputLog(logError, OutputModeEnum.Json, 10));
+        expect(logs[4]).toEqual(Utils.outputLog(logCritical, OutputModeEnum.Json, 10));
     });
 
     it("should log if configuration level is warning and severity is higher", async () => {
@@ -153,8 +157,9 @@ describe("File writer", () => {
             3,
             3,
             true,
-            "./logs.txt",
+            OutputModeEnum.Json,
             false,
+            "./logs.txt",
         );
 
         const logInfo = new LogModel();
@@ -203,9 +208,9 @@ describe("File writer", () => {
         const logs = file.split(";\n");
 
 
-        expect(logs[0]).toEqual(JSON.stringify(logWarning));
-        expect(logs[1]).toEqual(JSON.stringify(logError));
-        expect(logs[2]).toEqual(JSON.stringify(logCritical));
+        expect(logs[0]).toEqual(Utils.outputLog(logWarning, OutputModeEnum.Json, 10));
+        expect(logs[1]).toEqual(Utils.outputLog(logError, OutputModeEnum.Json, 10));
+        expect(logs[2]).toEqual(Utils.outputLog(logCritical, OutputModeEnum.Json, 10));
     });
 
     it("should log if configuration level is error and severity is higher", async () => {
@@ -218,8 +223,9 @@ describe("File writer", () => {
             3,
             3,
             true,
-            "./logs.txt",
+            OutputModeEnum.Json,
             false,
+            "./logs.txt",
         );
 
         const logInfo = new LogModel();
@@ -267,8 +273,8 @@ describe("File writer", () => {
         const file = fs.readFileSync("./logs.txt", {encoding: "utf-8"});
         const logs = file.split(";\n");
 
-        expect(logs[0]).toEqual(JSON.stringify(logError));
-        expect(logs[1]).toEqual(JSON.stringify(logCritical));
+        expect(logs[0]).toEqual(Utils.outputLog(logError, OutputModeEnum.Json, 10));
+        expect(logs[1]).toEqual(Utils.outputLog(logCritical, OutputModeEnum.Json, 10));
     });
 
 
@@ -282,8 +288,9 @@ describe("File writer", () => {
             3,
             3,
             true,
-            "./logs.txt",
+            OutputModeEnum.Json,
             false,
+            "./logs.txt",
         );
 
         const logInfo = new LogModel();
@@ -331,7 +338,7 @@ describe("File writer", () => {
         const file = fs.readFileSync("./logs.txt", {encoding: "utf-8"});
         const logs = file.split(";\n");
 
-        expect(logs[0]).toEqual(JSON.stringify(logCritical));
+        expect(logs[0]).toEqual(Utils.outputLog(logCritical, OutputModeEnum.Json, 10));
     });
 
     it("should log stacked logs if log something", async () => {
@@ -344,8 +351,9 @@ describe("File writer", () => {
             3,
             3,
             true,
-            "./logs.txt",
+            OutputModeEnum.Json,
             false,
+            "./logs.txt",
         );
 
         const logInfo = new LogModel();
@@ -393,11 +401,11 @@ describe("File writer", () => {
         const file = fs.readFileSync("./logs.txt", {encoding: "utf-8"});
         const logs = file.split(";\n");
 
-        expect(logs[0]).toEqual(JSON.stringify(logInfo));
-        expect(logs[1]).toEqual(JSON.stringify(logDebug));
-        expect(logs[2]).toEqual(JSON.stringify(logWarning));
-        expect(logs[3]).toEqual(JSON.stringify(logError));
-        expect(logs[4]).toEqual(JSON.stringify(logCritical));
+        expect(logs[0]).toEqual(Utils.outputLog(logInfo, OutputModeEnum.Json, 10));
+        expect(logs[1]).toEqual(Utils.outputLog(logDebug, OutputModeEnum.Json, 10));
+        expect(logs[2]).toEqual(Utils.outputLog(logWarning, OutputModeEnum.Json, 10));
+        expect(logs[3]).toEqual(Utils.outputLog(logError, OutputModeEnum.Json, 10));
+        expect(logs[4]).toEqual(Utils.outputLog(logCritical, OutputModeEnum.Json, 10));
     });
 
 });
