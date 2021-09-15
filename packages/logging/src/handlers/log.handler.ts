@@ -53,7 +53,6 @@ export class LogHandler implements LogHandlerInterface {
       log.extra["__diagnostics"] = Utils.getDiagnostics(new Error());
     }
 
-
     for(const writer of this.loggers){
       if(writer.isActive()) {
         writer.readableStream.push(log);
