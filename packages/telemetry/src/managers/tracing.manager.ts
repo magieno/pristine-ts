@@ -259,10 +259,6 @@ export class TracingManager implements TracingManagerInterface {
             return;
         }
 
-        this.loghandler.debug("End Trace", {
-            trace: this.trace,
-        })
-
         // Notify the TraceListeners that the span was ended.
         this.tracers.forEach( (tracer:TracerInterface) => {
             this.loghandler.debug("Pushing the tracer into the traceEndedStream.", {
@@ -271,6 +267,10 @@ export class TracingManager implements TracingManagerInterface {
             })
 
             tracer.traceEndedStream?.push(this.trace);
+        })
+
+        this.loghandler.debug("End Trace", {
+            trace: this.trace,
         })
     }
 }

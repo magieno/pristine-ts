@@ -2,6 +2,7 @@ import {LogModel} from "../models/log.model";
 import {OutputModeEnum} from "../enums/output-mode.enum";
 import {SeverityEnum} from "../enums/severity.enum";
 import format from "date-fns/format";
+import {DiagnosticsModel} from "../models/diagnostics.model";
 
 export class Utils {
 
@@ -106,5 +107,32 @@ export class Utils {
             case OutputModeEnum.Simple:
                 return format(log.date, "yyyy-MM-dd HH:mm:ss") + " - " + " [" + this.getSeverityText(log.severity) + "] - " + log.message + " - " + JSON.stringify(Utils.truncate(log.extra, 2));
         }
+    }
+
+    public static getDiagnostics(error: Error): DiagnosticsModel {
+        const diagnostics: DiagnosticsModel = new DiagnosticsModel();
+
+        const errorStack = error.stack;
+
+        const regex = new RegExp("at (?:(.+?)\\s+\\()?(?:(.+?):(\\d+)(?::(\\d+))?|([^)]+))\\)?", "g");
+
+        if (errorStack === undefined) {
+            return diagnostics;
+        }
+
+        let match = regex.exec(errorStack);
+
+        while (match !== null) {
+            diagnostics.stackTrace.push({
+                className : match[1],
+                filename : match[2],
+                line : match[3],
+                column : match[4],
+            });
+
+            match = regex.exec(errorStack);
+        }
+
+        return diagnostics;
     }
 }

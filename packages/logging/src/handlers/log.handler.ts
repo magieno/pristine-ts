@@ -5,12 +5,14 @@ import {LogModel} from "../models/log.model";
 import {LoggerInterface} from "../interfaces/logger.interface";
 import {ServiceDefinitionTagEnum, tag, TracingContext, InternalContainerParameterEnum} from "@pristine-ts/common";
 import {LogHandlerInterface} from "../interfaces/log-handler.interface";
+import {Utils} from "../utils/utils";
 
 @tag("LogHandlerInterface")
 @injectable()
 export class LogHandler implements LogHandlerInterface {
 
   public constructor(@injectAll(ServiceDefinitionTagEnum.Logger) private readonly loggers: LoggerInterface[],
+                     @inject("%pristine.logging.logSeverityLevelConfiguration%") private readonly logSeverityLevelConfiguration: number,
                      @inject(InternalContainerParameterEnum.KernelInstantiationId) private readonly kernelInstantiationId: string,
                      private readonly tracingContext: TracingContext) {
   }
@@ -44,6 +46,13 @@ export class LogHandler implements LogHandlerInterface {
     log.message = message;
     log.module = module;
     log.date = new Date();
+
+    // If the logSeveritylevel configuration is set to debug, we will include additional information into a __diagnostics path into extra.
+    // This is an intensive process and will only be available when in Debug
+    if(this.logSeverityLevelConfiguration === SeverityEnum.Debug) {
+      log.extra["__diagnostics"] = Utils.getDiagnostics(new Error());
+    }
+
 
     for(const writer of this.loggers){
       if(writer.isActive()) {
