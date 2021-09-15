@@ -87,8 +87,8 @@ export class Utils {
         }
     }
 
-    public static outputLog(log: LogModel, outputMode: OutputModeEnum, logDepth: number): string {
-        const jsonSortOrders = ["severity", "module", "message", "date"];
+    public static outputLog(log: LogModel, outputMode: OutputModeEnum, logDepth: number, spaceNumber = 0): string {
+        const jsonSortOrders = ["severity", "message", "date", "module", "traceId", "kernelInstantiationId",];
 
         switch (outputMode) {
             case OutputModeEnum.Json:
@@ -96,14 +96,13 @@ export class Utils {
                 truncatedLog.severity = Utils.getSeverityText(truncatedLog.severity);
 
                 const truncatedLogKeys = Utils.getDeepKeys(truncatedLog);
-                delete truncatedLogKeys["severity"];
-                delete truncatedLogKeys["module"];
-                delete truncatedLogKeys["message"];
-                delete truncatedLogKeys["date"];
+                jsonSortOrders.forEach(jsonSortOrder => {
+                    delete truncatedLogKeys[jsonSortOrder];
+                })
 
                 jsonSortOrders.push(...truncatedLogKeys);
 
-                return JSON.stringify(truncatedLog, jsonSortOrders);
+                return JSON.stringify(truncatedLog, jsonSortOrders, spaceNumber);
             case OutputModeEnum.Simple:
                 return format(log.date, "yyyy-MM-dd HH:mm:ss") + " - " + " [" + this.getSeverityText(log.severity) + "] - " + log.message + " - " + JSON.stringify(Utils.truncate(log.extra, 2));
         }

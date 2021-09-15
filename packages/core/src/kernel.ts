@@ -11,6 +11,7 @@ import {
     RouterInterface,
 } from "@pristine-ts/networking";
 import {
+    InternalContainerParameterEnum,
     ModuleInterface,
     moduleScopedServicesRegistry,
     ProviderRegistration,
@@ -36,6 +37,7 @@ import {EventInterceptorInterface} from "./interfaces/event-interceptor.interfac
 import {Span, SpanKeynameEnum, TracingManagerInterface} from "@pristine-ts/telemetry";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {CoreModuleKeyname} from "./core.module.keyname";
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * This is the central class that manages the lifecyle of this library.
@@ -70,6 +72,12 @@ export class Kernel {
      */
     private initializationSpan: Span = new Span(SpanKeynameEnum.KernelInitialization);
 
+    /**
+     * Contains the unique instantiation identifier of this specific kernel instance.
+     * @public
+     */
+    public instantiationId: string = uuidv4();
+
     public constructor() {
     }
 
@@ -80,6 +88,11 @@ export class Kernel {
      * @param moduleConfigurationValues
      */
     public async init(module: ModuleInterface, moduleConfigurationValues?: { [key: string]: ModuleConfigurationValue }) {
+        // Register the InstantiationId in the container.
+        this.container.register(InternalContainerParameterEnum.KernelInstantiationId, {
+            useValue: this.instantiationId,
+        });
+
         // Inits the application module and its dependencies.
         await this.initModule(module);
 
@@ -424,40 +437,38 @@ export class Kernel {
     public async handleRawEvent(rawEvent: object): Promise<void> {
         const logHandler: LogHandlerInterface = this.container.resolve("LogHandlerInterface");
 
-        const tracingManager: TracingManagerInterface = this.container.resolve("TracingManagerInterface");
-        tracingManager.startTracing();
-        this.initializationSpan.trace = tracingManager.trace!;
-        tracingManager.addSpan(this.initializationSpan);
-        this.initializationSpan.end();
-
-        const eventSpan = tracingManager.startSpan(SpanKeynameEnum.EventExecution);
+        const eventInitializationSpan: Span = new Span(SpanKeynameEnum.EventInitialization);
 
         logHandler.debug("Executing the Raw Event Interceptors", {rawEvent}, CoreModuleKeyname);
 
         const interceptedRawEvent = await this.executeRawEventInterceptors(rawEvent);
 
-        logHandler.debug("Intercepted Raw Event", {interceptedRawEvent}, CoreModuleKeyname);
+        logHandler.debug("Completed execution of the Raw Event Interceptors", {interceptedRawEvent}, CoreModuleKeyname);
 
         const eventTransformer: EventTransformer = this.container.resolve(EventTransformer);
 
         // Transform the raw event into an array of Event object
+        logHandler.debug("Transforming the Raw Events into an array of Events", {interceptedRawEvent}, CoreModuleKeyname);
+
         let events: Event<any>[] = eventTransformer.transform(interceptedRawEvent);
 
-        logHandler.debug("Transformed Events", {events}, CoreModuleKeyname);
+        logHandler.debug("Completed the transformation of the Raw Events into Events", {events}, CoreModuleKeyname);
+
+        eventInitializationSpan.end();
 
         // Handle all of the parsed events
         const promises: Promise<void>[] = [];
         for (let event of events) {
-            promises.push(this.handleParsedEvent(event));
+            promises.push(this.handleParsedEvent(event, eventInitializationSpan));
         }
 
         return new Promise(resolve => {
             Promise.allSettled(promises).then(results => {
                 results.forEach(result => {
                     if (result.status === 'fulfilled') {
-                        logHandler.debug("Event Fulfilled", {result}, CoreModuleKeyname)
+                        logHandler.debug("Event was successfully handled", {result}, CoreModuleKeyname)
                     } else {
-                        logHandler.error("Event Error", {
+                        logHandler.error("There was an error handling the event.", {
                             result: {
                                 status: result.status,
                                 reason: result.reason + "",
@@ -465,9 +476,6 @@ export class Kernel {
                         }, CoreModuleKeyname)
                     }
                 });
-
-                eventSpan.end();
-                tracingManager.endTrace();
 
                 return resolve();
             });
@@ -479,33 +487,48 @@ export class Kernel {
      *
      * @param rawEvent
      */
-    private async handleParsedEvent(parsedEvent: Event<any>) {
+    private async handleParsedEvent(parsedEvent: Event<any>, rawEventInitializationSpan: Span) {
         // Start by creating a child container and we will use this container to instantiate the dependencies for this event
         const childContainer = this.container.createChildContainer();
+
+        const tracingManager: TracingManagerInterface = childContainer.resolve("TracingManagerInterface");
+        tracingManager.startTracing();
+        this.initializationSpan.trace = tracingManager.trace!;
+        tracingManager.addSpan(this.initializationSpan);
+        tracingManager.addSpan(rawEventInitializationSpan);
+        this.initializationSpan.end();
+        rawEventInitializationSpan.end();
+
+        const eventSpan = tracingManager.startSpan(SpanKeynameEnum.EventExecution);
 
         const logHandler: LogHandlerInterface = childContainer.resolve("LogHandlerInterface");
 
         const eventDispatcher: EventDispatcher = childContainer.resolve(EventDispatcher);
 
         try {
+            logHandler.debug("Starting the handling of the parsed event", {parsedEvent}, CoreModuleKeyname)
+
             logHandler.debug("Executing the event interceptors", {parsedEvent}, CoreModuleKeyname)
 
             // Execute the interceptors
             parsedEvent = await this.executeEventInterceptors(parsedEvent, childContainer);
 
-            logHandler.debug("Executed the event interceptors", {parsedEvent}, CoreModuleKeyname)
+            logHandler.debug("The event interceptors were successfully executed.", {parsedEvent}, CoreModuleKeyname)
 
             logHandler.debug("Dispatching the parsed event", {parsedEvent}, CoreModuleKeyname)
 
             // Dispatch the Event to the EventListeners
             await eventDispatcher.dispatch(parsedEvent);
 
-            logHandler.debug("Executed the event interceptors", {parsedEvent}, CoreModuleKeyname)
+            logHandler.debug("The parsed Event was successfully dispatched.", {parsedEvent}, CoreModuleKeyname)
 
         } catch (error) {
-            logHandler.error("Error handling the parsed event", {error}, CoreModuleKeyname)
+            logHandler.error("Thee was an error handling the parsed event", {error}, CoreModuleKeyname)
 
             throw error;
+        } finally {
+            eventSpan.end()
+            tracingManager.endTrace()
         }
     }
 
