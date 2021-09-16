@@ -38,6 +38,8 @@ describe("JWT Module instantiation in the Kernel", () => {
         } as AppModuleInterface, {
             "pristine.jwt.algorithm": "RS256",
             "pristine.jwt.publicKey": JWTKeys.RS256.withoutPassphrase.public,
+            "pristine.logging.consoleLoggerActivated": false,
+            "pristine.logging.fileLoggerActivated": false,
         });
 
         const request: RequestInterface = {
@@ -74,6 +76,8 @@ describe("JWT Module instantiation in the Kernel", () => {
         } as AppModuleInterface, {
             "pristine.jwt.algorithm": "RS256",
             "pristine.jwt.publicKey": JWTKeys.RS256.withoutPassphrase.public,
+            "pristine.logging.consoleLoggerActivated": false,
+            "pristine.logging.fileLoggerActivated": false,
         });
 
         const request: RequestInterface = {

@@ -7,7 +7,6 @@ import {AwsModule, KafkaEventPayload, KafkaEventType} from "@pristine-ts/aws";
 import {Event, EventListenerInterface, EventTransformError} from "@pristine-ts/event";
 
 
-
 const moduleTest: ModuleInterface = {
     keyname: "Module",
     importModules: [
@@ -25,7 +24,10 @@ describe("Handle events", () => {
         it("should throw an error when no support for parsing the event", async () => {
             const rawEvent = {}
             const kernel = new Kernel();
-            await kernel.init(moduleTest);
+            await kernel.init(moduleTest, {
+                "pristine.logging.consoleLoggerActivated": false,
+                "pristine.logging.fileLoggerActivated": false,
+            });
 
             let error
             try {
@@ -67,7 +69,7 @@ describe("Handle events", () => {
         };
 
         @tag(ServiceDefinitionTagEnum.EventListener)
-        class KafkaEventListener implements EventListenerInterface{
+        class KafkaEventListener implements EventListenerInterface {
             async handle<KafkaEventPayload>(event: Event<KafkaEventPayload>): Promise<void> {
                 valuesToBeModified.push(event);
             }
@@ -81,7 +83,10 @@ describe("Handle events", () => {
         it("should handle a kafka event", async () => {
 
             const kernel = new Kernel();
-            await kernel.init(moduleTest);
+            await kernel.init(moduleTest, {
+                "pristine.logging.consoleLoggerActivated": false,
+                "pristine.logging.fileLoggerActivated": false,
+            });
 
 
             const response = await kernel.handleRawEvent(rawEvent);
@@ -117,7 +122,7 @@ describe("Handle events", () => {
                             timestamp: new Date(1596480920837),
                             timestampType: "CREATE_TIME",
                             value: {
-                                key:"value"
+                                key: "value"
                             }
                         }
                     ]

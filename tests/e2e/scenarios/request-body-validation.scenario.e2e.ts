@@ -38,6 +38,9 @@ describe("Request Body Validation", () => {
             keyname: "pristine.validation.test",
             importModules: [CoreModule, NetworkingModule, ValidationModule],
             providerRegistrations: []
+        }, {
+            "pristine.logging.consoleLoggerActivated": false,
+            "pristine.logging.fileLoggerActivated": false,
         });
     })
 

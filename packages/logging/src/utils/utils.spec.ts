@@ -3,6 +3,7 @@ import {Utils} from "./utils";
 import {LogModel} from "../models/log.model";
 import {SeverityEnum} from "../enums/severity.enum";
 import {OutputModeEnum} from "../enums/output-mode.enum";
+import * as Util from "util";
 
 describe("Utils", () => {
 
@@ -112,5 +113,23 @@ describe("Utils", () => {
 
         expect(Utils.truncate(object, 1)).toEqual({bonjour:new Date(1615830493000)});
     });
+
+    it("should return the diagnostics", () => {
+        const diagnostics = Utils.getDiagnostics({
+            stack: "Error\n    at LogHandler.log (/Users/etiennenoel/Library/Application Support/JetBrains/IntelliJIdea2021.2/scratches/scratch_13.js:3:49)\n    at Main.run (/Users/etiennenoel/Library/Application Support/JetBrains/IntelliJIdea2021.2/scratches/scratch_13.js:11:25)\n    at Object.<anonymous> (/Users/etiennenoel/Library/Application Support/JetBrains/IntelliJIdea2021.2/scratches/scratch_13.js:17:6)\n    at Module._compile (internal/modules/cjs/loader.js:1063:30)\n    at Object.Module._extensions..js (internal/modules/cjs/loader.js:1092:10)\n    at Module.load (internal/modules/cjs/loader.js:928:32)\n    at Function.Module._load (internal/modules/cjs/loader.js:769:14)\n    at Function.executeUserEntryPoint [as runMain] (internal/modules/run_main.js:72:12)\n    at internal/main/run_main_module.js:17:47",
+            message: "",
+            name: "",
+        })
+
+        expect(diagnostics.stackTrace.length).toBe(9);
+        expect(diagnostics.stackTrace[0].className).toBe("LogHandler.log");
+        expect(diagnostics.stackTrace[0].filename).toBe("/Users/etiennenoel/Library/Application Support/JetBrains/IntelliJIdea2021.2/scratches/scratch_13.js");
+        expect(diagnostics.stackTrace[0].line).toBe("3");
+        expect(diagnostics.stackTrace[0].column).toBe("49");
+        expect(diagnostics.stackTrace[1].className).toBe("Main.run");
+        expect(diagnostics.stackTrace[1].filename).toBe("/Users/etiennenoel/Library/Application Support/JetBrains/IntelliJIdea2021.2/scratches/scratch_13.js");
+        expect(diagnostics.stackTrace[1].line).toBe("11");
+        expect(diagnostics.stackTrace[1].column).toBe("25");
+    })
 
 });
