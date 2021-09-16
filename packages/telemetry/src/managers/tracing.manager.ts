@@ -40,7 +40,7 @@ export class TracingManager implements TracingManagerInterface {
     startTracing(spanRootKeyname: string = SpanKeynameEnum.RootExecution, traceId?: string, context?: any): Span {
         this.trace = new Trace();
         this.trace.id = traceId ?? uuidv4();
-        this.tracingContext.traceId = traceId;
+        this.tracingContext.traceId = this.trace.id;
         this.trace.context = context ?? this.trace.context;
 
         const span = new Span(spanRootKeyname);
