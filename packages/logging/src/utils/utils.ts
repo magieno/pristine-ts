@@ -142,10 +142,6 @@ export class Utils {
             i++;
         }
 
-        if(diagnostics.lastStackTrace === undefined && diagnostics.stackTrace.length > 0) {
-            diagnostics.lastStackTrace = diagnostics.stackTrace[0];
-        }
-
         return diagnostics;
     }
 }
