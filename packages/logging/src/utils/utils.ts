@@ -122,15 +122,23 @@ export class Utils {
 
         let match = regex.exec(errorStack);
 
+        let i = 0;
         while (match !== null) {
-            diagnostics.stackTrace.push({
+            const stackTrace = {
                 className : match[1],
                 filename : match[2],
                 line : match[3],
                 column : match[4],
-            });
+            };
+
+            if(i === 0) {
+                diagnostics.lastStackTrace = stackTrace;
+            }
+
+            diagnostics.stackTrace.push(stackTrace);
 
             match = regex.exec(errorStack);
+            i++;
         }
 
         return diagnostics;

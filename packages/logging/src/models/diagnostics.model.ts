@@ -6,4 +6,10 @@ export class DiagnosticsModel {
         line: string;
         column: string;
     }[] = [];
+    lastStackTrace: {
+        className: string;
+        filename: string;
+        line: string;
+        column: string;
+    };
 }
