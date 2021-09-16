@@ -55,7 +55,7 @@ export class LogHandler implements LogHandlerInterface {
       // Properly define which last stack trace is actually the one we want to report. In this case, it's the stack trace
       // Just before any entries in LogHandler.
       for (const stackTrace of diagnostics.stackTrace) {
-        if(stackTrace.className.startsWith("LogHandler")) {
+        if(stackTrace.className === undefined || stackTrace.className.startsWith("LogHandler")) {
           continue;
         }
 

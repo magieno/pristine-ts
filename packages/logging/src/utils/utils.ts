@@ -123,7 +123,6 @@ export class Utils {
 
         let match = regex.exec(errorStack);
 
-        let i = 0;
         while (match !== null) {
             const stackTrace = {
                 className : match[1],
@@ -132,14 +131,13 @@ export class Utils {
                 column : match[4],
             };
 
-            if(i === 0) {
-                diagnostics.lastStackTrace = stackTrace;
-            }
-
             diagnostics.stackTrace.push(stackTrace);
 
             match = regex.exec(errorStack);
-            i++;
+        }
+
+        if(diagnostics.lastStackTrace === undefined && diagnostics.stackTrace.length > 0) {
+            diagnostics.lastStackTrace = diagnostics.stackTrace[0];
         }
 
         return diagnostics;
