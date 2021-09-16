@@ -110,7 +110,7 @@ export class Utils {
         }
     }
 
-    public static getDiagnostics(error: Error, lastStackLevel: number = 0): DiagnosticsModel {
+    public static getDiagnostics(error: Error): DiagnosticsModel {
         const diagnostics: DiagnosticsModel = new DiagnosticsModel();
 
         const errorStack = error.stack;
@@ -132,7 +132,7 @@ export class Utils {
                 column : match[4],
             };
 
-            if(i === lastStackLevel) {
+            if(i === 0) {
                 diagnostics.lastStackTrace = stackTrace;
             }
 

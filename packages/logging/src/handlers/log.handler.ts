@@ -50,7 +50,20 @@ export class LogHandler implements LogHandlerInterface {
     // If the logSeveritylevel configuration is set to debug, we will include additional information into a __diagnostics path into extra.
     // This is an intensive process and will only be available when in Debug
     if(this.logSeverityLevelConfiguration === SeverityEnum.Debug) {
-      log.extra["__diagnostics"] = Utils.getDiagnostics(new Error(), 2);
+      const diagnostics = Utils.getDiagnostics(new Error());
+
+      // Properly define which last stack trace is actually the one we want to report. In this case, it's the stack trace
+      // Just before any entries in LogHandler.
+      for (const stackTrace of diagnostics.stackTrace) {
+        if(stackTrace.className.startsWith("LogHandler")) {
+          continue;
+        }
+
+        diagnostics.lastStackTrace = stackTrace;
+        break;
+      }
+
+      log.extra["__diagnostics"] = diagnostics;
     }
 
     for(const writer of this.loggers){
