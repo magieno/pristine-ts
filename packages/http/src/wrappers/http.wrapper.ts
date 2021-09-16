@@ -10,6 +10,9 @@ import {HttpClientRequestError} from "../errors/http-client-request.error";
 import {HttpWrapperInterface} from "../interfaces/http-wrapper.interface";
 import querystring from "querystring";
 
+/**
+ * This class is a wrapper around the NodeJS http library for ease of use and testability.
+ */
 @tag('HttpWrapperInterface')
 @injectable()
 export class HttpWrapper implements HttpWrapperInterface {
