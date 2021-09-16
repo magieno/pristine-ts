@@ -50,7 +50,7 @@ export class LogHandler implements LogHandlerInterface {
     // If the logSeveritylevel configuration is set to debug, we will include additional information into a __diagnostics path into extra.
     // This is an intensive process and will only be available when in Debug
     if(this.logSeverityLevelConfiguration === SeverityEnum.Debug) {
-      log.extra["__diagnostics"] = Utils.getDiagnostics(new Error());
+      log.extra["__diagnostics"] = Utils.getDiagnostics(new Error(), 2);
     }
 
     for(const writer of this.loggers){

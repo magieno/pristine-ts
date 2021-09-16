@@ -3,6 +3,7 @@ import {OutputModeEnum} from "../enums/output-mode.enum";
 import {SeverityEnum} from "../enums/severity.enum";
 import format from "date-fns/format";
 import {DiagnosticsModel} from "../models/diagnostics.model";
+import {last} from "lodash";
 
 export class Utils {
 
@@ -109,7 +110,7 @@ export class Utils {
         }
     }
 
-    public static getDiagnostics(error: Error): DiagnosticsModel {
+    public static getDiagnostics(error: Error, lastStackLevel: number = 0): DiagnosticsModel {
         const diagnostics: DiagnosticsModel = new DiagnosticsModel();
 
         const errorStack = error.stack;
@@ -131,7 +132,7 @@ export class Utils {
                 column : match[4],
             };
 
-            if(i === 0) {
+            if(i === lastStackLevel) {
                 diagnostics.lastStackTrace = stackTrace;
             }
 
@@ -139,6 +140,10 @@ export class Utils {
 
             match = regex.exec(errorStack);
             i++;
+        }
+
+        if(diagnostics.lastStackTrace === undefined && diagnostics.stackTrace.length > 0) {
+            diagnostics.lastStackTrace = diagnostics.stackTrace[0];
         }
 
         return diagnostics;
