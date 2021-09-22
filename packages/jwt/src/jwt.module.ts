@@ -42,9 +42,5 @@ export const JwtModule: ModuleInterface = {
     ],
     importModules: [
         NetworkingModule,
-    ],
-    providerRegistrations: [{
-        token: "JwtManagerInterface",
-        useToken: JwtManager,
-    }]
+    ]
 }

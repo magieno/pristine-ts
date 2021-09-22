@@ -13,6 +13,9 @@ import {MathUtils} from "../utils/math.utils";
 import {HttpClientResponseRedirectError} from "../errors/http-client-response-redirect.error";
 import {HttpWrapperInterface} from "../interfaces/http-wrapper.interface";
 
+/**
+ * This service is an http client for any http request you need to make outside of Pristine.
+ */
 @tag('HttpClientInterface')
 @injectable()
 export class HttpClient implements HttpClientInterface {
@@ -26,6 +29,12 @@ export class HttpClient implements HttpClientInterface {
         responseType: ResponseTypeEnum.Raw,
     };
 
+    /**
+     * This service is an http client for any http request you need to make outside of Pristine.
+     * @param httpWrapper The wrapper around NodeJS http.
+     * @param httpRequestInterceptors The interceptors to run before sending the request. All services with the tag ServiceDefinitionTagEnum.HttpRequestInterceptor will be automatically injected here.
+     * @param httpResponseInterceptors The interceptors to run when receiving the reponse. All services with the tag ServiceDefinitionTagEnum.HttpResponseInterceptor will be automatically injected here.
+     */
     constructor(@inject('HttpWrapperInterface') private readonly httpWrapper: HttpWrapperInterface,
                 @injectAll(ServiceDefinitionTagEnum.HttpRequestInterceptor) private readonly httpRequestInterceptors: HttpRequestInterceptorInterface[] = [],
                 @injectAll(ServiceDefinitionTagEnum.HttpResponseInterceptor) private readonly httpResponseInterceptors: HttpResponseInterceptorInterface[] = [],
@@ -33,7 +42,7 @@ export class HttpClient implements HttpClientInterface {
     }
 
     /**
-     * This method is the entry point where the request is passed as an argument and the response is retured.
+     * This method is the entry point where the request is passed as an argument and the response is returned.
      *
      * @param request
      * @param options

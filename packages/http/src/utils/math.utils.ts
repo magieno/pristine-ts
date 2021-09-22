@@ -1,6 +1,6 @@
 export class MathUtils {
     /**
-     * This method returns
+     * This method returns a value for the exponentialBackoffWithJitter.
      * src:
      * - https://docs.microsoft.com/en-us/javascript/api/azure-iot-common/exponentialbackoffwithjitterparameters?view=azure-node-latest
      * - https://docs.microsoft.com/en-us/javascript/api/azure-iot-common/exponentialbackoffwithjitter?view=azure-node-latest#ExponentialBackOffWithJitter_boolean__ErrorFilter_
@@ -21,7 +21,12 @@ export class MathUtils {
             maximumRetryInterval)
     }
 
-    public static random(min: number, max: number) {
+    /**
+     * Returns a random number between min (inclusive) and max (exclusive).
+     * @param min The minimum number the random can be (included).
+     * @param max The maximum number the random can be (excluded).
+     */
+    public static random(min: number, max: number): number {
         return Math.random()*(max - min)+min;
     }
 }
