@@ -22,9 +22,9 @@ export class MathUtils {
     }
 
     /**
-     * Returns a random number between min and max.
-     * @param min The minimum number the random can be.
-     * @param max The maximum number the random can be.
+     * Returns a random number between min (inclusive) and max (exclusive).
+     * @param min The minimum number the random can be (included).
+     * @param max The maximum number the random can be (excluded).
      */
     public static random(min: number, max: number): number {
         return Math.random()*(max - min)+min;
