@@ -4,19 +4,21 @@ import {ControllerMethodParameterDecoratorResolverInterface} from "../interfaces
 import {Request} from "../models/request";
 import {IdentityInterface, moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {NetworkingModuleKeyname} from "../networking.module.keyname";
+import {ParameterDecoratorInterface} from "../interfaces/parameter-decorator.interface";
+import {HeadersParameterDecoratorInterface} from "../interfaces/headers-parameter-decorator.interface";
 
 @moduleScoped(NetworkingModuleKeyname)
 @tag(ServiceDefinitionTagEnum.MethodParameterDecoratorResolver)
 @injectable()
 export class HeadersParameterDecoratorResolver implements ControllerMethodParameterDecoratorResolverInterface {
-    resolve(methodArgument: any,
+    resolve(methodArgument: HeadersParameterDecoratorInterface,
             request: Request,
             routeParameters: { [p: string]: string },
             identity?: IdentityInterface): Promise<any> {
         return Promise.resolve(request.headers ?? null);
     }
 
-    supports(methodArgument: any): boolean {
+    supports(methodArgument: ParameterDecoratorInterface): boolean {
         return methodArgument && methodArgument.hasOwnProperty("type") && methodArgument.type === "headers";
     }
 }
