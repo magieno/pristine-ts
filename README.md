@@ -1,5 +1,8 @@
 # Pristine
 
+Description
+------------
+
 Pristine is a Typescript framework for NodeJS that is extremely lightweight (very low number of dependencies on other npm packages), 
 that offers incredible performance while coming out of the box with all the features you expect from a full-fledge framework:
 
@@ -16,8 +19,12 @@ that offers incredible performance while coming out of the box with all the feat
 * Telemetry
 * Validation
 
-### Out of the box support:
+Philosophy
+------------
 
+
+Out of the box support from all these third party services (new services added monthly):
+------------
 Pristine comes out of the box with support from these third party services:
 * Auth0
 * AWS
@@ -54,7 +61,9 @@ Pristine is an extremely light framework with extremely minimal dependencies. Pr
 coldstart is necessary. The instantiation process is very quick. Finally, the term pristine inspires the code in this framework to be pristine, clear and concise.
 
 
-### Http hosting
+Hosting
+------------
+
 The Pristine framework is built for Serverless first. We put a lot of efforts in reducing the cold start as much as we can such that the instantation process of the Kernel is very quick (look at the performance tests to see for yourself how fast Pristine can be instantiated with 200 controllers and 1000 of http routes).
 
 That being said, Pristine plays very nicely with the following NodeJS servers:
@@ -66,10 +75,17 @@ That being said, Pristine plays very nicely with the following NodeJS servers:
 
 In fact, your business logic with Pristine is 100% decoupled from how it is hosted (serverless or not). Therefore, Pristine is compatible with every NodeJS server technologies.
 
-### How to begin?
+Contributing
+------------
+
+
+How to begin?
+------------
+
 We encourage you to take a look at the [Getting Started](../docs/getting-started/index.md) documentation for your first steps.
 
-## References
+References
+------------
 
 * [Getting Started](../docs/getting-started/index.md)
 * [How to build the project](../docs/build.md)
