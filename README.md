@@ -87,7 +87,7 @@ In fact, your business logic with Pristine is 100% decoupled from how it is host
 
 How to begin?
 ------------
-We encourage you to take a look at the [Getting Started](../docs/getting-started/index.md) documentation for your first steps.
+We encourage you to take a look at the [Getting Started](docs/getting-started/index.md) documentation for your first steps.
 
 References
 ------------
