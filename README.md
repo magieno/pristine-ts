@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-    The Pristine framework is a very <strong>lightweight</strong>, incredibly <strong>fast</strong> with <strong>all the features</strong> from a <strong>full-fledge framework</strong>.
+    The Pristine framework is a very <strong>lightweight</strong>, incredibly <strong>fast</strong> with <strong>most of the features</strong> you expect from a <strong>full-fledge framework</strong>.
 </p>
 
 
