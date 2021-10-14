@@ -1,4 +1,12 @@
-# Pristine
+<p align="center">
+    <img src="assets/logo/pristine-logo.svg">
+</p>
+
+<p align="center">
+    The Pristine framework is a very <strong>lightweight</strong>, incredibly <strong>fast</strong> with <strong>all the features</strong> from a <strong>full-fledge framework</strong>.
+</p>
+
+
 
 Description
 ------------
@@ -21,7 +29,8 @@ that offers incredible performance while coming out of the box with all the feat
 
 Philosophy
 ------------
-
+Pristine is an extremely light framework with extremely minimal dependencies. Pristine can be used in a serverless context where having a very fast
+coldstart is necessary. The instantiation process is very quick. Finally, the term pristine inspires the code in this framework to be pristine, clear and concise.
 
 Out of the box support from all these third party services (new services added monthly):
 ------------
@@ -56,9 +65,6 @@ Pristine comes out of the box with support from these third party services:
 * GraphQL
 * MongoDB
 * Kafka
-
-Pristine is an extremely light framework with extremely minimal dependencies. Pristine can be used in a serverless context where having a very fast
-coldstart is necessary. The instantiation process is very quick. Finally, the term pristine inspires the code in this framework to be pristine, clear and concise.
 
 
 Hosting
