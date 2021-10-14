@@ -32,7 +32,7 @@ that offers incredible performance while coming out of the box with all the feat
 Philosophy
 ------------
 Pristine is an extremely light framework with extremely minimal dependencies. Pristine can be used in a serverless context where having a very fast
-coldstart is necessary. The instantiation process is very quick. Finally, the term pristine inspires the code in this framework to be pristine, clear and concise.
+cold start is necessary. The instantiation process is very quick. Finally, the term pristine inspires the code in this framework to be pristine, clear and concise.
 
 Out of the box support from all these third party services (new services added monthly):
 ------------
