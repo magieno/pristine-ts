@@ -11,20 +11,22 @@
 Description
 ------------
 
-Pristine is a Typescript framework for NodeJS that is extremely lightweight (very low number of dependencies on other npm packages), 
+Pristine is a [Typescript](https://www.typescriptlang.org) framework for [NodeJS](https://nodejs.org/en/) that is extremely lightweight (very low number of dependencies on other npm packages), 
 that offers incredible performance while coming out of the box with all the features you expect from a full-fledge framework:
 
-* Dependency Injection
-* Configuration
-  * Environment variables
-  * AWS SSM
-  * Configuration Files
-  * Code
 * Authentication
 * Authorization
+* Configuration
+  * AWS SSM
+  * Code based
+  * Configuration files
+  * Environment variables
+* Dependency Injection (powered by [TSyringe](https://github.com/microsoft/tsyringe))
+* Events
+* Http Client
 * Logging
 * Scheduling
-* Telemetry
+* Tracing
 * Validation
 
 Philosophy
@@ -81,17 +83,11 @@ That being said, Pristine plays very nicely with the following NodeJS servers:
 
 In fact, your business logic with Pristine is 100% decoupled from how it is hosted (serverless or not). Therefore, Pristine is compatible with every NodeJS server technologies.
 
-Contributing
-------------
-
-
 How to begin?
 ------------
-
 We encourage you to take a look at the [Getting Started](../docs/getting-started/index.md) documentation for your first steps.
 
 References
 ------------
-
 * [Getting Started](../docs/getting-started/index.md)
 * [How to build the project](../docs/build.md)
