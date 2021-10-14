@@ -91,5 +91,5 @@ We encourage you to take a look at the [Getting Started](../docs/getting-started
 
 References
 ------------
-* [Getting Started](../docs/getting-started/index.md)
-* [How to build the project](../docs/build.md)
+* [Getting Started](docs/getting-started/index.md)
+* [How to build the project](docs/build.md)
