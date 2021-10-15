@@ -6,7 +6,9 @@
     The Pristine framework is a very <strong>lightweight</strong>, incredibly <strong>fast</strong> with <strong>most of the features</strong> you expect from a <strong>full-fledge framework</strong>.
 </p>
 
-
+<p align="center">
+<strong>Our mission</strong>: Building a lightweight full-fledge framework that has a minimal impact on cold starts when being ran in FaaS while being as efficient in traditional hosting.
+</p>
 
 Description
 ------------
