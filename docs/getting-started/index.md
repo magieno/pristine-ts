@@ -1,3 +1,7 @@
+<p>
+   <strong>Previous: </strong> <a href="../../README.md">Readme</a>
+</p>
+
 # Getting Started
 
 Pristine is a [Typescript](https://www.typescriptlang.org) framework for [NodeJS](https://nodejs.org/en/) that is
@@ -34,14 +38,7 @@ begin using Pristine in your project.
 8. [Authorization](docs/getting-started/08-authorization/00.index.md)
 9. [Telemetry](docs/getting-started/09-telemetry/00.index.md)
 
----------
-<table>
-   <tr>
-      <td width="506">
-         <strong>Previous: </strong> <a href="../../README.md">Readme</a>
-      </td>
-      <td width="506" align="right">
-         <strong>Next chapter: </strong> <a href="01-overview/00.index.md">Overview</a>
-      </td>
-   </tr>
-</table>
+
+<p align="right">
+   <strong>Next chapter: </strong> <a href="01-overview/00.index.md">Overview</a>
+</p>
