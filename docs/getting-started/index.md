@@ -38,6 +38,7 @@ begin using Pristine in your project.
 8. [Authorization](docs/getting-started/08-authorization/00.index.md)
 9. [Telemetry](docs/getting-started/09-telemetry/00.index.md)
 
+---
 
 <p align="right">
    <strong>Next chapter: </strong> <a href="01-overview/00.index.md">Overview</a>

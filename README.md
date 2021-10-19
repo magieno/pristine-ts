@@ -136,6 +136,7 @@ We encourage you to take a look at the [Getting Started](docs/getting-started/in
 * [How to build the project](docs/build.md)
 
 -----
+
 <p align="right">
 <strong>Next: </strong> <a href="docs/getting-started/index.md">Getting Started</a>
 </p>
