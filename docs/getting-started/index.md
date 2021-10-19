@@ -32,6 +32,11 @@ This Getting Started Guide is divided in chapters so we encourage you to read th
 9. [Telemetry](docs/getting-started/09-telemetry/00.index.md)
 
 ---------
+<p align="left" style="float:left">
+<strong>Previous: </strong> <a href="../../README.md">Readme</a>
+</p>
+
+
 <p align="right">
 <strong>Next chapter: </strong> <a href="01-overview/00.index.md">Overview</a>
 </p>
