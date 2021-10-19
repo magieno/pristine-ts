@@ -30,3 +30,8 @@ This Getting Started Guide is divided in chapters so we encourage you to read th
 7. [Logging](docs/getting-started/07-logging/00.index.md)
 8. [Authorization](docs/getting-started/08-authorization/00.index.md)
 9. [Telemetry](docs/getting-started/09-telemetry/00.index.md)
+
+---------
+<p align="right">
+<strong>Next chapter: </strong> <a href="01-overview/00.index.md">Overview</a>
+</p>

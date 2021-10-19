@@ -137,3 +137,8 @@ References
 ------------
 * [Getting Started](docs/getting-started/index.md)
 * [How to build the project](docs/build.md)
+
+-----
+<p align="right">
+<strong>Next: </strong> <a href="docs/getting-started/index.md">Getting Started</a>
+</p>
