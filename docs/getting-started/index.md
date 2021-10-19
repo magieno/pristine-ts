@@ -1,5 +1,4 @@
-Getting Started
-------------
+# Getting Started
 
 Pristine is a [Typescript](https://www.typescriptlang.org) framework for [NodeJS](https://nodejs.org/en/) that is
 extremely lightweight (very low number of dependencies on other npm packages), that offers incredible performance while
@@ -8,7 +7,8 @@ coming out of the box with all the features you expect from a full-fledge framew
 This Getting Started Guide is divided in chapters so we encourage you to read them in order to understand fully how to
 begin using Pristine in your project.
 
-### Chapters
+Chapters
+--------
 
 1. [Overview](01-overview/00.index.md)
     1. [Setup](01-overview/01.setup.md)
