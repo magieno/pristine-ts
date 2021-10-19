@@ -10,8 +10,7 @@
 <strong>Our mission</strong>: Building a lightweight full-fledge framework that has a minimal impact on cold starts when being ran in FaaS while being as efficient in traditional hosting.
 </p>
 
-Description
-------------
+## Description
 
 Pristine is a [Typescript](https://www.typescriptlang.org) framework for [NodeJS](https://nodejs.org/en/) that is extremely lightweight (very low number of dependencies on other npm packages), 
 that offers incredible performance while coming out of the box with all the features you expect from a full-fledge framework:
