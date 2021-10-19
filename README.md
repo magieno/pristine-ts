@@ -30,8 +30,7 @@ that offers incredible performance while coming out of the box with all the feat
 * Tracing
 * Validation
 
-Philosophy
-------------
+## Philosophy
 Pristine is an extremely light framework with extremely minimal dependencies. Pristine can be used in a serverless context where having a very fast
 cold start is necessary. The instantiation process is very quick. Finally, the term pristine inspires the code in this framework to be pristine, clear and concise.
 
@@ -39,7 +38,7 @@ Pristine is built with the strong opinion that your business logic should be 100
 
 Instead of being tightly coupled with a Http Server, Pristine is entirely decoupled from how it is hosted. To do so, Pristine encapsulates its own Request object. Then, you have the choice of the Http Server you want to use. You simply need a mapper specific to the Http Server and that's it. (Don't worry, we try to create one for each available http server).
 
-#### Why bother you might ask?
+### Why bother you might ask?
 The biggest benefit of this approach is the performance gain you get when you host your code as a Function as a Service (FaaS) provider. In the Serverless world, being coupled with a Http Server is major handicap.
 
 In a Function as a Service(FaaS) world, the Cloud providers all have builtin mechanisms to transform Http requests into binary objects, compatible with the runtime language of the function, that can be used directly in the code without any further transformation.
@@ -60,7 +59,7 @@ As you can start to understand, this also means that we can easily map any Http 
 Therefore, Pristine's process is much simpler and much faster:
 Http Client ---> Cloud --> Function Invocation (with Request object) --> Cloud Specific Request Mapper --> Pristine
 
-#### What about cold starts?
+### What about cold starts?
 If you are familiar with FaaS, you are definitely familiar with the concept of cold starts.
 
 A cold start refers to the first instantiation of a function. Behind the scenes, depending on the implementation, the Cloud Provider has to quickly launch a container (or a NodeJS process in the case of CloudFlare Workers) and set it up properly (networking, attached disks, etc..) before serving the request.
@@ -73,12 +72,12 @@ Additionally, not increasing the cold start is important. This last sentence is 
 
 > Building a lightweight full-fledge framework that has a minimal impact on cold starts when being ran in FaaS while being as efficient in traditional hosting.
 
-#### This is great, but I don't want to use Serverless
+### This is great, but I don't want to use Serverless
 
 No worries. That's why we built it to be very decoupled. Therefore, hosting it in a traditional http server won't incur a performance hit.
 
-Out of the box support from all these third party services (new services added monthly):
-------------
+## Out of the box support from all these third party services (new services added monthly):
+
 Pristine comes out of the box with support from these third party services:
 * [Auth0](https://auth0.com)
 * AWS
@@ -106,7 +105,7 @@ Pristine comes out of the box with support from these third party services:
 * [Sentry](https://sentry.io/welcome/)
 * [Stripe](https://stripe.com)
 
-### Coming soon:
+## Coming soon:
 
 **Side note here, this list doesn't mean that Pristine is NOT compatible with the following third party services. Pristine is extensible so you can easily integrate any libraries. This list simply means that the out of the box support is not yet available.** 
 * GraphQL
@@ -114,8 +113,7 @@ Pristine comes out of the box with support from these third party services:
 * Kafka
 
 
-Hosting
-------------
+## Hosting
 
 The Pristine framework is built for Serverless first. We put a lot of efforts in reducing the cold start as much as we can such that the instantation process of the Kernel is very quick (look at the performance tests to see for yourself how fast Pristine can be instantiated with 200 controllers and 1000 of http routes).
 
@@ -128,12 +126,12 @@ That being said, Pristine plays very nicely with the following NodeJS servers:
 
 In fact, your business logic with Pristine is 100% decoupled from how it is hosted (serverless or not). Therefore, Pristine is compatible with every NodeJS server technologies.
 
-How to begin?
-------------
+## How to begin?
+
 We encourage you to take a look at the [Getting Started](docs/getting-started/index.md) documentation for your first steps.
 
-References
-------------
+## References
+
 * [Getting Started](docs/getting-started/index.md)
 * [How to build the project](docs/build.md)
 
