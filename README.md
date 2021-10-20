@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-<strong>Our mission</strong>: Building a lightweight full-fledge framework that has a minimal impact on cold starts when being ran in FaaS while being as efficient in traditional hosting.
+<strong>Our mission</strong>: Build a lightweight full-fledge framework that has a minimal impact on cold starts when being ran in FaaS while being as efficient in traditional hosting.
 </p>
 
 ## Description
