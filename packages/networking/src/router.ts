@@ -38,7 +38,7 @@ export class Router implements RouterInterface {
     public register(path: string, method: HttpMethod | string, route: Route) {
         const splitPaths = UrlUtil.splitPath(path);
 
-        this.root.add(splitPaths, method, route);
+        this.root.add(splitPaths, method, route, 0);
     }
 
     /**

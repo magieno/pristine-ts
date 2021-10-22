@@ -7,7 +7,7 @@ describe("Path Router Node tests", () => {
     it("should instantiate with the appropriate parent and httpMethod", () => {
         const pathRouterNode = new PathRouterNode("/allo", undefined)
 
-        const methodRouterNode = new MethodRouterNode(pathRouterNode, HttpMethod.Get, new Route("controller", "key"));
+        const methodRouterNode = new MethodRouterNode(pathRouterNode, HttpMethod.Get, new Route("controller", "key"), 1);
 
         expect(methodRouterNode.parent).toBeDefined();
         expect(methodRouterNode.parent).toBe(pathRouterNode);
@@ -19,7 +19,7 @@ describe("Path Router Node tests", () => {
     it("should matches when it's defined with a certain http httpMethod", () => {
         const pathRouterNode = new PathRouterNode("/allo", undefined)
 
-        const methodRouterNode = new MethodRouterNode(pathRouterNode, HttpMethod.Get, new Route("controller", "key"));
+        const methodRouterNode = new MethodRouterNode(pathRouterNode, HttpMethod.Get, new Route("controller", "key"), 1);
 
         expect(methodRouterNode.matches(HttpMethod.Get)).toBeTruthy();
     })
@@ -27,7 +27,7 @@ describe("Path Router Node tests", () => {
     it("should not match when it's defined with a certain http httpMethod and passed with another", () => {
         const pathRouterNode = new PathRouterNode("/allo", undefined)
 
-        const methodRouterNode = new MethodRouterNode(pathRouterNode, HttpMethod.Get, new Route("controller", "key"));
+        const methodRouterNode = new MethodRouterNode(pathRouterNode, HttpMethod.Get, new Route("controller", "key"), 1);
 
         expect(methodRouterNode.matches(HttpMethod.Post)).toBeFalsy();
     })
@@ -35,7 +35,7 @@ describe("Path Router Node tests", () => {
     it("should return the node when calling find if the httpMethod matches", () => {
         const pathRouterNode = new PathRouterNode("/allo", undefined)
 
-        const methodRouterNode = new MethodRouterNode(pathRouterNode, HttpMethod.Get, new Route("controller", "key"));
+        const methodRouterNode = new MethodRouterNode(pathRouterNode, HttpMethod.Get, new Route("controller", "key"), 1);
 
         expect(methodRouterNode.find([], HttpMethod.Get)).toBeDefined();
         expect(methodRouterNode.find([], HttpMethod.Get)).toBe(methodRouterNode);
@@ -44,7 +44,7 @@ describe("Path Router Node tests", () => {
     it("should return nul when calling find if the httpMethod doesn't match", () => {
         const pathRouterNode = new PathRouterNode("/allo", undefined)
 
-        const methodRouterNode = new MethodRouterNode(pathRouterNode, HttpMethod.Get, new Route("controller", "key"));
+        const methodRouterNode = new MethodRouterNode(pathRouterNode, HttpMethod.Get, new Route("controller", "key"), 1);
 
         expect(methodRouterNode.find([], HttpMethod.Post)).toBeNull();
     })

@@ -39,7 +39,7 @@ describe("Body Validation Request Enricher", () => {
         route.context = {}
         route.context.bodyValidator = undefined;
 
-        const methodRouterNode: MethodRouterNode = new MethodRouterNode(new PathRouterNode("/"), HttpMethod.Get, route)
+        const methodRouterNode: MethodRouterNode = new MethodRouterNode(new PathRouterNode("/"), HttpMethod.Get, route, 1)
 
         const returnedRequest = await bodyValidationRequestEnricher.enrichRequest(request, methodRouterNode);
 
@@ -61,7 +61,7 @@ describe("Body Validation Request Enricher", () => {
         route.context.bodyValidator = {};
         route.context.bodyValidator.classType = undefined;
 
-        const methodRouterNode: MethodRouterNode = new MethodRouterNode(new PathRouterNode("/"), HttpMethod.Get, route)
+        const methodRouterNode: MethodRouterNode = new MethodRouterNode(new PathRouterNode("/"), HttpMethod.Get, route, 1)
 
         const returnedRequest = await bodyValidationRequestEnricher.enrichRequest(request, methodRouterNode);
 
@@ -86,7 +86,7 @@ describe("Body Validation Request Enricher", () => {
         route.context.bodyValidator = {};
         route.context.bodyValidator.classType = BodyPayload;
 
-        const methodRouterNode: MethodRouterNode = new MethodRouterNode(new PathRouterNode("/"), HttpMethod.Get, route)
+        const methodRouterNode: MethodRouterNode = new MethodRouterNode(new PathRouterNode("/"), HttpMethod.Get, route, 1)
 
         const returnedRequest = await bodyValidationRequestEnricher.enrichRequest(request, methodRouterNode);
 
@@ -111,7 +111,7 @@ describe("Body Validation Request Enricher", () => {
         route.context.bodyValidator = {};
         route.context.bodyValidator.classType = BodyPayload;
 
-        const methodRouterNode: MethodRouterNode = new MethodRouterNode(new PathRouterNode("/"), HttpMethod.Get, route)
+        const methodRouterNode: MethodRouterNode = new MethodRouterNode(new PathRouterNode("/"), HttpMethod.Get, route, 1)
 
         expect(bodyValidationRequestEnricher.enrichRequest(request, methodRouterNode)).rejects.toThrow();
     })

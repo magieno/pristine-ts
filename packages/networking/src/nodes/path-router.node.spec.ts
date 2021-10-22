@@ -36,6 +36,13 @@ describe("Path Router Node tests", () => {
         expect(pathRouterNode.matches("24a12cf7-8bc7-447c-9cb0-d97f5eb23fbb")).toBeTruthy();
     })
 
+    it("should match if the path is a catch-all: '*'", () => {
+        const pathRouterNode = new PathRouterNode("/*", undefined)
+
+        expect(pathRouterNode.matches("24a12cf7-8bc7-447c-9cb0-d97f5eb23fbb")).toBeTruthy();
+        expect(pathRouterNode.matches("allo/fda/fdafs/fdasfsda")).toBeTruthy();
+    })
+
     it("should return null if the split paths passed is less than 1", () => {
         const pathRouterNode = new PathRouterNode("/allo", undefined)
 
@@ -105,13 +112,13 @@ describe("Path Router Node tests", () => {
     it("should properly add and build the trees", () => {
         const root = new PathRouterNode("/", undefined);
 
-        root.add(["/", "/level1"], HttpMethod.Get, new Route("controller", "key"));
-        root.add(["/", "/level1", "/a"], HttpMethod.Patch, new Route("controller", "key"));
-        root.add(["/", "/level1", "/b"], HttpMethod.Put, new Route("controller", "key"));
+        root.add(["/", "/level1"], HttpMethod.Get, new Route("controller", "key"), 0);
+        root.add(["/", "/level1", "/a"], HttpMethod.Patch, new Route("controller", "key"), 0);
+        root.add(["/", "/level1", "/b"], HttpMethod.Put, new Route("controller", "key"), 0);
 
-        root.add(["/", "/level2"], HttpMethod.Get, new Route("controller", "key"));
-        root.add(["/", "/level2", "/a"], HttpMethod.Post, new Route("controller", "key"));
-        root.add(["/", "/level2", "/b"], HttpMethod.Delete, new Route("controller", "key"));
+        root.add(["/", "/level2"], HttpMethod.Get, new Route("controller", "key"), 0);
+        root.add(["/", "/level2", "/a"], HttpMethod.Post, new Route("controller", "key"), 0);
+        root.add(["/", "/level2", "/b"], HttpMethod.Delete, new Route("controller", "key"), 0);
 
         expect(root.find(["/", "/level1"], HttpMethod.Get)).toBeDefined()
 
@@ -123,5 +130,23 @@ describe("Path Router Node tests", () => {
         expect(root.find(["/", "/level2", "/a"], HttpMethod.Post)).toBeDefined()
 
         expect(root.find(["/", "/level2", "/a"], HttpMethod.Delete)).toBeDefined()
+    })
+
+    it("should properly return a catch-all even if the path is longer", () => {
+        expect(root.find(["/", "/api", "/2.0", "/frogs", "/allo", "/fdfsa"], HttpMethod.Options) instanceof MethodRouterNode).toBeTruthy()
+    })
+
+    it("should not return the catch-all if there's a more precise route", () => {
+        const node = root.find(["/", "/api", "/2.0", "/beavers", "/monsieurBeaver"], HttpMethod.Get)
+
+        expect( node instanceof MethodRouterNode).toBeTruthy()
+        expect(node!.levelFromRoot).toBe(7)
+    })
+
+    it("should return the catch-all that is the most precise", () => {
+        const node = root.find(["/", "/api", "/2.0", "/beavers", "/monsieurBeaver", "/bébéBeaver"], HttpMethod.Get)
+
+        expect( node instanceof MethodRouterNode).toBeTruthy()
+        expect(node!.levelFromRoot).toBe(8)
     })
 })
