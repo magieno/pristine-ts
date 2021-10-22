@@ -7,7 +7,7 @@ import {Route} from "../models/route";
  * This class represents the Leaf node of the RouteTree.
  */
 export class MethodRouterNode extends RouterNode {
-    public constructor(parent: PathRouterNode, public readonly method: HttpMethod | string, public readonly route: Route) {
+    public constructor(parent: PathRouterNode, public readonly method: HttpMethod | string, public readonly route: Route, public readonly levelFromRoot: number) {
         super();
 
         this.parent = parent;
@@ -15,6 +15,13 @@ export class MethodRouterNode extends RouterNode {
 
     matches(method: HttpMethod | string): boolean {
         return this.method === method;
+    }
+
+    /**
+     * A MethodRouterNode is never a catch-all node.
+     */
+    isCatchAll(): boolean {
+        return false;
     }
 
     /**
@@ -28,8 +35,7 @@ export class MethodRouterNode extends RouterNode {
     }
 
     /**
-     * This method receives an array of path and recursively calls its children if this node matches
-     * the first splitPath. If the node is a MethodRouterNode, it checks to see if the method matches. If yes,
+     * This method checks to see if the method matches. If yes,
      * it returns itself as the node found. This method should always return a MethodRouterNode. However, Typescript
      * doesn't like these recursive imports so we return the base class
      *
@@ -37,6 +43,10 @@ export class MethodRouterNode extends RouterNode {
      * @param method
      */
     find(splitPaths: string[], method: HttpMethod | string): RouterNode | null {
-        return splitPaths.length === 0 && this.matches(method) ? this : null;
+        if(this.parent!.isCatchAll()) {
+            return this.matches(method) ? this : null;
+        }
+
+        return (splitPaths.length === 0 && this.matches(method)) ? this : null;
     }
 }
