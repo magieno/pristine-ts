@@ -43,7 +43,7 @@ export class PathRouterNode extends RouterNode {
                 throw new PathRouterAddingError("There is already an HTTP Method associated with this path.", splitPaths, method, route, this);
             }
 
-            this.children.push(new MethodRouterNode(this, method, route, levelFromRoot++));
+            this.children.push(new MethodRouterNode(this, method, route, levelFromRoot + 1));
             return;
         }
 
@@ -52,7 +52,7 @@ export class PathRouterNode extends RouterNode {
 
         // If there's a matched child, call the add httpMethod on it and return.
         if (matchedChild !== undefined) {
-            matchedChild.add(splitPaths.slice(1), method, route, levelFromRoot++);
+            matchedChild.add(splitPaths.slice(1), method, route, levelFromRoot + 1);
             return;
         }
 
@@ -61,7 +61,7 @@ export class PathRouterNode extends RouterNode {
         this.children.push(pathRouterNode);
 
         // Then, call add on the latest pathRouterNode child
-        pathRouterNode.add(splitPaths.slice(1), method, route, levelFromRoot++);
+        pathRouterNode.add(splitPaths.slice(1), method, route, levelFromRoot + 1);
         return;
     }
 

@@ -120,16 +120,22 @@ describe("Path Router Node tests", () => {
         root.add(["/", "/level2", "/a"], HttpMethod.Post, new Route("controller", "key"), 0);
         root.add(["/", "/level2", "/b"], HttpMethod.Delete, new Route("controller", "key"), 0);
 
-        expect(root.find(["/", "/level1"], HttpMethod.Get)).toBeDefined()
+        expect(root.find(["/", "/level1"], HttpMethod.Get)).not.toBeNull()
+        expect(root.find(["/", "/level1"], HttpMethod.Get)!.levelFromRoot).toBe(2);
 
-        expect(root.find(["/", "/level1", "/a"], HttpMethod.Patch)).toBeDefined()
+        expect(root.find(["/", "/level1", "/a"], HttpMethod.Patch)).not.toBeNull()
+        expect(root.find(["/", "/level1", "/a"], HttpMethod.Patch)!.levelFromRoot).toBe(3)
 
-        expect(root.find(["/", "/level1", "/a"], HttpMethod.Put)).toBeDefined()
+        expect(root.find(["/", "/level1", "/b"], HttpMethod.Put)).not.toBeNull()
+        expect(root.find(["/", "/level1", "/b"], HttpMethod.Put)!.levelFromRoot).toBe(3)
+
         expect(root.find(["/", "/level1", "/a"], HttpMethod.Delete)).toBeNull()
 
-        expect(root.find(["/", "/level2", "/a"], HttpMethod.Post)).toBeDefined()
+        expect(root.find(["/", "/level2", "/a"], HttpMethod.Post)).not.toBeNull()
+        expect(root.find(["/", "/level2", "/a"], HttpMethod.Post)!.levelFromRoot).toBe(3)
 
-        expect(root.find(["/", "/level2", "/a"], HttpMethod.Delete)).toBeDefined()
+        expect(root.find(["/", "/level2", "/b"], HttpMethod.Delete)).not.toBeNull()
+        expect(root.find(["/", "/level2", "/b"], HttpMethod.Delete)!.levelFromRoot).toBe(3)
     })
 
     it("should properly return a catch-all even if the path is longer", () => {
