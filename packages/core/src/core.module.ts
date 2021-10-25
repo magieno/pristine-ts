@@ -22,4 +22,11 @@ export const CoreModule: ModuleInterface =  {
         LoggingModule,
     ],
     providerRegistrations: [],
+    configurationDefinitions: [
+        {
+            parameterName: CoreModuleKeyname + ".requestBodyConverterActive",
+            defaultValue: true,
+            isRequired: false,
+        },
+    ],
 }
