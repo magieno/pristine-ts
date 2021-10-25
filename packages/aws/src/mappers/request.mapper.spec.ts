@@ -6,7 +6,6 @@ import {MethodMapper} from "./method.mapper";
 import {RequestMapper} from "./request.mapper";
 import {RequestMapperFactory} from "../factories/request-mapper.factory";
 import {RestApiRequestMapper} from "./rest-api-request.mapper";
-import {BodyMapper} from "./body-mapper";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 
 
@@ -177,12 +176,11 @@ describe("Request mapper", () => {
 
     it("should map a rest request properly", () => {
         const methodMapper = new MethodMapper();
-        const bodyMapper = new BodyMapper();
-        const requestMapper = new RequestMapper(new RequestMapperFactory(new HttpRequestMapper(methodMapper, bodyMapper), new RestApiRequestMapper(methodMapper, bodyMapper)), logHandlerMock);
+        const requestMapper = new RequestMapper(new RequestMapperFactory(new HttpRequestMapper(methodMapper), new RestApiRequestMapper(methodMapper)), logHandlerMock);
 
         const expectedRequest: RequestInterface = {
             url: "/my/path",
-            body: "Hello from Lambda!",
+            body: rawRestEvent.body,
             rawBody: rawRestEvent.body,
             headers: {
                 "header1": "value1",
@@ -197,12 +195,11 @@ describe("Request mapper", () => {
 
     it("should map an http request properly", () => {
         const methodMapper = new MethodMapper();
-        const bodyMapper = new BodyMapper();
-        const requestMapper = new RequestMapper(new RequestMapperFactory(new HttpRequestMapper(methodMapper, bodyMapper), new RestApiRequestMapper(methodMapper, bodyMapper)), logHandlerMock);
+        const requestMapper = new RequestMapper(new RequestMapperFactory(new HttpRequestMapper(methodMapper), new RestApiRequestMapper(methodMapper)), logHandlerMock);
 
         const expectedRequest: RequestInterface = {
             url: "/my/path",
-            body: "Hello from Lambda",
+            body: rawHttpEvent.body,
             rawBody: rawHttpEvent.body,
             headers: {
                 "header1": "value1",
