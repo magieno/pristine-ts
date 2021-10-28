@@ -25,5 +25,8 @@ export const NetworkingModule: ModuleInterface = {
 
     importModules: [
         SecurityModule
-    ]
+    ],
+    configurationDefinitions: [
+
+    ],
 }

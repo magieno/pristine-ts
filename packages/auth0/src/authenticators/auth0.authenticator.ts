@@ -12,7 +12,7 @@ import {Auth0ModuleKeyname} from "../auth0.module.keyname";
 
 @singleton()
 @injectable()
-export class Auth0Authenticator implements AuthenticatorInterface{
+export class Auth0Authenticator implements AuthenticatorInterface {
 
     private cachedPems;
     private auth0Issuer;

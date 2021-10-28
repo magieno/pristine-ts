@@ -247,12 +247,7 @@ export class Kernel {
                     throw new RequestInterceptionExecutionError("The Request Interceptor doesn't have the 'interceptRequest' method. RequestInterceptors should implement the RequestInterceptor interface.", request, this);
                 }
 
-                try {
-                    // https://stackoverflow.com/a/27760489/684101
-                    interceptedRequest = await Promise.resolve((interceptor as RequestInterceptorInterface).interceptRequest(interceptedRequest));
-                } catch (error) {
-                    throw new RequestInterceptionExecutionError("There was an exception thrown while executing the 'interceptRequest' method of the RequestInterceptor.", request, this, error);
-                }
+                interceptedRequest = await Promise.resolve((interceptor as RequestInterceptorInterface).interceptRequest(interceptedRequest));
             }
         }
 
@@ -350,12 +345,7 @@ export class Kernel {
                     throw new ResponseInterceptionExecutionError("The Response Interceptor doesn't have the 'interceptResponse' method. ResponseInterceptors should implement the ResponseInterceptor interface.", request, response, interceptor)
                 }
 
-                try {
-                    // https://stackoverflow.com/a/27760489/684101
-                    interceptedResponse = await Promise.resolve((interceptor as ResponseInterceptorInterface).interceptResponse(interceptedResponse, request));
-                } catch (e) {
-                    throw new ResponseInterceptionExecutionError("There was an exception thrown while executing the 'interceptResponse' method of the ResponseInterceptor.", request, response, interceptor, e);
-                }
+                interceptedResponse = await Promise.resolve((interceptor as ResponseInterceptorInterface).interceptResponse(interceptedResponse, request));
             }
         }
 

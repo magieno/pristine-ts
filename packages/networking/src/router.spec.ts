@@ -505,4 +505,5 @@ describe("Router.spec", () => {
 
         expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
+
 });

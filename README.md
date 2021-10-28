@@ -126,6 +126,11 @@ That being said, Pristine plays very nicely with the following NodeJS servers:
 
 In fact, your business logic with Pristine is 100% decoupled from how it is hosted (serverless or not). Therefore, Pristine is compatible with every NodeJS server technologies.
 
+## Inspiration
+Pristine is heavily inspired by the very popular NodeJS framework named [NestJS](https://github.com/nestjs/nest). If you are familiar with NestJS already, switching to Pristine will be a breeze.
+
+Pristine is also heavily inspired by the Symfony framework (PHP) and Spring (Java).
+
 ## How to begin?
 
 We encourage you to take a look at the [Getting Started](docs/getting-started/index.md) documentation for your first steps.
