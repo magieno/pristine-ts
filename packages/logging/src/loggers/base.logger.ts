@@ -6,7 +6,7 @@ import {Readable} from "stream";
 import {OutputModeEnum} from "../enums/output-mode.enum";
 
 export abstract class BaseLogger {
-    private stackedLogs: {[key: string]: LogModel[]} = {};
+    private stackedLogs: { [key: string]: LogModel[] } = {};
 
     constructor(
         protected readonly numberOfStackedLogs: number,
@@ -49,7 +49,7 @@ export abstract class BaseLogger {
     protected abstract log(log: LogModel): void;
 
     protected captureLog(log: LogModel): void {
-        if(this.numberOfStackedLogs > 0) {
+        if (this.numberOfStackedLogs > 0) {
             this.setupStackedLogsArrayIfRequired(log.traceId);
 
             if (log.severity < this.logSeverityLevelConfiguration) {
@@ -58,19 +58,21 @@ export abstract class BaseLogger {
 
                 return;
             }
+
+            this.outputStackedLogs();
         }
 
-        //todo do we really want to always print the stacked logs ?
-        this.outputStackedLogs();
-        this.log(log);
+        if (log.severity >= this.logSeverityLevelConfiguration) {
+            this.log(log);
+        }
     }
 
     private setupStackedLogsArrayIfRequired(traceId?: string) {
-        if(this.stackedLogs.hasOwnProperty(CommonModuleKeyname) === false) {
+        if (this.stackedLogs.hasOwnProperty(CommonModuleKeyname) === false) {
             this.stackedLogs[CommonModuleKeyname] = [];
         }
 
-        if(traceId && this.stackedLogs.hasOwnProperty(traceId) === false) {
+        if (traceId && this.stackedLogs.hasOwnProperty(traceId) === false) {
             this.stackedLogs[traceId] = this.stackedLogs[CommonModuleKeyname] ?? [];
         }
     }
@@ -85,20 +87,20 @@ export abstract class BaseLogger {
         if (this.stackedLogs[stackedLogsKey].length >= this.numberOfStackedLogs) {
             do {
                 this.stackedLogs[stackedLogsKey].shift();
-            }while (this.stackedLogs[stackedLogsKey].length > this.numberOfStackedLogs)
+            } while (this.stackedLogs[stackedLogsKey].length > this.numberOfStackedLogs)
         }
     }
 
     private outputStackedLogs(traceId?: string) {
-        for(const log of this.stackedLogs[CommonModuleKeyname]) {
+        for (const log of this.stackedLogs[CommonModuleKeyname]) {
             this.log(log);
         }
 
-        if(traceId === undefined || this.stackedLogs.hasOwnProperty(traceId) === false) {
+        if (traceId === undefined || this.stackedLogs.hasOwnProperty(traceId) === false) {
             return;
         }
 
-        for(const log of this.stackedLogs[traceId]){
+        for (const log of this.stackedLogs[traceId]) {
             this.log(log);
         }
 
@@ -108,7 +110,7 @@ export abstract class BaseLogger {
     private clearStackedLogs(traceId?: string) {
         this.stackedLogs[CommonModuleKeyname] = [];
 
-        if(traceId === undefined || this.stackedLogs.hasOwnProperty(traceId) === false) {
+        if (traceId === undefined || this.stackedLogs.hasOwnProperty(traceId) === false) {
             return;
         }
 
