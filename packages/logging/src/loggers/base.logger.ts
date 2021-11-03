@@ -49,13 +49,15 @@ export abstract class BaseLogger {
     protected abstract log(log: LogModel): void;
 
     protected captureLog(log: LogModel): void {
-        this.setupStackedLogsArrayIfRequired(log.traceId);
+        if(this.numberOfStackedLogs > 0) {
+            this.setupStackedLogsArrayIfRequired(log.traceId);
 
-        if (log.severity < this.logSeverityLevelConfiguration) {
-            // We still add a log to the stack to ensure that when there's an error, we log everything.
-            this.addStackedLog(log);
+            if (log.severity < this.logSeverityLevelConfiguration) {
+                // We still add a log to the stack to ensure that when there's an error, we log everything.
+                this.addStackedLog(log);
 
-            return;
+                return;
+            }
         }
 
         //todo do we really want to always print the stacked logs ?
