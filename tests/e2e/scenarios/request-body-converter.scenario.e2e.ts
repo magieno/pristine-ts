@@ -23,9 +23,6 @@ describe("Request Body Converter", () => {
 
     beforeAll(async () => {
         kernel = new Kernel();
-    })
-
-    it("should throw an error if the header Content-Type contains 'application/json' and the body contains invalid JSON.", async () => {
 
         await kernel.init({
             keyname: "pristine.validation.test",
@@ -35,7 +32,9 @@ describe("Request Body Converter", () => {
             "pristine.logging.consoleLoggerActivated": false,
             "pristine.logging.fileLoggerActivated": false,
         });
+    })
 
+    it("should throw an error if the header Content-Type contains 'application/json' and the body contains invalid JSON.", async () => {
         const request: RequestInterface = {
             httpMethod: HttpMethod.Get,
             url: "http://localhost:8080/test",
@@ -49,6 +48,37 @@ describe("Request Body Converter", () => {
 
         expect(response.status).toBe(400)
         expect(response.body.message).toBe("This request has the Content-Type header 'application/json' but the body contains invalid JSON.")
+    })
+
+    it("should not throw an error if the header Content-Type contains 'application/json' and the body contains valid JSON.", async () => {
+
+        expect((await kernel.handleRequest({
+            httpMethod: HttpMethod.Get,
+            url: "http://localhost:8080/test",
+            body: "{\"allo\":2}",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        })).status).toBe(200);
+
+        expect((await kernel.handleRequest({
+            httpMethod: HttpMethod.Get,
+            url: "http://localhost:8080/test",
+            body: "",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        })).status).toBe(200);
+
+        expect((await kernel.handleRequest({
+            httpMethod: HttpMethod.Get,
+            url: "http://localhost:8080/test",
+            body: "{}",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        })).status).toBe(200);
+
     })
 
     it("should not throw an error when the header Content-Type contains 'application/json' and the body contains invalid JSON if the request body converter is deactivated", async () => {
