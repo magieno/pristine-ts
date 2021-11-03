@@ -13,6 +13,7 @@ export class LogHandler implements LogHandlerInterface {
 
   public constructor(@injectAll(ServiceDefinitionTagEnum.Logger) private readonly loggers: LoggerInterface[],
                      @inject("%pristine.logging.logSeverityLevelConfiguration%") private readonly logSeverityLevelConfiguration: number,
+                     @inject("%pristine.logging.activateDiagnostics%") private readonly activateDiagnostics: boolean,
                      @inject(InternalContainerParameterEnum.KernelInstantiationId) private readonly kernelInstantiationId: string,
                      private readonly tracingContext: TracingContext) {
   }
@@ -47,9 +48,9 @@ export class LogHandler implements LogHandlerInterface {
     log.module = module;
     log.date = new Date();
 
-    // If the logSeveritylevel configuration is set to debug, we will include additional information into a __diagnostics path into extra.
-    // This is an intensive process and will only be available when in Debug
-    if(this.logSeverityLevelConfiguration === SeverityEnum.Debug) {
+    // If the activateDiagnostics configuration is set to true, we will include additional information into a __diagnostics path into extra.
+    // This is an intensive process so be careful, it will dramatically slow down your calls.
+    if(this.activateDiagnostics) {
       const diagnostics = Utils.getDiagnostics(new Error());
 
       // Properly define which last stack trace is actually the one we want to report. In this case, it's the stack trace
