@@ -45,7 +45,9 @@ export class RequestBodyConverterInterceptor implements RequestInterceptorInterf
             case "application/json":
 
                 try {
-                    request.body = JSON.parse(request.body);
+                    if(request.body) {
+                        request.body = JSON.parse(request.body);
+                    }
                 }
                 catch (e) {
                     const errorMessage = "This request has the Content-Type header 'application/json' but the body contains invalid JSON.";
