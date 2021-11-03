@@ -51,6 +51,45 @@ describe("Request Body Converter", () => {
         expect(response.body.message).toBe("This request has the Content-Type header 'application/json' but the body contains invalid JSON.")
     })
 
+    it("should not throw an error if the header Content-Type contains 'application/json' and the body contains valid JSON.", async () => {
+
+        await kernel.init({
+            keyname: "pristine.validation.test",
+            importModules: [CoreModule, NetworkingModule, ValidationModule],
+            providerRegistrations: []
+        }, {
+            "pristine.logging.consoleLoggerActivated": false,
+            "pristine.logging.fileLoggerActivated": false,
+        });
+
+        expect((await kernel.handleRequest({
+            httpMethod: HttpMethod.Get,
+            url: "http://localhost:8080/test",
+            body: "",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        })).status).toBe(200);
+
+        expect((await kernel.handleRequest({
+            httpMethod: HttpMethod.Get,
+            url: "http://localhost:8080/test",
+            body: "{}",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        })).status).toBe(200);
+
+        expect((await kernel.handleRequest({
+            httpMethod: HttpMethod.Get,
+            url: "http://localhost:8080/test",
+            body: "{\"allo\":2}",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        })).status).toBe(200);
+    })
+
     it("should not throw an error when the header Content-Type contains 'application/json' and the body contains invalid JSON if the request body converter is deactivated", async () => {
         await kernel.init({
             keyname: "pristine.validation.test",
