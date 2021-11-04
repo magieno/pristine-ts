@@ -44,17 +44,32 @@ export class RequestBodyConverterInterceptor implements RequestInterceptorInterf
         switch (contentType.toLowerCase()) {
             case "application/json":
 
-                try {
-                    if(request.body) {
-                        request.body = JSON.parse(request.body);
-                    }
-                }
-                catch (e) {
-                    const errorMessage = "This request has the Content-Type header 'application/json' but the body contains invalid JSON.";
-                    this.logHandler.error(errorMessage);
+                switch (typeof request.body) {
+                    case "object":
+                        return request;
 
-                    throw new InvalidBodyHttpError(errorMessage);
+                    case "string":
+                        try {
+                            if(request.body) {
+                                request.body = JSON.parse(request.body);
+                            }
+                        }
+                        catch (e) {
+                            const errorMessage = "This request has the Content-Type header 'application/json' but the body contains invalid JSON.";
+                            this.logHandler.error(errorMessage);
+
+                            throw new InvalidBodyHttpError(errorMessage);
+                        }
+                        break;
+
+                    default:
+                        const errorMessage = "This request has the Content-Type header 'application/json' but the body contains invalid JSON.";
+                        this.logHandler.error(errorMessage);
+
+                        throw new InvalidBodyHttpError(errorMessage);
                 }
+
+
         }
 
         return request;
