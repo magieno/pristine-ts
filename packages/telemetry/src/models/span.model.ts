@@ -36,4 +36,15 @@ export class Span {
 
         this.childSpans.forEach(childSpan => childSpan.setTrace(trace));
     }
+
+    public addChild(span: Span) {
+        const existingChildSpan = this.childSpans.find(childSpan => childSpan.id === span.id);
+
+        if(existingChildSpan) {
+            return;
+        }
+
+        span.parentSpan = this;
+        this.childSpans.push(span);
+    }
 }
