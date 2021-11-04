@@ -158,6 +158,8 @@ export class Kernel {
     private async initModule(module: ModuleInterface): Promise<Span | undefined> {
         const span: Span = new Span(SpanKeynameEnum.ModuleInitialization + "." + module.keyname);
 
+        const importModulesSpan: Span = new Span(SpanKeynameEnum.ModuleInitializationImportModules + "." + module.keyname);
+
         if (module.importModules) {
             // Start by recursively importing all the packages
             for (let importedModule of module.importModules) {
@@ -171,10 +173,14 @@ export class Kernel {
                 const importedModuleSpan = await this.initModule(importedModule);
 
                 if(importedModuleSpan !== undefined) {
-                    span.childSpans.push(importedModuleSpan);
+                    importModulesSpan.childSpans.push(importedModuleSpan);
                 }
             }
         }
+
+        importModulesSpan.endDate = Date.now();
+
+        span.childSpans.push(importModulesSpan)
 
         // If this module is already instantiated, simply returned undefined as there is not span to return.
         if (this.instantiatedModules.hasOwnProperty(module.keyname)) {

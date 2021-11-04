@@ -5,4 +5,5 @@ export enum SpanKeynameEnum {
     EventInitialization = "event.initialization",
     EventExecution = "event.execution",
     ModuleInitialization = "module.initialization",
+    ModuleInitializationImportModules = "module.initialization.import.modules",
 }
