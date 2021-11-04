@@ -8,6 +8,7 @@ import {
 } from "@pristine-ts/configuration";
 import {OutputModeEnum} from "./enums/output-mode.enum";
 import {CommonModule} from "@pristine-ts/common";
+import {SeverityEnum} from "./enums/severity.enum";
 
 export * from "./enums/enums";
 export * from "./handlers/handlers";
@@ -30,10 +31,10 @@ export const LoggingModule: ModuleInterface = {
         },
         {
             parameterName: LoggingModuleKeyname + ".logSeverityLevelConfiguration",
-            defaultValue: 1,
+            defaultValue: SeverityEnum.Info,
             isRequired: false,
             defaultResolvers: [
-                new NumberResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_LOG_SEVERITY_LEVEL_CONFIGURATION")),
+                new EnumResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_LOG_SEVERITY_LEVEL_CONFIGURATION"), SeverityEnum),
             ]
         },
         {
@@ -130,4 +131,5 @@ export const LoggingModule: ModuleInterface = {
         ConfigurationModule,
     ],
     providerRegistrations: []
-}
+};
+
