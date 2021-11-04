@@ -98,8 +98,8 @@ export class Kernel {
         const applicationModuleChildSpan = await this.initModule(module);
 
         // Append the application module child span as a child of the initialization span.
-        if(applicationModuleChildSpan)  {
-            this.initializationSpan.childSpans.push(applicationModuleChildSpan!);
+        if(applicationModuleChildSpan !== undefined) {
+            this.initializationSpan.addChild(applicationModuleChildSpan);
         }
 
         // Register all the service tags in the container.
@@ -152,40 +152,32 @@ export class Kernel {
      * This method also registers all the service definitions in the container.
      *
      * @param module
-     * @param moduleConfigurations
      * @private
      */
     private async initModule(module: ModuleInterface): Promise<Span | undefined> {
+        // If this module is already instantiated, simply return undefined as there's no span to return;
+        if (this.instantiatedModules.hasOwnProperty(module.keyname)) {
+            return undefined;
+        }
+
+        // Add the module to the instantiatedModules map.
+        this.instantiatedModules[module.keyname] = module;
+
+        // Created the span that will be used to track how long the instantiation takes.
         const span: Span = new Span(SpanKeynameEnum.ModuleInitialization + "." + module.keyname);
 
         const importModulesSpan: Span = new Span(SpanKeynameEnum.ModuleInitializationImportModules + "." + module.keyname);
 
+        span.addChild(importModulesSpan)
+
         if (module.importModules) {
             // Start by recursively importing all the packages
             for (let importedModule of module.importModules) {
-                if (this.instantiatedModules.hasOwnProperty(module.keyname)) {
-                    // module already instantiated, we continue the loop
-                    continue;
-                }
-
-                // Init the imported module and append the returned span as a child of this current module
-                // This will allow us to track the hierarchy of the modules and how they are imported.
-                const importedModuleSpan = await this.initModule(importedModule);
-
-                if(importedModuleSpan !== undefined) {
-                    importModulesSpan.childSpans.push(importedModuleSpan);
-                }
+                await this.initModule(importedModule);
             }
         }
 
         importModulesSpan.endDate = Date.now();
-
-        span.childSpans.push(importModulesSpan)
-
-        // If this module is already instantiated, simply returned undefined as there is not span to return.
-        if (this.instantiatedModules.hasOwnProperty(module.keyname)) {
-            return;
-        }
 
         // Add all the providers to the container
         if (module.providerRegistrations) {
@@ -198,9 +190,6 @@ export class Kernel {
         if (module.onInit) {
             await module.onInit(this.container);
         }
-
-        // Add the module to the instantiatedModules map.
-        this.instantiatedModules[module.keyname] = module;
 
         // End the initialization span by setting the date. Since we don't have the tracing manager yet,
         // They will all be ended properly but they will keep the current time.
