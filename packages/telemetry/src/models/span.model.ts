@@ -30,4 +30,10 @@ export class Span {
     public end() {
         this.tracingManager?.endSpan(this);
     }
+
+    public setTrace(trace: Trace) {
+        this.trace = trace;
+
+        this.childSpans.forEach(childSpan => childSpan.setTrace(trace));
+    }
 }
