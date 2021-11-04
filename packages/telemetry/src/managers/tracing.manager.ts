@@ -173,7 +173,7 @@ export class TracingManager implements TracingManagerInterface {
         })
 
         // If this span already has child spans, add them to the list as well
-        span.childSpans.forEach(childSpan => this.addSpan(span, span.id, context))
+        span.childSpans.forEach(childSpan => this.addSpan(childSpan, span.id, context))
 
         return span;
     }
