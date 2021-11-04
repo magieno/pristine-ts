@@ -4,4 +4,5 @@ export enum SpanKeynameEnum {
     RequestExecution = "request.execution",
     EventInitialization = "event.initialization",
     EventExecution = "event.execution",
+    ModuleInitialization = "module.initialization",
 }
