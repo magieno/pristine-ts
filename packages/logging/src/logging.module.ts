@@ -31,7 +31,7 @@ export const LoggingModule: ModuleInterface = {
         },
         {
             parameterName: LoggingModuleKeyname + ".logSeverityLevelConfiguration",
-            defaultValue: 1,
+            defaultValue: SeverityEnum.Info,
             isRequired: false,
             defaultResolvers: [
                 new EnumResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_LOG_SEVERITY_LEVEL_CONFIGURATION"), SeverityEnum),
@@ -139,4 +139,5 @@ export const LoggingModule: ModuleInterface = {
         ConfigurationModule,
     ],
     providerRegistrations: []
-}
+};
+
