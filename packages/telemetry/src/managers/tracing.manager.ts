@@ -199,7 +199,12 @@ export class TracingManager implements TracingManagerInterface {
             return;
         }
 
-        span.endDate = Date.now();
+        span.childSpans.forEach(childSpan => this.endSpan(childSpan));
+
+        if(span.endDate === undefined) {
+            span.endDate = Date.now();
+        }
+
         span.inProgress = false;
 
         if(this.isActive === false) {

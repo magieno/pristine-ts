@@ -70,7 +70,7 @@ export class Kernel {
      * Contains the span for the initialization.
      * @private
      */
-    private initializationSpan: Span = new Span(SpanKeynameEnum.KernelInitialization);
+    private initializationSpan: Span
 
     /**
      * Contains the unique instantiation identifier of this specific kernel instance.
@@ -88,13 +88,19 @@ export class Kernel {
      * @param moduleConfigurationValues
      */
     public async init(module: ModuleInterface, moduleConfigurationValues?: { [key: string]: ModuleConfigurationValue }) {
+        this.initializationSpan = new Span(SpanKeynameEnum.KernelInitialization);
         // Register the InstantiationId in the container.
         this.container.register(InternalContainerParameterEnum.KernelInstantiationId, {
             useValue: this.instantiationId,
         });
 
         // Inits the application module and its dependencies.
-        await this.initModule(module);
+        const applicationModuleChildSpan = await this.initModule(module);
+
+        // Append the application module child span as a child of the initialization span.
+        if(applicationModuleChildSpan)  {
+            this.initializationSpan.childSpans.push(applicationModuleChildSpan!);
+        }
 
         // Register all the service tags in the container.
         await this.registerServiceTags();
@@ -106,6 +112,10 @@ export class Kernel {
         await this.afterInitModule(module);
 
         this.initializationSpan.endDate = Date.now();
+
+        const logHandler: LogHandlerInterface = this.container.resolve("LogHandlerInterface");
+
+        logHandler.debug("The Kernel was instantiated in '" + ((this.initializationSpan.endDate - this.initializationSpan.startDate) / 1000) + "' seconds", {initializationSpan: this.initializationSpan}, CoreModuleKeyname);
     }
 
     /**
@@ -145,16 +155,35 @@ export class Kernel {
      * @param moduleConfigurations
      * @private
      */
-    private async initModule(module: ModuleInterface) {
+    private async initModule(module: ModuleInterface): Promise<Span | undefined> {
+        const span: Span = new Span(SpanKeynameEnum.ModuleInitialization + "." + module.keyname);
+
+        const importModulesSpan: Span = new Span(SpanKeynameEnum.ModuleInitializationImportModules + "." + module.keyname);
+
         if (module.importModules) {
             // Start by recursively importing all the packages
             for (let importedModule of module.importModules) {
-                await this.initModule(importedModule);
+                if (this.instantiatedModules.hasOwnProperty(module.keyname)) {
+                    // module already instantiated, we continue the loop
+                    continue;
+                }
+
+                // Init the imported module and append the returned span as a child of this current module
+                // This will allow us to track the hierarchy of the modules and how they are imported.
+                const importedModuleSpan = await this.initModule(importedModule);
+
+                if(importedModuleSpan !== undefined) {
+                    importModulesSpan.childSpans.push(importedModuleSpan);
+                }
             }
         }
 
+        importModulesSpan.endDate = Date.now();
+
+        span.childSpans.push(importModulesSpan)
+
+        // If this module is already instantiated, simply returned undefined as there is not span to return.
         if (this.instantiatedModules.hasOwnProperty(module.keyname)) {
-            // module already instantiated, we return
             return;
         }
 
@@ -172,6 +201,12 @@ export class Kernel {
 
         // Add the module to the instantiatedModules map.
         this.instantiatedModules[module.keyname] = module;
+
+        // End the initialization span by setting the date. Since we don't have the tracing manager yet,
+        // They will all be ended properly but they will keep the current time.
+        span.endDate = Date.now();
+
+        return span;
     }
 
     /**
