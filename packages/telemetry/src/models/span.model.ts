@@ -1,5 +1,6 @@
 import {Trace} from "./trace.model";
 import {TracingManagerInterface} from "../interfaces/tracing-manager.interface";
+import { v4 as uuidv4 } from 'uuid';
 
 export class Span {
     public id: string;
@@ -20,7 +21,8 @@ export class Span {
 
     public inProgress = true;
 
-    public constructor(public keyname: string) {
+    public constructor(public keyname: string, id?: string) {
+        this.id = id ?? uuidv4();
     }
 
     public getDuration(): number {

@@ -157,6 +157,9 @@ export class TracingManager implements TracingManagerInterface {
             span,
         })
 
+        // If this span already has child spans, add them to the list as well
+        span.childSpans.forEach(childSpan => this.addSpan(childSpan, span.id, context))
+
         // Notify the Tracers that a new span was started.
         this.tracers.forEach( (tracer:TracerInterface) => {
             this.loghandler.debug("Pushing the span into the spanStartedStream.", {
@@ -170,9 +173,6 @@ export class TracingManager implements TracingManagerInterface {
 
             tracer.spanStartedStream?.push(span);
         })
-
-        // If this span already has child spans, add them to the list as well
-        span.childSpans.forEach(childSpan => this.addSpan(childSpan, span.id, context))
 
         return span;
     }
