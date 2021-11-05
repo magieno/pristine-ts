@@ -95,12 +95,10 @@ export class Kernel {
         });
 
         // Inits the application module and its dependencies.
-        const applicationModuleChildSpan = await this.initModule(module);
+        const initializedModuleSpans = await this.initModule(module);
 
-        // Append the application module child span as a child of the initialization span.
-        if(applicationModuleChildSpan !== undefined) {
-            this.initializationSpan.addChild(applicationModuleChildSpan);
-        }
+        // Add every spans as a child of the Initialization Span
+        initializedModuleSpans.forEach(span => this.initializationSpan.addChild(span));
 
         // Register all the service tags in the container.
         await this.registerServiceTags();
@@ -154,14 +152,16 @@ export class Kernel {
      * @param module
      * @private
      */
-    private async initModule(module: ModuleInterface): Promise<Span | undefined> {
+    private async initModule(module: ModuleInterface): Promise<Span[]> {
         // If this module is already instantiated, simply return undefined as there's no span to return;
         if (this.instantiatedModules.hasOwnProperty(module.keyname)) {
-            return undefined;
+            return [];
         }
 
         // Add the module to the instantiatedModules map.
         this.instantiatedModules[module.keyname] = module;
+
+        const spans: Span[] = [];
 
         // Created the span that will be used to track how long the instantiation takes.
         const span: Span = new Span(SpanKeynameEnum.ModuleInitialization + "." + module.keyname);
@@ -173,7 +173,7 @@ export class Kernel {
         if (module.importModules) {
             // Start by recursively importing all the packages
             for (let importedModule of module.importModules) {
-                await this.initModule(importedModule);
+                spans.push(...(await this.initModule(importedModule)));
             }
         }
 
@@ -195,7 +195,9 @@ export class Kernel {
         // They will all be ended properly but they will keep the current time.
         span.endDate = Date.now();
 
-        return span;
+        spans.push(span);
+
+        return spans;
     }
 
     /**
