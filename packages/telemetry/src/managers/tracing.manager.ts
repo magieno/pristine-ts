@@ -37,58 +37,37 @@ export class TracingManager implements TracingManagerInterface {
      * @param traceId
      * @param context
      */
-    startTracing(spanRootKeyname: string = SpanKeynameEnum.RootExecution, traceId?: string, context?: any): Span {
-        this.trace = new Trace();
-        this.trace.id = traceId ?? uuidv4();
+    startTracing(spanRootKeyname: string = SpanKeynameEnum.RootExecution, traceId?: string, context?: { [key: string]: string }): Span {
+        this.trace = new Trace(traceId, context);
+        const span = new Span(spanRootKeyname, undefined, context);
+
+        // Set the trace id into the Tracing Context. This can be used to retrieve the current trace.
         this.tracingContext.traceId = this.trace.id;
-        this.trace.context = context ?? this.trace.context;
 
-        const span = new Span(spanRootKeyname);
-        span.id = uuidv4();
-        span.trace = this.trace;
-        span.context = context ?? span.context;
-        span.tracingManager = this;
-
-        this.trace.rootSpan = span;
-
-        this.spans[span.keyname] = span;
-
+        // If the tracing is not active, simply return the created span but don't send to the tracers.
         if(this.isActive === false) {
-            this.loghandler.warning("The tracing is deactivated.", {
-                isActive: this.isActive
-            });
-
             return span;
         }
 
         // Log that we are starting the tracing
-        this.loghandler.debug("Start Tracing", {
+        this.loghandler.info("Start Tracing", {
             spanRootKeyname,
             traceId,
             context,
             trace: this.trace,
             span,
-        })
+        }, TelemetryModuleKeyname)
 
+        // Call the tracers and push the trace that was just started
         this.tracers.forEach( (tracer:TracerInterface) => {
-            this.loghandler.debug("Pushing the trace into the traceStartedStream.", {
-                tracer,
-                trace: this.trace,
-            });
-
             tracer.traceStartedStream?.push(this.trace);
         })
 
-        // Notify the Tracers that a new span was started.
-        this.tracers.forEach( (tracer:TracerInterface) => {
-            this.loghandler.debug("Pushing the span into the spanStartedStream.", {
-                tracer,
-                trace: this.trace,
-                span,
-            });
+        // Define the rootSpan of the trace as the newly created Span. This is the root span.
+        this.trace.rootSpan = span;
 
-            tracer.spanStartedStream?.push(span);
-        })
+        // Call the addSpan method to ensure that the span will be added.
+        this.addSpan(span);
 
         return span;
     }
@@ -101,11 +80,26 @@ export class TracingManager implements TracingManagerInterface {
      * @param context
      */
     public startSpan(keyname: string, parentId?: string, context?: any): Span {
+        // Check if there's an active trace. If not, start one.
+        if(this.trace === undefined) {
+            this.startTracing(SpanKeynameEnum.RootExecution, undefined, context);
+        }
+
         // Create the new span
-        const span = new Span(keyname);
-        span.id = uuidv4();
+        const span = new Span(keyname, context);
         span.trace = this.trace!;
-        span.context = context ?? span.context;
+
+        // Retrieve the parent and add it to the span.
+        let parentSpan: Span = this.trace!.rootSpan;
+
+        // Check to find the parentId in our internal map of spans. If n ot, the rootSpan will be the parent since every span
+        // needs at least one parent.
+        if(parentId) {
+            parentSpan = this.spans[parentId] ?? parentSpan;
+        }
+
+        // Add the new span as a child of its parent.
+        parentSpan.addChild(span);
 
         this.addSpan(span);
 
@@ -113,68 +107,42 @@ export class TracingManager implements TracingManagerInterface {
     }
 
     /**
-     * This methods adds an already created Span.
+     * This methods adds an already created Span. It assumes that it its hierarchy is correct.
      * @param span
-     * @param parentId
-     * @param context
      */
-    public addSpan(span: Span, parentId?: string, context?: any): Span  {
-        // Check if there's an active trace. If not, start one.
+    public addSpan(span: Span): Span  {
+        // Check if there's an active trace. If not, log an error and return;
         if(this.trace === undefined) {
-            this.startTracing(SpanKeynameEnum.RootExecution, undefined, context);
-        }
-
-        // Assign the tracing manager
-        span.tracingManager = this;
-
-        let parentSpan: Span = this.trace!.rootSpan;
-
-        // Check to find the parentId in our internal map of spans
-        if(parentId) {
-            parentSpan = this.spans[parentId] ?? parentSpan;
-        }
-
-        span.trace = this.trace!;
-        span.id = span.id ?? uuidv4();
-        if(span.parentSpan === undefined) {
-            parentSpan.addChild(span);
-        }
-
-        // Add it to the map of spans
-        this.spans[span.keyname] = span;
-
-        if(this.isActive === false) {
-            this.loghandler.warning("The tracing is deactivated.", {
-                isActive: this.isActive
-            });
+            this.loghandler.error("You cannot call 'addSpan' without having an existing Trace.", {span}, TelemetryModuleKeyname);
 
             return span;
         }
 
-        this.loghandler.debug("Start Span", {
+        // Assign the tracing manager and the current trace to the span.
+        span.tracingManager = this;
+        span.trace = this.trace!;
+
+        // Add it to the map of spans
+        this.spans[span.keyname] = span;
+
+        // If the tracing is deactivated, simply return the span and don't complain.
+        if(this.isActive === false) {
+            return span;
+        }
+
+        this.loghandler.debug("Adding the span", {
             keyname: span.keyname,
-            parentId,
-            context,
             trace: this.trace,
             span,
-        })
-
-        // If this span already has child spans, add them to the list as well
-        span.childSpans.forEach(childSpan => this.addSpan(childSpan, span.id, context))
+        }, TelemetryModuleKeyname)
 
         // Notify the Tracers that a new span was started.
         this.tracers.forEach( (tracer:TracerInterface) => {
-            this.loghandler.debug("Pushing the span into the spanStartedStream.", {
-                keyname: span.keyname,
-                parentId,
-                context,
-                trace: this.trace,
-                span,
-                tracer,
-            })
-
             tracer.spanStartedStream?.push(span);
         })
+
+        // If this span already has child spans, add them.
+        span.children.forEach(childSpan => this.addSpan(childSpan))
 
         return span;
     }
@@ -204,35 +172,26 @@ export class TracingManager implements TracingManagerInterface {
             return;
         }
 
-        span.childSpans.forEach(childSpan => this.endSpan(childSpan));
+        span.inProgress = false;
+
+        // When a span is ended, all of its children are automatically ended as well.
+        span.children.forEach(childSpan => this.endSpan(childSpan));
 
         if(span.endDate === undefined) {
             span.endDate = Date.now();
         }
 
-        span.inProgress = false;
-
         if(this.isActive === false) {
-            this.loghandler.warning("The tracing is deactivated.", {
-                isActive: this.isActive
-            });
-
             return;
         }
 
-        this.loghandler.debug("End Span", {
+        this.loghandler.debug("Ending the span", {
             trace: this.trace,
             span,
-        })
+        }, TelemetryModuleKeyname)
 
         // Notify the TraceListeners that the span was ended.
         this.tracers.forEach( (tracer:TracerInterface) => {
-            this.loghandler.debug("Pushing the span into the spanEndedStream.", {
-                trace: this.trace,
-                span,
-                tracer,
-            })
-
             tracer.spanEndedStream?.push(span);
         })
 
@@ -250,37 +209,26 @@ export class TracingManager implements TracingManagerInterface {
             return;
         }
 
-        // End the trace.
-        this.trace.hasEnded = true;
-
-        // Loop over all the spans and end them if they are not already ended.
-        Object.keys(this.spans).forEach(spanKeyname => {
-            this.endSpan(this.spans[spanKeyname]);
-        });
-
         // End the trace by setting the end date.
         this.trace.endDate = Date.now();
 
-        if(this.isActive === false) {
-            this.loghandler.warning("The tracing is deactivated.", {
-                isActive: this.isActive
-            });
+        // End the trace.
+        this.trace.hasEnded = true;
 
+        // This method will recursively end all the spans
+        this.endSpan(this.trace.rootSpan);
+
+        if(this.isActive === false) {
             return;
         }
 
-        // Notify the TraceListeners that the span was ended.
+        // Notify the TraceListeners that the Trace was ended.
         this.tracers.forEach( (tracer:TracerInterface) => {
-            this.loghandler.debug("Pushing the tracer into the traceEndedStream.", {
-                trace: this.trace,
-                tracer,
-            })
-
             tracer.traceEndedStream?.push(this.trace);
         })
 
-        this.loghandler.debug("End Trace", {
+        this.loghandler.info("Ending the trace", {
             trace: this.trace,
-        })
+        }, TelemetryModuleKeyname)
     }
 }
