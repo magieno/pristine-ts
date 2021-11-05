@@ -15,14 +15,15 @@ export class Span {
 
     public parentSpan?: Span;
 
-    public childSpans: Span[] = [];
+    public children: Span[] = [];
 
     public context: { [key: string]: string } = {};
 
     public inProgress = true;
 
-    public constructor(public keyname: string, id?: string) {
+    public constructor(public keyname: string, id?: string, context?: { [key: string]: string }) {
         this.id = id ?? uuidv4();
+        this.context = context ?? {};
     }
 
     public getDuration(): number {
@@ -36,17 +37,17 @@ export class Span {
     public setTrace(trace: Trace) {
         this.trace = trace;
 
-        this.childSpans.forEach(childSpan => childSpan.setTrace(trace));
+        this.children.forEach(childSpan => childSpan.setTrace(trace));
     }
 
     public addChild(span: Span) {
-        const existingChildSpan = this.childSpans.find(childSpan => childSpan.id === span.id);
+        const existingChildSpan = this.children.find(childSpan => childSpan.id === span.id);
 
         if(existingChildSpan) {
             return;
         }
 
         span.parentSpan = this;
-        this.childSpans.push(span);
+        this.children.push(span);
     }
 }
