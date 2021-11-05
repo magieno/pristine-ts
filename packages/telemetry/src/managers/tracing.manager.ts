@@ -136,7 +136,9 @@ export class TracingManager implements TracingManagerInterface {
 
         span.trace = this.trace!;
         span.id = span.id ?? uuidv4();
-        parentSpan.addChild(span);
+        if(span.parentSpan === undefined) {
+            parentSpan.addChild(span);
+        }
 
         // Add it to the map of spans
         this.spans[span.keyname] = span;
