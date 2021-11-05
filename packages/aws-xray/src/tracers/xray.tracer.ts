@@ -77,7 +77,7 @@ export class XrayTracer implements TracerInterface{
             subsegment,
         }, AwsXrayModuleKeyname)
 
-        span.childSpans?.forEach(childSpan => {
+        span.children?.forEach(childSpan => {
             this.loghandler.debug("X-Ray before capturing span", {
                 span,
                 segment,
