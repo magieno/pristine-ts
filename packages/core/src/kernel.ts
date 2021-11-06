@@ -572,6 +572,7 @@ export class Kernel {
             // Start the tracing
             const tracingManager: TracingManagerInterface = childContainer.resolve("TracingManagerInterface");
             tracingManager.startTracing();
+            tracingManager.trace?.rootSpan.addChild(this.initializationSpan)
             tracingManager.addSpan(this.initializationSpan);
             this.initializationSpan.end();
 

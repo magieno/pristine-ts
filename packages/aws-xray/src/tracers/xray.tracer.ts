@@ -89,10 +89,26 @@ export class XrayTracer implements TracerInterface{
         });
 
         segment.addSubsegment(subsegment);
-        subsegment.close()
 
         // Force to rewrite the end time after closing it
         subsegment["end_time"] = span.endDate ? (span.endDate / 1000) : (Date.now() / 1000);
+
+        // It seems that if you call the close method on the subsegment, it will send it before we get a chance to override the end_time
+        // Looking at the code on Github, it seems they have fixed and improved this but they haven't published a new version yet. :(
+        // subsegment.close()
+        // Therefore, we have to close it manually
+        delete subsegment.in_progress;
+
+        if(subsegment.parent) {
+            subsegment.parent.decrementCounter()
+        }
+
+        if(subsegment && subsegment["counter"] > 100) {
+            if(subsegment.streamSubsegments() && subsegment.parent) {
+                subsegment.parent.removeSubsegment(subsegment)
+            }
+        }
+        // End of the code ( close() function ) from the subsegment.js file of the aws-xray-sdk-core.
 
         return subsegment;
     }
