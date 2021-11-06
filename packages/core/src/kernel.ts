@@ -555,8 +555,13 @@ export class Kernel {
      * @param requestInterface
      */
     public async handleRequest(requestInterface: RequestInterface): Promise<Response> {
+        const routerSetupSpan = new Span(SpanKeynameEnum.RouterSetup);
+
         // Setup the router
         this.setupRouter();
+
+        routerSetupSpan.endDate = Date.now();
+        this.initializationSpan.addChild(routerSetupSpan);
 
         const request = new Request(requestInterface);
 
@@ -574,19 +579,26 @@ export class Kernel {
             tracingManager.startTracing();
             tracingManager.trace?.rootSpan.addChild(this.initializationSpan)
             tracingManager.addSpan(this.initializationSpan);
+
+            // End the spans
             this.initializationSpan.end();
+            routerSetupSpan.end();
 
             const requestSpan = tracingManager.startSpan(SpanKeynameEnum.RequestExecution);
 
             try {
                 // Execute all the request interceptors
+                const requestInterceptorsSpan = tracingManager.startSpan(SpanKeynameEnum.RequestInterceptors);
                 const interceptedRequest = await this.executeRequestInterceptors(request, childContainer);
+                requestInterceptorsSpan.end();
 
                 // Execute the actual request.
                 const response = await this.router.execute(interceptedRequest, childContainer);
 
                 // Execute all the response interceptors
+                const responseInterceptorsSpan = tracingManager.startSpan(SpanKeynameEnum.ResponseInterceptors);
                 const interceptedResponse = await this.executeResponseInterceptors(response, request, childContainer);
+                responseInterceptorsSpan.end();
 
                 // End the tracing
                 requestSpan.end();

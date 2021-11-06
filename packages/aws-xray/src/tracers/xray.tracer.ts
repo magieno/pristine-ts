@@ -2,7 +2,7 @@ import {injectable, scoped, Lifecycle, inject} from "tsyringe";
 import {Span, Trace, TracerInterface} from "@pristine-ts/telemetry";
 import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {Readable} from "stream";
-import AWSXRay, {Segment, Subsegment} from "aws-xray-sdk";
+import AWSXRay, {Segment, Subsegment, SegmentUtils} from "aws-xray-sdk";
 import {AwsXrayModuleKeyname} from "../aws-xray.module.keyname";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 
@@ -71,20 +71,7 @@ export class XrayTracer implements TracerInterface{
             })
         }
 
-        this.loghandler.debug("X-Ray capture span", {
-            span,
-            segment,
-            subsegment,
-        }, AwsXrayModuleKeyname)
-
         span.children?.forEach(childSpan => {
-            this.loghandler.debug("X-Ray before capturing span", {
-                span,
-                segment,
-                subsegment,
-                childSpan,
-            }, AwsXrayModuleKeyname)
-
             this.captureSpan(childSpan, segment);
         });
 
@@ -103,12 +90,18 @@ export class XrayTracer implements TracerInterface{
             subsegment.parent.decrementCounter()
         }
 
-        if(subsegment && subsegment["counter"] > 100) {
+        if(subsegment.segment && subsegment.segment["counter"] > SegmentUtils.getStreamingThreshold()) {
             if(subsegment.streamSubsegments() && subsegment.parent) {
                 subsegment.parent.removeSubsegment(subsegment)
             }
         }
         // End of the code ( close() function ) from the subsegment.js file of the aws-xray-sdk-core.
+
+        this.loghandler.debug("X-Ray capture span", {
+            span,
+            segment,
+            subsegment,
+        }, AwsXrayModuleKeyname)
 
         return subsegment;
     }
