@@ -2,7 +2,7 @@ import {injectable, scoped, Lifecycle, inject} from "tsyringe";
 import {Span, Trace, TracerInterface} from "@pristine-ts/telemetry";
 import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {Readable} from "stream";
-import AWSXRay, {Segment, Subsegment} from "aws-xray-sdk";
+import AWSXRay, {Segment, Subsegment, SegmentUtils} from "aws-xray-sdk";
 import {AwsXrayModuleKeyname} from "../aws-xray.module.keyname";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 
@@ -71,28 +71,37 @@ export class XrayTracer implements TracerInterface{
             })
         }
 
+        span.children?.forEach(childSpan => {
+            this.captureSpan(childSpan, segment);
+        });
+
+        segment.addSubsegment(subsegment);
+
+        // Force to rewrite the end time after closing it
+        subsegment["end_time"] = span.endDate ? (span.endDate / 1000) : (Date.now() / 1000);
+
+        // It seems that if you call the close method on the subsegment, it will send it before we get a chance to override the end_time
+        // Looking at the code on Github, it seems they have fixed and improved this but they haven't published a new version yet. :(
+        // subsegment.close()
+        // Therefore, we have to close it manually
+        delete subsegment.in_progress;
+
+        if(subsegment.parent) {
+            subsegment.parent.decrementCounter()
+        }
+
+        if(subsegment.segment && subsegment.segment["counter"] > SegmentUtils.getStreamingThreshold()) {
+            if(subsegment.streamSubsegments() && subsegment.parent) {
+                subsegment.parent.removeSubsegment(subsegment)
+            }
+        }
+        // End of the code ( close() function ) from the subsegment.js file of the aws-xray-sdk-core.
+
         this.loghandler.debug("X-Ray capture span", {
             span,
             segment,
             subsegment,
         }, AwsXrayModuleKeyname)
-
-        span.children?.forEach(childSpan => {
-            this.loghandler.debug("X-Ray before capturing span", {
-                span,
-                segment,
-                subsegment,
-                childSpan,
-            }, AwsXrayModuleKeyname)
-
-            this.captureSpan(childSpan, segment);
-        });
-
-        segment.addSubsegment(subsegment);
-        subsegment.close()
-
-        // Force to rewrite the end time after closing it
-        subsegment["end_time"] = span.endDate ? (span.endDate / 1000) : (Date.now() / 1000);
 
         return subsegment;
     }
