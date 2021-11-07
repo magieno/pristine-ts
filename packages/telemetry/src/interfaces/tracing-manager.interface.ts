@@ -9,7 +9,7 @@ export interface TracingManagerInterface {
 
     endTrace();
 
-    startSpan(keyname: string, parentId?: string, context?: { [key: string]: string }): Span;
+    startSpan(keyname: string, parentKeyname?: string, context?: { [key: string]: string }): Span;
 
     addSpan(span: Span): Span;
 
