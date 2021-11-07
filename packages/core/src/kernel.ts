@@ -104,7 +104,11 @@ export class Kernel {
         await this.registerServiceTags();
 
         // Register the configuration.
+        const configurationInitializationSpan = new Span(SpanKeynameEnum.ConfigurationInitialization)
         await this.initConfiguration(moduleConfigurationValues);
+        configurationInitializationSpan.endDate = Date.now();
+
+        this.initializationSpan.addChild(configurationInitializationSpan);
 
         // Run the after init of the module and its dependencies
         await this.afterInitModule(module);
@@ -452,8 +456,11 @@ export class Kernel {
      */
     public async handleRawEvent(rawEvent: object): Promise<void> {
         const logHandler: LogHandlerInterface = this.container.resolve("LogHandlerInterface");
+        const tracingManager: TracingManagerInterface = this.container.resolve("TracingManagerInterface");
+        tracingManager.startTracing();
 
-        const eventInitializationSpan: Span = new Span(SpanKeynameEnum.EventInitialization);
+        const eventInitializationSpan: Span = tracingManager.startSpan(SpanKeynameEnum.EventInitialization);
+        this.initializationSpan.addChild(eventInitializationSpan);
 
         logHandler.debug("Executing the Raw Event Interceptors", {rawEvent}, CoreModuleKeyname);
 
@@ -509,11 +516,9 @@ export class Kernel {
 
         const tracingManager: TracingManagerInterface = childContainer.resolve("TracingManagerInterface");
         tracingManager.startTracing();
-        this.initializationSpan.setTrace(tracingManager.trace!);
+        tracingManager.trace?.rootSpan.addChild(this.initializationSpan)
         tracingManager.addSpan(this.initializationSpan);
-        tracingManager.addSpan(rawEventInitializationSpan);
         this.initializationSpan.end();
-        rawEventInitializationSpan.end();
 
         const eventSpan = tracingManager.startSpan(SpanKeynameEnum.EventExecution);
 
