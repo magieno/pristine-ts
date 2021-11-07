@@ -572,7 +572,10 @@ export class Kernel {
             }
 
             // Start by creating a child container and we will use this container to instantiate the dependencies for this request
+            const childContainerCreationSpan = new Span(SpanKeynameEnum.ChildContainerCreation);
             const childContainer = this.container.createChildContainer();
+            childContainerCreationSpan.endDate = Date.now();
+            this.initializationSpan.addChild(childContainerCreationSpan);
 
             // Start the tracing
             const tracingManager: TracingManagerInterface = childContainer.resolve("TracingManagerInterface");
@@ -588,7 +591,7 @@ export class Kernel {
 
             try {
                 // Execute all the request interceptors
-                const requestInterceptorsSpan = tracingManager.startSpan(SpanKeynameEnum.RequestInterceptors);
+                const requestInterceptorsSpan = tracingManager.startSpan(SpanKeynameEnum.RequestInterceptors, requestSpan.id);
                 const interceptedRequest = await this.executeRequestInterceptors(request, childContainer);
                 requestInterceptorsSpan.end();
 
@@ -596,7 +599,7 @@ export class Kernel {
                 const response = await this.router.execute(interceptedRequest, childContainer);
 
                 // Execute all the response interceptors
-                const responseInterceptorsSpan = tracingManager.startSpan(SpanKeynameEnum.ResponseInterceptors);
+                const responseInterceptorsSpan = tracingManager.startSpan(SpanKeynameEnum.ResponseInterceptors, requestSpan.id);
                 const interceptedResponse = await this.executeResponseInterceptors(response, request, childContainer);
                 responseInterceptorsSpan.end();
 
@@ -607,10 +610,14 @@ export class Kernel {
                 return resolve(interceptedResponse);
             } catch (error) {
                 // Transform the error into a response object
+                const errorResponseInterceptorsSpan = tracingManager.startSpan(SpanKeynameEnum.ErrorResponseInterceptors, requestSpan.id);
                 const errorResponse = await this.executeErrorResponseInterceptors(error, request, childContainer);
+                errorResponseInterceptorsSpan.end();
 
                 // Execute all the response interceptors
+                const responseInterceptorsSpan = tracingManager.startSpan(SpanKeynameEnum.ResponseInterceptors, requestSpan.id);
                 const interceptedResponse = await this.executeResponseInterceptors(errorResponse, request, childContainer);
+                responseInterceptorsSpan.end();
 
                 // End the tracing
                 requestSpan.end();
