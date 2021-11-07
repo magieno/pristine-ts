@@ -15,7 +15,7 @@ export class EnvironmentVariableResolver implements ResolverInterface<string> {
     async resolve(): Promise<string> {
         const environmentVariables = ConfigurationUtils.getEnvironmentVariablesMemoized();
 
-        if(environmentVariables === undefined) {
+        if(environmentVariables[this.environmentVariableName] === undefined) {
             throw new ConfigurationResolverError("Cannot find the environment variable.", this.environmentVariableName);
         }
 
