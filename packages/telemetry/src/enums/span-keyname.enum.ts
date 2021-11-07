@@ -1,7 +1,7 @@
 export enum SpanKeynameEnum {
     RootExecution = "root.execution",
     KernelInitialization = "kernel.initialization",
-    ConfigurationInitialization = "kernel.configuration",
+    ConfigurationInitialization = "configuration.initialization",
     RequestExecution = "request.execution",
     RequestInterceptors = "request.interceptors",
     ResponseInterceptors = "response.interceptors",

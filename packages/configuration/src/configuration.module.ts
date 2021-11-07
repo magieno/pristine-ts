@@ -7,6 +7,7 @@ export * from "./managers/managers";
 export * from "./parsers/parsers";
 export * from "./resolvers/resolvers";
 export * from "./types/types";
+export * from "./utils/utils";
 export * from "./configuration.module.keyname";
 
 export const ConfigurationModule: ModuleInterface = {
