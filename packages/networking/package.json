@@ -21,6 +21,7 @@
   "dependencies": {
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/security": "file:../security",
+    "@pristine-ts/telemetry": "file:../telemetry",
     "url-parse": "^1.4.7"
   },
   "jest": {

@@ -15,6 +15,7 @@ import {QueryParametersDecoratorResolver} from "./resolvers/query-parameters-dec
 import {RouteParameterDecoratorResolver} from "./resolvers/route-parameter-decorator.resolver";
 import {BodyParameterDecoratorInterface} from "./interfaces/body-parameter-decorator.interface";
 import {HttpMethod, IdentityInterface, RequestInterface} from "@pristine-ts/common";
+import {Span} from "@pristine-ts/telemetry";
 import {DependencyContainer, container} from "tsyringe";
 
 describe("Router.spec", () => {
@@ -101,7 +102,19 @@ describe("Router.spec", () => {
             authenticate(request: RequestInterface, routeContext: any, container): Promise<IdentityInterface | undefined> {
                 return Promise.resolve(undefined);
             }
-        });
+        },
+            {
+                addSpan(span: Span): Span {
+                    return new Span("");
+                }, endSpan(span: Span): any {
+                }, endTrace(): any {
+                }, startTracing(spanRootKeyname?: string, traceId?: string, context?: { [p: string]: string }): Span {
+                    return new Span("");
+                },
+                startSpan(keyname: string, parentKeyname?: string, context?: { [p: string]: string }): Span {
+                    return new Span("");
+                }
+            });
 
         router["root"] = root;
 

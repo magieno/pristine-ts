@@ -76,10 +76,10 @@ export class TracingManager implements TracingManagerInterface {
      * This method starts a new span.
      *
      * @param keyname
-     * @param parentId
+     * @param parentKeyname
      * @param context
      */
-    public startSpan(keyname: string, parentId?: string, context?: any): Span {
+    public startSpan(keyname: string, parentKeyname?: string, context?: any): Span {
         // Check if there's an active trace. If not, start one.
         if(this.trace === undefined) {
             this.startTracing(SpanKeynameEnum.RootExecution, undefined, context);
@@ -92,10 +92,10 @@ export class TracingManager implements TracingManagerInterface {
         // Retrieve the parent and add it to the span.
         let parentSpan: Span = this.trace!.rootSpan;
 
-        // Check to find the parentId in our internal map of spans. If n ot, the rootSpan will be the parent since every span
+        // Check to find the parentKeyname in our internal map of spans. If n ot, the rootSpan will be the parent since every span
         // needs at least one parent.
-        if(parentId) {
-            parentSpan = this.spans[parentId] ?? parentSpan;
+        if(parentKeyname) {
+            parentSpan = this.spans[parentKeyname] ?? parentSpan;
         }
 
         // Add the new span as a child of its parent.
