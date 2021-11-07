@@ -1,6 +1,7 @@
 export enum SpanKeynameEnum {
     RootExecution = "root.execution",
     KernelInitialization = "kernel.initialization",
+    ConfigurationInitialization = "kernel.configuration",
     RequestExecution = "request.execution",
     RequestInterceptors = "request.interceptors",
     ResponseInterceptors = "response.interceptors",
@@ -11,4 +12,5 @@ export enum SpanKeynameEnum {
     ModuleInitializationImportModules = "module.initialization.import.modules",
     RouterSetup = "router.setup",
     ChildContainerCreation = "child.container.creation",
+
 }
