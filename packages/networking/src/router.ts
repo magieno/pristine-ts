@@ -26,8 +26,7 @@ export class Router implements RouterInterface {
     public constructor( @inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface,
                         private readonly controllerMethodParameterDecoratorResolver: ControllerMethodParameterDecoratorResolver,
                         @inject("AuthorizerManagerInterface") private readonly authorizerManager: AuthorizerManagerInterface,
-                        @inject("AuthenticationManagerInterface") private readonly authenticationManager: AuthenticationManagerInterface,
-                        @inject("TracingManagerInterface") private readonly tracingManager: TracingManagerInterface) {
+                        @inject("AuthenticationManagerInterface") private readonly authenticationManager: AuthenticationManagerInterface) {
     }
 
     /**
@@ -52,7 +51,9 @@ export class Router implements RouterInterface {
      * @param container
      */
     public execute(request: Request, container: DependencyContainer): Promise<Response> {
-        const routerRequestExecutionSpan = this.tracingManager.startSpan(SpanKeynameEnum.RouterRequestExecution, SpanKeynameEnum.RequestExecution);
+        const tracingManager: TracingManagerInterface = container.resolve("TracingManagerInterface");
+
+        const routerRequestExecutionSpan = tracingManager.startSpan(SpanKeynameEnum.RouterRequestExecution, SpanKeynameEnum.RequestExecution);
 
         return new Promise<Response>(async (resolve, reject) => {
             // Start by decomposing the URL. Set second parameter to true since we want to parse the query strings
@@ -61,7 +62,7 @@ export class Router implements RouterInterface {
             // Split the path name
             const splitPath = UrlUtil.splitPath(url.pathname);
 
-            const methodNodeSpan = this.tracingManager.startSpan(SpanKeynameEnum.RouterFindMethodRouterNode, SpanKeynameEnum.RouterRequestExecution);
+            const methodNodeSpan = tracingManager.startSpan(SpanKeynameEnum.RouterFindMethodRouterNode, SpanKeynameEnum.RouterRequestExecution);
             // Retrieve the node to have information about the controller
             const methodNode: MethodRouterNode = this.root.find(splitPath, request.httpMethod) as MethodRouterNode;
             methodNodeSpan.end();
@@ -89,7 +90,7 @@ export class Router implements RouterInterface {
             const routeParameters = (methodNode.parent as PathRouterNode).getRouteParameters(splitPath.reverse());
 
             // Instantiate the controller
-            const routerControllerResolverSpan = this.tracingManager.startSpan(SpanKeynameEnum.RouterControllerResolver, SpanKeynameEnum.RouterRequestExecution);
+            const routerControllerResolverSpan = tracingManager.startSpan(SpanKeynameEnum.RouterControllerResolver, SpanKeynameEnum.RouterRequestExecution);
             const controller: any = container.resolve(methodNode.route.controllerInstantiationToken);
             routerControllerResolverSpan.end();
 
@@ -102,7 +103,7 @@ export class Router implements RouterInterface {
 
 
             try {
-                const routerRequestAuthenticationSpan = this.tracingManager.startSpan(SpanKeynameEnum.RouterRequestAuthentication, SpanKeynameEnum.RouterRequestExecution);
+                const routerRequestAuthenticationSpan = tracingManager.startSpan(SpanKeynameEnum.RouterRequestAuthentication, SpanKeynameEnum.RouterRequestExecution);
                 identity = await this.authenticationManager.authenticate(request, methodNode.route.context, container);
                 routerRequestAuthenticationSpan.end();
 
@@ -141,7 +142,7 @@ export class Router implements RouterInterface {
                     return reject(new ForbiddenHttpError("You are not allowed to access this."));
                 }
 
-                const requestEnrichersSpan = this.tracingManager.startSpan(SpanKeynameEnum.RouterRequestEnrichers, SpanKeynameEnum.RouterRequestExecution);
+                const requestEnrichersSpan = tracingManager.startSpan(SpanKeynameEnum.RouterRequestEnrichers, SpanKeynameEnum.RouterRequestExecution);
                 const enrichedRequest = await this.executeRequestEnrichers(request, container, methodNode);
                 requestEnrichersSpan.end();
 
@@ -182,7 +183,7 @@ export class Router implements RouterInterface {
                     returnedResponse.body = response;
                 }
 
-                const responseEnrichersSpan = this.tracingManager.startSpan(SpanKeynameEnum.RouterResponseEnrichers, SpanKeynameEnum.RouterRequestExecution);
+                const responseEnrichersSpan = tracingManager.startSpan(SpanKeynameEnum.RouterResponseEnrichers, SpanKeynameEnum.RouterRequestExecution);
                 const enrichedResponse = await this.executeResponseEnrichers(returnedResponse, request, container, methodNode);
                 responseEnrichersSpan.end();
 
