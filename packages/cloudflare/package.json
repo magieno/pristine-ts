@@ -15,7 +15,9 @@
     "@pristine-ts/logging": "file:../logging"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^3.0.0"
+    "@cloudflare/workers-types": "^3.0.0",
+    "@types/service-worker-mock": "^2.0.1",
+    "service-worker-mock": "^2.0.5"
   },
   "files": [
     "dist"

@@ -6,7 +6,9 @@
   "compilerOptions": {
     "declarationDir": "dist/types",
     "types": [
-      "@cloudflare/workers-types"
+      "@cloudflare/workers-types",
+      "@types/jest",
+      "@types/service-worker-mock"
     ],
     "outDir": "dist/lib/esm"
   },

@@ -1,5 +1,5 @@
-describe("Path Router Node tests", () => {
-    it("should instantiate with the appropriate parent and httpMethod", () => {
+describe("CloudFlare", () => {
+    it("should be true", () => {
         expect(true).toBeTruthy()
     })
 })
