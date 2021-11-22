@@ -41,6 +41,7 @@
     "@pristine-ts/aws-cognito": "file:packages/aws-cognito",
     "@pristine-ts/aws-scheduling": "file:packages/aws-scheduling",
     "@pristine-ts/aws-xray": "file:packages/aws-xray",
+    "@pristine-ts/cloudflare": "file:packages/cloudflare",
     "@pristine-ts/common": "file:packages/common",
     "@pristine-ts/configuration": "file:packages/configuration",
     "@pristine-ts/core": "file:packages/core",

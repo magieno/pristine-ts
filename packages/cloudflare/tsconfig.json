@@ -1,14 +1,14 @@
 {
   "extends": "../../tsconfig.json",
   "include": [
-    "src"
+    "src",
   ],
   "compilerOptions": {
     "declarationDir": "dist/types",
-    "outDir": "dist/lib/esm",
     "types": [
-
-    ]
+      "@cloudflare/workers-types"
+    ],
+    "outDir": "dist/lib/esm"
   },
-  "exclude": ["./**/*.spec.ts", "dist"],
+  "exclude": ["./**/*.spec.ts", "dist"]
 }
