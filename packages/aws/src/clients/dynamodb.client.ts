@@ -1,21 +1,28 @@
-import {DynamoDB} from "@aws-sdk/client-dynamodb";
-import {DataMapper, DynamoDbTable, QueryOptions, ScanOptions, StringToAnyObjectMap} from "@awslabs-community-fork/dynamodb-data-mapper";
-import {ZeroArgumentsConstructor} from "@awslabs-community-fork/dynamodb-data-marshaller";
-import {ConditionExpression, equals, greaterThan, OrExpression} from "@awslabs-community-fork/dynamodb-expressions";
-import {inject, injectable} from "tsyringe";
-import {DynamodbItemNotFoundError} from "../errors/dynamodb-item-not-found.error";
-import {DynamodbItemAlreadyExistsError} from "../errors/dynamodb-item-already-exists.error";
-import {DynamodbTableNotFoundError} from "../errors/dynamodb-table-not-found.error";
-import {DynamodbValidationError} from "../errors/dynamodb-validation.error";
-import {DynamodbError} from "../errors/dynamodb.error";
-import {LogHandlerInterface} from "@pristine-ts/logging";
-import {tag} from "@pristine-ts/common";
-import {DynamodbClientInterface} from "../interfaces/dynamodb-client.interface";
-import {AwsModuleKeyname} from "../aws.module.keyname";
+import { DynamoDB } from "@aws-sdk/client-dynamodb";
+import {
+    DataMapper,
+    DynamoDbTable,
+    QueryOptions,
+    ScanOptions,
+    StringToAnyObjectMap
+} from "@awslabs-community-fork/dynamodb-data-mapper";
+import { ZeroArgumentsConstructor } from "@awslabs-community-fork/dynamodb-data-marshaller";
+import { ConditionExpression, equals, greaterThan, OrExpression } from "@awslabs-community-fork/dynamodb-expressions";
+import { inject, injectable } from "tsyringe";
+import { DynamodbItemNotFoundError } from "../errors/dynamodb-item-not-found.error";
+import { DynamodbItemAlreadyExistsError } from "../errors/dynamodb-item-already-exists.error";
+import { DynamodbTableNotFoundError } from "../errors/dynamodb-table-not-found.error";
+import { DynamodbValidationError } from "../errors/dynamodb-validation.error";
+import { DynamodbError } from "../errors/dynamodb.error";
+import { LogHandlerInterface } from "@pristine-ts/logging";
+import { tag } from "@pristine-ts/common";
+import { DynamodbClientInterface } from "../interfaces/dynamodb-client.interface";
+import { AwsModuleKeyname } from "../aws.module.keyname";
 import { ListOptions } from "../options/list.options";
 import { FindBySecondaryIndexOptions } from "../options/find-by-secondary-index.options";
 import { ListResult } from "../results/list.result";
 import { PaginationResult } from "../results/pagination.result";
+import { DynamodbSortOrderEnum } from "../enums/dynamodb-sort-order.enum";
 
 @tag("DynamodbClientInterface")
 @injectable()
@@ -206,6 +213,7 @@ export class DynamodbClient implements DynamodbClientInterface{
             if(options.pagination){
                 queryOptions.pageSize = options.pagination.pageSize;
                 queryOptions.startKey = options.pagination.startKey;
+                queryOptions.scanIndexForward = options.pagination.order === DynamodbSortOrderEnum.Asc;
             }
 
             this.logHandler.debug("DYNAMODB CLIENT - Querying with options", {queryOptions, options}, AwsModuleKeyname);
