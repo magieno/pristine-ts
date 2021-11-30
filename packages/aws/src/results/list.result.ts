@@ -41,4 +41,8 @@ export class ListResult<T> implements IterableIterator<T> {
     get paginationResult(): PaginationResult | undefined {
         return this._paginationResult;
     }
+
+    get items(): T[] {
+        return this._items;
+    }
 }
