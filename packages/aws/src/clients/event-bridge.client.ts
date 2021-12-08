@@ -38,7 +38,7 @@ export class EventBridgeClient implements EventBridgeClientInterface {
                     eventBridgeMessages,
                     eventBusName,
                     endpoint,
-                })
+                }, AwsModuleKeyname)
 
                 if (Array.isArray(eventBridgeMessages)) {
                     putEventsCommand.input.Entries = eventBridgeMessages.map(eventBridgeMessage => {
@@ -68,7 +68,7 @@ export class EventBridgeClient implements EventBridgeClientInterface {
                     eventBusName,
                     endpoint,
                     response,
-                })
+                }, AwsModuleKeyname)
 
                 return resolve();
             } catch (error) {
@@ -77,7 +77,7 @@ export class EventBridgeClient implements EventBridgeClientInterface {
                     eventBridgeMessages,
                     eventBusName,
                     endpoint,
-                });
+                }, AwsModuleKeyname);
 
                 return reject(new EventBridgeSendMessageError(error));
             }

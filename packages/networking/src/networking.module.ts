@@ -1,6 +1,7 @@
 import {ModuleInterface} from "@pristine-ts/common";
 import {NetworkingModuleKeyname} from "./networking.module.keyname";
 import {SecurityModule} from "@pristine-ts/security";
+import {TelemetryModule} from "@pristine-ts/telemetry";
 
 export * from "./decorators/decorators";
 export * from "./enrichers/enrichers";
@@ -16,6 +17,10 @@ export * from "./router";
 export const NetworkingModule: ModuleInterface = {
     keyname: NetworkingModuleKeyname,
     importModules: [
-        SecurityModule
-    ]
+        SecurityModule,
+        TelemetryModule,
+    ],
+    configurationDefinitions: [
+
+    ],
 }

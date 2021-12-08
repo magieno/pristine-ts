@@ -4,7 +4,6 @@ import {MethodMapper} from "./method.mapper";
 import {HttpMethod} from "@pristine-ts/common";
 import {RequestInterface} from "@pristine-ts/common";
 import {RestApiRequestMapper} from "./rest-api-request.mapper";
-import {BodyMapper} from "./body-mapper";
 
 describe("Rest api request mapper", () => {
     // https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
@@ -90,11 +89,11 @@ describe("Rest api request mapper", () => {
     };
 
     it("should map a rest api request properly", () => {
-        const restApiRequestMapper = new RestApiRequestMapper(new MethodMapper(), new BodyMapper());
+        const restApiRequestMapper = new RestApiRequestMapper(new MethodMapper());
 
         const expectedRequest: RequestInterface = {
             url: "/my/path",
-            body: { message: "Hello from Lambda"},
+            body: rawEvent.body,
             rawBody: rawEvent.body,
             headers: {
                 "header1": "value1",

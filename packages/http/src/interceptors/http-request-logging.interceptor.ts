@@ -4,6 +4,7 @@ import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {HttpRequestInterface} from "../interfaces/http-request.interface";
 import {HttpRequestOptions} from "../options/http-request.options.";
 import {LogHandlerInterface} from "@pristine-ts/logging";
+import {HttpModuleKeyname} from "../http.module.keyname";
 
 /**
  * This class is an interceptor to log outgoing http requests.
@@ -21,7 +22,7 @@ export class HttpRequestLoggingInterceptor implements HttpRequestInterceptorInte
      * @param options
      */
     async interceptRequest(request: HttpRequestInterface, options: HttpRequestOptions): Promise<HttpRequestInterface> {
-        this.logHandler.info("Outgoing http request", {request, options});
+        this.logHandler.info("Outgoing http request", {request, options}, HttpModuleKeyname);
         return request;
     }
 }

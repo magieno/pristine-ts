@@ -1,7 +1,4 @@
 import {ModuleInterface} from "@pristine-ts/common";
-import {LogHandler} from "./handlers/log.handler";
-import {ConsoleLogger} from "./loggers/console.logger";
-import {FileLogger} from "./loggers/file.logger";
 import {LoggingModuleKeyname} from "./logging.module.keyname";
 import {
     BooleanResolver,
@@ -10,6 +7,8 @@ import {
     NumberResolver
 } from "@pristine-ts/configuration";
 import {OutputModeEnum} from "./enums/output-mode.enum";
+import {CommonModule} from "@pristine-ts/common";
+import {SeverityEnum} from "./enums/severity.enum";
 
 export * from "./enums/enums";
 export * from "./handlers/handlers";
@@ -32,10 +31,10 @@ export const LoggingModule: ModuleInterface = {
         },
         {
             parameterName: LoggingModuleKeyname + ".logSeverityLevelConfiguration",
-            defaultValue: 0,
+            defaultValue: SeverityEnum.Info,
             isRequired: false,
             defaultResolvers: [
-                new NumberResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_LOG_SEVERITY_LEVEL_CONFIGURATION")),
+                new EnumResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_LOG_SEVERITY_LEVEL_CONFIGURATION"), SeverityEnum),
             ]
         },
         {
@@ -95,6 +94,14 @@ export const LoggingModule: ModuleInterface = {
             ]
         },
         {
+            parameterName: LoggingModuleKeyname + ".fileLoggerOutputMode",
+            defaultValue: OutputModeEnum.Json,
+            isRequired: false,
+            defaultResolvers: [
+                new EnumResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_FILE_LOGGER_OUTPUT_MODE"), OutputModeEnum),
+            ]
+        },
+        {
             parameterName: LoggingModuleKeyname + ".fileLoggerActivated",
             defaultValue: false,
             isRequired: false,
@@ -118,9 +125,19 @@ export const LoggingModule: ModuleInterface = {
                 new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_FILE_LOGGER_PRETTY")),
             ]
         },
+        {
+            parameterName: LoggingModuleKeyname + ".activateDiagnostics",
+            defaultValue: false,
+            isRequired: false,
+            defaultResolvers: [
+                new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_ACTIVATE_DIAGNOSTICS")),
+            ]
+        },
     ],
     importModules: [
+        CommonModule,
         ConfigurationModule,
     ],
     providerRegistrations: []
-}
+};
+

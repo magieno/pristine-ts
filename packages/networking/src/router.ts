@@ -16,6 +16,8 @@ import {AuthenticationManagerInterface, AuthorizerManagerInterface} from "@prist
 import {RouterResponseEnricherInterface} from "./interfaces/router-response-enricher.interface";
 import {RouterRequestEnricherInterface} from "./interfaces/router-request-enricher.interface";
 import {LogHandlerInterface} from "@pristine-ts/logging";
+import {NetworkingModuleKeyname} from "./networking.module.keyname";
+import {Span, SpanKeynameEnum, TracingManagerInterface} from "@pristine-ts/telemetry";
 
 /**
  * The router service is the service that creates the routing tree from the controllers.
@@ -49,7 +51,7 @@ export class Router implements RouterInterface {
     public register(path: string, method: HttpMethod | string, route: Route) {
         const splitPaths = UrlUtil.splitPath(path);
 
-        this.root.add(splitPaths, method, route);
+        this.root.add(splitPaths, method, route, 0);
     }
 
     /**
@@ -61,6 +63,10 @@ export class Router implements RouterInterface {
      * @param container
      */
     public execute(request: Request, container: DependencyContainer): Promise<Response> {
+        const tracingManager: TracingManagerInterface = container.resolve("TracingManagerInterface");
+
+        const routerRequestExecutionSpan = tracingManager.startSpan(SpanKeynameEnum.RouterRequestExecution, SpanKeynameEnum.RequestExecution);
+
         return new Promise<Response>(async (resolve, reject) => {
             // Start by decomposing the URL. Set second parameter to true since we want to parse the query strings
             const url = new Url(request.url, false);
@@ -68,15 +74,17 @@ export class Router implements RouterInterface {
             // Split the path name
             const splitPath = UrlUtil.splitPath(url.pathname);
 
+            const methodNodeSpan = tracingManager.startSpan(SpanKeynameEnum.RouterFindMethodRouterNode, SpanKeynameEnum.RouterRequestExecution);
             // Retrieve the node to have information about the controller
             const methodNode: MethodRouterNode = this.root.find(splitPath, request.httpMethod) as MethodRouterNode;
+            methodNodeSpan.end();
 
             this.loghandler.debug("Execute request", {
                 rootNode: this.root,
                 request,
                 url,
                 methodNode,
-            });
+            }, NetworkingModuleKeyname);
 
             // If node doesn't exist, throw a 404 error
             if(methodNode === null) {
@@ -84,8 +92,9 @@ export class Router implements RouterInterface {
                     rootNode: this.root,
                     request,
                     url,
-                });
+                }, NetworkingModuleKeyname);
 
+                routerRequestExecutionSpan.end();
                 return reject(new NotFoundHttpError("No route found for path: '" + url.pathname + "'."));
             }
 
@@ -93,34 +102,40 @@ export class Router implements RouterInterface {
             const routeParameters = (methodNode.parent as PathRouterNode).getRouteParameters(splitPath.reverse());
 
             // Instantiate the controller
+            const routerControllerResolverSpan = tracingManager.startSpan(SpanKeynameEnum.RouterControllerResolver, SpanKeynameEnum.RouterRequestExecution);
             const controller: any = container.resolve(methodNode.route.controllerInstantiationToken);
+            routerControllerResolverSpan.end();
 
             this.loghandler.debug("Before calling the authenticationManager", {
                 controller,
                 routeParameters
-            });
+            }, NetworkingModuleKeyname);
 
             let identity: IdentityInterface | undefined;
 
             // Authenticate the request
             try {
+                const routerRequestAuthenticationSpan = tracingManager.startSpan(SpanKeynameEnum.RouterRequestAuthentication, SpanKeynameEnum.RouterRequestExecution);
                 identity = await this.authenticationManager.authenticate(request, methodNode.route.context, container);
+                routerRequestAuthenticationSpan.end();
 
                 this.loghandler.debug("Found identity.", {
                     identity
-                });
+                }, NetworkingModuleKeyname);
             } catch (error) {
                 this.loghandler.error("Authentication error", {
                     error,
                     request,
                     context: methodNode.route.context,
                     container
-                });
+                }, NetworkingModuleKeyname);
 
                 // Todo: check if the error is an UnauthorizedHttpError, else create one.
                 if(error instanceof ForbiddenHttpError === false){
                     error = new ForbiddenHttpError("You are not allowed to access this.");
                 }
+
+                routerRequestExecutionSpan.end();
                 return reject(error);
             }
 
@@ -134,18 +149,21 @@ export class Router implements RouterInterface {
                         context: methodNode.route.context,
                         container,
                         identity
-                    });
+                    }, NetworkingModuleKeyname);
 
+                    routerRequestExecutionSpan.end();
                     return reject(new ForbiddenHttpError("You are not allowed to access this."));
                 }
 
                 // Execute all the enrichers to enrich the request.
+                const requestEnrichersSpan = tracingManager.startSpan(SpanKeynameEnum.RouterRequestEnrichers, SpanKeynameEnum.RouterRequestExecution);
                 const enrichedRequest = await this.executeRequestEnrichers(request, container, methodNode);
+                requestEnrichersSpan.end();
 
                 this.loghandler.debug("This request has been enriched", {
                     request,
                     enrichedRequest,
-                })
+                }, NetworkingModuleKeyname)
 
                 // Resolve the value to inject in the method arguments that have a decorator resolver
                 const resolvedMethodArguments: any[] = [];
@@ -156,7 +174,7 @@ export class Router implements RouterInterface {
 
                 this.loghandler.debug("Controller argument resolved", {
                     resolvedMethodArguments,
-                })
+                }, NetworkingModuleKeyname)
 
                 const controllerResponse = controller[methodNode.route.methodPropertyKey].apply(controller, resolvedMethodArguments);
 
@@ -166,7 +184,7 @@ export class Router implements RouterInterface {
 
                 this.loghandler.debug("The returned response by the controller", {
                     response
-                })
+                }, NetworkingModuleKeyname)
 
                 let returnedResponse: Response;
                 // If the response is already a Response object, return the response
@@ -179,20 +197,25 @@ export class Router implements RouterInterface {
                     returnedResponse.status = 200;
                     returnedResponse.body = response;
                 }
+
+                const responseEnrichersSpan = tracingManager.startSpan(SpanKeynameEnum.RouterResponseEnrichers, SpanKeynameEnum.RouterRequestExecution);
                 const enrichedResponse = await this.executeResponseEnrichers(returnedResponse, request, container, methodNode);
+                responseEnrichersSpan.end();
 
                 this.loghandler.debug("This response has been enriched", {
                     returnedResponse,
                     enrichedResponse,
-                })
+                }, NetworkingModuleKeyname)
 
+                routerRequestExecutionSpan.end();
                 return resolve(returnedResponse);
             }
             catch (error) {
                 this.loghandler.error("There was an error trying to execute the request in the router", {
                     error,
-                })
+                }, NetworkingModuleKeyname)
 
+                routerRequestExecutionSpan.end();
                 return reject(error);
             }
         })
@@ -227,7 +250,7 @@ export class Router implements RouterInterface {
                     // https://stackoverflow.com/a/27760489/684101
                     enrichedResponse = await Promise.resolve((enricher as RouterResponseEnricherInterface).enrichResponse(enrichedResponse, request, methodNode));
                 } catch (e) {
-                    this.loghandler.error("There was an exception thrown while executing the 'enrichResponse' method of the RouterResponseEnricher named: '" + enricher.constructor.name + "'.", {e});
+                    this.loghandler.error("There was an exception thrown while executing the 'enrichResponse' method of the RouterResponseEnricher named: '" + enricher.constructor.name + "'.", {e}, NetworkingModuleKeyname);
                     throw e;
                 }
             }
@@ -264,7 +287,7 @@ export class Router implements RouterInterface {
                     // https://stackoverflow.com/a/27760489/684101
                     enrichedRequest = await Promise.resolve((enricher as RouterRequestEnricherInterface).enrichRequest(enrichedRequest, methodNode));
                 } catch (e) {
-                    this.loghandler.error("There was an exception thrown while executing the 'enrichedRequest' method of the RouterRequestEnricher named: '" + enricher.constructor.name + "'.", {e});
+                    this.loghandler.error("There was an exception thrown while executing the 'enrichedRequest' method of the RouterRequestEnricher named: '" + enricher.constructor.name + "'.", {e}, NetworkingModuleKeyname);
                     throw e;
                 }
             }

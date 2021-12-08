@@ -33,7 +33,10 @@ describe("Response header enricher", () => {
     it("should enrich the response with the specified header", async () => {
 
         const kernel = new Kernel();
-        await kernel.init(moduleTest);
+        await kernel.init(moduleTest, {
+            "pristine.logging.consoleLoggerActivated": false,
+            "pristine.logging.fileLoggerActivated": false,
+        });
 
         const request: RequestInterface = {
             url: "https://localhost:8080/api/test",

@@ -16,6 +16,10 @@ export abstract class RouterNode {
      */
     children: RouterNode[] = [];
 
+    /**
+     * The level from root of the node for quick comparison of depth between nodes. The root is at 0.
+     */
+    levelFromRoot: number;
 
     /**
      * This method adds all the required nodes to match the splitPaths and the method.
@@ -23,8 +27,9 @@ export abstract class RouterNode {
      * @param splitPaths A list of all the parts of the paths spliced at the forward slashes.
      * @param method
      * @param route
+     * @param levelFromRoot This parameter represents the number of level from the root. The root is at 0.
      */
-    abstract add(splitPaths: string[], method: HttpMethod | string, route: Route);
+    abstract add(splitPaths: string[], method: HttpMethod | string, route: Route, levelFromRoot: number);
 
     /**
      * This method receives an array of path and recursively calls its children if this node matches
@@ -36,4 +41,10 @@ export abstract class RouterNode {
      * @param method The http method for which to find a node.
      */
     abstract find(splitPaths: string[], method: HttpMethod | string): RouterNode | null;
+
+    /**
+     * This method will return true if the node is a catch-all path.
+     */
+    abstract isCatchAll(): boolean;
 }
+

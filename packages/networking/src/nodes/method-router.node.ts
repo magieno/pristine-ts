@@ -13,8 +13,9 @@ export class MethodRouterNode extends RouterNode {
      * @param parent The parent node of the current node.
      * @param method The http method of the current method node.
      * @param route The route associated with the current node.
+     * @param levelFromRoot The depth level from the root node.
      */
-    public constructor(parent: PathRouterNode, public readonly method: HttpMethod | string, public readonly route: Route) {
+    public constructor(parent: PathRouterNode, public readonly method: HttpMethod | string, public readonly route: Route, public readonly levelFromRoot: number) {
         super();
 
         this.parent = parent;
@@ -27,6 +28,13 @@ export class MethodRouterNode extends RouterNode {
      */
     matches(method: HttpMethod | string): boolean {
         return this.method === method;
+    }
+
+    /**
+     * A MethodRouterNode is never a catch-all node.
+     */
+    isCatchAll(): boolean {
+        return false;
     }
 
     /**
@@ -50,6 +58,10 @@ export class MethodRouterNode extends RouterNode {
      * @param method The http method for which to find a node.
      */
     find(splitPaths: string[], method: HttpMethod | string): RouterNode | null {
-        return splitPaths.length === 0 && this.matches(method) ? this : null;
+        if(this.parent!.isCatchAll()) {
+            return this.matches(method) ? this : null;
+        }
+
+        return (splitPaths.length === 0 && this.matches(method)) ? this : null;
     }
 }

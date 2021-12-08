@@ -1,16 +1,28 @@
-import {DynamoDB} from "@aws-sdk/client-dynamodb";
-import {DataMapper, DynamoDbTable, QueryOptions, StringToAnyObjectMap} from "@awslabs-community-fork/dynamodb-data-mapper";
-import {ZeroArgumentsConstructor} from "@awslabs-community-fork/dynamodb-data-marshaller";
-import {ConditionExpression, equals, greaterThan, OrExpression} from "@awslabs-community-fork/dynamodb-expressions";
-import {inject, injectable} from "tsyringe";
-import {DynamodbItemNotFoundError} from "../errors/dynamodb-item-not-found.error";
-import {DynamodbItemAlreadyExistsError} from "../errors/dynamodb-item-already-exists.error";
-import {DynamodbTableNotFoundError} from "../errors/dynamodb-table-not-found.error";
-import {DynamodbValidationError} from "../errors/dynamodb-validation.error";
-import {DynamodbError} from "../errors/dynamodb.error";
-import {LogHandlerInterface} from "@pristine-ts/logging";
-import {tag} from "@pristine-ts/common";
-import {DynamodbClientInterface} from "../interfaces/dynamodb-client.interface";
+import { DynamoDB } from "@aws-sdk/client-dynamodb";
+import {
+    DataMapper,
+    DynamoDbTable,
+    QueryOptions,
+    ScanOptions,
+    StringToAnyObjectMap
+} from "@awslabs-community-fork/dynamodb-data-mapper";
+import { ZeroArgumentsConstructor } from "@awslabs-community-fork/dynamodb-data-marshaller";
+import { ConditionExpression, equals, greaterThan, OrExpression } from "@awslabs-community-fork/dynamodb-expressions";
+import { inject, injectable } from "tsyringe";
+import { DynamodbItemNotFoundError } from "../errors/dynamodb-item-not-found.error";
+import { DynamodbItemAlreadyExistsError } from "../errors/dynamodb-item-already-exists.error";
+import { DynamodbTableNotFoundError } from "../errors/dynamodb-table-not-found.error";
+import { DynamodbValidationError } from "../errors/dynamodb-validation.error";
+import { DynamodbError } from "../errors/dynamodb.error";
+import { LogHandlerInterface } from "@pristine-ts/logging";
+import { tag } from "@pristine-ts/common";
+import { DynamodbClientInterface } from "../interfaces/dynamodb-client.interface";
+import { AwsModuleKeyname } from "../aws.module.keyname";
+import { ListOptions } from "../options/list.options";
+import { FindBySecondaryIndexOptions } from "../options/find-by-secondary-index.options";
+import { ListResult } from "../results/list.result";
+import { PaginationResult } from "../results/pagination.result";
+import { DynamodbSortOrderEnum } from "../enums/dynamodb-sort-order.enum";
 
 @tag("DynamodbClientInterface")
 @injectable()
@@ -57,14 +69,14 @@ export class DynamodbClient implements DynamodbClientInterface{
         try {
             let item = this.createItemOfClassWithPrimaryKey(classType, primaryKeyAndValue);
             item = await (await this.getMapperClient()).get(item);
-            this.logHandler.debug("DYNAMODB CLIENT - Got item", {item});
+            this.logHandler.debug("DYNAMODB CLIENT - Got item", {item}, AwsModuleKeyname);
             return item;
         } catch (error) {
             error = this.convertError(error, this.getTableName(classType.prototype), Object.keys(primaryKeyAndValue)[0]);
             if (error instanceof DynamodbItemNotFoundError) {
-                this.logHandler.warning("DYNAMODB CLIENT - Error getting", {error, classType, primaryKeyAndValue});
+                this.logHandler.warning("DYNAMODB CLIENT - Error getting", {error, classType, primaryKeyAndValue}, AwsModuleKeyname);
             } else {
-                this.logHandler.error("DYNAMODB CLIENT - Error getting", {error, classType, primaryKeyAndValue});
+                this.logHandler.error("DYNAMODB CLIENT - Error getting", {error, classType, primaryKeyAndValue}, AwsModuleKeyname);
             }
             throw error;
         }
@@ -72,22 +84,36 @@ export class DynamodbClient implements DynamodbClientInterface{
 
     /**
      * Lists all the objects of a type (table).
-     * @param classType The class type to list all the objects for.
+     * @param options The options to use to list.
      */
-    public async list<T extends StringToAnyObjectMap>(classType: ZeroArgumentsConstructor<T>): Promise<T[]> {
+    public async list<T extends StringToAnyObjectMap>(options: ListOptions<T>): Promise<ListResult<T>> {
         try {
-            const iterator = (await this.getMapperClient()).scan(classType);
+            let scanOptions: ScanOptions | undefined;
+            if(options.pagination) {
+                scanOptions = {
+                    startKey: options.pagination.startKey,
+                    pageSize: options.pagination.pageSize
+                }
+            }
+            const iterator = (await this.getMapperClient()).scan(options.classType, scanOptions);
             const items: T[] = [];
 
             for await (const item of iterator) {
                 items.push(item);
             }
-            this.logHandler.debug("DYNAMODB CLIENT - List items", {items});
+            this.logHandler.debug("DYNAMODB CLIENT - List items", {items}, AwsModuleKeyname);
 
-            return items;
+            let paginationResult: PaginationResult | undefined = undefined;
+            if(options.pagination) {
+                paginationResult = {
+                    count: iterator.count,
+                    lastEvaluatedKey: iterator.pages().lastEvaluatedKey,
+                }
+            }
+            return new ListResult<T>(items, paginationResult);
         } catch (error) {
-            error = this.convertError(error, this.getTableName(classType.prototype));
-            this.logHandler.error("DYNAMODB CLIENT - Error listing", {error, classType})
+            error = this.convertError(error, this.getTableName(options.classType.prototype));
+            this.logHandler.error("DYNAMODB CLIENT - Error listing", {error, options, AwsModuleKeyname});
             throw error;
         }
     }
@@ -106,12 +132,12 @@ export class DynamodbClient implements DynamodbClientInterface{
             if (error instanceof DynamodbItemNotFoundError) {
                 try {
                     item = await (await this.getMapperClient()).put(item);
-                    this.logHandler.debug("DYNAMODB CLIENT - Created item", {item});
+                    this.logHandler.debug("DYNAMODB CLIENT - Created item", {item}, AwsModuleKeyname);
 
                     return item;
                 } catch (e) {
                     e = this.convertError(e, this.getTableName(item.constructor.prototype));
-                    this.logHandler.error("DYNAMODB CLIENT - Error creating", {e, item});
+                    this.logHandler.error("DYNAMODB CLIENT - Error creating", {e, item}, AwsModuleKeyname);
                     throw e;
                 }
             }
@@ -127,13 +153,13 @@ export class DynamodbClient implements DynamodbClientInterface{
     public async update<T extends StringToAnyObjectMap>(item: T): Promise<T> {
         try {
             item = await (await this.getMapperClient()).update(item);
-            this.logHandler.debug("DYNAMODB CLIENT - Updated item", {item});
+            this.logHandler.debug("DYNAMODB CLIENT - Updated item", {item}, AwsModuleKeyname);
 
             return item;
         } catch (error) {
             //TODO: Get the primary key.
             error = this.convertError(error, this.getTableName(item.constructor.prototype));
-            this.logHandler.error("DYNAMODB CLIENT - Error updating", {error, item})
+            this.logHandler.error("DYNAMODB CLIENT - Error updating", {error, item}, AwsModuleKeyname)
             throw error;
         }
     }
@@ -145,12 +171,12 @@ export class DynamodbClient implements DynamodbClientInterface{
     public async put<T extends StringToAnyObjectMap>(item: T): Promise<T> {
         try {
             item = await (await this.getMapperClient()).put(item);
-            this.logHandler.debug("DYNAMODB CLIENT - Put item", {item});
+            this.logHandler.debug("DYNAMODB CLIENT - Put item", {item}, AwsModuleKeyname);
 
             return item;
         } catch (error) {
             error = this.convertError(error, this.getTableName(item.constructor.prototype));
-            this.logHandler.error("DYNAMODB CLIENT - Error putting", {error, item})
+            this.logHandler.error("DYNAMODB CLIENT - Error putting", {error, item}, AwsModuleKeyname)
             throw error;
         }
     }
@@ -164,43 +190,52 @@ export class DynamodbClient implements DynamodbClientInterface{
         try {
             const item = this.createItemOfClassWithPrimaryKey(classType, primaryKeyAndValue);
             await (await this.getMapperClient()).delete(item);
-            this.logHandler.debug("DYNAMODB CLIENT - Deleted item", {item});
+            this.logHandler.debug("DYNAMODB CLIENT - Deleted item", {item}, AwsModuleKeyname);
 
             return;
         } catch (error) {
             error = this.convertError(error, this.getTableName(classType.prototype), Object.keys(primaryKeyAndValue)[0]);
-            this.logHandler.error("DYNAMODB CLIENT - Error deleting", {error, classType, primaryKeyAndValue})
+            this.logHandler.error("DYNAMODB CLIENT - Error deleting", {error, classType, primaryKeyAndValue}, AwsModuleKeyname)
             throw error;
         }
     }
 
     /**
      * Lists the item by secondary index.
-     * @param classType The type of the class of the items to list.
-     * @param keyCondition The key condition for the secondary index. (ie: {secondaryId: value}).
-     * @param secondaryIndexName The name of the secondary index in DynamoDb.
-     * @param filterKeysAndValues A map containing the filters keys and values to apply when listing by secondary index. Every key in the map represents an AND and the values represent ORs.  (ie: {filterKey1: filterValue, filterKey2: [value1, value1]} means you need filterKey1 to equal filterValue AND filterKey2 to equal value1 OR value2)
-     * @param expiresAtFilter A filter to get only the ones that the expiration is later then the value. Can either be a Date or a number representing the timestamp in seconds. (ie: {expiresAt: new Date()}).
+     * @param options The options to use.
      */
-    public async findBySecondaryIndex<T extends StringToAnyObjectMap>(classType: ZeroArgumentsConstructor<T>, keyCondition: { [propertyName: string]: string | boolean | number }, secondaryIndexName: string, filterKeysAndValues?: { [key: string]: string | number | boolean | string[] | number[]}, expiresAtFilter?: { [key: string]: number | Date }): Promise<T[]> {
+    public async findBySecondaryIndex<T extends StringToAnyObjectMap>(options: FindBySecondaryIndexOptions<T>): Promise<ListResult<T>> {
         try {
-            const filterExpression = this.createFilterExpression(filterKeysAndValues, expiresAtFilter);
+            const filterExpression = this.createFilterExpression(options.filterKeysAndValues, options.expiresAtFilter);
 
-            const queryOptions: QueryOptions = {indexName: secondaryIndexName, filter: filterExpression};
+            const queryOptions: QueryOptions = {indexName: options.secondaryIndexName, filter: filterExpression};
 
-            this.logHandler.debug("DYNAMODB CLIENT - Querying with options", {queryOptions, keyCondition});
-            const iterator = (await this.getMapperClient()).query(classType, keyCondition, queryOptions);
+            if(options.pagination){
+                queryOptions.pageSize = options.pagination.pageSize;
+                queryOptions.startKey = options.pagination.startKey;
+                queryOptions.scanIndexForward = options.pagination.order === DynamodbSortOrderEnum.Asc;
+            }
+
+            this.logHandler.debug("DYNAMODB CLIENT - Querying with options", {queryOptions, options}, AwsModuleKeyname);
+            const iterator = (await this.getMapperClient()).query(options.classType, options.keyCondition, queryOptions);
             const items: T[] = [];
 
             for await (const item of iterator) {
                 items.push(item);
             }
-            this.logHandler.debug("DYNAMODB CLIENT - Found items", {items});
+            this.logHandler.debug("DYNAMODB CLIENT - Found items", {items}, AwsModuleKeyname);
 
-            return items;
+            let paginationResult: PaginationResult | undefined = undefined;
+            if(options.pagination) {
+                paginationResult = {
+                    count: iterator.count,
+                    lastEvaluatedKey: iterator.pages().lastEvaluatedKey,
+                }
+            }
+            return new ListResult<T>(items, paginationResult);
         } catch (error) {
-            error = this.convertError(error, this.getTableName(classType.prototype));
-            this.logHandler.error("DYNAMODB CLIENT - Error finding by secondary index", {error, classType, keyCondition, secondaryIndexName, filterKeysAndValues, expiresAtFilter})
+            error = this.convertError(error, this.getTableName(options.classType.prototype));
+            this.logHandler.error("DYNAMODB CLIENT - Error finding by secondary index", {error, options}, AwsModuleKeyname)
             throw error;
         }
     }
@@ -298,7 +333,7 @@ export class DynamodbClient implements DynamodbClientInterface{
      * @private
      */
     private convertError(error: Error, tableName?: string, primaryKey?: string): Error {
-        this.logHandler.debug("Converting error to dynamodb error.", {error, tableName, primaryKey});
+        this.logHandler.debug("Converting error to dynamodb error.", {error, tableName, primaryKey}, AwsModuleKeyname);
         if(error instanceof DynamodbError){
             return error;
         }

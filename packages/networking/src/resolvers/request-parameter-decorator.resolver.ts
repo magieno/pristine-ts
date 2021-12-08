@@ -4,11 +4,11 @@ import {ControllerMethodParameterDecoratorResolverInterface} from "../interfaces
 import {Request} from "../models/request";
 import {IdentityInterface, moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {NetworkingModuleKeyname} from "../networking.module.keyname";
-import {ParameterDecoratorInterface} from "../interfaces/parameter-decorator.interface";
-import {RequestParameterDecoratorInterface} from "../interfaces/request-parameter-decorator.interface";
+import { RequestParameterDecoratorInterface } from "../interfaces/request-parameter-decorator.interface";
+import { ParameterDecoratorInterface } from "../interfaces/parameter-decorator.interface";
 
 /**
- * The RequestParameterDecoratorResolver resolves the value the request so that it can be injected it into the
+ * The RequestParameterDecoratorResolver resolves the value of the whole request so that it can be injected it into the
  * parameter of the route of the controller that was annotated with the @request decorator.
  * It is tagged as an MethodParameterDecoratorResolver so it can be automatically injected with the all the other MethodParameterDecoratorResolvers.
  */
@@ -18,7 +18,7 @@ import {RequestParameterDecoratorInterface} from "../interfaces/request-paramete
 export class RequestParameterDecoratorResolver implements ControllerMethodParameterDecoratorResolverInterface {
 
     /**
-     * Resolves the value of the request.
+     * Resolves the value of the whole request.
      * The router than injects that value into the parameter of the controller method.
      * @param methodArgument The method argument created by the decorator.
      * @param request The request

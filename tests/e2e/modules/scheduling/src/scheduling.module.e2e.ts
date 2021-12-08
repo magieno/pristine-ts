@@ -20,6 +20,8 @@ describe("Schedulinng Module instantiation in the Kernel", () => {
             importModules: [SchedulingModule],
             providerRegistrations: []
         } as AppModuleInterface, {
+            "pristine.logging.consoleLoggerActivated": false,
+            "pristine.logging.fileLoggerActivated": false,
         });
 
         expect(true).toBeTruthy();
@@ -34,6 +36,8 @@ describe("Schedulinng Module instantiation in the Kernel", () => {
             importModules: [SchedulingModule],
             providerRegistrations: []
         } as AppModuleInterface, {
+            "pristine.logging.consoleLoggerActivated": false,
+            "pristine.logging.fileLoggerActivated": false,
         });
 
         const services = [

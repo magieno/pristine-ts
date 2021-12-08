@@ -5,13 +5,13 @@ import {Trace} from "../models/trace.model";
 export interface TracingManagerInterface {
     trace?: Trace
 
-    startTracing(spanRootKeyname?: string, traceId?: string, context?: any): Span;
+    startTracing(spanRootKeyname?: string, traceId?: string, context?: { [key: string]: string }): Span;
 
     endTrace();
 
-    startSpan(keyname: string, parentId?: string, context?: any): Span;
+    startSpan(keyname: string, parentKeyname?: string, context?: { [key: string]: string }): Span;
 
-    addSpan(span: Span, parentId?: string, context?: any);
+    addSpan(span: Span): Span;
 
     endSpan(span: Span);
 }

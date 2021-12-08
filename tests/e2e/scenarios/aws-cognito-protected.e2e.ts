@@ -116,7 +116,9 @@ describe("Aws cognito authenticator", () => {
 
         const kernel = new Kernel();
         await kernel.init(moduleTest, {
-            "pristine.aws-cognito.poolId": "poolId"
+            "pristine.aws-cognito.poolId": "poolId",
+            "pristine.logging.consoleLoggerActivated": false,
+            "pristine.logging.fileLoggerActivated": false,
         });
 
         const request: RequestInterface = {
@@ -158,7 +160,9 @@ describe("Aws cognito authenticator", () => {
 
         const kernel = new Kernel();
         await kernel.init(moduleTest, {
-            "pristine.aws-cognito.poolId": "poolId"
+            "pristine.aws-cognito.poolId": "poolId",
+            "pristine.logging.consoleLoggerActivated": false,
+            "pristine.logging.fileLoggerActivated": false,
         });
 
         const request: RequestInterface = {

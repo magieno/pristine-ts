@@ -3,6 +3,7 @@ import {ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {Event} from "../models/event";
 import {EventListenerInterface} from "../interfaces/event-listener.interface";
 import {LogHandlerInterface} from "@pristine-ts/logging";
+import {EventModuleKeyname} from "../event.module.keyname";
 
 /**
  * This class receives all the event listeners that were registered and calls them if they support the event.
@@ -32,22 +33,24 @@ export class EventDispatcher {
             event,
             eventListeners: this.eventListeners,
             eventListenerNames: this.eventListeners.map(eventListener => eventListener.constructor.name),
-        });
+        }, EventModuleKeyname);
 
         this.eventListeners.forEach( (eventListener: EventListenerInterface) => {
             if(eventListener.supports(event)) {
-                promises.push(eventListener.handle(event))
-
                 this.logHandler.debug("The EventListener supports the event", {
                     event,
                     eventListener,
-                })
+                    eventListenerName: eventListener.constructor.name,
+                }, EventModuleKeyname)
+
+                promises.push(eventListener.handle(event))
             }
             else {
                 this.logHandler.debug("The EventListener doesn't support the event", {
                     event,
                     eventListener,
-                })
+                    eventListenerName: eventListener.constructor.name,
+                }, EventModuleKeyname)
             }
         });
 

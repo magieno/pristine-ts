@@ -21,7 +21,7 @@ export class EventLoggingInterceptor implements EventInterceptorInterface{
      * @param event
      */
     interceptEvent(event: Event<any>): Promise<Event<any>> {
-        this.logHandler.info("New event received", event);
+        this.logHandler.info("New event received", {event}, CoreModuleKeyname);
         return Promise.resolve(event);
     }
 
@@ -30,7 +30,7 @@ export class EventLoggingInterceptor implements EventInterceptorInterface{
      * @param event
      */
     interceptRawEvent(event: any): Promise<any> {
-        this.logHandler.info("New raw event received", event);
+        this.logHandler.info("New raw event received", {event}, CoreModuleKeyname);
         return Promise.resolve(event);
     }
 

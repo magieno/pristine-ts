@@ -5,12 +5,26 @@ import {DynamodbItemNotFoundError} from "../errors/dynamodb-item-not-found.error
 import {DynamodbItemAlreadyExistsError} from "../errors/dynamodb-item-already-exists.error";
 import {DynamodbTableNotFoundError} from "../errors/dynamodb-table-not-found.error";
 import {DynamodbValidationError} from "../errors/dynamodb-validation.error";
-import {ConsoleLogger, LogHandler} from "@pristine-ts/logging";
+import {ConsoleLogger, LogHandler, LogHandlerInterface} from "@pristine-ts/logging";
 import {DynamoDbTable} from "@awslabs-community-fork/dynamodb-data-mapper";
+import { ListResult } from "../results/list.result";
+import { PaginationResult } from "../results/pagination.result";
 
 describe("Dynamodb client", () => {
+    const logHandlerMock: LogHandlerInterface = {
+        debug(message: string, extra?: any) {
+        },
+        info(message: string, extra?: any) {
+        },
+        error(message: string, extra?: any) {
+        }
+        ,critical(message: string, extra?: any) {
+        },
+        warning(message: string, extra?: any) {
+        },
+    }
 
-    const client = new DynamodbClient(new LogHandler([]),"us-east-1");
+    const client = new DynamodbClient(logHandlerMock,"us-east-1");
 
     describe("createFilterConditions", () => {
         it("should create a simple filter condition for a string.", () => {
@@ -221,6 +235,32 @@ describe("Dynamodb client", () => {
             a.constructor.prototype[DynamoDbTable] = "TableA";
             expect(client["getTableName"](a.constructor.prototype)).toEqual("TableA");
             expect(client["getTableName"](A.prototype)).toEqual("TableA");
+        })
+    });
+
+    describe("iterator", () => {
+        class Item {
+            constructor(public value: number) {
+            }
+        }
+
+        it("should iterate over the items of a list result", () => {
+            const items = [new Item(1), new Item(2), new Item(3)];
+            const paginationResult: PaginationResult = {
+                count: 3,
+                lastEvaluatedKey: {
+                    item: 3
+                }
+            }
+            const result = new ListResult<Item>(items, paginationResult);
+            expect(result.paginationResult?.count).toBe(3);
+            expect(result.paginationResult?.lastEvaluatedKey?.item).toBe(3);
+            let counter = 0;
+            for(const item of result){
+                counter += 1;
+                expect(item.value).toBe(counter);
+            }
+            expect(counter).toBe(3);
         })
     });
 })

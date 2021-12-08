@@ -5,6 +5,7 @@ import {Event, EventDispatcher} from "@pristine-ts/event";
 import {StripeEventTypeEnum} from "../enums/stripe-event-type.enum";
 import {RequestInterface} from "@pristine-ts/common";
 import {StripeClient} from "../clients/stripe.client";
+import {StripeModuleKeyname} from "../stripe.module.keyname";
 
 @injectable()
 export class StripeWebhooksManager {
@@ -23,7 +24,7 @@ export class StripeWebhooksManager {
         const event = await this.stripeClient.verifySignature(request, stripeSigningEndpointSecret);
 
         if(!event.type.startsWith('customer.subscription')) {
-            this.logHandler.error("Stripe event is not a subscription", {event, className: StripeWebhooksManager.name});
+            this.logHandler.error("Stripe event is not a subscription", {event, className: StripeWebhooksManager.name}, StripeModuleKeyname);
             throw new Error("Event is not a subscription");
         }
 
@@ -41,7 +42,7 @@ export class StripeWebhooksManager {
                 parsedEvent.type = StripeEventTypeEnum.StripeSubscriptionDeleted
                 break;
             default:
-                await this.logHandler.debug("This event type is not supported", {event, className: StripeWebhooksManager.name});
+                await this.logHandler.debug("This event type is not supported", {event, className: StripeWebhooksManager.name}, StripeModuleKeyname);
                 break;
         }
 

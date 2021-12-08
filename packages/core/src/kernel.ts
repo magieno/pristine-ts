@@ -11,6 +11,7 @@ import {
     RouterInterface,
 } from "@pristine-ts/networking";
 import {
+    InternalContainerParameterEnum,
     ModuleInterface,
     moduleScopedServicesRegistry,
     ProviderRegistration,
@@ -34,6 +35,9 @@ import {RequestInterceptionExecutionError} from "./errors/request-interception-e
 import {EventInterceptionExecutionError} from "./errors/event-interception-execution.error";
 import {EventInterceptorInterface} from "./interfaces/event-interceptor.interface";
 import {Span, SpanKeynameEnum, TracingManagerInterface} from "@pristine-ts/telemetry";
+import {LogHandlerInterface} from "@pristine-ts/logging";
+import {CoreModuleKeyname} from "./core.module.keyname";
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * This is the central class that manages the lifecyle of this library.
@@ -66,7 +70,13 @@ export class Kernel {
      * Contains the span for the initialization.
      * @private
      */
-    private initializationSpan: Span = new Span(SpanKeynameEnum.KernelInitialization);
+    private initializationSpan: Span
+
+    /**
+     * Contains the unique instantiation identifier of this specific kernel instance.
+     * @public
+     */
+    public instantiationId: string = uuidv4();
 
     public constructor() {
     }
@@ -78,19 +88,36 @@ export class Kernel {
      * @param moduleConfigurationValues
      */
     public async init(module: ModuleInterface, moduleConfigurationValues?: { [key: string]: ModuleConfigurationValue }) {
+        this.initializationSpan = new Span(SpanKeynameEnum.KernelInitialization);
+        // Register the InstantiationId in the container.
+        this.container.register(InternalContainerParameterEnum.KernelInstantiationId, {
+            useValue: this.instantiationId,
+        });
+
         // Inits the application module and its dependencies.
-        await this.initModule(module);
+        const initializedModuleSpans = await this.initModule(module);
+
+        // Add every spans as a child of the Initialization Span
+        initializedModuleSpans.forEach(span => this.initializationSpan.addChild(span));
 
         // Register all the service tags in the container.
         await this.registerServiceTags();
 
         // Register the configuration.
+        const configurationInitializationSpan = new Span(SpanKeynameEnum.ConfigurationInitialization)
         await this.initConfiguration(moduleConfigurationValues);
+        configurationInitializationSpan.endDate = Date.now();
+
+        this.initializationSpan.addChild(configurationInitializationSpan);
 
         // Run the after init of the module and its dependencies
         await this.afterInitModule(module);
 
         this.initializationSpan.endDate = Date.now();
+
+        const logHandler: LogHandlerInterface = this.container.resolve("LogHandlerInterface");
+
+        logHandler.debug("The Kernel was instantiated in '" + ((this.initializationSpan.endDate - this.initializationSpan.startDate) / 1000) + "' seconds", {initializationSpan: this.initializationSpan}, CoreModuleKeyname);
     }
 
     /**
@@ -127,21 +154,34 @@ export class Kernel {
      * This method also registers all the service definitions in the container.
      *
      * @param module
-     * @param moduleConfigurations
      * @private
      */
-    private async initModule(module: ModuleInterface) {
+    private async initModule(module: ModuleInterface): Promise<Span[]> {
+        // If this module is already instantiated, simply return undefined as there's no span to return;
+        if (this.instantiatedModules.hasOwnProperty(module.keyname)) {
+            return [];
+        }
+
+        // Add the module to the instantiatedModules map.
+        this.instantiatedModules[module.keyname] = module;
+
+        const spans: Span[] = [];
+
+        // Created the span that will be used to track how long the instantiation takes.
+        const span: Span = new Span(SpanKeynameEnum.ModuleInitialization + "." + module.keyname);
+
+        const importModulesSpan: Span = new Span(SpanKeynameEnum.ModuleInitializationImportModules + "." + module.keyname);
+
+        span.addChild(importModulesSpan)
+
         if (module.importModules) {
             // Start by recursively importing all the packages
             for (let importedModule of module.importModules) {
-                await this.initModule(importedModule);
+                spans.push(...(await this.initModule(importedModule)));
             }
         }
 
-        if (this.instantiatedModules.hasOwnProperty(module.keyname)) {
-            // module already instantiated, we return
-            return;
-        }
+        importModulesSpan.endDate = Date.now();
 
         // Add all the providers to the container
         if (module.providerRegistrations) {
@@ -155,8 +195,13 @@ export class Kernel {
             await module.onInit(this.container);
         }
 
-        // Add the module to the instantiatedModules map.
-        this.instantiatedModules[module.keyname] = module;
+        // End the initialization span by setting the date. Since we don't have the tracing manager yet,
+        // They will all be ended properly but they will keep the current time.
+        span.endDate = Date.now();
+
+        spans.push(span);
+
+        return spans;
     }
 
     /**
@@ -232,12 +277,7 @@ export class Kernel {
                     throw new RequestInterceptionExecutionError("The Request Interceptor doesn't have the 'interceptRequest' method. RequestInterceptors should implement the RequestInterceptor interface.", request, this);
                 }
 
-                try {
-                    // https://stackoverflow.com/a/27760489/684101
-                    interceptedRequest = await Promise.resolve((interceptor as RequestInterceptorInterface).interceptRequest(interceptedRequest));
-                } catch (error) {
-                    throw new RequestInterceptionExecutionError("There was an exception thrown while executing the 'interceptRequest' method of the RequestInterceptor.", request, this, error);
-                }
+                interceptedRequest = await Promise.resolve((interceptor as RequestInterceptorInterface).interceptRequest(interceptedRequest));
             }
         }
 
@@ -335,12 +375,7 @@ export class Kernel {
                     throw new ResponseInterceptionExecutionError("The Response Interceptor doesn't have the 'interceptResponse' method. ResponseInterceptors should implement the ResponseInterceptor interface.", request, response, interceptor)
                 }
 
-                try {
-                    // https://stackoverflow.com/a/27760489/684101
-                    interceptedResponse = await Promise.resolve((interceptor as ResponseInterceptorInterface).interceptResponse(interceptedResponse, request));
-                } catch (e) {
-                    throw new ResponseInterceptionExecutionError("There was an exception thrown while executing the 'interceptResponse' method of the ResponseInterceptor.", request, response, interceptor, e);
-                }
+                interceptedResponse = await Promise.resolve((interceptor as ResponseInterceptorInterface).interceptResponse(interceptedResponse, request));
             }
         }
 
@@ -370,7 +405,7 @@ export class Kernel {
 
             interceptedErrorResponse.status = httpError.httpStatus
 
-            if(httpError.errors) {
+            if (httpError.errors) {
                 interceptedErrorResponse.body.errors = httpError.errors
             }
         } else {
@@ -420,30 +455,54 @@ export class Kernel {
      * @param rawEvent
      */
     public async handleRawEvent(rawEvent: object): Promise<void> {
+        const logHandler: LogHandlerInterface = this.container.resolve("LogHandlerInterface");
         const tracingManager: TracingManagerInterface = this.container.resolve("TracingManagerInterface");
         tracingManager.startTracing();
-        this.initializationSpan.trace = tracingManager.trace!;
-        tracingManager.addSpan(this.initializationSpan);
-        this.initializationSpan.end();
 
-        const eventSpan = tracingManager.startSpan(SpanKeynameEnum.EventExecution);
+        const eventInitializationSpan: Span = tracingManager.startSpan(SpanKeynameEnum.EventInitialization);
+        this.initializationSpan.addChild(eventInitializationSpan);
+
+        logHandler.debug("Executing the Raw Event Interceptors", {rawEvent}, CoreModuleKeyname);
 
         const interceptedRawEvent = await this.executeRawEventInterceptors(rawEvent);
+
+        logHandler.debug("Completed execution of the Raw Event Interceptors", {interceptedRawEvent}, CoreModuleKeyname);
 
         const eventTransformer: EventTransformer = this.container.resolve(EventTransformer);
 
         // Transform the raw event into an array of Event object
+        logHandler.debug("Transforming the Raw Events into an array of Events", {interceptedRawEvent}, CoreModuleKeyname);
+
         let events: Event<any>[] = eventTransformer.transform(interceptedRawEvent);
+
+        logHandler.debug("Completed the transformation of the Raw Events into Events", {events}, CoreModuleKeyname);
+
+        eventInitializationSpan.end();
 
         // Handle all of the parsed events
         const promises: Promise<void>[] = [];
-        for(let event of events) {
-            promises.push(this.handleParsedEvent(event));
+        for (let event of events) {
+            promises.push(this.handleParsedEvent(event, eventInitializationSpan));
         }
-        await Promise.allSettled(promises);
 
-        eventSpan.end();
-        tracingManager.endTrace();
+        return new Promise(resolve => {
+            Promise.allSettled(promises).then(results => {
+                results.forEach(result => {
+                    if (result.status === 'fulfilled') {
+                        logHandler.debug("Event was successfully handled", {result}, CoreModuleKeyname)
+                    } else {
+                        logHandler.error("There was an error handling the event.", {
+                            result: {
+                                status: result.status,
+                                reason: result.reason + "",
+                            }
+                        }, CoreModuleKeyname)
+                    }
+                });
+
+                return resolve();
+            });
+        })
     }
 
     /**
@@ -451,17 +510,47 @@ export class Kernel {
      *
      * @param rawEvent
      */
-    private async handleParsedEvent(parsedEvent: Event<any>) {
+    private async handleParsedEvent(parsedEvent: Event<any>, rawEventInitializationSpan: Span) {
         // Start by creating a child container and we will use this container to instantiate the dependencies for this event
         const childContainer = this.container.createChildContainer();
 
+        const tracingManager: TracingManagerInterface = childContainer.resolve("TracingManagerInterface");
+        tracingManager.startTracing();
+        tracingManager.trace?.rootSpan.addChild(this.initializationSpan)
+        tracingManager.addSpan(this.initializationSpan);
+        this.initializationSpan.end();
+
+        const eventSpan = tracingManager.startSpan(SpanKeynameEnum.EventExecution);
+
+        const logHandler: LogHandlerInterface = childContainer.resolve("LogHandlerInterface");
+
         const eventDispatcher: EventDispatcher = childContainer.resolve(EventDispatcher);
 
-        // Execute the interceptors
-        parsedEvent = await this.executeEventInterceptors(parsedEvent, childContainer);
+        try {
+            logHandler.debug("Starting the handling of the parsed event", {parsedEvent}, CoreModuleKeyname)
 
-        // Dispatch the Event to the EventListeners
-        await eventDispatcher.dispatch(parsedEvent);
+            logHandler.debug("Executing the event interceptors", {parsedEvent}, CoreModuleKeyname)
+
+            // Execute the interceptors
+            parsedEvent = await this.executeEventInterceptors(parsedEvent, childContainer);
+
+            logHandler.debug("The event interceptors were successfully executed.", {parsedEvent}, CoreModuleKeyname)
+
+            logHandler.debug("Dispatching the parsed event", {parsedEvent}, CoreModuleKeyname)
+
+            // Dispatch the Event to the EventListeners
+            await eventDispatcher.dispatch(parsedEvent);
+
+            logHandler.debug("The parsed Event was successfully dispatched.", {parsedEvent}, CoreModuleKeyname)
+
+        } catch (error) {
+            logHandler.error("Thee was an error handling the parsed event", {error}, CoreModuleKeyname)
+
+            throw error;
+        } finally {
+            eventSpan.end()
+            tracingManager.endTrace()
+        }
     }
 
     /**
@@ -471,8 +560,13 @@ export class Kernel {
      * @param requestInterface
      */
     public async handleRequest(requestInterface: RequestInterface): Promise<Response> {
+        const routerSetupSpan = new Span(SpanKeynameEnum.RouterSetup);
+
         // Setup the router
         this.setupRouter();
+
+        routerSetupSpan.endDate = Date.now();
+        this.initializationSpan.addChild(routerSetupSpan);
 
         const request = new Request(requestInterface);
 
@@ -483,25 +577,36 @@ export class Kernel {
             }
 
             // Start by creating a child container and we will use this container to instantiate the dependencies for this request
+            const childContainerCreationSpan = new Span(SpanKeynameEnum.ChildContainerCreation);
             const childContainer = this.container.createChildContainer();
+            childContainerCreationSpan.endDate = Date.now();
+            this.initializationSpan.addChild(childContainerCreationSpan);
 
             // Start the tracing
             const tracingManager: TracingManagerInterface = childContainer.resolve("TracingManagerInterface");
             tracingManager.startTracing();
+            tracingManager.trace?.rootSpan.addChild(this.initializationSpan)
             tracingManager.addSpan(this.initializationSpan);
+
+            // End the spans
             this.initializationSpan.end();
+            routerSetupSpan.end();
 
             const requestSpan = tracingManager.startSpan(SpanKeynameEnum.RequestExecution);
 
             try {
                 // Execute all the request interceptors
+                const requestInterceptorsSpan = tracingManager.startSpan(SpanKeynameEnum.RequestInterceptors, requestSpan.keyname);
                 const interceptedRequest = await this.executeRequestInterceptors(request, childContainer);
+                requestInterceptorsSpan.end();
 
                 // Execute the actual request.
                 const response = await this.router.execute(interceptedRequest, childContainer);
 
                 // Execute all the response interceptors
+                const responseInterceptorsSpan = tracingManager.startSpan(SpanKeynameEnum.ResponseInterceptors, requestSpan.keyname);
                 const interceptedResponse = await this.executeResponseInterceptors(response, request, childContainer);
+                responseInterceptorsSpan.end();
 
                 // End the tracing
                 requestSpan.end();
@@ -510,10 +615,14 @@ export class Kernel {
                 return resolve(interceptedResponse);
             } catch (error) {
                 // Transform the error into a response object
+                const errorResponseInterceptorsSpan = tracingManager.startSpan(SpanKeynameEnum.ErrorResponseInterceptors, requestSpan.keyname);
                 const errorResponse = await this.executeErrorResponseInterceptors(error, request, childContainer);
+                errorResponseInterceptorsSpan.end();
 
                 // Execute all the response interceptors
+                const responseInterceptorsSpan = tracingManager.startSpan(SpanKeynameEnum.ResponseInterceptors, requestSpan.keyname);
                 const interceptedResponse = await this.executeResponseInterceptors(errorResponse, request, childContainer);
+                responseInterceptorsSpan.end();
 
                 // End the tracing
                 requestSpan.end();
@@ -531,7 +640,7 @@ export class Kernel {
      * @private
      */
     private setupRouter() {
-        if(this.router) {
+        if (this.router) {
             return;
         }
         this.router = this.container.resolve(Router);
@@ -571,7 +680,7 @@ export class Kernel {
                 // the appropriate controller method
                 const route = new Route(controller.constructor, routeMethodDecorator.methodKeyname);
                 route.methodArguments = method.arguments ?? [];
-                route.context = mergeWith({}, controller.__metadata__?.controller?.__routeContext__ , method.__routeContext__);
+                route.context = mergeWith({}, controller.__metadata__?.controller?.__routeContext__, method.__routeContext__);
 
                 // Build the proper path
                 let path = routeMethodDecorator.path;

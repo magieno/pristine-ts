@@ -1,6 +1,9 @@
 import {DynamoDB} from "@aws-sdk/client-dynamodb";
 import {DataMapper, StringToAnyObjectMap} from "@awslabs-community-fork/dynamodb-data-mapper";
 import {ZeroArgumentsConstructor} from "@awslabs-community-fork/dynamodb-data-marshaller";
+import { ListOptions } from "../options/list.options";
+import { FindBySecondaryIndexOptions } from "../options/find-by-secondary-index.options";
+import { ListResult } from "../results/list.result";
 
 /**
  * The DynamodbClient Interface defines the methods that a Dynamodb Client must implement.
@@ -25,9 +28,9 @@ export interface DynamodbClientInterface {
 
     /**
      * Lists all the objects of a type (table).
-     * @param classType The class type to list all the objects for.
+     * @param options The options to use to list.
      */
-    list<T extends StringToAnyObjectMap>(classType: ZeroArgumentsConstructor<T>): Promise<T[]>
+    list<T extends StringToAnyObjectMap>(options: ListOptions<T>): Promise<ListResult<T>>
 
     /**
      * Creates an entry in DynamoDb if this id does not already exist.
@@ -56,11 +59,7 @@ export interface DynamodbClientInterface {
 
     /**
      * Lists the item by secondary index.
-     * @param classType The type of the class of the items to list.
-     * @param keyCondition The key condition for the secondary index. (ie: {secondaryId: value}).
-     * @param secondaryIndexName The name of the secondary index in DynamoDb.
-     * @param filterKeysAndValues A map containing the filters keys and values to apply when listing by secondary index. Every key in the map represents an AND and the values represent ORs.  (ie: {filterKey1: filterValue, filterKey2: [value1, value1]} means you need filterKey1 to equal filterValue AND filterKey2 to equal value1 OR value2)
-     * @param expiresAtFilter A filter to get only the ones that the expiration is later then the value. Can either be a Date or a number representing the timestamp in seconds. (ie: {expiresAt: new Date()}).
+     * @param options The options to use.
      */
-    findBySecondaryIndex<T extends StringToAnyObjectMap>(classType: ZeroArgumentsConstructor<T>, keyCondition: { [propertyName: string]: string | boolean | number }, secondaryIndexName: string, filterKeysAndValues?: { [key: string]: string | number | boolean | string[] | number[] }, expiresAtFilter?: { [key: string]: number | Date }): Promise<T[]>
+    findBySecondaryIndex<T extends StringToAnyObjectMap>(options: FindBySecondaryIndexOptions<T>): Promise<ListResult<T>>
 }
