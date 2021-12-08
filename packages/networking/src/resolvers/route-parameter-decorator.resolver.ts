@@ -5,11 +5,24 @@ import {IdentityInterface, moduleScoped, ServiceDefinitionTagEnum, tag} from "@p
 import {NetworkingModuleKeyname} from "../networking.module.keyname";
 import {RouteParameterDecoratorInterface} from "../interfaces/route-parameter-decorator.interface";
 import {ParameterDecoratorInterface} from "../interfaces/parameter-decorator.interface";
-
+/**
+ * The RouteParameterDecoratorResolver resolves the value of the route parameter specified of the request so that it can be injected it into the
+ * parameter of the route of the controller that was annotated with the @routeParameter decorator.
+ * It is tagged as an MethodParameterDecoratorResolver so it can be automatically injected with the all the other MethodParameterDecoratorResolvers.
+ */
 @moduleScoped(NetworkingModuleKeyname)
 @tag(ServiceDefinitionTagEnum.MethodParameterDecoratorResolver)
 @injectable()
 export class RouteParameterDecoratorResolver implements ControllerMethodParameterDecoratorResolverInterface {
+
+    /**
+     * Resolves the value of the the route parameter with the specified name of the request.
+     * The router than injects that value into the parameter of the controller method.
+     * @param methodArgument The method argument created by the decorator, including the name of the parameter to resolve.
+     * @param request The request
+     * @param routeParameters The router parameters
+     * @param identity The identity making the request
+     */
     resolve(methodArgument: RouteParameterDecoratorInterface,
             request: Request,
             routeParameters: { [p: string]: string },
@@ -17,6 +30,11 @@ export class RouteParameterDecoratorResolver implements ControllerMethodParamete
         return Promise.resolve(routeParameters[methodArgument.routeParameterName] ?? null);
     }
 
+    /**
+     * Returns whether or not the resolver support such a method argument.
+     * Usually we will check the methodArgument.type field to determine if it is a supported type.
+     * @param methodArgument
+     */
     supports(methodArgument: ParameterDecoratorInterface): boolean {
         return methodArgument && methodArgument.hasOwnProperty("type") && methodArgument.type === "routeParameter";
     }
