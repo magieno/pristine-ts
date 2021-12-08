@@ -4,6 +4,8 @@ import {ControllerMethodParameterDecoratorResolverInterface, Request} from "@pri
 import {IdentityInterface, moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {JwtModuleKeyname} from "../jwt.module.keyname";
 import {JwtManagerInterface} from "../interfaces/jwt-manager.interface";
+import {ParameterDecoratorInterface} from "@pristine-ts/networking/dist/lib/esm/interfaces/parameter-decorator.interface";
+import {JwtPayloadDecoratorInterface} from "../interfaces/jwt-payload-decorator.interface";
 
 /**
  * The JwtPayloadParameterDecoratorResolver resolves the decoded JWT in the parameter of a route of a controller when the @jwtPayload() decorator is used.
@@ -24,7 +26,7 @@ export class JwtPayloadParameterDecoratorResolver implements ControllerMethodPar
      * @param routeParameters The parameters of the route (path parameter).
      * @param identity The identity of the user making the request.
      */
-    async resolve(methodArgument: any,
+    async resolve(methodArgument: JwtPayloadDecoratorInterface,
                   request: Request,
                   routeParameters: { [p: string]: string },
                   identity?: IdentityInterface): Promise<any> {
@@ -44,7 +46,7 @@ export class JwtPayloadParameterDecoratorResolver implements ControllerMethodPar
      * Verifies if the resolver supports this type of method argument.
      * @param methodArgument The argument of the method that needs to be resolved.
      */
-    supports(methodArgument: any): boolean {
+    supports(methodArgument: ParameterDecoratorInterface): boolean {
         return methodArgument && methodArgument.hasOwnProperty("type") && methodArgument.type === "jwtPayload";
     }
 }

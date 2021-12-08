@@ -5,7 +5,7 @@ import {Request} from "../models/request";
 import {Route} from "../models/route";
 
 /**
- * This method defines the interface that the router must implement.
+ * This interface defines the methods that the router must implement.
  */
 export interface RouterInterface {
     /**
@@ -20,7 +20,7 @@ export interface RouterInterface {
 
     /**
      * This method executes the request passed as a parameter. A container must also be passed since we want each
-     * request to have its own container so that memory isn't accidently shared between requests.
+     * request to have its own container so that memory isn't accidentally shared between requests.
      *
      * @param request
      * @param container
