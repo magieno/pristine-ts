@@ -103,13 +103,11 @@ export class DynamodbClient implements DynamodbClientInterface{
             }
             this.logHandler.debug("DYNAMODB CLIENT - List items", {items}, AwsModuleKeyname);
 
-            let paginationResult: PaginationResult | undefined = undefined;
-            if(options.pagination) {
-                paginationResult = {
-                    count: iterator.count,
-                    lastEvaluatedKey: iterator.pages().lastEvaluatedKey,
-                }
+            const paginationResult = {
+                count: iterator.count,
+                lastEvaluatedKey: iterator.pages().lastEvaluatedKey,
             }
+
             return new ListResult<T>(items, paginationResult);
         } catch (error) {
             error = this.convertError(error, this.getTableName(options.classType.prototype));
@@ -213,8 +211,9 @@ export class DynamodbClient implements DynamodbClientInterface{
             if(options.pagination){
                 queryOptions.pageSize = options.pagination.pageSize;
                 queryOptions.startKey = options.pagination.startKey;
-                queryOptions.scanIndexForward = options.pagination.order === DynamodbSortOrderEnum.Asc;
             }
+            // Makes the default scanIndexForward = false so that most recent come first.
+            queryOptions.scanIndexForward = options?.pagination?.order === DynamodbSortOrderEnum.Asc;
 
             this.logHandler.debug("DYNAMODB CLIENT - Querying with options", {queryOptions, options}, AwsModuleKeyname);
             const iterator = (await this.getMapperClient()).query(options.classType, options.keyCondition, queryOptions);
@@ -225,12 +224,9 @@ export class DynamodbClient implements DynamodbClientInterface{
             }
             this.logHandler.debug("DYNAMODB CLIENT - Found items", {items}, AwsModuleKeyname);
 
-            let paginationResult: PaginationResult | undefined = undefined;
-            if(options.pagination) {
-                paginationResult = {
-                    count: iterator.count,
-                    lastEvaluatedKey: iterator.pages().lastEvaluatedKey,
-                }
+            const paginationResult = {
+                count: iterator.count,
+                lastEvaluatedKey: iterator.pages().lastEvaluatedKey,
             }
             return new ListResult<T>(items, paginationResult);
         } catch (error) {
