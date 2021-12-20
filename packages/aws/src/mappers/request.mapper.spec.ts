@@ -198,7 +198,7 @@ describe("Request mapper", () => {
         const requestMapper = new RequestMapper(new RequestMapperFactory(new HttpRequestMapper(methodMapper), new RestApiRequestMapper(methodMapper)), logHandlerMock);
 
         const expectedRequest: RequestInterface = {
-            url: "/my/path",
+            url: "/my/path?parameter1=value1&parameter1=value2&parameter2=value",
             body: rawHttpEvent.body,
             rawBody: rawHttpEvent.body,
             headers: {
