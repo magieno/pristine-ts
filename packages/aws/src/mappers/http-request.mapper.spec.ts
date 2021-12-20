@@ -80,7 +80,7 @@ describe("Http request mapper", () => {
         const httpRequestMapper = new HttpRequestMapper(new MethodMapper());
 
         const expectedRequest: RequestInterface = {
-            url: "/my/path",
+            url: "/my/path?parameter1=value1&parameter1=value2&parameter2=value",
             body: rawEvent.body,
             rawBody: rawEvent.body,
             headers: {
