@@ -7,10 +7,22 @@ import {ServiceDefinitionTagEnum, tag, TracingContext, InternalContainerParamete
 import {LogHandlerInterface} from "../interfaces/log-handler.interface";
 import {Utils} from "../utils/utils";
 
+/**
+ * The LogHandler to use when we want to output some logs.
+ * This handler makes sure that only the right level of logs are outputted, stacks logs, and logs with different loggers.
+ * It is registered with the tag LogHandlerInterface so that it can be injected as a LogHandlerInterface to facilitate mocking.
+ */
 @tag("LogHandlerInterface")
 @injectable()
 export class LogHandler implements LogHandlerInterface {
 
+  /**
+   * @param loggers The loggers to use to output the logs. All services with the tag ServiceDefinitionTagEnum.Logger will be automatically injected here.
+   * @param logSeverityLevelConfiguration The severity from which to start logging the logs.
+   * @param activateDiagnostics Whether or not the outputted logs should contain the diagnostic part.
+   * @param kernelInstantiationId The id of instantiation of the kernel.
+   * @param tracingContext The context of the tracing.
+   */
   public constructor(@injectAll(ServiceDefinitionTagEnum.Logger) private readonly loggers: LoggerInterface[],
                      @inject("%pristine.logging.logSeverityLevelConfiguration%") private readonly logSeverityLevelConfiguration: number,
                      @inject("%pristine.logging.activateDiagnostics%") private readonly activateDiagnostics: boolean,
@@ -18,26 +30,63 @@ export class LogHandler implements LogHandlerInterface {
                      private readonly tracingContext: TracingContext) {
   }
 
-  public error(message: string, extra?: any, module: string = "application"): void {
-    return this.log(message, SeverityEnum.Error, extra, module);
-  }
-
+  /**
+   * Logs the message if the severity is set to critical or above.
+   * @param message The message to log.
+   * @param extra The extra object to log.
+   * @param module The module from where the log was created.
+   */
   public critical(message: string, extra?: any, module: string = "application"): void {
     return this.log(message, SeverityEnum.Critical, extra, module);
   }
 
-  public debug(message: string, extra?: any, module: string = "application"): void {
-    return this.log(message, SeverityEnum.Debug, extra, module);
+  /**
+   * Logs the message if the severity is set to error or above.
+   * @param message The message to log.
+   * @param extra The extra object to log.
+   * @param module The module from where the log was created.
+   */
+  public error(message: string, extra?: any, module: string = "application"): void {
+    return this.log(message, SeverityEnum.Error, extra, module);
   }
 
-  public info(message: string, extra?: any, module: string = "application"): void {
-    return this.log(message, SeverityEnum.Info, extra, module);
-  }
-
+  /**
+   * Logs the message if the severity is set to warning or above.
+   * @param message The message to log.
+   * @param extra The extra object to log.
+   * @param module The module from where the log was created.
+   */
   public warning(message: string, extra?: any, module: string = "application"): void {
     return this.log(message, SeverityEnum.Warning, extra, module);
   }
 
+  /**
+   * Logs the message if the severity is set to info or above.
+   * @param message The message to log.
+   * @param extra The extra object to log.
+   * @param module The module from where the log was created.
+   */
+  public info(message: string, extra?: any, module: string = "application"): void {
+    return this.log(message, SeverityEnum.Info, extra, module);
+  }
+
+  /**
+   * Logs the message if the severity is set to debug or above.
+   * @param message The message to log.
+   * @param extra The extra object to log.
+   * @param module The module from where the log was created.
+   */
+  public debug(message: string, extra?: any, module: string = "application"): void {
+    return this.log(message, SeverityEnum.Debug, extra, module);
+  }
+
+  /**
+   * Logs the message based on the severity.
+   * @param message The message to log.
+   * @param severity The minimum severity to log.
+   * @param extra The extra object to log.
+   * @param module The module from where the log was created.
+   */
   private log(message: string, severity: SeverityEnum = SeverityEnum.Error, extra?: any, module: string = "application"): void {
     const log = new LogModel();
     log.traceId = this.tracingContext.traceId;
@@ -67,9 +116,10 @@ export class LogHandler implements LogHandlerInterface {
       log.extra["__diagnostics"] = diagnostics;
     }
 
-    for(const writer of this.loggers){
-      if(writer.isActive()) {
-        writer.readableStream.push(log);
+    // Log in every logger that is activated.
+    for(const logger of this.loggers){
+      if(logger.isActive()) {
+        logger.readableStream.push(log);
       }
     }
   }
