@@ -15,7 +15,7 @@ export class HttpRequestMapper implements RequestMapperInterface {
      */
     map(request: HttpRequestModel): RequestInterface {
         return {
-            url: request.requestContext.http.path,
+            url: request.requestContext.http.path + (request.rawQueryString ? "?" + request.rawQueryString : ""),
             headers: request.headers,
             httpMethod: this.methodMapper.map(request.requestContext.http.method),
             body:request.body,
