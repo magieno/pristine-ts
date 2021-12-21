@@ -96,16 +96,22 @@ export class DynamodbClient implements DynamodbClientInterface{
                 }
             }
             const iterator = (await this.getMapperClient()).scan(options.classType, scanOptions);
-            const items: T[] = [];
+            const paginator = iterator.pages();
 
-            for await (const item of iterator) {
-                items.push(item);
+            const items: T[] = [];
+            for await (const page of paginator){
+                items.push(...page);
+
+                if(options.pagination?.pageSize) {
+                    break;
+                }
             }
+
             this.logHandler.debug("DYNAMODB CLIENT - List items", {items}, AwsModuleKeyname);
 
             const paginationResult = {
-                count: iterator.count,
-                lastEvaluatedKey: iterator.pages().lastEvaluatedKey,
+                count: paginator.count,
+                lastEvaluatedKey: paginator.lastEvaluatedKey,
             }
 
             return new ListResult<T>(items, paginationResult);
@@ -217,16 +223,22 @@ export class DynamodbClient implements DynamodbClientInterface{
 
             this.logHandler.debug("DYNAMODB CLIENT - Querying with options", {queryOptions, options}, AwsModuleKeyname);
             const iterator = (await this.getMapperClient()).query(options.classType, options.keyCondition, queryOptions);
-            const items: T[] = [];
+            const paginator = iterator.pages();
 
-            for await (const item of iterator) {
-                items.push(item);
+            const items: T[] = [];
+            for await (const page of paginator){
+                items.push(...page);
+
+                if(options.pagination?.pageSize) {
+                    break;
+                }
             }
+
             this.logHandler.debug("DYNAMODB CLIENT - Found items", {items}, AwsModuleKeyname);
 
             const paginationResult = {
-                count: iterator.count,
-                lastEvaluatedKey: iterator.pages().lastEvaluatedKey,
+                count: paginator.count,
+                lastEvaluatedKey: paginator.lastEvaluatedKey,
             }
             return new ListResult<T>(items, paginationResult);
         } catch (error) {
