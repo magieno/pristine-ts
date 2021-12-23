@@ -96,16 +96,23 @@ export class DynamodbClient implements DynamodbClientInterface{
                 }
             }
             const iterator = (await this.getMapperClient()).scan(options.classType, scanOptions);
-            const paginator = iterator.pages();
-
             const items: T[] = [];
-            for await (const page of paginator){
-                items.push(...page);
 
-                if(options.pagination?.pageSize) {
+            let paginator;
+
+            if(options.pagination?.pageSize) {
+                paginator = iterator.pages();
+                for await (const page of paginator) {
+                    items.push(...page);
                     break;
                 }
+            } else {
+                for await (const item of iterator) {
+                    items.push(item);
+                }
+                paginator = iterator.pages();
             }
+
 
             this.logHandler.debug("DYNAMODB CLIENT - List items", {items}, AwsModuleKeyname);
 
@@ -223,15 +230,21 @@ export class DynamodbClient implements DynamodbClientInterface{
 
             this.logHandler.debug("DYNAMODB CLIENT - Querying with options", {queryOptions, options}, AwsModuleKeyname);
             const iterator = (await this.getMapperClient()).query(options.classType, options.keyCondition, queryOptions);
-            const paginator = iterator.pages();
-
             const items: T[] = [];
-            for await (const page of paginator){
-                items.push(...page);
 
-                if(options.pagination?.pageSize) {
+            let paginator;
+
+            if(options.pagination?.pageSize) {
+                paginator = iterator.pages();
+                for await (const page of paginator) {
+                    items.push(...page);
                     break;
                 }
+            } else {
+                for await (const item of iterator) {
+                    items.push(item);
+                }
+                paginator = iterator.pages();
             }
 
             this.logHandler.debug("DYNAMODB CLIENT - Found items", {items}, AwsModuleKeyname);
