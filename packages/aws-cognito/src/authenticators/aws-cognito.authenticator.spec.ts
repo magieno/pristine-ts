@@ -55,7 +55,7 @@ const publicKeys = {
         "use": "sig"
     }]
 }
-let payload;
+let payload: any;
 
 export class MockHttpClient implements HttpClientInterface {
 

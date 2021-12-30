@@ -21,7 +21,7 @@ import {DependencyContainer, container} from "tsyringe";
 describe("Router.spec", () => {
     let root: PathRouterNode;
 
-    let mockController;
+    let mockController: any;
 
     let router: Router;
 
@@ -42,7 +42,7 @@ describe("Router.spec", () => {
 
     let request: Request;
 
-    let spyMethodController;
+    let spyMethodController: any;
 
     beforeAll(() => {
         root = pathRouterNode();
