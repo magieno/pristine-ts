@@ -5,8 +5,9 @@ export class LogModel {
   date: Date = new Date();
   module: string = "application";
   extra: any;
+  kernelInstantiationId?: string;
 
-  constructor(public severity: SeverityEnum, public message: string, public kernelInstantiationId: string) {
+  constructor(public severity: SeverityEnum, public message: string) {
   }
-  
+
 }

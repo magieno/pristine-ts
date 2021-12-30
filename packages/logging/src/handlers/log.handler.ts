@@ -39,7 +39,8 @@ export class LogHandler implements LogHandlerInterface {
   }
 
   private log(message: string, severity: SeverityEnum = SeverityEnum.Error, extra?: any, module: string = "application"): void {
-    const log = new LogModel(severity, message, this.kernelInstantiationId);
+    const log = new LogModel(severity, message);
+    log.kernelInstantiationId = this.kernelInstantiationId;
     log.traceId = this.tracingContext.traceId;
     log.extra = extra;
     log.module = module;
