@@ -20,7 +20,8 @@
   },
   "dependencies": {
     "@pristine-ts/common": "file:../common",
-    "@pristine-ts/logging": "file:../logging"
+    "@pristine-ts/logging": "file:../logging",
+    "@pristine-ts/telemetry": "file:../telemetry"
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^8.5.0"

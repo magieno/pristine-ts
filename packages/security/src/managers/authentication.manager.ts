@@ -7,6 +7,7 @@ import {LogHandlerInterface} from "@pristine-ts/logging";
 import {AuthenticatorFactory} from "../factories/authenticator.factory";
 import {SecurityModuleKeyname} from "../security.module.keyname";
 import {IdentityProviderInterface} from "../interfaces/identity-provider.interface";
+import {TracingManagerInterface} from "@pristine-ts/telemetry";
 
 @moduleScoped(SecurityModuleKeyname)
 @tag("AuthenticationManagerInterface")
@@ -19,6 +20,8 @@ export class AuthenticationManager implements AuthenticationManagerInterface {
     }
 
     public async authenticate(request: RequestInterface, routeContext: any, container: DependencyContainer): Promise<IdentityInterface | undefined> {
+        const tracingManager: TracingManagerInterface = container.resolve("TracingManagerInterface");
+
         if(!routeContext || routeContext.authenticator === undefined) {
             return undefined;
         }

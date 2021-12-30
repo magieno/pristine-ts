@@ -2,6 +2,7 @@ import {ModuleInterface} from "@pristine-ts/common";
 import {SecurityModuleKeyname} from "./security.module.keyname";
 import {LoggingModule} from "@pristine-ts/logging";
 import {EnvironmentVariableResolver} from "@pristine-ts/configuration";
+import {TelemetryModule} from "@pristine-ts/telemetry";
 
 export * from "./decorators/decorators";
 export * from "./enums/enums";
@@ -17,6 +18,7 @@ export const SecurityModule: ModuleInterface = {
     keyname: SecurityModuleKeyname,
     importModules: [
         LoggingModule,
+        TelemetryModule,
     ],
     providerRegistrations: [],
     configurationDefinitions: [

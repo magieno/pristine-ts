@@ -6,6 +6,7 @@ import {AuthenticatorInterface} from "../interfaces/authenticator.interface";
 import {IdentityInterface, RequestInterface} from "@pristine-ts/common";
 import {container} from "tsyringe";
 import {IdentityProviderInterface} from "../interfaces/identity-provider.interface";
+import {Span, TracingManagerInterface} from "@pristine-ts/telemetry";
 
 describe("AuthenticationManager", () => {
     const logHandlerMock: LogHandlerInterface = {
@@ -17,12 +18,31 @@ describe("AuthenticationManager", () => {
         }
     }
 
+    const tracingManager: TracingManagerInterface = {
+        addSpan(span: Span): Span {
+            return span;
+        }, endSpan(span: Span): any {
+        }, endTrace(): any {
+        }, startSpan(keyname: string, parentKeyname?: string, context?: { [p: string]: string }): Span {
+            return new Span("root");
+        }, startTracing(spanRootKeyname?: string, traceId?: string, context?: { [p: string]: string }): Span {
+            return new Span("root");
+        }
+
+    };
+
     const requestMock: RequestInterface = {
         httpMethod: "",
         body: {},
         url: "",
         headers: {}
     }
+
+    beforeAll(() => {
+        container.register("TracingManagerInterface", {
+            useValue: tracingManager,
+        });
+    })
 
     it("should return undefined if the routecontext is undefined or if no authenticator is present in the context", async () => {
 

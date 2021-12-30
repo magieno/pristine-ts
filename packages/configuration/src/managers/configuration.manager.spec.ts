@@ -94,7 +94,6 @@ describe("Configuration Manager", () => {
             expect(container.resolve("%pristine.test.parameter2%")).toBe("defaultValue");
         })
 
-
         it("should execute the default resolvers until one resolves something when the configuration isRequired", async () => {
             const configurationManager: ConfigurationManager = new ConfigurationManager(getConfigurationParserMock("testResolved"));
 
@@ -125,6 +124,10 @@ describe("Configuration Manager", () => {
             await configurationManager.load({}, container);
 
             expect(container.resolve("%pristine.test.parameter2%")).toBe(5);
+        })
+
+        it("should load the configuration in under 50ms", async() => {
+
         })
     })
 });
