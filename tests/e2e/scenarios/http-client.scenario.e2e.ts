@@ -18,7 +18,7 @@ import spyOn = jest.spyOn;
 
 describe("Http Client", () => {
 
-    const runTest = async (server, protocolName) => {
+    const runTest = async (server: any, protocolName: string) => {
 
         describe(`${protocolName} protocol`, () => {
             const host = 'localhost';
@@ -28,11 +28,11 @@ describe("Http Client", () => {
                 400: {},
                 500: {}
             }
-            server.on("request", (req, res) => {
+            server.on("request", (req: any, res: any) => {
                 let data = '';
 
 
-                req.on('data', chunk => {
+                req.on('data', (chunk: any) => {
                     data += chunk;
                 });
 
@@ -98,6 +98,7 @@ describe("Http Client", () => {
                                 return res.end();
                             }
 
+                            // @ts-ignore
                             alreadySeen["500"][req.headers["unique-id"]] = true;
                         }
 
