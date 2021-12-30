@@ -16,7 +16,7 @@ import {BaseLogger} from "./base.logger";
 @tag(ServiceDefinitionTagEnum.Logger)
 @injectable()
 export class ConsoleLogger extends BaseLogger implements LoggerInterface {
-  public readableStream: Readable;
+  public readableStream!: Readable;
 
   public constructor(@inject("%pristine.logging.numberOfStackedLogs%") numberOfStackedLogs: number,
                      @inject("%pristine.logging.logSeverityLevelConfiguration%") logSeverityLevelConfiguration: number,
@@ -40,6 +40,7 @@ export class ConsoleLogger extends BaseLogger implements LoggerInterface {
 
     this.initialize();
   }
+
   protected initialize(){
     if(this.isActive()) {
       this.readableStream = new Readable({

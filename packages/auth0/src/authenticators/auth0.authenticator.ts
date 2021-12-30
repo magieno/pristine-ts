@@ -14,10 +14,10 @@ import {Auth0ModuleKeyname} from "../auth0.module.keyname";
 @injectable()
 export class Auth0Authenticator implements AuthenticatorInterface {
 
-    private cachedPems;
-    private auth0Issuer;
-    private publicKeyUrl;
-    private context;
+    private cachedPems: any;
+    private auth0Issuer: string;
+    private publicKeyUrl: string;
+    private context: any;
 
     /**
      * The Auth0 authenticator that can be passed to the @authenticator decorator.
@@ -94,7 +94,7 @@ export class Auth0Authenticator implements AuthenticatorInterface {
         const publicKeys = publicKeysResponse.body;
 
         // Create a map key id : key.
-        const pems: {[key: string]: string} = publicKeys.keys.reduce((agg, current) => {
+        const pems: {[key: string]: string} = publicKeys.keys.reduce((agg: any, current: any) => {
             agg[current.kid] = jwkToBuffer(current);
             return agg;
         }, {} as {[key: string]: string});
@@ -194,7 +194,7 @@ export class Auth0Authenticator implements AuthenticatorInterface {
      * @param token
      * @private
      */
-    private getTokenHeader(token): TokenHeaderInterface {
+    private getTokenHeader(token: string): TokenHeaderInterface {
         const tokenSections = (token || '').split('.');
         if (tokenSections.length < 2) {
             throw new Error('Token is invalid');

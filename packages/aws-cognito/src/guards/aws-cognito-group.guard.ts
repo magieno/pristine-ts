@@ -10,7 +10,7 @@ import {GuardContextInterface, GuardInterface} from "@pristine-ts/security";
 export class AwsCognitoGroupGuard implements GuardInterface {
     public keyname = "cognito.group";
 
-    public guardContext: GuardContextInterface;
+    public guardContext?: GuardContextInterface;
 
     /**
      * Sets the context for the guard.
@@ -29,6 +29,10 @@ export class AwsCognitoGroupGuard implements GuardInterface {
      */
     async isAuthorized(request: RequestInterface, identity?: IdentityInterface): Promise<boolean> {
         const neededGroups: string[] = [];
+        if(this.guardContext === undefined) {
+            return false;
+        }
+
         if(this.guardContext.options && this.guardContext.options.hasOwnProperty("groups") && Array.isArray(this.guardContext.options.groups)){
             neededGroups.push(... this.guardContext.options.groups);
         }

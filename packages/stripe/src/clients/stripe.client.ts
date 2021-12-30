@@ -10,7 +10,7 @@ import Stripe from "stripe";
 @injectable()
 export class StripeClient implements StripeClientInterface{
 
-    client: Stripe;
+    private client?: Stripe;
 
     constructor(
         @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,

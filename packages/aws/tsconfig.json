@@ -5,7 +5,8 @@
   ],
   "compilerOptions": {
     "declarationDir": "dist/types",
-    "outDir": "dist/lib/esm"
+    "outDir": "dist/lib/esm",
+    "strict": false
   },
   "exclude": ["./**/*.spec.ts", "dist"]
 }

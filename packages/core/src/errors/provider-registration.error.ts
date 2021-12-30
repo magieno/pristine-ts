@@ -6,7 +6,7 @@ import {Kernel} from "../kernel";
  */
 export class ProviderRegistrationError extends LoggableError {
 
-    public constructor(message: string, providerRegistration, kernel: Kernel) {
+    public constructor(message: string, providerRegistration: any, kernel: Kernel) {
         super(message, {
             providerRegistration,
             kernel,

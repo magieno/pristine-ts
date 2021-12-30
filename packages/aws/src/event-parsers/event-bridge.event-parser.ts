@@ -14,14 +14,16 @@ export class EventBridgeEventParser implements EventParserInterface<EventBridgeP
     parse(rawEvent: any): Event<EventBridgePayload>[] {
         const parsedEvents: Event<EventBridgePayload>[] = [];
 
-        const event = new Event<EventBridgePayload>();
+        let eventType: EventBridgeEventTypeEnum;
 
         if(rawEvent.source === "aws.events") {
-            event.type = EventBridgeEventTypeEnum.ScheduledEvent
+            eventType = EventBridgeEventTypeEnum.ScheduledEvent
         }
         else {
-            event.type = EventBridgeEventTypeEnum.Event
+            eventType = EventBridgeEventTypeEnum.Event
         }
+
+        const event = new Event<EventBridgePayload>(eventType, new EventBridgePayload());
 
         event.payload = new EventBridgePayload();
         event.payload.id = rawEvent.id;

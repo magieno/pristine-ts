@@ -36,9 +36,7 @@ export class S3EventParser implements EventParserInterface<S3EventPayload>{
     parse(rawEvent: any): Event<S3EventPayload>[] {
         const parsedEvents: Event<S3EventPayload>[] = [];
         for(const record of rawEvent.Records) {
-            const event = new Event<S3EventPayload>();
-            event.type = this.findEnum(record.eventName);
-            event.payload = new S3EventPayload();
+            const event = new Event<S3EventPayload>(this.findEnum(record.eventName), new S3EventPayload());
 
             event.payload.eventVersion = record.eventVersion;
             event.payload.eventSource = record.eventSource;

@@ -15,6 +15,9 @@
     "@pristine-ts/logging": "file:../logging",
     "uuid": "^8.3.2"
   },
+  "devDependencies": {
+    "@types/uuid": "^8.3.2"
+  },
   "files": [
     "dist"
   ],

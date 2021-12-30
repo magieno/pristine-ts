@@ -39,6 +39,15 @@ export class XrayTracer implements TracerInterface{
             segment = new AWSXRay.Segment(trace.id);
         }
 
+        if(trace.rootSpan === undefined) {
+            this.loghandler.error("The RootSpance of the trace is undefined, there's nothing we can do", {
+                segment,
+                trace,
+            }, AwsXrayModuleKeyname)
+
+            return;
+        }
+
         const subsegment = this.captureSpan(trace.rootSpan, segment);
 
         segment.flush()
@@ -60,7 +69,10 @@ export class XrayTracer implements TracerInterface{
         subsegment.start_time = span.startDate / 1000;
 
         subsegment.addMetadata("span_id", span.id);
-        subsegment.addMetadata("trace_id", span.trace.id);
+
+        if(span.trace !== undefined) {
+            subsegment.addMetadata("trace_id", span.trace.id);
+        }
 
         if(span.context) {
             Object.keys(span.context).forEach(key => {
@@ -78,6 +90,7 @@ export class XrayTracer implements TracerInterface{
         segment.addSubsegment(subsegment);
 
         // Force to rewrite the end time after closing it
+        // @ts-ignore
         subsegment["end_time"] = span.endDate ? (span.endDate / 1000) : (Date.now() / 1000);
 
         // It seems that if you call the close method on the subsegment, it will send it before we get a chance to override the end_time
@@ -90,6 +103,7 @@ export class XrayTracer implements TracerInterface{
             subsegment.parent.decrementCounter()
         }
 
+        // @ts-ignore Don't have a choice, we need to access a private proeprty, until they fix an issue. See above comment.
         if(subsegment.segment && subsegment.segment["counter"] > SegmentUtils.getStreamingThreshold()) {
             if(subsegment.streamSubsegments() && subsegment.parent) {
                 subsegment.parent.removeSubsegment(subsegment)

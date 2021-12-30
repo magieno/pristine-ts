@@ -7,7 +7,7 @@ import {GuardContextInterface} from "../interfaces/guard-context.interface";
 export class RoleGuard implements GuardInterface {
     public keyname = "role";
 
-    public guardContext: GuardContextInterface;
+    public guardContext?: GuardContextInterface;
 
     constructor(@inject("%pristine.security.rolesClaimKey%") private readonly rolesClaimKey: string) {
     }
@@ -20,6 +20,11 @@ export class RoleGuard implements GuardInterface {
 
     async isAuthorized(request: RequestInterface, identity?: IdentityInterface): Promise<boolean> {
         const neededRoles: string[] = [];
+
+        if(this.guardContext === undefined) {
+            return false;
+        }
+
         if(this.guardContext.options && this.guardContext.options.hasOwnProperty("roles") && Array.isArray(this.guardContext.options.roles)){
             neededRoles.push(... this.guardContext.options.roles);
         }

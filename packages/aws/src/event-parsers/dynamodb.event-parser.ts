@@ -55,10 +55,7 @@ export class DynamodbEventParser implements EventParserInterface<DynamodbEventPa
     parse(rawEvent: any): Event<DynamodbEventPayload>[] {
         const parsedEvents: Event<DynamodbEventPayload>[] = [];
         for(const record of rawEvent.Records) {
-            const event = new Event<DynamodbEventPayload>();
-            event.type = this.findEnum(record.eventName);
-            event.payload = new DynamodbEventPayload();
-
+            const event = new Event<DynamodbEventPayload>(this.findEnum(record.eventName), new DynamodbEventPayload());
             event.payload.eventVersion = record.eventVersion;
             event.payload.eventSource = record.eventSource;
             if (record.dynamodb.ApproximateCreationDateTime) {

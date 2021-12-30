@@ -5,7 +5,7 @@ import {LoggableError, RequestInterface} from "@pristine-ts/common";
  */
 export class ErrorResponseInterceptionExecutionError extends LoggableError {
 
-    public constructor(message: string, error: Error, request: RequestInterface, interceptor, previousError?: Error) {
+    public constructor(message: string, error: Error, request: RequestInterface, interceptor: any, previousError?: Error) {
         super(message, {
             previousError,
             error,
