@@ -4,7 +4,6 @@ import {ControllerMethodParameterDecoratorResolverInterface, Request} from "@pri
 import {IdentityInterface, moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {JwtModuleKeyname} from "../jwt.module.keyname";
 import {JwtManagerInterface} from "../interfaces/jwt-manager.interface";
-
 /**
  * The JwtPayloadParameterDecoratorResolver resolves the decoded JWT in the parameter of a route of a controller when the @jwtPayload() decorator is used.
  * It is tagged as an MethodParameterDecoratorResolver so it can be automatically injected with the all the other MethodParameterDecoratorResolvers.
