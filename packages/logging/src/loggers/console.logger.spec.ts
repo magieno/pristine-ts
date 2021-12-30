@@ -19,6 +19,31 @@ describe("Console writer", () => {
 
     })
 
+    const logInfo = new LogModel(SeverityEnum.Info, "Log info");
+    logInfo.extra = {
+        extra: "extra 1"
+    };
+
+    const logDebug = new LogModel(SeverityEnum.Debug, "Log debug");
+    logDebug.extra = {
+        extra: "extra 1"
+    };
+
+    const logWarning = new LogModel(SeverityEnum.Warning, "Log warning");
+    logWarning.extra = {
+        extra: "extra 1"
+    };
+
+    const logError = new LogModel(SeverityEnum.Error, "Log error");
+    logError.extra = {
+        extra: "extra 1"
+    };
+
+    const logCritical = new LogModel(SeverityEnum.Critical, "Log critical");
+    logCritical.extra = {
+        extra: "extra 1"
+    };
+
 
 
     it("should log if configuration level is info and severity is higher", async () => {
@@ -34,44 +59,10 @@ describe("Console writer", () => {
             OutputModeEnum.Json
         );
 
-        const logInfo = new LogModel();
-        logInfo.message = "Log info";
-        logInfo.severity = SeverityEnum.Info;
-        logInfo.extra = {
-            extra: "extra 1"
-        };
         consoleWriter.readableStream.push(logInfo);
-
-        const logDebug = new LogModel();
-        logDebug.message = "Log debug";
-        logDebug.severity = SeverityEnum.Debug;
-        logDebug.extra = {
-            extra: "extra 1"
-        };
         consoleWriter.readableStream.push(logDebug);
-
-        const logWarning = new LogModel();
-        logWarning.message = "Log warning";
-        logWarning.severity = SeverityEnum.Warning;
-        logWarning.extra = {
-            extra: "extra 1"
-        };
         consoleWriter.readableStream.push(logWarning);
-
-        const logError = new LogModel();
-        logError.message = "Log error";
-        logError.severity = SeverityEnum.Error;
-        logError.extra = {
-            extra: "extra 1"
-        };
         consoleWriter.readableStream.push(logError);
-
-        const logCritical = new LogModel();
-        logCritical.message = "Log critical";
-        logCritical.severity = SeverityEnum.Critical;
-        logCritical.extra = {
-            extra: "extra 1"
-        };
         consoleWriter.readableStream.push(logCritical);
 
         await new Promise(res => setTimeout(res, 1000));
@@ -96,44 +87,10 @@ describe("Console writer", () => {
             OutputModeEnum.Json
         );
 
-        const logInfo = new LogModel();
-        logInfo.message = "Log info";
-        logInfo.severity = SeverityEnum.Info;
-        logInfo.extra = {
-            extra: "extra 1"
-        };
         consoleWriter.readableStream.push(logInfo);
-
-        const logDebug = new LogModel();
-        logDebug.message = "Log debug";
-        logDebug.severity = SeverityEnum.Debug;
-        logDebug.extra = {
-            extra: "extra 1"
-        };
         consoleWriter.readableStream.push(logDebug);
-
-        const logWarning = new LogModel();
-        logWarning.message = "Log warning";
-        logWarning.severity = SeverityEnum.Warning;
-        logWarning.extra = {
-            extra: "extra 1"
-        };
         consoleWriter.readableStream.push(logWarning);
-
-        const logError = new LogModel();
-        logError.message = "Log error";
-        logError.severity = SeverityEnum.Error;
-        logError.extra = {
-            extra: "extra 1"
-        };
         consoleWriter.readableStream.push(logError);
-
-        const logCritical = new LogModel();
-        logCritical.message = "Log critical";
-        logCritical.severity = SeverityEnum.Critical;
-        logCritical.extra = {
-            extra: "extra 1"
-        };
         consoleWriter.readableStream.push(logCritical);
 
         await new Promise(res => setTimeout(res, 1000));
@@ -158,44 +115,10 @@ describe("Console writer", () => {
             OutputModeEnum.Json
         );
 
-        const logInfo = new LogModel();
-        logInfo.message = "Log info";
-        logInfo.severity = SeverityEnum.Info;
-        logInfo.extra = {
-            extra: "extra 1"
-        };
         consoleWriter.readableStream.push(logInfo);
-
-        const logDebug = new LogModel();
-        logDebug.message = "Log debug";
-        logDebug.severity = SeverityEnum.Debug;
-        logDebug.extra = {
-            extra: "extra 1"
-        };
         consoleWriter.readableStream.push(logDebug);
-
-        const logWarning = new LogModel();
-        logWarning.message = "Log warning";
-        logWarning.severity = SeverityEnum.Warning;
-        logWarning.extra = {
-            extra: "extra 1"
-        };
         consoleWriter.readableStream.push(logWarning);
-
-        const logError = new LogModel();
-        logError.message = "Log error";
-        logError.severity = SeverityEnum.Error;
-        logError.extra = {
-            extra: "extra 1"
-        };
         consoleWriter.readableStream.push(logError);
-
-        const logCritical = new LogModel();
-        logCritical.message = "Log critical";
-        logCritical.severity = SeverityEnum.Critical;
-        logCritical.extra = {
-            extra: "extra 1"
-        };
         consoleWriter.readableStream.push(logCritical);
 
         await new Promise(res => setTimeout(res, 1000));
@@ -220,44 +143,10 @@ describe("Console writer", () => {
             OutputModeEnum.Json
         );
 
-        const logInfo = new LogModel();
-        logInfo.message = "Log info";
-        logInfo.severity = SeverityEnum.Info;
-        logInfo.extra = {
-            extra: "extra 1"
-        };
         consoleWriter.readableStream.push(logInfo);
-
-        const logDebug = new LogModel();
-        logDebug.message = "Log debug";
-        logDebug.severity = SeverityEnum.Debug;
-        logDebug.extra = {
-            extra: "extra 1"
-        };
         consoleWriter.readableStream.push(logDebug);
-
-        const logWarning = new LogModel();
-        logWarning.message = "Log warning";
-        logWarning.severity = SeverityEnum.Warning;
-        logWarning.extra = {
-            extra: "extra 1"
-        };
         consoleWriter.readableStream.push(logWarning);
-
-        const logError = new LogModel();
-        logError.message = "Log error";
-        logError.severity = SeverityEnum.Error;
-        logError.extra = {
-            extra: "extra 1"
-        };
         consoleWriter.readableStream.push(logError);
-
-        const logCritical = new LogModel();
-        logCritical.message = "Log critical";
-        logCritical.severity = SeverityEnum.Critical;
-        logCritical.extra = {
-            extra: "extra 1"
-        };
         consoleWriter.readableStream.push(logCritical);
 
         await new Promise(res => setTimeout(res, 1000));
@@ -283,44 +172,10 @@ describe("Console writer", () => {
             OutputModeEnum.Json
         );
 
-        const logInfo = new LogModel();
-        logInfo.message = "Log info";
-        logInfo.severity = SeverityEnum.Info;
-        logInfo.extra = {
-            extra: "extra 1"
-        };
         consoleWriter.readableStream.push(logInfo);
-
-        const logDebug = new LogModel();
-        logDebug.message = "Log debug";
-        logDebug.severity = SeverityEnum.Debug;
-        logDebug.extra = {
-            extra: "extra 1"
-        };
         consoleWriter.readableStream.push(logDebug);
-
-        const logWarning = new LogModel();
-        logWarning.message = "Log warning";
-        logWarning.severity = SeverityEnum.Warning;
-        logWarning.extra = {
-            extra: "extra 1"
-        };
         consoleWriter.readableStream.push(logWarning);
-
-        const logError = new LogModel();
-        logError.message = "Log error";
-        logError.severity = SeverityEnum.Error;
-        logError.extra = {
-            extra: "extra 1"
-        };
         consoleWriter.readableStream.push(logError);
-
-        const logCritical = new LogModel();
-        logCritical.message = "Log critical";
-        logCritical.severity = SeverityEnum.Critical;
-        logCritical.extra = {
-            extra: "extra 1"
-        };
         consoleWriter.readableStream.push(logCritical);
 
         await new Promise(res => setTimeout(res, 1000));
@@ -345,44 +200,10 @@ describe("Console writer", () => {
             OutputModeEnum.Json
         );
 
-        const logInfo = new LogModel();
-        logInfo.message = "Log info";
-        logInfo.severity = SeverityEnum.Info;
-        logInfo.extra = {
-            extra: "extra 1"
-        };
         consoleWriter.readableStream.push(logInfo);
-
-        const logDebug = new LogModel();
-        logDebug.message = "Log debug";
-        logDebug.severity = SeverityEnum.Debug;
-        logDebug.extra = {
-            extra: "extra 1"
-        };
         consoleWriter.readableStream.push(logDebug);
-
-        const logWarning = new LogModel();
-        logWarning.message = "Log warning";
-        logWarning.severity = SeverityEnum.Warning;
-        logWarning.extra = {
-            extra: "extra 1"
-        };
         consoleWriter.readableStream.push(logWarning);
-
-        const logError = new LogModel();
-        logError.message = "Log error";
-        logError.severity = SeverityEnum.Error;
-        logError.extra = {
-            extra: "extra 1"
-        };
         consoleWriter.readableStream.push(logError);
-
-        const logCritical = new LogModel();
-        logCritical.message = "Log critical";
-        logCritical.severity = SeverityEnum.Critical;
-        logCritical.extra = {
-            extra: "extra 1"
-        };
         consoleWriter.readableStream.push(logCritical);
 
         await new Promise(res => setTimeout(res, 1000));

@@ -10,7 +10,7 @@ import {RedisModuleKeyname} from "../redis.module.keyname";
 @injectable()
 export class RedisClient implements RedisClientInterface {
 
-    private client: ClientV3;
+    private client?: ClientV3;
 
     public constructor(@inject("%pristine.redis.host%") private readonly host: string,
                        @inject("%pristine.redis.port%") private readonly port: number,

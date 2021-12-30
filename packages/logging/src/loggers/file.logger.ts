@@ -14,8 +14,8 @@ import {BaseLogger} from "./base.logger";
 @tag(ServiceDefinitionTagEnum.Logger)
 @injectable()
 export class FileLogger extends BaseLogger implements LoggerInterface {
-  public readableStream: Readable;
-  public writableStream: Writable;
+  public readableStream!: Readable;
+  public writableStream!: Writable;
 
   public constructor(@inject("%pristine.logging.numberOfStackedLogs%") numberOfStackedLogs: number,
                      @inject("%pristine.logging.logSeverityLevelConfiguration%") logSeverityLevelConfiguration: number,
@@ -35,9 +35,9 @@ export class FileLogger extends BaseLogger implements LoggerInterface {
         logInfoDepthConfiguration,
         logWarningDepthConfiguration,
         logErrorDepthConfiguration,
-        logCriticalDepthConfiguration, 
-        isActive, 
-        outputMode, 
+        logCriticalDepthConfiguration,
+        isActive,
+        outputMode,
         fileLoggerPretty ? 2 : 0);
 
     this.initialize();

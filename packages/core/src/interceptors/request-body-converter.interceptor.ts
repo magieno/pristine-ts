@@ -1,11 +1,7 @@
-import {RouterRequestEnricherInterface} from "@pristine-ts/networking/dist/lib/esm/interfaces/router-request-enricher.interface";
 import {injectable, inject} from "tsyringe";
-import {Request} from "@pristine-ts/networking/dist/lib/esm/models/request";
-import {MethodRouterNode} from "@pristine-ts/networking/dist/lib/esm/nodes/method-router.node";
-import {NetworkingModuleKeyname} from "@pristine-ts/networking/dist/lib/esm/networking.module.keyname";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
-import {InvalidBodyHttpError} from "@pristine-ts/networking";
+import {InvalidBodyHttpError, Request} from "@pristine-ts/networking";
 import {RequestInterceptorInterface} from "../interfaces/request-interceptor.interface";
 import {CoreModuleKeyname} from "../core.module.keyname";
 

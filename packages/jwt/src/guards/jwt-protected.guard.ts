@@ -14,7 +14,7 @@ export class JwtProtectedGuard implements GuardInterface {
 
     public keyname = "jwt.protected";
 
-    public guardContext: GuardContextInterface
+    public guardContext?: GuardContextInterface
 
     /**
      * Verifies if the JWT is valid and authorizes access if it is.

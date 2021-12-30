@@ -7,5 +7,5 @@
     "declarationDir": "dist/types",
     "outDir": "dist/lib/esm"
   },
-  "exclude": ["./**/*.spec.ts", "dist"]
+  "exclude": ["./**/*.spec.ts", "dist"],
 }

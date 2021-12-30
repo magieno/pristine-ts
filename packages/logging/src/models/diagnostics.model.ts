@@ -1,12 +1,12 @@
 export class DiagnosticsModel {
-    nodeVersion: string;
+    nodeVersion?: string;
     stackTrace: {
         className: string;
         filename: string;
         line: string;
         column: string;
     }[] = [];
-    lastStackTrace: {
+    lastStackTrace?: {
         className: string;
         filename: string;
         line: string;

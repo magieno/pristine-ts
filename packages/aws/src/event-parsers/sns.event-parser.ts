@@ -32,9 +32,7 @@ export class SnsEventParser implements EventParserInterface<SnsEventPayload>{
     parse(rawEvent: any): Event<SnsEventPayload>[] {
         const parsedEvents: Event<SnsEventPayload>[] = [];
         for(const record of rawEvent.Records) {
-            const event = new Event<SnsEventPayload>();
-            event.type = this.findEnum(record.Sns.Type)
-            event.payload = new SnsEventPayload();
+            const event = new Event<SnsEventPayload>(this.findEnum(record.Sns.Type), new SnsEventPayload());
 
             event.payload.eventSource = record.EventSource;
             event.payload.eventSubscriptionArn = record.EventSubscriptionArn;

@@ -21,7 +21,7 @@ export abstract class BaseLogger {
         protected readonly spaces = 2) {
     }
 
-    protected abstract initialize();
+    protected abstract initialize(): void;
 
     public isActive(): boolean {
         return this.isActivated;

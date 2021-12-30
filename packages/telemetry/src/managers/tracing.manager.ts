@@ -90,7 +90,7 @@ export class TracingManager implements TracingManagerInterface {
         span.trace = this.trace!;
 
         // Retrieve the parent and add it to the span.
-        let parentSpan: Span = this.trace!.rootSpan;
+        let parentSpan: Span = this.trace!.rootSpan!;
 
         // Check to find the parentKeyname in our internal map of spans. If n ot, the rootSpan will be the parent since every span
         // needs at least one parent.
@@ -196,7 +196,7 @@ export class TracingManager implements TracingManagerInterface {
         })
 
         // If the span is the root span, the trace has ended
-        if(span.keyname === this.trace?.rootSpan.keyname) {
+        if(span.keyname === this.trace?.rootSpan?.keyname) {
             this.endTrace()
         }
     }
@@ -216,7 +216,9 @@ export class TracingManager implements TracingManagerInterface {
         this.trace.hasEnded = true;
 
         // This method will recursively end all the spans
-        this.endSpan(this.trace.rootSpan);
+        if(this.trace.rootSpan !== undefined) {
+            this.endSpan(this.trace.rootSpan);
+        }
 
         if(this.isActive === false) {
             return;

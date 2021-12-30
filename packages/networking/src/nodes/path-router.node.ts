@@ -41,7 +41,7 @@ export class PathRouterNode extends RouterNode {
         // If the splitPaths[0] matches the current node and the length is 1, we create the MethodRouterNode and add it as a children
         if (splitPaths.length === 1) {
             // Make sure that for every MethodRouterNode children, this httpMethod doesn't already exist
-            const matchedMethodRouterNodeChild = this.children.filter(child => child instanceof MethodRouterNode).find((child: MethodRouterNode) => child.matches(method))
+            const matchedMethodRouterNodeChild = this.children.filter(child => child instanceof MethodRouterNode).find((child: RouterNode) => (child as MethodRouterNode).matches(method))
 
             if (matchedMethodRouterNodeChild !== undefined) {
                 throw new PathRouterAddingError("There is already an HTTP Method associated with this path.", splitPaths, method, route, this);
@@ -53,7 +53,7 @@ export class PathRouterNode extends RouterNode {
         }
 
         // Loop over our children that are of PathRouterNode and check if the next path matches
-        const matchedChild = this.children.filter(child => child instanceof PathRouterNode).find((child: PathRouterNode) => child.matches(splitPaths[1]));
+        const matchedChild = this.children.filter(child => child instanceof PathRouterNode).find((child: RouterNode) => (child as PathRouterNode).matches(splitPaths[1]));
 
         // If there's a matched child, call the add method on it and return.
         if (matchedChild !== undefined) {
@@ -99,7 +99,7 @@ export class PathRouterNode extends RouterNode {
             }
         }
 
-        if(foundChildren.length === 0) {
+        if (foundChildren.length === 0) {
             return null;
         }
 
@@ -107,12 +107,12 @@ export class PathRouterNode extends RouterNode {
         // If a the parent of the Method is not a catch-all, this is the one we should return.
         const nonCatchAllNode = foundChildren.find(node => node.parent?.isCatchAll() === false);
 
-        if(nonCatchAllNode != undefined) {
+        if (nonCatchAllNode != undefined) {
             return nonCatchAllNode;
         }
 
         // If there is more than one catch-all, we will return the one that is the furthest from the top (this is the most specific)
-        return foundChildren.sort((a, b) => b.levelFromRoot - a.levelFromRoot)[0];
+        return foundChildren.sort((a, b) => ((b.levelFromRoot ?? 0) - (a.levelFromRoot ?? 0)) )[0];
     }
 
     /**
@@ -121,7 +121,7 @@ export class PathRouterNode extends RouterNode {
      * @param splitPaths A list of all the parts of the paths spliced at the forward slashes.
      */
     getRouteParameters(splitPaths: string[]): { [key: string]: string } {
-        let parameters = {};
+        let parameters: { [id: string]: string } = {};
 
         if (this.matches(splitPaths[0])) {
             // If the current path is a path parameter
@@ -180,7 +180,7 @@ export class PathRouterNode extends RouterNode {
      * @param path
      */
     matches(path: string): boolean {
-        if(this.isCatchAll()) {
+        if (this.isCatchAll()) {
             return true;
         }
 

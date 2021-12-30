@@ -20,7 +20,7 @@ describe("JWT Module instantiation in the Kernel", () => {
     @controller("/api/2.0/jwt")
     class JwtTestController {
         @route(HttpMethod.Get, "/services")
-        public route(@jwtPayload() jwtPayload) {
+        public route(@jwtPayload() jwtPayload: any) {
             return jwtPayload;
         }
     }

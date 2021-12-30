@@ -14,10 +14,10 @@ import jwkToBuffer from "jwk-to-pem";
 @injectable()
 export class AwsCognitoAuthenticator implements AuthenticatorInterface{
 
-    private cachedPems;
-    private cognitoIssuer;
-    private publicKeyUrl;
-    private context;
+    private cachedPems: any;
+    private cognitoIssuer: string;
+    private publicKeyUrl: string;
+    private context: any;
 
     /**
      * The AWS cognito authenticator that can be passed to the @authenticator decorator.
@@ -95,7 +95,7 @@ export class AwsCognitoAuthenticator implements AuthenticatorInterface{
 
         const publicKeys = publicKeysResponse.body;
 
-        const pems: {[key: string]: string} = publicKeys.keys.reduce((agg, current) => {
+        const pems: {[key: string]: string} = publicKeys.keys.reduce((agg: any, current: any) => {
             agg[current.kid] = jwkToBuffer(current);
             return agg;
         }, {} as {[key: string]: string});
@@ -182,7 +182,7 @@ export class AwsCognitoAuthenticator implements AuthenticatorInterface{
      * @param token
      * @private
      */
-    private getTokenHeader(token): TokenHeaderInterface {
+    private getTokenHeader(token: string): TokenHeaderInterface {
         const tokenSections = (token || '').split('.');
         if (tokenSections.length < 2) {
             throw new Error('Token is invalid');

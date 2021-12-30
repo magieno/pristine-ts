@@ -7,7 +7,7 @@ export class Span {
 
     public tracingManager?: TracingManagerInterface
 
-    public trace: Trace;
+    public trace?: Trace;
 
     public startDate: number = Date.now();
 

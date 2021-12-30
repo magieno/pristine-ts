@@ -6,7 +6,7 @@ import {Response} from "@pristine-ts/networking";
  */
 export class ResponseInterceptionExecutionError extends LoggableError {
 
-    public constructor(message: string, request: RequestInterface, response: Response, interceptor, previousError?: Error) {
+    public constructor(message: string, request: RequestInterface, response: Response, interceptor: any, previousError?: Error) {
         super(message, {
             previousError,
             request,

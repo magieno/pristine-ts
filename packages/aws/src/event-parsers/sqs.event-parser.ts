@@ -16,9 +16,7 @@ export class SqsEventParser implements EventParserInterface<SqsEventPayload>{
     parse(rawEvent: any): Event<SqsEventPayload>[] {
         const parsedEvents: Event<SqsEventPayload>[] = [];
         for(const record of rawEvent.Records) {
-            const event = new Event<SqsEventPayload>();
-            event.type = SqsEventType.SqsEvent;
-            event.payload = new SqsEventPayload();
+            const event = new Event<SqsEventPayload>(SqsEventType.SqsEvent, new SqsEventPayload());
 
             event.payload.eventSource = record.eventSource;
             event.payload.awsRegion = record.awsRegion;

@@ -29,22 +29,25 @@ export class StripeWebhooksManager {
         }
 
         const stripeSubscription: Stripe.Subscription = event.data.object as Stripe.Subscription;
-        const parsedEvent = new Event();
-        parsedEvent.payload = stripeSubscription;
+
+        let type!: StripeEventTypeEnum;
+
         switch (event.type) {
             case "customer.subscription.created":
-                parsedEvent.type = StripeEventTypeEnum.StripeSubscriptionCreated
+                type = StripeEventTypeEnum.StripeSubscriptionCreated
                 break;
             case "customer.subscription.updated":
-                parsedEvent.type = StripeEventTypeEnum.StripeSubscriptionUpdated
+                type = StripeEventTypeEnum.StripeSubscriptionUpdated
                 break;
             case "customer.subscription.deleted":
-                parsedEvent.type = StripeEventTypeEnum.StripeSubscriptionDeleted
+                type = StripeEventTypeEnum.StripeSubscriptionDeleted
                 break;
             default:
                 await this.logHandler.debug("This event type is not supported", {event, className: StripeWebhooksManager.name}, StripeModuleKeyname);
-                break;
+                return Promise.resolve();
         }
+
+        const parsedEvent = new Event(type!, stripeSubscription)
 
         await this.eventDispatcher.dispatch(parsedEvent)
     }

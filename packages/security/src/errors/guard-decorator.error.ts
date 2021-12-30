@@ -2,10 +2,11 @@
  * This Error is thrown when there's an error that happens when the guards ere being initialized
  */
 import {LoggableError} from "@pristine-ts/common";
+import {GuardInterface} from "../interfaces/guard.interface";
 
 export class GuardDecoratorError extends LoggableError {
 
-    public constructor(message: string, guard, options, target: any,
+    public constructor(message: string, guard: GuardInterface | Function, options: any, target: any,
                        propertyKey?: string,
                        descriptor?: PropertyDescriptor) {
         super(message, {

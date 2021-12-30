@@ -2,11 +2,12 @@
  * This Error is thrown when there's an error that happens when the authenticator are being initialized
  */
 import {LoggableError} from "@pristine-ts/common";
+import {AuthenticatorInterface} from "../interfaces/authenticator.interface";
 
 export class AuthenticatorInstantiationError extends LoggableError {
     public previousError?: Error;
 
-    public constructor(message: string, instantiatedAuthenticator, authenticatorContext) {
+    public constructor(message: string, instantiatedAuthenticator: AuthenticatorInterface | Function, authenticatorContext: any) {
         super(message, {
             instantiatedAuthenticator,
             authenticatorContext,
