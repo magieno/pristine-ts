@@ -1,4 +1,3 @@
-import {AuthenticatorInterface, GuardInterface} from "@pristine-ts/security";
 import {ParameterDecoratorInterface} from "../interfaces/parameter-decorator.interface";
 
 /**
@@ -15,6 +14,10 @@ export class Route {
      */
     context?: any;
 
+    /**
+     * @param controllerInstantiationToken The instantiation token of the controller. Usually this will be the controller's constructor name.
+     * @param methodPropertyKey The name of the method that corresponds to the route in the controller.
+     */
     constructor(public readonly controllerInstantiationToken: any, public readonly methodPropertyKey: string) {
     }
 }

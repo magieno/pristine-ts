@@ -24,7 +24,7 @@ export abstract class RouterNode {
     /**
      * This method adds all the required nodes to match the splitPaths and the method.
      *
-     * @param splitPaths
+     * @param splitPaths A list of all the parts of the paths spliced at the forward slashes.
      * @param method
      * @param route
      * @param levelFromRoot This parameter represents the number of level from the root. The root is at 0.
@@ -37,8 +37,8 @@ export abstract class RouterNode {
      * it returns itself as the node found. This method should always return a MethodRouterNode. However, Typescript
      * doesn't like these recursive imports so we return the base class
      *
-     * @param splitPaths
-     * @param method
+     * @param splitPaths A list of all the parts of the paths spliced at the forward slashes.
+     * @param method The http method for which to find a node.
      */
     abstract find(splitPaths: string[], method: HttpMethod | string): RouterNode | null;
 

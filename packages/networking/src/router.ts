@@ -19,10 +19,22 @@ import {LogHandlerInterface} from "@pristine-ts/logging";
 import {NetworkingModuleKeyname} from "./networking.module.keyname";
 import {Span, SpanKeynameEnum, TracingManagerInterface} from "@pristine-ts/telemetry";
 
+/**
+ * The router service is the service that creates the routing tree from the controllers.
+ * It also executes a request properly by routing it to the intended controller and returns the response.
+ */
 @singleton()
 export class Router implements RouterInterface {
     private root: RouterNode = new PathRouterNode("/");
 
+    /**
+     * The router service is the service that creates the routing tree from the controllers.
+     * It also executes a request properly by routing it to the intended controller and returns the response.
+     * @param loghandler The log handler
+     * @param controllerMethodParameterDecoratorResolver The controller method parameter decorator resolver used to resolve the values.
+     * @param authorizerManager The authorizer manager to validate authorization.
+     * @param authenticationManager The authentication manager to validate authentication.
+     */
     public constructor( @inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface,
                         private readonly controllerMethodParameterDecoratorResolver: ControllerMethodParameterDecoratorResolver,
                         @inject("AuthorizerManagerInterface") private readonly authorizerManager: AuthorizerManagerInterface,
@@ -101,7 +113,7 @@ export class Router implements RouterInterface {
 
             let identity: IdentityInterface | undefined;
 
-
+            // Authenticate the request
             try {
                 const routerRequestAuthenticationSpan = tracingManager.startSpan(SpanKeynameEnum.RouterRequestAuthentication, SpanKeynameEnum.RouterRequestExecution);
                 identity = await this.authenticationManager.authenticate(request, methodNode.route.context, container);
@@ -130,6 +142,7 @@ export class Router implements RouterInterface {
             // Call the controller with the resolved Method arguments
             try {
 
+                // Verify that the identity making the request is authorized to make such a request
                 if(await this.authorizerManager.isAuthorized(request, methodNode.route.context, container, identity) === false) {
                     this.loghandler.error("User not authorized to access this url.", {
                         request,
@@ -142,6 +155,7 @@ export class Router implements RouterInterface {
                     return reject(new ForbiddenHttpError("You are not allowed to access this."));
                 }
 
+                // Execute all the enrichers to enrich the request.
                 const requestEnrichersSpan = tracingManager.startSpan(SpanKeynameEnum.RouterRequestEnrichers, SpanKeynameEnum.RouterRequestExecution);
                 const enrichedRequest = await this.executeRequestEnrichers(request, container, methodNode);
                 requestEnrichersSpan.end();
@@ -151,6 +165,7 @@ export class Router implements RouterInterface {
                     enrichedRequest,
                 }, NetworkingModuleKeyname)
 
+                // Resolve the value to inject in the method arguments that have a decorator resolver
                 const resolvedMethodArguments: any[] = [];
 
                 for (const methodArgument of methodNode.route.methodArguments) {

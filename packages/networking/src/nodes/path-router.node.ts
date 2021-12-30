@@ -9,6 +9,10 @@ import {PathRouterAddingError} from "../errors/path-router-adding.error";
  * This class represents a Path Node in the Router Node. It can never be a leaf node and will always have children.
  */
 export class PathRouterNode extends RouterNode {
+    /**
+     * @param path The path associated with the current node.
+     * @param parent The parent node of the current node.
+     */
     public constructor(public readonly path: string, parent?: PathRouterNode) {
         super();
 
@@ -22,9 +26,9 @@ export class PathRouterNode extends RouterNode {
     /**
      * This method adds all the required nodes to match the splitPaths and the method.
      *
-     * @param splitPaths
-     * @param method
-     * @param route
+     * @param splitPaths A list of all the parts of the paths spliced at the forward slashes.
+     * @param method The http method for this route.
+     * @param route The route.
      */
     add(splitPaths: string[], method: HttpMethod | string, route: Route, levelFromRoot: number) {
         // Check to make sure that the first split path matches the current node
@@ -43,6 +47,7 @@ export class PathRouterNode extends RouterNode {
                 throw new PathRouterAddingError("There is already an HTTP Method associated with this path.", splitPaths, method, route, this);
             }
 
+            // Add a new child node of type MethodRouterNode for this new http method.
             this.children.push(new MethodRouterNode(this, method, route, levelFromRoot + 1));
             return;
         }
@@ -50,8 +55,9 @@ export class PathRouterNode extends RouterNode {
         // Loop over our children that are of PathRouterNode and check if the next path matches
         const matchedChild = this.children.filter(child => child instanceof PathRouterNode).find((child: RouterNode) => (child as PathRouterNode).matches(splitPaths[1]));
 
-        // If there's a matched child, call the add httpMethod on it and return.
+        // If there's a matched child, call the add method on it and return.
         if (matchedChild !== undefined) {
+            // Remove the first part of the path as it is used by the current node.
             matchedChild.add(splitPaths.slice(1), method, route, levelFromRoot + 1);
             return;
         }
@@ -61,6 +67,7 @@ export class PathRouterNode extends RouterNode {
         this.children.push(pathRouterNode);
 
         // Then, call add on the latest pathRouterNode child
+        // Remove the first part of the path as it is used by the current node.
         pathRouterNode.add(splitPaths.slice(1), method, route, levelFromRoot + 1);
         return;
     }
@@ -72,8 +79,8 @@ export class PathRouterNode extends RouterNode {
      * it returns itself as the node found. This method should always return a MethodRouterNode. However, Typescript
      * doesn't like these recursive imports so we return the base class
      *
-     * @param splitPaths
-     * @param method
+     * @param splitPaths A list of all the parts of the paths spliced at the forward slashes.
+     * @param method The http method for which to find a node.
      */
     find(splitPaths: string[], method: HttpMethod | string): RouterNode | null {
         // If splitPaths is 0 or if the first path doesn't match this current node, we return
@@ -83,7 +90,8 @@ export class PathRouterNode extends RouterNode {
 
         const foundChildren: RouterNode[] = [];
 
-        // Since we checked above if we didn't match, it means we match. We check if one of our children matches.
+        // Since we checked above if we didn't match, it means we match.
+        // We check if one of our children matches the next part of the path.
         for (const child of this.children) {
             const foundChild = child.find(splitPaths.slice(1), method);
             if (foundChild !== null) {
@@ -110,13 +118,15 @@ export class PathRouterNode extends RouterNode {
     /**
      * This httpMethod navigates the tree upwards and returns all the routeParameters
      *
-     * @param splitPaths
+     * @param splitPaths A list of all the parts of the paths spliced at the forward slashes.
      */
     getRouteParameters(splitPaths: string[]): { [key: string]: string } {
         let parameters: { [id: string]: string } = {};
 
         if (this.matches(splitPaths[0])) {
-            // If the current path is a parameter path, meaning has services/{id-of-service}
+            // If the current path is a path parameter
+            // We support both ways of setting a path parameter, either curly brackets, or colons
+            // ie: services/{serviceId} or service/:serviceId
             if (this.path.startsWith("/{") && this.path.endsWith("}")) {
                 const name = this.path.slice(2, this.path.length - 1);
 
@@ -147,15 +157,15 @@ export class PathRouterNode extends RouterNode {
     }
 
     /**
-     * This method returns whether or not this pathRouterNode represents a route parameter, e.g.: /{id} or :id
+     * This method returns whether or not this pathRouterNode represents a route parameter, e.g.: /{id} or /:id
      */
     isRouteParameter(): boolean {
-        // If the current path is a parameter path, meaning has services/{id-of-service}
+        // If the current path is a path parameter, meaning has services/{id-of-service}
         if (this.path.startsWith("/{") && this.path.endsWith("}")) {
             return true;
         }
 
-        // We also support parameter path written as services/:id-of-service
+        // We also support path parameter written as services/:id-of-service
         if (this.path.startsWith("/:")) {
             return true;
         }
