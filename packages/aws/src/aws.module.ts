@@ -5,12 +5,12 @@ import {LoggingModule, LogHandlerInterface} from "@pristine-ts/logging";
 import {DependencyContainer} from "tsyringe";
 import {AwsModuleKeyname} from "./aws.module.keyname";
 import {EnvironmentVariableResolver} from "@pristine-ts/configuration";
+import {CoreModule} from "@pristine-ts/core";
 
 export * from "./clients/clients";
 export * from "./decorators/decorators";
 export * from "./enums/enums";
 export * from "./errors/errors";
-export * from "./event-parsers/event-parsers";
 export * from "./event-payloads/event-payloads";
 export * from "./factories/factories";
 export * from "./interfaces/interfaces";
@@ -33,7 +33,10 @@ export const AwsModule: ModuleInterface = {
             ]
         }
     ],
-    importModules: [LoggingModule],
+    importModules: [
+        LoggingModule,
+        CoreModule,
+    ],
     providerRegistrations: [
     ],
     async afterInit(container): Promise<void> {

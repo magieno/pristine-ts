@@ -13,7 +13,7 @@ export enum ServiceDefinitionTagEnum {
     RouterRequestEnricher = "ROUTER_REQUEST_ENRICHER",
     RouterResponseEnricher = "ROUTER_RESPONSE_ENRICHER",
     EventListener = "EVENT_LISTENER",
-    EventParser = "EVENT_PARSER",
+    EventMapper = "EVENT_MAPPER",
     EventSubscriber = "EVENT_SUBSCRIBER",
     Voter = "VOTER",
     Logger = "LOGGER",

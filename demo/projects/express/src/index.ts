@@ -9,7 +9,7 @@ const port = 3000
 const kernel = new Kernel();
 
 function bootstrap () {
-    app.all('*', async (req, res) => {
+    app.all('*', async (req: Request, res) => {
         console.log(1);
         const expressRequestMapper = kernel.container.resolve(RequestMapper);
         const expressResponseMapper = kernel.container.resolve(ResponseMapper);

@@ -1,10 +1,16 @@
 import "reflect-metadata"
-import {CoreModule, Kernel} from "@pristine-ts/core";
+import {
+    CoreModule,
+    Event,
+    EventListenerInterface,
+    EventMappingError,
+    ExecutionContextKeynameEnum,
+    Kernel
+} from "@pristine-ts/core";
 import {NetworkingModule} from "@pristine-ts/networking";
 import {SecurityModule} from "@pristine-ts/security";
 import {ModuleInterface, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {AwsModule, KafkaEventPayload, KafkaEventType} from "@pristine-ts/aws";
-import {Event, EventListenerInterface, EventTransformError} from "@pristine-ts/event";
 
 
 const moduleTest: ModuleInterface = {
@@ -20,8 +26,8 @@ const moduleTest: ModuleInterface = {
 
 describe("Handle events", () => {
 
-    describe("Handle no parser for events", () => {
-        it("should throw an error when no support for parsing the event", async () => {
+    describe("Handle no mappers for events", () => {
+        it("should throw an error when no support for mapping the event", async () => {
             const rawEvent = {}
             const kernel = new Kernel();
             await kernel.init(moduleTest, {
@@ -31,11 +37,11 @@ describe("Handle events", () => {
 
             let error
             try {
-                await kernel.handleRawEvent(rawEvent);
+                await kernel.handle(rawEvent, {keyname: ExecutionContextKeynameEnum.AwsLambda, context: undefined});
             } catch (e) {
                 error = e;
             }
-            expect(error).toBeInstanceOf(EventTransformError);
+            expect(error).toBeInstanceOf(EventMappingError);
 
         });
     });
@@ -89,7 +95,7 @@ describe("Handle events", () => {
             });
 
 
-            const response = await kernel.handleRawEvent(rawEvent);
+            const response = await kernel.handle(rawEvent, {keyname: ExecutionContextKeynameEnum.AwsLambda, context: undefined});
 
             const kafkaEvent1: Event<KafkaEventPayload> = {
                 type: KafkaEventType.KafkaEvent,

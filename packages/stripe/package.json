@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@pristine-ts/common": "file:../common",
-    "@pristine-ts/event": "file:../event",
+    "@pristine-ts/core": "file:../core",
     "@pristine-ts/logging": "file:../logging",
     "stripe": "^8.161.0"
   },

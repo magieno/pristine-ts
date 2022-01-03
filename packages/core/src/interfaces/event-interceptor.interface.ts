@@ -1,4 +1,6 @@
-import {Event} from "@pristine-ts/event";
+import {ExecutionContextInterface} from "./execution-context.interface";
+import {EventResponse} from "../models/event.response";
+import {Event} from "../models/event";
 
 /**
  * The Event Interceptor Interface defines the methods that an Event Interceptor must implement. This
@@ -13,7 +15,7 @@ export interface EventInterceptorInterface {
      *
      * @param event
      */
-    interceptRawEvent(event: any): Promise<any>;
+    preMappingIntercept?(event: object, executionContextInterface: ExecutionContextInterface<any>): Promise<object>;
 
     /**
      * This method receives an event object and must return a transformed event object. If you don't want to
@@ -23,5 +25,9 @@ export interface EventInterceptorInterface {
      *
      * @param event
      */
-    interceptEvent(event: Event<any>): Promise<Event<any>>;
+    postMappingIntercept?(event: Event<any>): Promise<Event<any>>;
+
+    preResponseMappingIntercept?(eventResponse: EventResponse<any, any>): Promise<EventResponse<any, any>>;
+
+    postResponseMappingIntercept?(eventResponse: object): Promise<object>;
 }
