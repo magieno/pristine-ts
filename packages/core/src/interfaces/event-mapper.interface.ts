@@ -8,7 +8,7 @@ export interface EventMapperInterface<T, R> {
 
     map(event: object, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<T>;
 
-    supportsReverseMapping(eventResponse: EventResponse<T, R>, response: object, executionContext: ExecutionContextInterface<any>): boolean;
+    supportsReverseMapping(eventResponse: EventResponse<T, R>, response: any, executionContext: ExecutionContextInterface<any>): boolean;
 
-    reverseMap(eventResponse: EventResponse<T, R>, response: object, executionContext: ExecutionContextInterface<any>): void;
+    reverseMap(eventResponse: EventResponse<T, R>, response: any, executionContext: ExecutionContextInterface<any>): any;
 }

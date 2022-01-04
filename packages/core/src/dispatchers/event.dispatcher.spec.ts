@@ -3,19 +3,8 @@ import {Event} from "../models/event";
 import {EventListenerInterface} from "@pristine-ts/core";
 import {EventDispatcher} from "./event.dispatcher";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-
-const logHandlerMock: LogHandlerInterface = {
-    debug(message: string, extra?: any) {
-    },
-    info(message: string, extra?: any) {
-    },
-    error(message: string, extra?: any) {
-    }
-    ,critical(message: string, extra?: any) {
-    },
-    warning(message: string, extra?: any) {
-    },
-}
+import {EventResponse} from "../../dist/types/models/event.response";
+import {LogHandlerMock} from "../../../../tests/mocks/log.handler.mock";
 
 describe("Event Dispatcher", () => {
     it("should transform an event by calling all the event listeners", () => {
@@ -48,7 +37,7 @@ describe("Event Dispatcher", () => {
         const eventParser2SupportsMethodSpy = jest.spyOn(eventListener2, "supports");
         const eventParser2ParseMethodSpy = jest.spyOn(eventListener2, "handle");
 
-        const eventDispatcher = new EventDispatcher([eventListener2, eventListener1], logHandlerMock);
+        const eventDispatcher = new EventDispatcher([eventListener2, eventListener1], new LogHandlerMock());
 
         const event: Event<any> = {
             type: "type",
@@ -65,7 +54,44 @@ describe("Event Dispatcher", () => {
         expect(eventParser2ParseMethodSpy).toHaveBeenCalledTimes(0);
     })
 
-    it("should dispatch all the listeners in order of priority", () => {
+    it("should dispatch all the listeners in order of priority", async () => {
+        let order = 0;
 
+        const eventListener1: EventListenerInterface = {
+            priority: Number.MAX_SAFE_INTEGER,
+            supports<T>(event: Event<T>): boolean {
+                return true;
+            },
+            handle<T, R>(event: Event<T>, eventResponse: EventResponse<T, R>): Promise<void> {
+                order++;
+                expect(order).toBe(1);
+                return Promise.resolve();
+            },
+        };
+
+        const eventListener2: EventListenerInterface = {
+            priority: 0,
+            supports<T>(event: Event<T>): boolean {
+                return true;
+            },
+            handle<T, R>(event: Event<T>, eventResponse: EventResponse<T, R>): Promise<void> {
+                order++;
+                expect(order).toBe(2);
+                return Promise.resolve();
+            },
+        };
+
+        const eventDispatcher = new EventDispatcher([eventListener2, eventListener1], new LogHandlerMock());
+
+        const event: Event<any> = {
+            type: "type",
+            payload: {
+                type: "type"
+            }
+        }
+
+        await eventDispatcher.dispatch(event);
+
+        expect.assertions(2);
     })
 })

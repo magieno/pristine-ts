@@ -69,7 +69,7 @@ export class EventPipeline {
         return eventDispatcher.dispatch(interceptedEvent);
     }
 
-    async execute(event: object, executionContext: ExecutionContextInterface<any>, container: DependencyContainer): Promise<object> {
+    async execute(event: object, executionContext: ExecutionContextInterface<any>, container: DependencyContainer): Promise<any> {
         // 1- We have the raw event, we start by executing the PreMapping Interceptors
         const interceptedEvent = await this.preMappingIntercept(event, executionContext);
 
@@ -94,7 +94,7 @@ export class EventPipeline {
         }
 
 
-        if(eventExecutions.length === 0) {
+        if(eventExecutions.length === 0 || eventExecutions.reduce( (agg, eventExecution) => { return agg + eventExecution.events.length;}, 0 ) === 0) {
             throw new EventMappingError("There are no events to execute.", event, interceptedEvent, executionContext)
         }
 
@@ -134,14 +134,14 @@ export class EventPipeline {
         // 4- For each event, call the PreResponseMapping Interceptors
         const eventResponses: EventResponse<any, any>[] = await Promise.all( (await Promise.all(eventsExecutionPromises)).flat().map( async eventResponse => await this.preResponseMappingIntercept(eventResponse)));
 
-        const finalResponse = {};
+        let finalResponse = {};
 
         // 5 - Construct the final response by calling the events mapper (reverse map method) for each eventResponse;
         // This method updates the response object that will be returned from the kernel.
         eventResponses.forEach(eventResponse => {
             this.eventMappers.forEach( eventMapper => {
                 if(eventMapper.supportsReverseMapping(eventResponse, finalResponse, executionContext)) {
-                    eventMapper.reverseMap(eventResponse, finalResponse, executionContext);
+                    finalResponse = eventMapper.reverseMap(eventResponse, finalResponse, executionContext);
                 }
             })
         })
