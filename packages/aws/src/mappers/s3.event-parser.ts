@@ -2,7 +2,7 @@ import {
     Event,
     EventMapperInterface,
     EventResponse,
-    ExecutionContextInterface
+    ExecutionContextInterface, EventsExecutionOptionsInterface
 } from "@pristine-ts/core";
 import {S3EventPayload} from "../event-payloads/s3.event-payload";
 import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
@@ -14,8 +14,6 @@ import {ResponseElementsModel} from "../models/response-elements.model";
 import {S3Model} from "../models/s3.model";
 import {S3BucketModel} from "../models/s3-bucket.model";
 import {S3ObjectModel} from "../models/s3-object.model";
-import {EventsExecutionOptionsInterface} from "@pristine-ts/core/dist/types/interfaces/events-execution-options.interface";
-import {KafkaEventPayload} from "../event-payloads/kafka.event-payload";
 
 @tag(ServiceDefinitionTagEnum.EventMapper)
 @injectable()
@@ -39,6 +37,8 @@ export class S3EventParser implements EventMapperInterface<S3EventPayload, void>
     /**
      * Parses the S3 event into a Pristine event.
      * @param rawEvent The raw S3 event
+     * @param executionContext The ExecutionContext from where the event is triggered. It can easily be used to determine
+     * where the current service is hosted.
      */
     map(rawEvent: any, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<S3EventPayload> {
         const parsedEvents: Event<S3EventPayload>[] = [];
@@ -87,7 +87,8 @@ export class S3EventParser implements EventMapperInterface<S3EventPayload, void>
     /**
      * Determines if the parser supports the event.
      * @param event The event to verify if the parser supports.
-     * @param executionContext
+     * @param executionContext The ExecutionContext from where the event is triggered. It can easily be used to determine
+     * where the current service is hosted.
      */
     supportsMapping(event: any, executionContext: ExecutionContextInterface<any>): boolean {
         return event.hasOwnProperty("Records") &&

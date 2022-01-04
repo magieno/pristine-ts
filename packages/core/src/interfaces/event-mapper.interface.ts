@@ -3,12 +3,12 @@ import {EventResponse} from "../models/event.response";
 import {Event} from "../models/event";
 import {EventsExecutionOptionsInterface} from "./events-execution-options.interface";
 
-export interface EventMapperInterface<T, R> {
+export interface EventMapperInterface<EventPayload, EventResponsePayload> {
     supportsMapping(event: object, executionContext: ExecutionContextInterface<any>): boolean;
 
-    map(event: object, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<T>;
+    map(event: object, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<EventPayload>;
 
-    supportsReverseMapping(eventResponse: EventResponse<T, R>, response: any, executionContext: ExecutionContextInterface<any>): boolean;
+    supportsReverseMapping(eventResponse: EventResponse<EventPayload, EventResponsePayload>, response: any, executionContext: ExecutionContextInterface<any>): boolean;
 
-    reverseMap(eventResponse: EventResponse<T, R>, response: any, executionContext: ExecutionContextInterface<any>): any;
+    reverseMap(eventResponse: EventResponse<EventPayload, EventResponsePayload>, response: any, executionContext: ExecutionContextInterface<any>): any;
 }

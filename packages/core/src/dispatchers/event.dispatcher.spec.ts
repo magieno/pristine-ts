@@ -1,9 +1,9 @@
 import "reflect-metadata"
 import {Event} from "../models/event";
-import {EventListenerInterface} from "@pristine-ts/core";
+import {EventListenerInterface} from "../interfaces/event-listener.interface";
 import {EventDispatcher} from "./event.dispatcher";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import {EventResponse} from "../../dist/types/models/event.response";
+import {EventResponse} from "../models/event.response";
 import {LogHandlerMock} from "../../../../tests/mocks/log.handler.mock";
 
 describe("Event Dispatcher", () => {

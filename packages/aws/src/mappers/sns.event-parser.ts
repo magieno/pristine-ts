@@ -2,7 +2,7 @@ import {
     Event,
     EventMapperInterface,
     EventResponse,
-    ExecutionContextInterface
+    ExecutionContextInterface, EventsExecutionOptionsInterface
 } from "@pristine-ts/core";
 import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {injectable} from "tsyringe";
@@ -10,9 +10,6 @@ import {SnsEventPayload} from "../event-payloads/sns.event-payload";
 import {SnsEventType} from "../enums/sns-event-type.enum";
 import {SnsModel} from "../models/sns.model";
 import {SnsMessageAttributeModel} from "../models/sns-message-attribute.model";
-import {S3EventPayload} from "../event-payloads/s3.event-payload";
-import {EventsExecutionOptionsInterface} from "@pristine-ts/core/dist/types/interfaces/events-execution-options.interface";
-
 @tag(ServiceDefinitionTagEnum.EventMapper)
 @injectable()
 export class SnsEventParser implements EventMapperInterface<SnsEventPayload, void>{
@@ -35,7 +32,8 @@ export class SnsEventParser implements EventMapperInterface<SnsEventPayload, voi
     /**
      * Parses the SNS event into a Pristine event.
      * @param rawEvent The raw SNS event
-     * @param executionContext
+     * @param executionContext The ExecutionContext from where the event is triggered. It can easily be used to determine
+     * where the current service is hosted.
      */
     map(rawEvent: any, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<SnsEventPayload> {
         const parsedEvents: Event<SnsEventPayload>[] = [];
@@ -81,7 +79,8 @@ export class SnsEventParser implements EventMapperInterface<SnsEventPayload, voi
     /**
      * Determines if the parser supports the event.
      * @param event The event to verify if the parser supports.
-     * @param executionContext
+     * @param executionContext The ExecutionContext from where the event is triggered. It can easily be used to determine
+     * where the current service is hosted.
      */
     supportsMapping(event: any, executionContext: ExecutionContextInterface<any>): boolean {
         return event.hasOwnProperty("Records") &&

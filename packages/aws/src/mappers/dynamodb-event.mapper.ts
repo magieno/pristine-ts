@@ -1,11 +1,10 @@
-import {Event, EventMapperInterface, EventResponse, ExecutionContextInterface} from "@pristine-ts/core";
+import {Event, EventMapperInterface, EventResponse, ExecutionContextInterface, EventsExecutionOptionsInterface} from "@pristine-ts/core";
 import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {injectable, inject} from "tsyringe";
 import {DynamodbEventType} from "../enums/dynamodb-event-type.enum";
 import {DynamodbEventPayload} from "../event-payloads/dynamodb.event-payload";
 import {DynamodbModel} from "../models/dynamodb.model";
 import {DynamodbKeysModel} from "../models/dynamodb-keys.model";
-import {EventsExecutionOptionsInterface} from "@pristine-ts/core/dist/types/interfaces/events-execution-options.interface";
 
 @tag(ServiceDefinitionTagEnum.EventMapper)
 @injectable()
@@ -51,7 +50,7 @@ export class DynamodbEventMapper implements EventMapperInterface<DynamodbEventPa
 
     /**
      * Parses the DynamoDb event into a Pristine event.
-     * @param event The raw DynamoDb event
+     * @param rawEvent The raw DynamoDb event
      * @param executionContext The ExecutionContext from where the event is triggered.
      */
     map(rawEvent: any, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<DynamodbEventPayload> {
@@ -95,6 +94,8 @@ export class DynamodbEventMapper implements EventMapperInterface<DynamodbEventPa
     /**
      * Determines if the parser supports the event.
      * @param event The event to verify if the parser supports.
+     * @param executionContext The ExecutionContext from where the event is triggered. It can easily be used to determine
+     * where the current service is hosted.
      */
     supportsMapping(event: any, executionContext: ExecutionContextInterface<any>): boolean {
         return event.hasOwnProperty("Records") &&

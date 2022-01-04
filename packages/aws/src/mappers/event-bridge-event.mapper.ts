@@ -1,9 +1,8 @@
-import {Event, EventMapperInterface, EventResponse, ExecutionContextInterface} from "@pristine-ts/core";
+import {Event, EventMapperInterface, EventResponse, ExecutionContextInterface, EventsExecutionOptionsInterface} from "@pristine-ts/core";
 import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {injectable} from "tsyringe";
 import {EventBridgePayload} from "../event-payloads/event-bridge.payload";
 import {EventBridgeEventTypeEnum} from "../enums/event-bridge-event-type.enum";
-import {EventsExecutionOptionsInterface} from "@pristine-ts/core/dist/types/interfaces/events-execution-options.interface";
 
 @tag(ServiceDefinitionTagEnum.EventMapper)
 @injectable()

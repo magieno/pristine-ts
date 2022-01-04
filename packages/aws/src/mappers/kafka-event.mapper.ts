@@ -1,12 +1,9 @@
-import {Event, EventMapperInterface, EventResponse, ExecutionContextInterface} from "@pristine-ts/core";
+import {Event, EventMapperInterface, EventResponse, ExecutionContextInterface, EventsExecutionOptionsInterface} from "@pristine-ts/core";
 import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {injectable} from "tsyringe";
 import {KafkaEventPayload} from "../event-payloads/kafka.event-payload";
 import {KafkaEventType} from "../enums/kafka-event-type.enum";
 import {KafkaMessageModel} from "../models/kafka-message.model";
-import {DynamodbEventPayload} from "../event-payloads/dynamodb.event-payload";
-import {EventsExecutionOptionsInterface} from "@pristine-ts/core/dist/types/interfaces/events-execution-options.interface";
-import {EventBridgePayload} from "../event-payloads/event-bridge.payload";
 
 @tag(ServiceDefinitionTagEnum.EventMapper)
 @injectable()
@@ -15,7 +12,8 @@ export class KafkaEventMapper implements EventMapperInterface<KafkaEventPayload,
     /**
      * Parses the Kafka event from the AWS kafka connector into a Pristine event.
      * @param rawEvent The raw Kafka event
-     * @param executionContext
+     * @param executionContext The ExecutionContext from where the event is triggered. It can easily be used to determine
+     * where the current service is hosted.
      */
     map(rawEvent: any, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<KafkaEventPayload> {
         const parsedEvents: Event<KafkaEventPayload>[] = [];
@@ -54,6 +52,8 @@ export class KafkaEventMapper implements EventMapperInterface<KafkaEventPayload,
     /**
      * Determines if the parser supports the event.
      * @param event The event to verify if the parser supports.
+     * @param executionContext The ExecutionContext from where the event is triggered. It can easily be used to determine
+     * where the current service is hosted.
      */
     supportsMapping(event: any, executionContext: ExecutionContextInterface<any>): boolean {
         return event.hasOwnProperty("eventSource") &&
