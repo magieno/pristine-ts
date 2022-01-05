@@ -14,6 +14,7 @@ export interface EventInterceptorInterface {
      * If you force to never resolve the promise, the execution will stall. Be careful.
      *
      * @param event
+     * @param executionContextInterface
      */
     preMappingIntercept?(event: object, executionContextInterface: ExecutionContextInterface<any>): Promise<object>;
 
@@ -27,7 +28,21 @@ export interface EventInterceptorInterface {
      */
     postMappingIntercept?(event: Event<any>): Promise<Event<any>>;
 
+    /**
+     * This method receives the EventResponse returned by the EventDispatcher before it is being reverse mapped by the EventMappers.
+     *
+     * If you force to never resolve the promise, the execution will stall. Be careful.
+     *
+     * @param eventResponse
+     */
     preResponseMappingIntercept?(eventResponse: EventResponse<any, any>): Promise<EventResponse<any, any>>;
 
+    /**
+     * This method receives the reverse mapped EventResponse returned by the EventMappers, but before they are leaving Pristine entirely.
+     *
+     * If you force to never resolve the promise, the execution will stall. Be careful.
+     *
+     * @param eventResponse
+     */
     postResponseMappingIntercept?(eventResponse: object): Promise<object>;
 }

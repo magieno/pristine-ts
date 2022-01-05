@@ -13,6 +13,11 @@ import {ExecutionContextInterface} from "../interfaces/execution-context.interfa
 import {EventsExecutionOptionsInterface} from "../interfaces/events-execution-options.interface";
 import {EventInterceptorInterface} from "../interfaces/event-interceptor.interface";
 import {Event} from "../models/event";
+import {EventPreMappingInterceptionError} from "../errors/event-pre-mapping-interception.error";
+import {EventPostMappingInterceptionError} from "../errors/event-post-mapping-interception.error";
+import {EventPreResponseMappingInterceptionError} from "../errors/event-pre-response-mapping-interception.error";
+import {EventPostResponseMappingInterceptionError} from "../errors/event-post-response-mapping-interception.error";
+import {EventDispatchingError} from "../errors/event-dispatching.error";
 
 
 describe("Event Pipeline", () => {
@@ -539,5 +544,404 @@ describe("Event Pipeline", () => {
         };
 
         return expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow(new EventMappingError("There are no events to execute.",  event, event, executionContext));
+    })
+
+    it("should return a proper error if a preMapping Interceptors throws", async () => {
+        const thrownError = new Error("Very bad error");
+
+        const interceptedEvent = {
+            "interceptedEvent": true,
+        }
+
+        const eventInterceptor: EventInterceptorInterface = {
+            preMappingIntercept(event: object, executionContextInterface: ExecutionContextInterface<any>): Promise<object> {
+                return Promise.reject(thrownError);
+            }
+        }
+
+        const eventMapper: EventMapperInterface<any, any> = {
+            supportsMapping(event: object, executionContext: ExecutionContextInterface<any>): boolean {
+                expect(event).toBe(interceptedEvent);
+
+                return true;
+            },
+            map(event: object, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<any> {
+                return {
+                    executionOrder: "sequential",
+                    events: [
+                        new Event<any>("", event),
+                    ]
+                }
+            },
+            supportsReverseMapping(eventResponse: EventResponse<any, any>, response: object, executionContext: ExecutionContextInterface<any>): boolean {
+                return false;
+            },
+            reverseMap(eventResponse: EventResponse<any, any>, response: object, executionContext: ExecutionContextInterface<any>) {
+                return {};
+            }
+        }
+
+        const eventPipeline = new EventPipeline([
+            eventInterceptor
+        ], [
+            eventMapper,
+        ], logHandlerMock);
+
+        // @ts-ignore
+        dependencyContainerMock.resolve = (token) => {
+            if(token === "EventDispatcherInterface") {
+                return new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}), {}));
+            }
+        }
+
+        const event = {};
+        const executionContext = {
+            keyname: ExecutionContextKeynameEnum.AwsLambda,
+            context: {},
+        };
+
+        return expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow(new EventPreMappingInterceptionError("There was an error while executing the PreMapping Event interceptors", thrownError, eventInterceptor.constructor.name, event, executionContext));
+    })
+
+    it("should return a proper error if a postMapping Interceptors throws when 'sequential'", async () => {
+        const thrownError = new Error("Very bad error");
+
+        const eventInterceptor: EventInterceptorInterface = {
+            postMappingIntercept(event: Event<any>): Promise<Event<any>> {
+                return Promise.reject(thrownError);
+            }
+        }
+
+        const mappedEvent = new Event<any>("", {});
+
+        const eventMapper: EventMapperInterface<any, any> = {
+            supportsMapping(event: object, executionContext: ExecutionContextInterface<any>): boolean {
+                return true;
+            },
+            map(event: object, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<any> {
+                return {
+                    executionOrder: "sequential",
+                    events: [
+                        mappedEvent
+                    ]
+                }
+            },
+            supportsReverseMapping(eventResponse: EventResponse<any, any>, response: object, executionContext: ExecutionContextInterface<any>): boolean {
+                return false;
+            },
+            reverseMap(eventResponse: EventResponse<any, any>, response: object, executionContext: ExecutionContextInterface<any>) {
+                return {};
+            }
+        }
+
+        const eventPipeline = new EventPipeline([
+            eventInterceptor
+        ], [
+            eventMapper,
+        ], logHandlerMock);
+
+        // @ts-ignore
+        dependencyContainerMock.resolve = (token) => {
+            if(token === "EventDispatcherInterface") {
+                const eventDispatcher = new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}), {}));
+
+                eventDispatcher.dispatch = (event: Event<any>): Promise<EventResponse<any, any>> => {
+                    expect(event).toBe(mappedEvent);
+
+                    return Promise.resolve(new EventResponse<any, any>(new Event<any>("", {}), {}));
+                }
+
+                return eventDispatcher;
+            }
+        }
+
+        const event = {};
+        const executionContext = {
+            keyname: ExecutionContextKeynameEnum.AwsLambda,
+            context: {},
+        };
+
+        return expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow(new EventPostMappingInterceptionError("There was an error while executing the PostMapping Event interceptors", thrownError, eventInterceptor.constructor.name, mappedEvent));
+    })
+
+    it("should return a proper error if a postMapping Interceptors throws when 'parallel'", async () => {
+        const thrownError = new Error("Very bad error");
+
+        const eventInterceptor: EventInterceptorInterface = {
+            postMappingIntercept(event: Event<any>): Promise<Event<any>> {
+                return Promise.reject(thrownError);
+            }
+        }
+
+        const mappedEvent = new Event<any>("", {});
+
+        const eventMapper: EventMapperInterface<any, any> = {
+            supportsMapping(event: object, executionContext: ExecutionContextInterface<any>): boolean {
+                return true;
+            },
+            map(event: object, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<any> {
+                return {
+                    executionOrder: "parallel",
+                    events: [
+                        mappedEvent
+                    ]
+                }
+            },
+            supportsReverseMapping(eventResponse: EventResponse<any, any>, response: object, executionContext: ExecutionContextInterface<any>): boolean {
+                return false;
+            },
+            reverseMap(eventResponse: EventResponse<any, any>, response: object, executionContext: ExecutionContextInterface<any>) {
+                return {};
+            }
+        }
+
+        const eventPipeline = new EventPipeline([
+            eventInterceptor
+        ], [
+            eventMapper,
+        ], logHandlerMock);
+
+        // @ts-ignore
+        dependencyContainerMock.resolve = (token) => {
+            if(token === "EventDispatcherInterface") {
+                const eventDispatcher = new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}), {}));
+
+                eventDispatcher.dispatch = (event: Event<any>): Promise<EventResponse<any, any>> => {
+                    expect(event).toBe(mappedEvent);
+
+                    return Promise.resolve(new EventResponse<any, any>(new Event<any>("", {}), {}));
+                }
+
+                return eventDispatcher;
+            }
+        }
+
+        const event = {};
+        const executionContext = {
+            keyname: ExecutionContextKeynameEnum.AwsLambda,
+            context: {},
+        };
+
+        return expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow(new EventPostMappingInterceptionError("There was an error while executing the PostMapping Event interceptors", thrownError, eventInterceptor.constructor.name, mappedEvent));
+    })
+
+    it("should return a proper error if a preResponseMapping Interceptors throws", async () => {
+        const thrownError = new Error("Very bad error");
+
+        const returnedEventResponse = new EventResponse<any, any>(new Event<any>("", {}), {});
+
+        const eventInterceptor: EventInterceptorInterface = {
+            preResponseMappingIntercept(eventResponse: EventResponse<any, any>): Promise<EventResponse<any, any>> {
+                throw thrownError;
+            }
+        }
+
+        const mappedEvent = new Event<any>("", {});
+
+        const eventMapper: EventMapperInterface<any, any> = {
+            supportsMapping(event: object, executionContext: ExecutionContextInterface<any>): boolean {
+                return true;
+            },
+            map(event: object, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<any> {
+                return {
+                    executionOrder: "sequential",
+                    events: [
+                        mappedEvent
+                    ]
+                }
+            },
+            supportsReverseMapping(eventResponse: EventResponse<any, any>, response: object, executionContext: ExecutionContextInterface<any>): boolean {
+                expect(eventResponse.response.intercepted).toBeTruthy()
+                return false;
+            },
+            reverseMap(eventResponse: EventResponse<any, any>, response: object, executionContext: ExecutionContextInterface<any>) {
+                return {};
+            }
+        }
+
+        const eventPipeline = new EventPipeline([
+            eventInterceptor
+        ], [
+            eventMapper,
+        ], logHandlerMock);
+
+        // @ts-ignore
+        dependencyContainerMock.resolve = (token) => {
+            if(token === "EventDispatcherInterface") {
+                const eventDispatcher = new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}), {}));
+
+                eventDispatcher.dispatch = (event: Event<any>): Promise<EventResponse<any, any>> => {
+                    return Promise.resolve(returnedEventResponse);
+                }
+
+                return eventDispatcher;
+            }
+        }
+
+        const event = {};
+        const executionContext = {
+            keyname: ExecutionContextKeynameEnum.AwsLambda,
+            context: {},
+        };
+
+        return expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow(new EventPreResponseMappingInterceptionError("There was an error while executing the PreResponseMapping Event interceptors", thrownError, eventInterceptor.constructor.name, returnedEventResponse));
+    })
+
+    it("should return a proper error if a postResponseMapping Interceptors throws", async () => {
+        const thrownError = new Error("Very bad error");
+
+        const returnedEventResponse = new EventResponse<any, any>(new Event<any>("", {}), {});
+
+        const eventInterceptor: EventInterceptorInterface = {
+            postResponseMappingIntercept(eventResponse: object): Promise<object> {
+                throw thrownError;
+            }
+        }
+
+        const mappedEvent = new Event<any>("", {});
+
+        const eventMapper: EventMapperInterface<any, any> = {
+            supportsMapping(event: object, executionContext: ExecutionContextInterface<any>): boolean {
+                return true;
+            },
+            map(event: object, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<any> {
+                return {
+                    executionOrder: "sequential",
+                    events: [
+                        mappedEvent
+                    ]
+                }
+            },
+            supportsReverseMapping(eventResponse: EventResponse<any, any>, response: object, executionContext: ExecutionContextInterface<any>): boolean {
+                return true;
+            },
+            reverseMap(eventResponse: EventResponse<any, any>, response: object, executionContext: ExecutionContextInterface<any>) {
+                return {
+                    finalResponse: true,
+                };
+            }
+        }
+
+        const eventPipeline = new EventPipeline([
+            eventInterceptor
+        ], [
+            eventMapper,
+        ], logHandlerMock);
+
+        // @ts-ignore
+        dependencyContainerMock.resolve = (token) => {
+            if(token === "EventDispatcherInterface") {
+                const eventDispatcher = new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}), {}));
+
+                eventDispatcher.dispatch = (event: Event<any>): Promise<EventResponse<any, any>> => {
+                    return Promise.resolve(returnedEventResponse);
+                }
+
+                return eventDispatcher;
+            }
+        }
+
+        const event = {};
+        const executionContext = {
+            keyname: ExecutionContextKeynameEnum.AwsLambda,
+            context: {},
+        };
+
+        return expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow(new EventPostResponseMappingInterceptionError("There was an error while executing the PostResponseMapping Event interceptors", thrownError, eventInterceptor.constructor.name, returnedEventResponse));
+    })
+
+    it("should return a proper error the EventDispatcher throws", async () => {
+        const thrownError = new Error("Very bad error");
+
+        const interceptedEvent = {
+            "interceptedEvent": true,
+        }
+
+        const mappedEvent1 = new Event<any>("event1", interceptedEvent);
+
+        const eventMapper: EventMapperInterface<any, any> = {
+            supportsMapping(event: object, executionContext: ExecutionContextInterface<any>): boolean {
+                return true;
+            },
+            map(event: object, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<any> {
+                return {
+                    executionOrder: "sequential",
+                    events: [
+                        mappedEvent1,
+                    ]
+                }
+            },
+            supportsReverseMapping(eventResponse: EventResponse<any, any>, response: object, executionContext: ExecutionContextInterface<any>): boolean {
+                return false;
+            },
+            reverseMap(eventResponse: EventResponse<any, any>, response: object, executionContext: ExecutionContextInterface<any>) {
+                return {};
+            }
+        }
+
+        const eventPipeline = new EventPipeline([
+        ], [
+            eventMapper,
+        ], logHandlerMock);
+
+        let executionOrder = 0;
+
+        // @ts-ignore
+        dependencyContainerMock.resolve = (token) => {
+            if(token === "EventDispatcherInterface") {
+                const eventDispatcher = new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}), {}));
+
+                eventDispatcher.dispatch = (event: Event<any>): Promise<EventResponse<any, any>> => {
+                    throw thrownError;
+                }
+
+                return eventDispatcher;
+            }
+        }
+
+        const event = {};
+        const executionContext = {
+            keyname: ExecutionContextKeynameEnum.AwsLambda,
+            context: {},
+        };
+
+        return expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow(new EventDispatchingError("There was an error while dispatching the event", thrownError, mappedEvent1));
+    })
+
+    it("should return a proper error an EventParser throws", async () => {
+        const thrownError = new Error("Very bad error");
+
+        const rawEvent = {
+            "event": true,
+        }
+
+        const eventMapper: EventMapperInterface<any, any> = {
+            supportsMapping(event: object, executionContext: ExecutionContextInterface<any>): boolean {
+                return true;
+            },
+            map(event: object, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<any> {
+                throw thrownError;
+            },
+            supportsReverseMapping(eventResponse: EventResponse<any, any>, response: object, executionContext: ExecutionContextInterface<any>): boolean {
+                return false;
+            },
+            reverseMap(eventResponse: EventResponse<any, any>, response: object, executionContext: ExecutionContextInterface<any>) {
+                return {};
+            }
+        }
+
+        const eventPipeline = new EventPipeline([
+        ], [
+            eventMapper,
+        ], logHandlerMock);
+
+
+        const event = {};
+        const executionContext = {
+            keyname: ExecutionContextKeynameEnum.AwsLambda,
+            context: {},
+        };
+
+        return expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow(new EventMappingError("There was an error mapping the event into an Event object", event, event, executionContext, thrownError));
     })
 })
