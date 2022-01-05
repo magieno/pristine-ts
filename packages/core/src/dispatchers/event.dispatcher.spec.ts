@@ -17,8 +17,8 @@ describe("Event Dispatcher", () => {
                 return true;
             },
 
-            handle<T>(event: Event<T>): Promise<void> {
-                return Promise.resolve();
+            handle<T, R>(event: Event<T>, eventResponse: EventResponse<T, R>): Promise<EventResponse<T, R>> {
+                return Promise.resolve(eventResponse);
             }
         }
 
@@ -27,8 +27,8 @@ describe("Event Dispatcher", () => {
                 return false;
             },
 
-            handle<T>(event: Event<T>): Promise<void> {
-                return Promise.resolve();
+            handle<T, R>(event: Event<T>, eventResponse: EventResponse<T, R>): Promise<EventResponse<T, R>> {
+                return Promise.resolve(eventResponse);
             }
         }
 
@@ -62,10 +62,10 @@ describe("Event Dispatcher", () => {
             supports<T>(event: Event<T>): boolean {
                 return true;
             },
-            handle<T, R>(event: Event<T>, eventResponse: EventResponse<T, R>): Promise<void> {
+            handle<T, R>(event: Event<T>, eventResponse: EventResponse<T, R>): Promise<EventResponse<T, R>> {
                 order++;
                 expect(order).toBe(1);
-                return Promise.resolve();
+                return Promise.resolve(eventResponse);
             },
         };
 
@@ -74,10 +74,10 @@ describe("Event Dispatcher", () => {
             supports<T>(event: Event<T>): boolean {
                 return true;
             },
-            handle<T, R>(event: Event<T>, eventResponse: EventResponse<T, R>): Promise<void> {
+            handle<T, R>(event: Event<T>, eventResponse: EventResponse<T, R>): Promise<EventResponse<T, R>> {
                 order++;
                 expect(order).toBe(2);
-                return Promise.resolve();
+                return Promise.resolve(eventResponse);
             },
         };
 

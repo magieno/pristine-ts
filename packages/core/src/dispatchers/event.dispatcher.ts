@@ -39,7 +39,7 @@ export class EventDispatcher implements EventDispatcherInterface {
             eventListenerNames: this.eventListeners.map(eventListener => eventListener.constructor.name),
         }, CoreModuleKeyname);
 
-        const eventResponse = new EventResponse(event, undefined);
+        let eventResponse = new EventResponse(event, undefined);
 
         for (const eventListener of this.eventListeners) {
             if(eventListener.supports(event)) {
@@ -49,7 +49,7 @@ export class EventDispatcher implements EventDispatcherInterface {
                     eventListenerName: eventListener.constructor.name,
                 }, CoreModuleKeyname)
 
-                await eventListener.handle(event, eventResponse);
+                eventResponse = await eventListener.handle(event, eventResponse);
             }
             else {
                 this.logHandler.debug("The EventListener doesn't support the event", {

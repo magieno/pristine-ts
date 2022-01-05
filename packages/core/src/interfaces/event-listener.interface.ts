@@ -24,5 +24,5 @@ export interface EventListenerInterface {
      * @param event
      * @param eventResponse The event response that will in the end be returned.
      */
-    handle<T, R>(event: Event<T>, eventResponse: EventResponse<T, R>): void;
+    handle<EventPayload, EventResponsePayload>(event: Event<EventPayload>, eventResponse: EventResponse<EventPayload, EventResponsePayload>): Promise<EventResponse<EventPayload, EventResponsePayload>>;
 }
