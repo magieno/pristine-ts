@@ -100,7 +100,7 @@ describe("Event Dispatcher", () => {
         let count = 0;
 
         const eventListener1: EventListenerInterface = {
-            handle<EventPayload>(event: Event<EventPayload>): Promise<void> {
+            execute<EventPayload>(event: Event<EventPayload>): Promise<void> {
                 count++;
                 return Promise.resolve()
             },
@@ -110,7 +110,7 @@ describe("Event Dispatcher", () => {
         }
 
         const eventListener2: EventListenerInterface = {
-            handle<EventPayload>(event: Event<EventPayload>): Promise<void> {
+            execute<EventPayload>(event: Event<EventPayload>): Promise<void> {
                 count++;
                 return Promise.resolve()
             },
@@ -120,7 +120,7 @@ describe("Event Dispatcher", () => {
         }
 
         const eventListener3: EventListenerInterface = {
-            handle<EventPayload>(event: Event<EventPayload>): Promise<void> {
+            execute<EventPayload>(event: Event<EventPayload>): Promise<void> {
                 count++;
                 return Promise.resolve()
             },

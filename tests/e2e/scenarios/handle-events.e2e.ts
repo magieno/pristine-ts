@@ -76,7 +76,7 @@ describe("Handle events", () => {
 
         @tag(ServiceDefinitionTagEnum.EventListener)
         class KafkaEventListener implements EventListenerInterface {
-            async handle<KafkaEventPayload>(event: Event<KafkaEventPayload>): Promise<void> {
+            async execute<KafkaEventPayload>(event: Event<KafkaEventPayload>): Promise<void> {
                 valuesToBeModified.push(event);
             }
 

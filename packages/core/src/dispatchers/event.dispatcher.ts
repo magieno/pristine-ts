@@ -48,7 +48,7 @@ export class EventDispatcher implements EventDispatcherInterface {
 
         this.eventListeners.forEach(eventListener => {
             if(eventListener.supports(event)) {
-                eventListenerPromises.push(eventListener.handle(event));
+                eventListenerPromises.push(eventListener.execute(event));
             }
         });
 

@@ -8,7 +8,7 @@ import {EventResponse} from "../models/event.response";
 @tag(ServiceDefinitionTagEnum.EventHandler)
 @moduleScoped(CoreModuleKeyname)
 @injectable()
-export class DefaultEventHandler implements EventHandlerInterface{
+export class DefaultEventHandler implements EventHandlerInterface {
     handle<EventPayload, EventResponsePayload>(event: Event<EventPayload>, eventResponse: EventResponse<EventPayload, EventResponsePayload>): Promise<EventResponse<EventPayload, EventResponsePayload>> {
         return Promise.resolve(eventResponse);
     }

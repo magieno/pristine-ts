@@ -17,7 +17,7 @@ export class EventBridgeCronEventListener implements EventListenerInterface {
      *
      * @param event
      */
-    async handle<EventPayload>(event: Event<EventPayload>): Promise<void> {
+    async execute<EventPayload>(event: Event<EventPayload>): Promise<void> {
         await this.scheduler.runTasks();
 
         return Promise.resolve();
