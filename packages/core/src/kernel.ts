@@ -11,6 +11,7 @@ import {
     RouterInterface,
 } from "@pristine-ts/networking";
 import {
+    AppModuleInterface,
     InternalContainerParameterEnum,
     ModuleInterface,
     moduleScopedServicesRegistry,
@@ -21,7 +22,6 @@ import {
     TaggedRegistrationInterface
 } from "@pristine-ts/common";
 import {ConfigurationManager, ModuleConfigurationValue} from "@pristine-ts/configuration";
-import {Event, EventDispatcher, EventTransformer} from "@pristine-ts/event";
 import {RequestInterceptorInterface} from "./interfaces/request-interceptor.interface";
 import {ResponseInterceptorInterface} from "./interfaces/response-interceptor.interface";
 import {ErrorResponseInterceptorInterface} from "./interfaces/error-response-interceptor.interface";
@@ -32,12 +32,12 @@ import {KernelInitializationError} from "./errors/kernel-initialization.error";
 import {ErrorResponseInterceptionExecutionError} from "./errors/error-response-interception-execution.error";
 import {ResponseInterceptionExecutionError} from "./errors/response-interception-execution.error";
 import {RequestInterceptionExecutionError} from "./errors/request-interception-execution.error";
-import {EventInterceptionExecutionError} from "./errors/event-interception-execution.error";
-import {EventInterceptorInterface} from "./interfaces/event-interceptor.interface";
 import {Span, SpanKeynameEnum, TracingManagerInterface} from "@pristine-ts/telemetry";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {CoreModuleKeyname} from "./core.module.keyname";
 import { v4 as uuidv4 } from 'uuid';
+import {ExecutionContextInterface} from "./interfaces/execution-context.interface";
+import {EventPipeline} from "./pipelines/event.pipeline";
 
 /**
  * This is the central class that manages the lifecyle of this library.
@@ -86,6 +86,7 @@ export class Kernel {
      * it registers the services, registers the configurations and runs the afterInit for each module.
      * @param module
      * @param moduleConfigurationValues
+     * @deprecated To be deprecated soon. You should use the start method now, the init method will be made private soon.
      */
     public async init(module: ModuleInterface, moduleConfigurationValues?: { [key: string]: ModuleConfigurationValue }) {
         this.initializationSpan = new Span(SpanKeynameEnum.KernelInitialization);
@@ -285,74 +286,6 @@ export class Kernel {
     }
 
     /**
-     * This method executes all the EventInterceptors and returns the event updated by the interceptors.
-     *
-     * @param event
-     * @param container
-     * @private
-     */
-    private async executeRawEventInterceptors(event: any): Promise<any> {
-        // Execute all the event interceptors
-        let interceptedEvent = event;
-
-        // Check first if there are any EventInterceptors
-        if (this.container.isRegistered(ServiceDefinitionTagEnum.EventInterceptor, true)) {
-            const interceptors: any[] = this.container.resolveAll(ServiceDefinitionTagEnum.EventInterceptor);
-
-            for (const interceptor of interceptors) {
-                // We don't have a guarantee that the event interceptors will implement the Interface, even though we specify it should.
-                // So, we have to verify that the method exists, and if it doesn't we throw
-                if (typeof interceptor.interceptRawEvent === "undefined") {
-                    throw new EventInterceptionExecutionError("The Event Interceptor doesn't have the 'interceptRawEvent' method. EventInterceptors should implement the EventInterceptor interface.", event, this);
-                }
-
-                try {
-                    // https://stackoverflow.com/a/27760489/684101
-                    interceptedEvent = await Promise.resolve((interceptor as EventInterceptorInterface).interceptRawEvent(interceptedEvent));
-                } catch (error) {
-                    throw new EventInterceptionExecutionError("There was an exception thrown while executing the 'interceptRawEvent' method of the EventInterceptor.", event, this, error);
-                }
-            }
-        }
-
-        return interceptedEvent;
-    }
-
-    /**
-     * This method executes all the EventInterceptors and returns the event updated by the interceptors.
-     *
-     * @param event
-     * @param container
-     * @private
-     */
-    private async executeEventInterceptors(event: Event<any>, container: DependencyContainer): Promise<Event<any>> {
-        // Execute all the event interceptors
-        let interceptedEvent = event;
-
-        // Check first if there are any EventInterceptor
-        if (container.isRegistered(ServiceDefinitionTagEnum.EventInterceptor, true)) {
-            const interceptors: any[] = container.resolveAll(ServiceDefinitionTagEnum.EventInterceptor);
-
-            for (const interceptor of interceptors) {
-                // We don't have a guarantee that the event interceptors will implement the Interface, even though we specify it should.
-                // So, we have to verify that the method exists, and if it doesn't we throw
-                if (typeof interceptor.interceptEvent === "undefined") {
-                    throw new EventInterceptionExecutionError("The Event Interceptor doesn't have the 'interceptEvent' method. EventInterceptors should implement the EventInterceptor interface.", event, this);
-                }
-
-                try {
-                    // https://stackoverflow.com/a/27760489/684101
-                    interceptedEvent = await Promise.resolve((interceptor as EventInterceptorInterface).interceptEvent(interceptedEvent));
-                } catch (error) {
-                    throw new EventInterceptionExecutionError("There was an exception thrown while executing the 'interceptRawEvent' method of the EventInterceptor.", event, this, error);
-                }
-            }
-        }
-
-        return interceptedEvent;
-    }
-
-    /**
      * This method executes all the response interceptors and returns the response updated by the interceptors.
      *
      * @param response
@@ -435,122 +368,15 @@ export class Kernel {
         return interceptedErrorResponse;
     }
 
-    /**
-     * This method can be used to test if a raw event is supported or not.
-     * @param rawEvent
-     */
-    isRawEventSupported(rawEvent: object): boolean {
-        // Start by creating a child container and we will use this container to instantiate the dependencies for this event
-        const childContainer = this.container.createChildContainer();
-
-        const eventTransformer: EventTransformer = childContainer.resolve(EventTransformer);
-
-        return eventTransformer.isSupported(rawEvent);
+    public async start(module: AppModuleInterface, moduleConfigurationValues?: { [key: string]: ModuleConfigurationValue }) {
+        return this.init(module, moduleConfigurationValues);
     }
 
-    /**
-     *  This method takes the raw Event, transforms it into an array of Event object and then dispatches it to the Event Listeners.
-     *  It completes when all the Event Listeners have settle, and does not return a response.
-     *
-     * @param rawEvent
-     */
-    public async handleRawEvent(rawEvent: object): Promise<void> {
-        const logHandler: LogHandlerInterface = this.container.resolve("LogHandlerInterface");
-        const tracingManager: TracingManagerInterface = this.container.resolve("TracingManagerInterface");
-        tracingManager.startTracing();
+    public async handle<T>(event: object, executionContext: ExecutionContextInterface<T>): Promise<object> {
+        // Retrieve the EventPipeline. It's the class responsible for executing all the events successfully.
+        const eventPipeline = this.container.resolve(EventPipeline);
 
-        const eventInitializationSpan: Span = tracingManager.startSpan(SpanKeynameEnum.EventInitialization);
-        this.initializationSpan.addChild(eventInitializationSpan);
-
-        logHandler.debug("Executing the Raw Event Interceptors", {rawEvent}, CoreModuleKeyname);
-
-        const interceptedRawEvent = await this.executeRawEventInterceptors(rawEvent);
-
-        logHandler.debug("Completed execution of the Raw Event Interceptors", {interceptedRawEvent}, CoreModuleKeyname);
-
-        const eventTransformer: EventTransformer = this.container.resolve(EventTransformer);
-
-        // Transform the raw event into an array of Event object
-        logHandler.debug("Transforming the Raw Events into an array of Events", {interceptedRawEvent}, CoreModuleKeyname);
-
-        let events: Event<any>[] = eventTransformer.transform(interceptedRawEvent);
-
-        logHandler.debug("Completed the transformation of the Raw Events into Events", {events}, CoreModuleKeyname);
-
-        eventInitializationSpan.end();
-
-        // Handle all of the parsed events
-        const promises: Promise<void>[] = [];
-        for (let event of events) {
-            promises.push(this.handleParsedEvent(event, eventInitializationSpan));
-        }
-
-        return new Promise(resolve => {
-            Promise.allSettled(promises).then(results => {
-                results.forEach(result => {
-                    if (result.status === 'fulfilled') {
-                        logHandler.debug("Event was successfully handled", {result}, CoreModuleKeyname)
-                    } else {
-                        logHandler.error("There was an error handling the event.", {
-                            result: {
-                                status: result.status,
-                                reason: result.reason + "",
-                            }
-                        }, CoreModuleKeyname)
-                    }
-                });
-
-                return resolve();
-            });
-        })
-    }
-
-    /**
-     *  This method takes a parsed Event, executes the interceptors and dispatches it to the Event Listeners
-     *
-     * @param rawEvent
-     */
-    private async handleParsedEvent(parsedEvent: Event<any>, rawEventInitializationSpan: Span) {
-        // Start by creating a child container and we will use this container to instantiate the dependencies for this event
-        const childContainer = this.container.createChildContainer();
-
-        const tracingManager: TracingManagerInterface = childContainer.resolve("TracingManagerInterface");
-        tracingManager.startTracing();
-        tracingManager.trace?.rootSpan?.addChild(this.initializationSpan)
-        tracingManager.addSpan(this.initializationSpan);
-        this.initializationSpan.end();
-
-        const eventSpan = tracingManager.startSpan(SpanKeynameEnum.EventExecution);
-
-        const logHandler: LogHandlerInterface = childContainer.resolve("LogHandlerInterface");
-
-        const eventDispatcher: EventDispatcher = childContainer.resolve(EventDispatcher);
-
-        try {
-            logHandler.debug("Starting the handling of the parsed event", {parsedEvent}, CoreModuleKeyname)
-
-            logHandler.debug("Executing the event interceptors", {parsedEvent}, CoreModuleKeyname)
-
-            // Execute the interceptors
-            parsedEvent = await this.executeEventInterceptors(parsedEvent, childContainer);
-
-            logHandler.debug("The event interceptors were successfully executed.", {parsedEvent}, CoreModuleKeyname)
-
-            logHandler.debug("Dispatching the parsed event", {parsedEvent}, CoreModuleKeyname)
-
-            // Dispatch the Event to the EventListeners
-            await eventDispatcher.dispatch(parsedEvent);
-
-            logHandler.debug("The parsed Event was successfully dispatched.", {parsedEvent}, CoreModuleKeyname)
-
-        } catch (error) {
-            logHandler.error("Thee was an error handling the parsed event", {error}, CoreModuleKeyname)
-
-            throw error;
-        } finally {
-            eventSpan.end()
-            tracingManager.endTrace()
-        }
+        return eventPipeline.execute(event, executionContext, this.container);
     }
 
     /**

@@ -1,7 +1,7 @@
 import {inject, injectable} from "tsyringe";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import Stripe from "stripe";
-import {Event, EventDispatcher} from "@pristine-ts/event";
+import {Event, EventDispatcher} from "@pristine-ts/core";
 import {StripeEventTypeEnum} from "../enums/stripe-event-type.enum";
 import {RequestInterface} from "@pristine-ts/common";
 import {StripeClient} from "../clients/stripe.client";

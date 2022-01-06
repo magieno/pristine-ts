@@ -1,7 +1,7 @@
 import {injectable, scoped, Lifecycle, inject} from "tsyringe";
 import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {AwsSchedulingModuleKeyname} from "../aws-scheduling.module.keyname";
-import {Event, EventListenerInterface} from "@pristine-ts/event";
+import {Event, EventListenerInterface, EventResponse} from "@pristine-ts/core";
 import {EventBridgePayload, EventBridgeEventTypeEnum} from "@pristine-ts/aws";
 import {SchedulerInterface} from "@pristine-ts/scheduling";
 
@@ -13,11 +13,14 @@ export class EventBridgeCronEventListener implements EventListenerInterface {
     }
 
     /**
+     * This method listens to an Event and triggers the schedulers.
      *
      * @param event
      */
-    async handle<T>(event: Event<T>): Promise<void> {
-        return this.scheduler.runTasks();
+    async execute<EventPayload>(event: Event<EventPayload>): Promise<void> {
+        await this.scheduler.runTasks();
+
+        return Promise.resolve();
     }
 
     /**

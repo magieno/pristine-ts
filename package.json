@@ -46,7 +46,6 @@
     "@pristine-ts/configuration": "file:packages/configuration",
     "@pristine-ts/core": "file:packages/core",
     "@pristine-ts/e2e": "file:tests/e2e",
-    "@pristine-ts/event": "file:packages/event",
     "@pristine-ts/express": "file:packages/express",
     "@pristine-ts/http": "file:packages/http",
     "@pristine-ts/jwt": "file:packages/jwt",

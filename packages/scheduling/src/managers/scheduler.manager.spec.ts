@@ -1,7 +1,7 @@
 import "reflect-metadata"
 import {SchedulerManager} from "./scheduler.manager";
 import {ScheduledTaskInterface} from "../interfaces/scheduled-task.interface";
-import {Event} from "@pristine-ts/event";
+import {Event} from "@pristine-ts/core";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 
 describe("Scheduler Manager tests", () => {
