@@ -10,8 +10,10 @@ export * from "./kernel";
 export * from "./dispatchers/dispatchers";
 export * from "./enums/enums";
 export * from "./errors/errors";
+export * from "./handlers/handlers";
 export * from "./interceptors/interceptors";
 export * from "./interfaces/interfaces";
+export * from "./listeners/listeners";
 export * from "./models/models";
 
 export * from "./core.module.keyname";

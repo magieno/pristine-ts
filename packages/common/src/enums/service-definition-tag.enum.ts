@@ -12,6 +12,7 @@ export enum ServiceDefinitionTagEnum {
     EventInterceptor = "EVENT_INTERCEPTOR",
     RouterRequestEnricher = "ROUTER_REQUEST_ENRICHER",
     RouterResponseEnricher = "ROUTER_RESPONSE_ENRICHER",
+    EventHandler = "EVENT_HANDLER",
     EventListener = "EVENT_LISTENER",
     EventMapper = "EVENT_MAPPER",
     EventSubscriber = "EVENT_SUBSCRIBER",

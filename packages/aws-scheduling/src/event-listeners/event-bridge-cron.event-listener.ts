@@ -13,14 +13,14 @@ export class EventBridgeCronEventListener implements EventListenerInterface {
     }
 
     /**
+     * This method listens to an Event and triggers the schedulers.
      *
      * @param event
-     * @param eventResponse
      */
-    async handle<EventPayload, EventResponsePayload>(event: Event<EventPayload>, eventResponse: EventResponse<EventPayload, EventResponsePayload>): Promise<EventResponse<EventPayload, EventResponsePayload>> {
+    async handle<EventPayload>(event: Event<EventPayload>): Promise<void> {
         await this.scheduler.runTasks();
 
-        return eventResponse;
+        return Promise.resolve();
     }
 
     /**
