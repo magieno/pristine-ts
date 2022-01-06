@@ -12,7 +12,7 @@ export interface EventListenerInterface {
     supports<T>(event: Event<T>): boolean;
 
     /**
-     * This method receives an event and does somethign with it.
+     * This method receives an event and does something with it.
      * @param event
      */
     execute<EventPayload>(event: Event<EventPayload>): Promise<void>;
