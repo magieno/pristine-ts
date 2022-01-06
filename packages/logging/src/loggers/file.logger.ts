@@ -59,7 +59,7 @@ export class FileLogger extends BaseLogger implements LoggerInterface {
   }
 
   protected log(log: LogModel): void {
-    const outputLog = this.outputLog(log) + ";\n";
+    const outputLog = this.getFormattedOutputLog(log) + ";\n";
 
     switch (log.severity) {
       case SeverityEnum.Debug:

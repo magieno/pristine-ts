@@ -55,7 +55,7 @@ export class ConsoleLogger extends BaseLogger implements LoggerInterface {
   }
 
   protected log(log: LogModel): void {
-    const outputLog = this.outputLog(log);
+    const outputLog = this.getFormattedOutputLog(log);
 
     switch (log.severity) {
       case SeverityEnum.Debug:
