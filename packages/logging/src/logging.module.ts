@@ -13,8 +13,8 @@ import {SeverityEnum} from "./enums/severity.enum";
 export * from "./enums/enums";
 export * from "./handlers/handlers";
 export * from "./interfaces/interfaces";
-export * from "./models/models";
 export * from "./loggers/loggers";
+export * from "./models/models";
 export * from "./utils/utils";
 export * from "./logging.module.keyname"
 
