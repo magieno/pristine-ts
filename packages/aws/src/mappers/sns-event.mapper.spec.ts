@@ -1,10 +1,10 @@
 import "reflect-metadata"
 import {Event, ExecutionContextKeynameEnum} from "@pristine-ts/core";
-import {SnsEventParser} from "./sns.event-parser";
+import {SnsEventMapper} from "./sns-event.mapper";
 import {SnsEventType} from "../enums/sns-event-type.enum";
 import {SnsEventPayload} from "../event-payloads/sns.event-payload";
 
-describe("Sns event parser", () => {
+describe("Sns event mapper", () => {
     //https://docs.aws.amazon.com/lambda/latest/dg/with-sns.html
     const rawEvent = {
         "Records":[
@@ -39,14 +39,14 @@ describe("Sns event parser", () => {
     };
 
     it("should support an event from sns", () => {
-        const snsEventParser = new SnsEventParser();
+        const snsEventParser = new SnsEventMapper();
 
         expect(snsEventParser.supportsMapping(rawEvent, {keyname: ExecutionContextKeynameEnum.AwsLambda, context: {}})).toBeTruthy();
     })
 
     it("should transform an event from sns", () => {
 
-        const snsEventParser = new SnsEventParser();
+        const snsEventParser = new SnsEventMapper();
 
         const snsEvent: Event<SnsEventPayload> = {
             type: SnsEventType.Notification,

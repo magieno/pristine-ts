@@ -142,4 +142,11 @@ describe("Event Dispatcher", () => {
 
         expect(count).toBe(2);
     })
+
+    it("should throw an error if there are no handlers that support this event.", async () => {
+        expect(false).toBeTruthy();
+    })
+    it("should throw an error if there the handler returns undefined.", async () => {
+        expect(false).toBeTruthy();
+    })
 })

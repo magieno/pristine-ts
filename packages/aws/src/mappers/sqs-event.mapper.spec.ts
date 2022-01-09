@@ -1,6 +1,6 @@
 import "reflect-metadata"
 import {Event, ExecutionContextKeynameEnum} from "@pristine-ts/core";
-import {SqsEventParser} from "./sqs.event-parser";
+import {SqsEventMapper} from "./sqs-event.mapper";
 import {SqsEventType} from "../enums/sqs-event-type.enum";
 import {SqsEventPayload} from "../event-payloads/sqs.event-payload";
 
@@ -31,7 +31,7 @@ describe("Sqs event parser", () => {
     };
 
     it("should support an event from sqs", () => {
-        const sqsEventParser = new SqsEventParser();
+        const sqsEventParser = new SqsEventMapper();
 
         expect(sqsEventParser.supportsMapping(rawEvent, {
             keyname: ExecutionContextKeynameEnum.AwsLambda,
@@ -41,7 +41,7 @@ describe("Sqs event parser", () => {
 
     it("should transform an event from sqs", () => {
 
-        const sqsEventParser = new SqsEventParser();
+        const sqsEventParser = new SqsEventMapper();
 
         const sqsEvent: Event<SqsEventPayload> = {
             type: SqsEventType.SqsEvent,

@@ -1,10 +1,10 @@
 import "reflect-metadata"
 import {S3EventPayload} from "../event-payloads/s3.event-payload";
-import {S3EventParser} from "./s3.event-parser";
+import {S3EventMapper} from "./s3-event.mapper";
 import {Event, ExecutionContextKeynameEnum} from "@pristine-ts/core";
 import {S3EventType} from "../enums/s3-event-type.enum";
 
-describe("S3 event parser", () => {
+describe("S3 event mapper", () => {
     // https://docs.aws.amazon.com/lambda/latest/dg/with-s3-example.html
     const rawEvent = {
         "Records": [
@@ -47,14 +47,14 @@ describe("S3 event parser", () => {
     };
 
     it("should support an event from s3", () => {
-        const s3EventParser = new S3EventParser();
+        const s3EventParser = new S3EventMapper();
 
         expect(s3EventParser.supportsMapping(rawEvent, {keyname: ExecutionContextKeynameEnum.AwsLambda, context: {}})).toBeTruthy();
     })
 
     it("should transform an event from s3", () => {
 
-        const s3EventParser = new S3EventParser();
+        const s3EventParser = new S3EventMapper();
 
         const s3Event: Event<S3EventPayload> = {
             type: S3EventType.ObjectCreatedPut,

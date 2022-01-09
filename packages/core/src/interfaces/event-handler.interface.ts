@@ -22,7 +22,6 @@ export interface EventHandlerInterface {
     /**
      * This method receives an event and handles it and returns an EventResponse.
      * @param event
-     * @param eventResponse The event response that was handled by a previous Handler.
      */
-    handle<EventPayload, EventResponsePayload>(event: Event<EventPayload>, eventResponse: EventResponse<EventPayload, EventResponsePayload>): Promise<EventResponse<EventPayload, EventResponsePayload>>;
+    handle<EventPayload, EventResponsePayload>(event: Event<EventPayload>): Promise<EventResponse<EventPayload, EventResponsePayload>>;
 }

@@ -5,7 +5,7 @@ import {
     ExecutionContextInterface, EventsExecutionOptionsInterface
 } from "@pristine-ts/core";
 import {S3EventPayload} from "../event-payloads/s3.event-payload";
-import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import { injectable } from "tsyringe";
 import {S3EventType} from "../enums/s3-event-type.enum";
 import {IdentityModel} from "../models/identity.model";
@@ -14,10 +14,12 @@ import {ResponseElementsModel} from "../models/response-elements.model";
 import {S3Model} from "../models/s3.model";
 import {S3BucketModel} from "../models/s3-bucket.model";
 import {S3ObjectModel} from "../models/s3-object.model";
+import {AwsModuleKeyname} from "../aws.module.keyname";
 
+@moduleScoped(AwsModuleKeyname)
 @tag(ServiceDefinitionTagEnum.EventMapper)
 @injectable()
-export class S3EventParser implements EventMapperInterface<S3EventPayload, void>{
+export class S3EventMapper implements EventMapperInterface<S3EventPayload, void>{
 
     /**
      * Finds the enum value corresponding to the event name.

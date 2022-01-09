@@ -7,7 +7,7 @@ import {SqsEventType} from "../enums/sqs-event-type.enum";
 
 @tag(ServiceDefinitionTagEnum.EventMapper)
 @injectable()
-export class SqsEventParser implements EventMapperInterface<SqsEventPayload, void>{
+export class SqsEventMapper implements EventMapperInterface<SqsEventPayload, void>{
 
     /**
      * Parses the SQS event into a Pristine event.

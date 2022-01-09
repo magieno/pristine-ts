@@ -7,6 +7,7 @@ import {CoreModuleKeyname} from "../core.module.keyname";
 import {EventResponse} from "../models/event.response";
 import {EventDispatcherInterface} from "../interfaces/event-dispatcher.interface";
 import {EventListenerInterface} from "../interfaces/event-listener.interface";
+import {EventDispatchingError} from "../errors/event-dispatching.error";
 
 /**
  * This class receives all the event handlers and listeners that were registered and calls them if they support the event.
@@ -52,25 +53,37 @@ export class EventDispatcher implements EventDispatcherInterface {
             }
         });
 
-        let eventResponse = new EventResponse(event, undefined);
+        const supportingEventHandlers: EventHandlerInterface[] = [];
 
         for (const eventHandler of this.eventHandlers) {
             if(eventHandler.supports(event)) {
-                this.logHandler.debug("The DefaultEventHandler supports the event", {
+                this.logHandler.debug("The EventHandler supports the event", {
                     event,
                     eventHandler: eventHandler,
                     eventHandlerName: eventHandler.constructor.name,
                 }, CoreModuleKeyname)
 
-                eventResponse = await eventHandler.handle(event, eventResponse);
+                supportingEventHandlers.push(eventHandler);
             }
             else {
-                this.logHandler.debug("The DefaultEventHandler doesn't support the event", {
+                this.logHandler.debug("The EventHandler doesn't support the event", {
                     event,
                     eventHandler: eventHandler,
                     eventHandlerName: eventHandler.constructor.name,
                 }, CoreModuleKeyname)
             }
+        }
+
+        if(supportingEventHandlers.length === 0) {
+            throw new Error("There are no EventHandlers that support this event.");
+        } else if (supportingEventHandlers.length > 1) {
+            this.logHandler.warning("There are more than one EventHandler that support this event.")
+        }
+
+        const eventResponse = await supportingEventHandlers[0].handle(event);
+
+        if(eventResponse === undefined) {
+            throw new Error("The EventResponse object is undefined and shouldn't be. It might be because no EventHandlers support the event or because the EventHandler")
         }
 
         await Promise.allSettled(eventListenerPromises);

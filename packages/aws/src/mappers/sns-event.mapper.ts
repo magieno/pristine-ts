@@ -12,7 +12,7 @@ import {SnsModel} from "../models/sns.model";
 import {SnsMessageAttributeModel} from "../models/sns-message-attribute.model";
 @tag(ServiceDefinitionTagEnum.EventMapper)
 @injectable()
-export class SnsEventParser implements EventMapperInterface<SnsEventPayload, void>{
+export class SnsEventMapper implements EventMapperInterface<SnsEventPayload, void>{
 
     /**
      * Finds the enum value corresponding to the event name.
