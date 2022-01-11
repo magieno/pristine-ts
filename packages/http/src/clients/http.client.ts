@@ -12,6 +12,7 @@ import {HttpResponseInterceptorInterface} from "../interfaces/http-response-inte
 import {MathUtils} from "../utils/math.utils";
 import {HttpClientResponseRedirectError} from "../errors/http-client-response-redirect.error";
 import {HttpWrapperInterface} from "../interfaces/http-wrapper.interface";
+import { HttpErrorResponseInterceptorInterface } from "../interfaces/http-error-response-interceptor.interface";
 
 /**
  * This service is an http client for any http request you need to make outside of Pristine.
@@ -33,11 +34,13 @@ export class HttpClient implements HttpClientInterface {
      * This service is an http client for any http request you need to make outside of Pristine.
      * @param httpWrapper The wrapper around NodeJS http.
      * @param httpRequestInterceptors The interceptors to run before sending the request. All services with the tag ServiceDefinitionTagEnum.HttpRequestInterceptor will be automatically injected here.
-     * @param httpResponseInterceptors The interceptors to run when receiving the reponse. All services with the tag ServiceDefinitionTagEnum.HttpResponseInterceptor will be automatically injected here.
+     * @param httpResponseInterceptors The interceptors to run when receiving the response. All services with the tag ServiceDefinitionTagEnum.HttpResponseInterceptor will be automatically injected here.
+     * @param httpErrorResponseInterceptors The interceptors to run when receiving a response that contains an error. All services with the tag ServiceDefinitionTagEnum.HttpErrorResponseInterceptor will be automatically injected here.
      */
     constructor(@inject('HttpWrapperInterface') private readonly httpWrapper: HttpWrapperInterface,
                 @injectAll(ServiceDefinitionTagEnum.HttpRequestInterceptor) private readonly httpRequestInterceptors: HttpRequestInterceptorInterface[] = [],
                 @injectAll(ServiceDefinitionTagEnum.HttpResponseInterceptor) private readonly httpResponseInterceptors: HttpResponseInterceptorInterface[] = [],
+                @injectAll(ServiceDefinitionTagEnum.HttpErrorResponseInterceptor) private readonly httpErrorResponseInterceptors: HttpErrorResponseInterceptorInterface[] = [],
     ) {
     }
 
@@ -135,6 +138,10 @@ export class HttpClient implements HttpClientInterface {
         if (this.isResponseError(updatedResponse) &&
             requestOptions.isRetryable && requestOptions.isRetryable(request, updatedResponse)
         ) {
+            for (let httpErrorResponseInterceptor of this.httpErrorResponseInterceptors) {
+                updatedResponse = await httpErrorResponseInterceptor.interceptErrorResponse(request, requestOptions, updatedResponse);
+            }
+
             if (requestOptions.maximumNumberOfRetries && requestOptions.maximumNumberOfRetries <= currentRetryCount) {
                 // Simply return the errored out response.
                 return updatedResponse;
