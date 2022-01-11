@@ -1,5 +1,5 @@
 import {inject, injectable} from "tsyringe";
-import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import { moduleScoped, ServiceDefinitionTagEnum, tag } from "@pristine-ts/common";
 import {HttpRequestInterface} from "../interfaces/http-request.interface";
 import {HttpRequestOptions} from "../options/http-request.options.";
 import {LogHandlerInterface} from "@pristine-ts/logging";
@@ -10,8 +10,10 @@ import { HttpErrorResponseInterceptorInterface } from "../interfaces/http-error-
 /**
  * This class is an interceptor to log incoming http responses that have errors.
  * It is tagged as an HttpErrorResponseInterceptor so it can be automatically injected with the all the other HttpErrorResponseInterceptors.
+ * It is module scoped to the http module so that it is only registered if the http module is imported.
  */
 @tag(ServiceDefinitionTagEnum.HttpErrorResponseInterceptor)
+@moduleScoped(HttpModuleKeyname)
 @injectable()
 export class HttpErrorResponseLoggingInterceptor implements HttpErrorResponseInterceptorInterface {
     constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface) {
