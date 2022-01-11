@@ -134,28 +134,27 @@ export class HttpClient implements HttpClientInterface {
     private async handleResponseError(request: HttpRequestInterface, requestOptions: HttpRequestOptions, response: HttpResponseInterface, currentRetryCount = 0): Promise<HttpResponseInterface> {
         let updatedResponse = response;
 
-        // First check to determine if this request should be retried or not, only if the response is an error code
-        if (this.isResponseError(updatedResponse) &&
-            requestOptions.isRetryable && requestOptions.isRetryable(request, updatedResponse)
-        ) {
-            for (let httpErrorResponseInterceptor of this.httpErrorResponseInterceptors) {
+        if (this.isResponseError(updatedResponse)) {
+            for (const httpErrorResponseInterceptor of this.httpErrorResponseInterceptors) {
                 updatedResponse = await httpErrorResponseInterceptor.interceptErrorResponse(request, requestOptions, updatedResponse);
             }
 
-            if (requestOptions.maximumNumberOfRetries && requestOptions.maximumNumberOfRetries <= currentRetryCount) {
-                // Simply return the errored out response.
-                return updatedResponse;
+            // First check to determine if this request should be retried or not, only if the response is an error code
+            if (requestOptions.isRetryable && requestOptions.isRetryable(request, updatedResponse)) {
+                if (requestOptions.maximumNumberOfRetries && requestOptions.maximumNumberOfRetries <= currentRetryCount) {
+                    // Simply return the errored out response.
+                    return updatedResponse;
+                }
+
+                const updatedRetryCount = ++currentRetryCount;
+
+                // Retry the request using an exponential backoff with jitter.
+                updatedResponse = await new Promise<HttpResponseInterface>(resolve => setTimeout(async () => {
+                    return resolve(await this.httpWrapper.executeRequest(request));
+                }, MathUtils.exponentialBackoffWithJitter(updatedRetryCount)))
+
+                return this.handleResponseError(request, requestOptions, updatedResponse, updatedRetryCount);
             }
-
-            const updatedRetryCount = ++currentRetryCount;
-
-            // Retry the request using an exponential backoff with jitter.
-            updatedResponse = await new Promise<HttpResponseInterface>(resolve => setTimeout(async () => {
-                return resolve(await this.httpWrapper.executeRequest(request));
-            }, MathUtils.exponentialBackoffWithJitter(updatedRetryCount)))
-
-
-            return this.handleResponseError(request, requestOptions, updatedResponse, updatedRetryCount);
         }
 
         return updatedResponse;
