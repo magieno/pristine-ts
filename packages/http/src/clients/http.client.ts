@@ -12,6 +12,7 @@ import {HttpResponseInterceptorInterface} from "../interfaces/http-response-inte
 import {MathUtils} from "../utils/math.utils";
 import {HttpClientResponseRedirectError} from "../errors/http-client-response-redirect.error";
 import {HttpWrapperInterface} from "../interfaces/http-wrapper.interface";
+import { HttpErrorResponseInterceptorInterface } from "../interfaces/http-error-response-interceptor.interface";
 
 /**
  * This service is an http client for any http request you need to make outside of Pristine.
@@ -33,11 +34,13 @@ export class HttpClient implements HttpClientInterface {
      * This service is an http client for any http request you need to make outside of Pristine.
      * @param httpWrapper The wrapper around NodeJS http.
      * @param httpRequestInterceptors The interceptors to run before sending the request. All services with the tag ServiceDefinitionTagEnum.HttpRequestInterceptor will be automatically injected here.
-     * @param httpResponseInterceptors The interceptors to run when receiving the reponse. All services with the tag ServiceDefinitionTagEnum.HttpResponseInterceptor will be automatically injected here.
+     * @param httpResponseInterceptors The interceptors to run when receiving the response. All services with the tag ServiceDefinitionTagEnum.HttpResponseInterceptor will be automatically injected here.
+     * @param httpErrorResponseInterceptors The interceptors to run when receiving a response that contains an error. All services with the tag ServiceDefinitionTagEnum.HttpErrorResponseInterceptor will be automatically injected here.
      */
     constructor(@inject('HttpWrapperInterface') private readonly httpWrapper: HttpWrapperInterface,
                 @injectAll(ServiceDefinitionTagEnum.HttpRequestInterceptor) private readonly httpRequestInterceptors: HttpRequestInterceptorInterface[] = [],
                 @injectAll(ServiceDefinitionTagEnum.HttpResponseInterceptor) private readonly httpResponseInterceptors: HttpResponseInterceptorInterface[] = [],
+                @injectAll(ServiceDefinitionTagEnum.HttpErrorResponseInterceptor) private readonly httpErrorResponseInterceptors: HttpErrorResponseInterceptorInterface[] = [],
     ) {
     }
 
@@ -131,24 +134,27 @@ export class HttpClient implements HttpClientInterface {
     private async handleResponseError(request: HttpRequestInterface, requestOptions: HttpRequestOptions, response: HttpResponseInterface, currentRetryCount = 0): Promise<HttpResponseInterface> {
         let updatedResponse = response;
 
-        // First check to determine if this request should be retried or not, only if the response is an error code
-        if (this.isResponseError(updatedResponse) &&
-            requestOptions.isRetryable && requestOptions.isRetryable(request, updatedResponse)
-        ) {
-            if (requestOptions.maximumNumberOfRetries && requestOptions.maximumNumberOfRetries <= currentRetryCount) {
-                // Simply return the errored out response.
-                return updatedResponse;
+        if (this.isResponseError(updatedResponse)) {
+            for (const httpErrorResponseInterceptor of this.httpErrorResponseInterceptors) {
+                updatedResponse = await httpErrorResponseInterceptor.interceptErrorResponse(request, requestOptions, updatedResponse);
             }
 
-            const updatedRetryCount = ++currentRetryCount;
+            // First check to determine if this request should be retried or not, only if the response is an error code
+            if (requestOptions.isRetryable && requestOptions.isRetryable(request, updatedResponse)) {
+                if (requestOptions.maximumNumberOfRetries && requestOptions.maximumNumberOfRetries <= currentRetryCount) {
+                    // Simply return the errored out response.
+                    return updatedResponse;
+                }
 
-            // Retry the request using an exponential backoff with jitter.
-            updatedResponse = await new Promise<HttpResponseInterface>(resolve => setTimeout(async () => {
-                return resolve(await this.httpWrapper.executeRequest(request));
-            }, MathUtils.exponentialBackoffWithJitter(updatedRetryCount)))
+                const updatedRetryCount = ++currentRetryCount;
 
+                // Retry the request using an exponential backoff with jitter.
+                updatedResponse = await new Promise<HttpResponseInterface>(resolve => setTimeout(async () => {
+                    return resolve(await this.httpWrapper.executeRequest(request));
+                }, MathUtils.exponentialBackoffWithJitter(updatedRetryCount)))
 
-            return this.handleResponseError(request, requestOptions, updatedResponse, updatedRetryCount);
+                return this.handleResponseError(request, requestOptions, updatedResponse, updatedRetryCount);
+            }
         }
 
         return updatedResponse;
