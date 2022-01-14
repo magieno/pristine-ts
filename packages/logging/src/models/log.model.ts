@@ -26,20 +26,15 @@ export class LogModel {
   module: string = "application";
 
   /**
-   * The actual log message that needs to be outputted.
-   */
-  message: string;
-
-  /**
    * Any extras that need to be outputted along with the message.
    */
   extra: any;
 
   /**
-   * The log severity.
+   * The model that represents a log
+   * @param severity The log severity.
+   * @param message The actual log message that needs to be outputted.
    */
-  severity: SeverityEnum
-
   constructor(public severity: SeverityEnum, public message: string) {
   }
 
