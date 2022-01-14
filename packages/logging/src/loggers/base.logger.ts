@@ -5,8 +5,9 @@ import {CommonModuleKeyname} from "@pristine-ts/common";
 import {OutputModeEnum} from "../enums/output-mode.enum";
 
 /**
- * The BaseLogger is the base abstract class that all loggers should extend.
- * It defines the basic logic that applies to all loggers.
+ * The BaseLogger is the base abstract class that all internal loggers should extend.
+ * It defines the basic logic that applies to all internal loggers.
+ * External loggers could extend the base logger but it is not mandatory.
  */
 export abstract class BaseLogger {
 
