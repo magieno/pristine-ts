@@ -96,20 +96,24 @@ export class DynamodbClient implements DynamodbClientInterface{
                 }
             }
             const iterator = (await this.getMapperClient()).scan(options.classType, scanOptions);
+            const paginator = iterator.pages();
+
             const items: T[] = [];
+            for await (const page of paginator){
+                items.push(...page);
 
-            for await (const item of iterator) {
-                items.push(item);
-            }
-            this.logHandler.debug("DYNAMODB CLIENT - List items", {items}, AwsModuleKeyname);
-
-            let paginationResult: PaginationResult | undefined = undefined;
-            if(options.pagination) {
-                paginationResult = {
-                    count: iterator.count,
-                    lastEvaluatedKey: iterator.pages().lastEvaluatedKey,
+                if(options.pagination?.pageSize) {
+                    break;
                 }
             }
+
+            this.logHandler.debug("DYNAMODB CLIENT - List items", {items}, AwsModuleKeyname);
+
+            const paginationResult = {
+                count: paginator.count,
+                lastEvaluatedKey: paginator.lastEvaluatedKey,
+            }
+
             return new ListResult<T>(items, paginationResult);
         } catch (error) {
             error = this.convertError(error, this.getTableName(options.classType.prototype));
@@ -213,24 +217,28 @@ export class DynamodbClient implements DynamodbClientInterface{
             if(options.pagination){
                 queryOptions.pageSize = options.pagination.pageSize;
                 queryOptions.startKey = options.pagination.startKey;
-                queryOptions.scanIndexForward = options.pagination.order === DynamodbSortOrderEnum.Asc;
             }
+            // Makes the default scanIndexForward = false so that most recent come first.
+            queryOptions.scanIndexForward = options?.pagination?.order === DynamodbSortOrderEnum.Asc;
 
             this.logHandler.debug("DYNAMODB CLIENT - Querying with options", {queryOptions, options}, AwsModuleKeyname);
             const iterator = (await this.getMapperClient()).query(options.classType, options.keyCondition, queryOptions);
-            const items: T[] = [];
+            const paginator = iterator.pages();
 
-            for await (const item of iterator) {
-                items.push(item);
+            const items: T[] = [];
+            for await (const page of paginator){
+                items.push(...page);
+
+                if(options.pagination?.pageSize) {
+                    break;
+                }
             }
+
             this.logHandler.debug("DYNAMODB CLIENT - Found items", {items}, AwsModuleKeyname);
 
-            let paginationResult: PaginationResult | undefined = undefined;
-            if(options.pagination) {
-                paginationResult = {
-                    count: iterator.count,
-                    lastEvaluatedKey: iterator.pages().lastEvaluatedKey,
-                }
+            const paginationResult = {
+                count: paginator.count,
+                lastEvaluatedKey: paginator.lastEvaluatedKey,
             }
             return new ListResult<T>(items, paginationResult);
         } catch (error) {

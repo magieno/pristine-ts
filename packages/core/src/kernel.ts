@@ -70,7 +70,7 @@ export class Kernel {
      * Contains the span for the initialization.
      * @private
      */
-    private initializationSpan: Span
+    private initializationSpan!: Span
 
     /**
      * Contains the unique instantiation identifier of this specific kernel instance.
@@ -516,7 +516,7 @@ export class Kernel {
 
         const tracingManager: TracingManagerInterface = childContainer.resolve("TracingManagerInterface");
         tracingManager.startTracing();
-        tracingManager.trace?.rootSpan.addChild(this.initializationSpan)
+        tracingManager.trace?.rootSpan?.addChild(this.initializationSpan)
         tracingManager.addSpan(this.initializationSpan);
         this.initializationSpan.end();
 
@@ -585,7 +585,7 @@ export class Kernel {
             // Start the tracing
             const tracingManager: TracingManagerInterface = childContainer.resolve("TracingManagerInterface");
             tracingManager.startTracing();
-            tracingManager.trace?.rootSpan.addChild(this.initializationSpan)
+            tracingManager.trace?.rootSpan?.addChild(this.initializationSpan)
             tracingManager.addSpan(this.initializationSpan);
 
             // End the spans

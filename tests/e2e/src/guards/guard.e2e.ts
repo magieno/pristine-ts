@@ -61,7 +61,10 @@ describe("Guards", () => {
             useValue: new TestGuard(true),
         })
 
-        await kernel.init(testModuleCopied);
+        await kernel.init(testModuleCopied, {
+            "pristine.logging.consoleLoggerActivated": false,
+            "pristine.logging.fileLoggerActivated": false,
+        });
 
         const response = await kernel.handleRequest({
             url: "https://localhost:8080/api/2.0/guards/services/0a931a57-c238-4d07-ab5e-e51b10320997",
@@ -87,7 +90,10 @@ describe("Guards", () => {
             useValue: new TestGuard(false),
         })
 
-        await kernel.init(testModuleCopied);
+        await kernel.init(testModuleCopied, {
+            "pristine.logging.consoleLoggerActivated": false,
+            "pristine.logging.fileLoggerActivated": false,
+        });
 
         const response = await kernel.handleRequest({
             url: "https://localhost:8080/api/2.0/guards/services/0a931a57-c238-4d07-ab5e-e51b10320997",
@@ -118,7 +124,10 @@ describe("Guards", () => {
             useValue: testGuard,
         })
 
-        await kernel.init(testModuleCopied);
+        await kernel.init(testModuleCopied, {
+            "pristine.logging.consoleLoggerActivated": false,
+            "pristine.logging.fileLoggerActivated": false,
+        });
 
         const response = await kernel.handleRequest({
             url: "https://localhost:8080/api/2.0/guards/services/0a931a57-c238-4d07-ab5e-e51b10320997",

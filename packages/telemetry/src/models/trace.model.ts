@@ -8,7 +8,7 @@ export class Trace {
 
     public endDate?: number;
 
-    public rootSpan: Span;
+    public rootSpan?: Span;
 
     public context?: { [key: string]: string } = {};
 

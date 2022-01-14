@@ -89,7 +89,7 @@ describe("Kernel.ts", () => {
                 importModules: [
                     CoreModule,
                 ],
-                
+
                 providerRegistrations: [
                     {
                         token: ServiceDefinitionTagEnum.RequestInterceptor,
@@ -143,7 +143,7 @@ describe("Kernel.ts", () => {
 
             const module: ModuleInterface = {
                 keyname: "test",
-                
+
                 importModules: [
                     CoreModule,
                 ],
@@ -203,7 +203,7 @@ describe("Kernel.ts", () => {
 
             const module: ModuleInterface = {
                 keyname: "test",
-                
+
                 importModules: [
                     CoreModule,
                 ],
@@ -273,7 +273,7 @@ describe("Kernel.ts", () => {
 
             const module: ModuleInterface = {
                 keyname: "test",
-                
+
                 importModules: [
                     CoreModule,
                 ],
@@ -321,7 +321,7 @@ describe("Kernel.ts", () => {
 
             const module: ModuleInterface = {
                 keyname: "test",
-                
+
                 importModules: [
                     CoreModule,
                 ],
@@ -362,7 +362,7 @@ describe("Kernel.ts", () => {
 
             const module: ModuleInterface = {
                 keyname: "test",
-                
+
 
                 importModules: [
                     CoreModule,
@@ -422,7 +422,7 @@ describe("Kernel.ts", () => {
 
         @injectable()
         class ClassThatHasAllTheOthersInjected {
-            public constructor(@injectAll("taggedClass") public readonly taggedClasses) {
+            public constructor(@injectAll("taggedClass") public readonly taggedClasses: any[]) {
             }
         }
 
@@ -480,23 +480,23 @@ describe("Kernel.ts", () => {
 
         const testModule1: ModuleInterface = {
             keyname: module1Keyname,
-            
+
         }
 
         const testModule2: ModuleInterface = {
             keyname: module2Keyname,
-            
+
         }
 
         const testModule3: ModuleInterface = {
             keyname: module3Keyname,
-            
+
         }
 
         it("should only resolve classes from imported modules", async () => {
             const module: ModuleInterface = {
                 keyname: "Module",
-                
+
                 importModules: [
                     CoreModule,
                     testModule1,

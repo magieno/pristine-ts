@@ -12,7 +12,7 @@ export class LogModel {
   /**
    * The kernel instantiation id from which the log originated.
    */
-  kernelInstantiationId: string;
+  kernelInstantiationId?: string;
 
   /**
    * The date at which the log was created.
@@ -39,4 +39,8 @@ export class LogModel {
    * The log severity.
    */
   severity: SeverityEnum
+
+  constructor(public severity: SeverityEnum, public message: string) {
+  }
+
 }

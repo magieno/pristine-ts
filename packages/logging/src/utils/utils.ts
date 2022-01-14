@@ -16,7 +16,7 @@ export class Utils {
      * Returns whether or not the value is defined
      * @param val
      */
-    public static isDefined(val) {
+    public static isDefined(val: any) {
         return val !== null && val !== undefined;
     }
 
@@ -24,7 +24,7 @@ export class Utils {
      * Returns whether or not the value is flat, meaning it is not an object.
      * @param val
      */
-    public static isFlat(val) {
+    public static isFlat(val: any) {
         return !this.isDefined(val) || ~this.flatTypes.indexOf(val.constructor)
     }
 
@@ -32,7 +32,7 @@ export class Utils {
      * Gets the deep keys of an object.
      * @param obj The object.
      */
-    public static getDeepKeys(obj): string[] {
+    public static getDeepKeys(obj: any): string[] {
         let subkeys: string[];
         let keys: string[] = [];
         for (var key in obj) {
@@ -75,7 +75,7 @@ export class Utils {
                 })
                 return newArr;
             } else {
-                const newObj = {}
+                const newObj: any = {}
                 for (const key in object) {
                     if (this.isFlat(object[key])) {
                         newObj[key] = object[key];
@@ -121,17 +121,14 @@ export class Utils {
      * @param spaceNumber The number of spaces for a tab.
      */
     public static outputLog(log: LogModel, outputMode: OutputModeEnum, logDepth: number, spaceNumber = 0): string {
-        const jsonSortOrders = ["severity", "message", "date", "module", "traceId", "kernelInstantiationId",];
+        const jsonSortOrders: string[] = ["severity", "message", "date", "module", "traceId", "kernelInstantiationId"];
 
         switch (outputMode) {
             case OutputModeEnum.Json:
                 const truncatedLog: any = Utils.truncate(log, logDepth);
                 truncatedLog.severity = Utils.getSeverityText(truncatedLog.severity);
 
-                const truncatedLogKeys = Utils.getDeepKeys(truncatedLog);
-                jsonSortOrders.forEach(jsonSortOrder => {
-                    delete truncatedLogKeys[jsonSortOrder];
-                })
+                const truncatedLogKeys: string[] = Utils.getDeepKeys(truncatedLog).filter( (truncatedLogKey: string) => jsonSortOrders.find(element => element === truncatedLogKey) === undefined)
 
                 jsonSortOrders.push(...truncatedLogKeys);
 

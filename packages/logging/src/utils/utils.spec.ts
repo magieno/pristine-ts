@@ -25,42 +25,32 @@ describe("Utils", () => {
     });
 
     it("should properly output a log", async() => {
-        const logInfo = new LogModel();
+        const logInfo = new LogModel(SeverityEnum.Info, "Log info");
         logInfo.date = new Date("2021-01-01");
-        logInfo.message = "Log info";
-        logInfo.severity = SeverityEnum.Info;
         logInfo.extra = {
             potato: "extra 1"
         };
 
-        const logDebug = new LogModel();
+        const logDebug = new LogModel(SeverityEnum.Debug, "Log debug");
         logDebug.date = new Date("2021-01-01");
-        logDebug.message = "Log debug";
-        logDebug.severity = SeverityEnum.Debug;
         logDebug.extra = {
             potato: "extra 1"
         };
 
-        const logWarning = new LogModel();
+        const logWarning = new LogModel(SeverityEnum.Warning, "Log warning");
         logWarning.date = new Date("2021-01-01");
-        logWarning.message = "Log warning";
-        logWarning.severity = SeverityEnum.Warning;
         logWarning.extra = {
             potato: "extra 1"
         };
 
-        const logError = new LogModel();
+        const logError = new LogModel(SeverityEnum.Error, "Log error");
         logError.date = new Date("2021-01-01");
-        logError.message = "Log error";
-        logError.severity = SeverityEnum.Error;
         logError.extra = {
             potato: "extra 1"
         };
 
-        const logCritical = new LogModel();
+        const logCritical = new LogModel(SeverityEnum.Critical, "Log critical");
         logCritical.date = new Date("2021-01-01");
-        logCritical.message = "Log critical";
-        logCritical.severity = SeverityEnum.Critical;
         logCritical.extra = {
             potato: "extra 1",
         };

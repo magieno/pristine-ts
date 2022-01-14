@@ -19,7 +19,7 @@ export abstract class RouterNode {
     /**
      * The level from root of the node for quick comparison of depth between nodes. The root is at 0.
      */
-    levelFromRoot: number;
+    levelFromRoot?: number;
 
     /**
      * This method adds all the required nodes to match the splitPaths and the method.
@@ -29,7 +29,7 @@ export abstract class RouterNode {
      * @param route
      * @param levelFromRoot This parameter represents the number of level from the root. The root is at 0.
      */
-    abstract add(splitPaths: string[], method: HttpMethod | string, route: Route, levelFromRoot: number);
+    abstract add(splitPaths: string[], method: HttpMethod | string, route: Route, levelFromRoot: number): void;
 
     /**
      * This method receives an array of path and recursively calls its children if this node matches

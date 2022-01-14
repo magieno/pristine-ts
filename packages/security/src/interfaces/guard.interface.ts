@@ -5,7 +5,7 @@ import {GuardContextInterface} from "./guard-context.interface";
 export interface GuardInterface extends ContextAwareInterface {
     keyname: string;
 
-    guardContext: GuardContextInterface;
+    guardContext?: GuardContextInterface;
 
     isAuthorized(request: RequestInterface, identity?: IdentityInterface): Promise<boolean>;
 }

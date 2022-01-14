@@ -53,7 +53,7 @@ export abstract class BaseLogger {
      * Initializes the logger. To be implemented in each logger.
      * @protected
      */
-    protected abstract initialize();
+    protected abstract initialize(): void;
 
     /**
      * Returns whether this particular logger is active and should output logs.

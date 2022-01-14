@@ -1,10 +1,9 @@
 import "reflect-metadata"
 import {inject, injectable} from "tsyringe";
-import {ControllerMethodParameterDecoratorResolverInterface, Request} from "@pristine-ts/networking";
+import {ControllerMethodParameterDecoratorResolverInterface, Request, ParameterDecoratorInterface} from "@pristine-ts/networking";
 import {IdentityInterface, moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {JwtModuleKeyname} from "../jwt.module.keyname";
 import {JwtManagerInterface} from "../interfaces/jwt-manager.interface";
-import {ParameterDecoratorInterface} from "@pristine-ts/networking/dist/lib/esm/interfaces/parameter-decorator.interface";
 import {JwtPayloadDecoratorInterface} from "../interfaces/jwt-payload-decorator.interface";
 
 /**

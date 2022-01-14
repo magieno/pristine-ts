@@ -16,7 +16,7 @@ export interface RouterInterface {
      * @param method
      * @param route
      */
-    register(path: string, method: HttpMethod | string, route: Route)
+    register(path: string, method: HttpMethod | string, route: Route): void
 
     /**
      * This method executes the request passed as a parameter. A container must also be passed since we want each

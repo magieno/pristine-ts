@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/telemetry",
-  "version": "0.0.166",
+  "version": "0.0.171",
   "description": "",
   "module": "dist/lib/esm/telemetry.module.js",
   "main": "dist/lib/cjs/telemetry.module.js",
@@ -14,6 +14,9 @@
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/logging": "file:../logging",
     "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "@types/uuid": "^8.3.2"
   },
   "files": [
     "dist"

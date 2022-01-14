@@ -19,16 +19,17 @@ import {BaseLogger} from "./base.logger";
 @tag(ServiceDefinitionTagEnum.Logger)
 @injectable()
 export class FileLogger extends BaseLogger implements LoggerInterface {
+
   /**
    * The readable stream from which the logger reads the logs that need to be outputted.
    */
-  public readableStream: Readable;
+  public readableStream!: Readable;
 
   /**
    * The writable stream used to write to the file.
    * @private
    */
-  private writableStream: Writable;
+  public writableStream!: Writable;
 
   /**
    * The ConsoleLogger outputs the logs in the console.

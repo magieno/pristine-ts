@@ -17,9 +17,7 @@ export class KafkaEventParser implements EventParserInterface<KafkaEventPayload>
         const parsedEvents: Event<KafkaEventPayload>[] = [];
 
         for(const key in rawEvent.records) {
-            const event = new Event<KafkaEventPayload>();
-            event.type = KafkaEventType.KafkaEvent;
-            event.payload = new KafkaEventPayload();
+            const event = new Event<KafkaEventPayload>(KafkaEventType.KafkaEvent, new KafkaEventPayload());
             event.payload.eventSource = rawEvent.eventSource;
             event.payload.eventSourceArn = rawEvent.eventSourceArn;
 

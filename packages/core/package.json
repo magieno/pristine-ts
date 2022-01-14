@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/core",
-  "version": "0.0.166",
+  "version": "0.0.171",
   "description": "",
   "module": "dist/lib/esm/core.module.js",
   "main": "dist/lib/cjs/core.module.js",
@@ -27,8 +27,10 @@
     "@pristine-ts/security": "file:../security",
     "@pristine-ts/telemetry": "file:../telemetry",
     "lodash": "^4.17.21",
-    "reflect-metadata": "^0.1.13",
-    "tsyringe": "^4.4.0"
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "@types/uuid": "^8.3.3"
   },
   "jest": {
     "transform": {

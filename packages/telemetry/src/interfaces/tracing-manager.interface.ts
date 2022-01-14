@@ -7,11 +7,11 @@ export interface TracingManagerInterface {
 
     startTracing(spanRootKeyname?: string, traceId?: string, context?: { [key: string]: string }): Span;
 
-    endTrace();
+    endTrace(): void;
 
     startSpan(keyname: string, parentKeyname?: string, context?: { [key: string]: string }): Span;
 
     addSpan(span: Span): Span;
 
-    endSpan(span: Span);
+    endSpan(span: Span): void;
 }
