@@ -173,6 +173,7 @@ export const LoggingModule: ModuleInterface = {
         /**
          * Whether or not the diagnostic should be activated.
          * When activated, the stack trace and other diagnostic information will be added to the logs.
+         * This is an intensive process and can dramatically reduce the performance of the code.
          */
         {
             parameterName: LoggingModuleKeyname + ".activateDiagnostics",

@@ -21,7 +21,7 @@ import {BaseLogger} from "./base.logger";
 @tag(ServiceDefinitionTagEnum.Logger)
 @injectable()
 export class ConsoleLogger extends BaseLogger implements LoggerInterface {
-ging-module
+
   /**
    * The readable stream from which the logger reads the logs that need to be outputted.
    */

@@ -17,9 +17,10 @@ import {Utils} from "../utils/utils";
 export class LogHandler implements LogHandlerInterface {
 
   /**
+   * The LogHandler to use when we want to output some logs.
    * @param loggers The loggers to use to output the logs. All services with the tag ServiceDefinitionTagEnum.Logger will be automatically injected here.
    * @param logSeverityLevelConfiguration The severity from which to start logging the logs.
-   * @param activateDiagnostics Whether or not the outputted logs should contain the diagnostic part.
+   * @param activateDiagnostics Whether or not the outputted logs should contain the diagnostic part. This is an intensive process and can dramatically reduce the performance of the code.
    * @param kernelInstantiationId The id of instantiation of the kernel.
    * @param tracingContext The context of the tracing.
    */
