@@ -33,6 +33,7 @@ export class LogHandler implements LogHandlerInterface {
 
   /**
    * Logs the message if the severity is set to critical or above.
+   * This function is wrapper function for the log method with the proper severity to make it cleaner when using it in the code.
    * @param message The message to log.
    * @param extra The extra object to log.
    * @param module The module from where the log was created.
@@ -43,6 +44,7 @@ export class LogHandler implements LogHandlerInterface {
 
   /**
    * Logs the message if the severity is set to error or above.
+   * This function is wrapper function for the log method with the proper severity to make it cleaner when using it in the code.
    * @param message The message to log.
    * @param extra The extra object to log.
    * @param module The module from where the log was created.
@@ -53,6 +55,7 @@ export class LogHandler implements LogHandlerInterface {
 
   /**
    * Logs the message if the severity is set to warning or above.
+   * This function is wrapper function for the log method with the proper severity to make it cleaner when using it in the code.
    * @param message The message to log.
    * @param extra The extra object to log.
    * @param module The module from where the log was created.
@@ -63,6 +66,7 @@ export class LogHandler implements LogHandlerInterface {
 
   /**
    * Logs the message if the severity is set to info or above.
+   * This function is wrapper function for the log method with the proper severity to make it cleaner when using it in the code.
    * @param message The message to log.
    * @param extra The extra object to log.
    * @param module The module from where the log was created.
@@ -73,6 +77,7 @@ export class LogHandler implements LogHandlerInterface {
 
   /**
    * Logs the message if the severity is set to debug or above.
+   * This function is wrapper function for the log method with the proper severity to make it cleaner when using it in the code.
    * @param message The message to log.
    * @param extra The extra object to log.
    * @param module The module from where the log was created.
