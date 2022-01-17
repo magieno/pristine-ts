@@ -1,5 +1,8 @@
 import {ClientV3} from "@camaro/redis";
 
+/**
+ * This interface represents the Redis client and can be used to inject it. It facilitates mocking and testing.
+ */
 export interface RedisClientInterface {
     /**
      * Returns the client from ClientV3 library
