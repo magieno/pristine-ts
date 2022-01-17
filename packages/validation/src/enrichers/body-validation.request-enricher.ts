@@ -1,4 +1,3 @@
-import {RequestInterceptorInterface} from "@pristine-ts/core";
 import {RouterRequestEnricherInterface, Request, MethodRouterNode} from "@pristine-ts/networking";
 import {validate} from "class-validator";
 import {BadRequestHttpError} from "@pristine-ts/networking";

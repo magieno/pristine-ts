@@ -4,16 +4,21 @@ import {Response} from "../models/response";
 import {Request} from "../models/request";
 
 @injectable()
-export class RequestEventHandler implements EventHandlerInterface {
+export class RequestEventHandler implements EventHandlerInterface<Request, Response> {
     priority: number = Number.MAX_SAFE_INTEGER;
 
-    handle<EventPayload, EventResponsePayload>(event: Event<Request>, eventResponse: EventResponse<Request, Response>): Promise<EventResponse<EventPayload, EventResponsePayload>> {
-        return Promise.resolve(undefined);
-    }
+    // handle(event: Event<Request>): Promise<EventResponse<Request, Response>> {
+    //     // Load the router and start executing the request.
+    //
+    //     return Promise.resolve(new EventResponse<Request, Response>(event, new Response()));
+    // }
 
     supports<T>(event: Event<T>): boolean {
-        if(event.)
-        return false;
+        return event.payload instanceof Request;
+    }
+
+    handle(event: Event<Request>): Promise<EventResponse<Request, Response>> {
+        return Promise.resolve(new EventResponse<Request, Response>(event, new Response()));
     }
 
 }

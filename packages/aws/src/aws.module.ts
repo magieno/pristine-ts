@@ -6,19 +6,17 @@ import {DependencyContainer} from "tsyringe";
 import {AwsModuleKeyname} from "./aws.module.keyname";
 import {BooleanResolver, EnumResolver, EnvironmentVariableResolver} from "@pristine-ts/configuration";
 import {CoreModule} from "@pristine-ts/core";
-import {ApiGatewayEventsHandlingStrategyEnum} from "./enums/api-gateway-events-handling-strategy.enum";
+import {ApiGatewayEventsHandlingStrategyEnum} from "../../aws-api-gateway/src/enums/api-gateway-events-handling-strategy.enum";
 
 export * from "./clients/clients";
 export * from "./decorators/decorators";
 export * from "./enums/enums";
 export * from "./errors/errors";
 export * from "./event-payloads/event-payloads";
-export * from "./factories/factories";
 export * from "./interfaces/interfaces";
 export * from "./mappers/mappers";
 export * from "./models/models";
 export * from "./resolvers/resolvers";
-export * from "./types/types";
 
 export * from "./aws.module.keyname";
 
@@ -33,22 +31,6 @@ export const AwsModule: ModuleInterface = {
                 new EnvironmentVariableResolver("AWS_REGION"),
             ]
         },
-        {
-            parameterName: AwsModuleKeyname + ".api_gateway.rest_api_events.handling_strategy",
-            isRequired: false,
-            defaultValue: ApiGatewayEventsHandlingStrategyEnum.Request,
-            defaultResolvers: [
-                new EnumResolver(new EnvironmentVariableResolver("PRISTINE_AWS_API_GATEWAY_REST_API_EVENTS_HANDLING_STRATEGY"), ApiGatewayEventsHandlingStrategyEnum),
-            ],
-        },
-        {
-            parameterName: AwsModuleKeyname + ".api_gateway.http_request_events.handling_strategy",
-            isRequired: false,
-            defaultValue: ApiGatewayEventsHandlingStrategyEnum.Request,
-            defaultResolvers: [
-                new EnumResolver(new EnvironmentVariableResolver("PRISTINE_AWS_API_GATEWAY_HTTP_REQUEST_EVENTS_HANDLING_STRATEGY"), ApiGatewayEventsHandlingStrategyEnum),
-            ],
-        }
     ],
     importModules: [
         LoggingModule,

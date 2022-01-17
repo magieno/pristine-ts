@@ -18,10 +18,11 @@ export class EventDispatcher implements EventDispatcherInterface {
 
     /**
      * Dispatcher to dispatch the events to the event handlers that support them.
-     * @param eventHandlers All the event handlers that are tagged with ServiceDefinitionTagEnum.DefaultEventHandler
+     * @param eventHandlers All the event handlers that are tagged with ServiceDefinitionTagEnum.EventHandler
+     * @param eventListeners
      * @param logHandler
      */
-    public constructor(@injectAll(ServiceDefinitionTagEnum.EventHandler) private readonly eventHandlers: EventHandlerInterface[],
+    public constructor(@injectAll(ServiceDefinitionTagEnum.EventHandler) private readonly eventHandlers: EventHandlerInterface<any, any>[],
                        @injectAll(ServiceDefinitionTagEnum.EventListener) private readonly eventListeners: EventListenerInterface[],
                        @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface) {
 
@@ -43,7 +44,7 @@ export class EventDispatcher implements EventDispatcherInterface {
         }, CoreModuleKeyname);
 
         // Notify the EventListeners that an event exists. The difference between a Handler and a Listener, is that a handler is
-        // expected to return an EventResponse, while a listener doesn't return anything. It's passive listening.
+        // expected to return an EventResponse, while a listener doesn't return anything. An EventListener simply does passive listening.
 
         let eventListenerPromises: Promise<void>[] = [];
 
@@ -53,7 +54,7 @@ export class EventDispatcher implements EventDispatcherInterface {
             }
         });
 
-        const supportingEventHandlers: EventHandlerInterface[] = [];
+        const supportingEventHandlers: EventHandlerInterface<any, any>[] = [];
 
         for (const eventHandler of this.eventHandlers) {
             if(eventHandler.supports(event)) {
@@ -64,6 +65,7 @@ export class EventDispatcher implements EventDispatcherInterface {
                 }, CoreModuleKeyname)
 
                 supportingEventHandlers.push(eventHandler);
+                break;
             }
             else {
                 this.logHandler.debug("The EventHandler doesn't support the event", {
@@ -80,6 +82,7 @@ export class EventDispatcher implements EventDispatcherInterface {
             this.logHandler.warning("There are more than one EventHandler that support this event.")
         }
 
+        // We only support executing the handler with the highest priority.
         const eventResponse = await supportingEventHandlers[0].handle(event);
 
         if(eventResponse === undefined) {

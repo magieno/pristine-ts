@@ -38,6 +38,7 @@
   "dependencies": {
     "@pristine-ts/auth0": "file:packages/auth0",
     "@pristine-ts/aws": "file:packages/aws",
+    "@pristine-ts/aws-api-gateway": "file:packages/aws-api-gateway",
     "@pristine-ts/aws-cognito": "file:packages/aws-cognito",
     "@pristine-ts/aws-scheduling": "file:packages/aws-scheduling",
     "@pristine-ts/aws-xray": "file:packages/aws-xray",

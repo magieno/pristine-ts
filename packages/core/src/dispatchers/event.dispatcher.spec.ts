@@ -13,23 +13,23 @@ describe("Event Dispatcher", () => {
             id: string
         }
 
-        const eventHandler1: EventHandlerInterface =  {
+        const eventHandler1: EventHandlerInterface<any, any> =  {
             supports(event: any): boolean {
                 return true;
             },
 
-            handle<T, R>(event: Event<T>, eventResponse: EventResponse<T, R>): Promise<EventResponse<T, R>> {
-                return Promise.resolve(eventResponse);
+            handle(event: Event<any>): Promise<EventResponse<any, any>> {
+                return Promise.resolve(new EventResponse(event, {}));
             }
         }
 
-        const eventHandler2: EventHandlerInterface =  {
+        const eventHandler2: EventHandlerInterface<any, any> =  {
             supports(event: any): boolean {
                 return false;
             },
 
-            handle<T, R>(event: Event<T>, eventResponse: EventResponse<T, R>): Promise<EventResponse<T, R>> {
-                return Promise.resolve(eventResponse);
+            handle(event: Event<any>): Promise<EventResponse<any,any>> {
+                return Promise.resolve(new EventResponse(event, {}));
             }
         }
 
@@ -58,27 +58,27 @@ describe("Event Dispatcher", () => {
     it("should dispatch all the handlers in order of priority", async () => {
         let order = 0;
 
-        const eventHandler1: EventHandlerInterface = {
+        const eventHandler1: EventHandlerInterface<any, any> = {
             priority: Number.MAX_SAFE_INTEGER,
             supports<T>(event: Event<T>): boolean {
                 return true;
             },
-            handle<T, R>(event: Event<T>, eventResponse: EventResponse<T, R>): Promise<EventResponse<T, R>> {
+            handle(event: Event<any>): Promise<EventResponse<any, any>> {
                 order++;
                 expect(order).toBe(1);
-                return Promise.resolve(eventResponse);
+                return Promise.resolve(new EventResponse(event, {}));
             },
         };
 
-        const eventHandler2: EventHandlerInterface = {
+        const eventHandler2: EventHandlerInterface<any, any> = {
             priority: 0,
             supports<T>(event: Event<T>): boolean {
                 return true;
             },
-            handle<T, R>(event: Event<T>, eventResponse: EventResponse<T, R>): Promise<EventResponse<T, R>> {
+            handle(event: Event<any>): Promise<EventResponse<any, any>> {
                 order++;
                 expect(order).toBe(2);
-                return Promise.resolve(eventResponse);
+                return Promise.resolve(new EventResponse(event, {}));
             },
         };
 
