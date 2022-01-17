@@ -26,4 +26,9 @@ export interface RouterInterface {
      * @param container
      */
     execute(request: Request, container: DependencyContainer): Promise<Response>
+
+    /**
+     * This method is used to setup and initialize the router.
+     */
+    setup(): void;
 }

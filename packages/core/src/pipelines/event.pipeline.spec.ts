@@ -18,7 +18,7 @@ import {EventPostMappingInterceptionError} from "../errors/event-post-mapping-in
 import {EventPreResponseMappingInterceptionError} from "../errors/event-pre-response-mapping-interception.error";
 import {EventPostResponseMappingInterceptionError} from "../errors/event-post-response-mapping-interception.error";
 import {EventDispatchingError} from "../errors/event-dispatching.error";
-
+import { v4 as uuidv4 } from 'uuid';
 
 describe("Event Pipeline", () => {
     const dependencyContainerMock = new DependencyContainerMock();
@@ -944,4 +944,5 @@ describe("Event Pipeline", () => {
 
         return expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow(new EventMappingError("There was an error mapping the event into an Event object", event, event, executionContext, thrownError));
     })
+
 })

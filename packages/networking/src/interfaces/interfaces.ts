@@ -12,5 +12,6 @@ export * from "./response-interceptor.interface";
 export * from "./route-method-decorator.interface";
 export * from "./route-parameter-decorator.interface";
 export * from "./router.interface";
+export * from "./router-interceptor.interface";
 export * from "./router-request-enricher.interface";
 export * from "./router-response-enricher.interface";

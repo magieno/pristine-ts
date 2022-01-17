@@ -11,21 +11,28 @@ import {MethodRouterNode} from "./nodes/method-router.node";
 import {ForbiddenHttpError} from "./errors/forbidden.http-error";
 import {ControllerMethodParameterDecoratorResolver} from "./resolvers/controller-method-parameter-decorator.resolver";
 import Url from 'url-parse';
-import {HttpMethod, IdentityInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
+import {tag, HttpMethod, IdentityInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {AuthenticationManagerInterface, AuthorizerManagerInterface} from "@pristine-ts/security";
 import {RouterResponseEnricherInterface} from "./interfaces/router-response-enricher.interface";
 import {RouterRequestEnricherInterface} from "./interfaces/router-request-enricher.interface";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {NetworkingModuleKeyname} from "./networking.module.keyname";
 import {Span, SpanKeynameEnum, TracingManagerInterface} from "@pristine-ts/telemetry";
+import {controllerRegistry} from "./decorators/controller.decorator";
+import {RouteMethodDecorator} from "./interfaces/route-method-decorator.interface";
+import {mergeWith} from "lodash";
 
 /**
  * The router service is the service that creates the routing tree from the controllers.
  * It also executes a request properly by routing it to the intended controller and returns the response.
  */
+@tag("RouterInterface")
 @singleton()
 export class Router implements RouterInterface {
     private root: RouterNode = new PathRouterNode("/");
+
+    // This property is used to track whether the router has been already been properly instantiated or not.
+    private setupCompleted = false;
 
     /**
      * The router service is the service that creates the routing tree from the controllers.
@@ -54,6 +61,73 @@ export class Router implements RouterInterface {
         this.root.add(splitPaths, method, route, 0);
     }
 
+    // /**
+    //  * This method loops through the all the classes decorated with @controller, loops through all the methods decorated
+    //  * with @route and builds the dependency tree of all the routes.
+    //  *
+    //  * @private
+    //  */
+    public setup() {
+        if(this.setupCompleted) {
+            return;
+        }
+
+        // Loop over all the controllers and control the Route Tree
+        controllerRegistry.forEach(controller => {
+            if (controller.hasOwnProperty("__metadata__") === false) {
+                return;
+            }
+
+            let basePath: string = controller.__metadata__?.controller?.basePath;
+
+            // Clean the base path by removing trailing slashes.
+            if (basePath.endsWith("/")) {
+                basePath = basePath.slice(0, basePath.length - 1);
+            }
+
+            for (const methodPropertyKey in controller.__metadata__?.methods) {
+                if (controller.__metadata__?.methods?.hasOwnProperty(methodPropertyKey) === false) {
+                    continue;
+                }
+
+                const method = controller.__metadata__?.methods[methodPropertyKey];
+
+                if (method.hasOwnProperty("route") === false) {
+                    continue;
+                }
+
+                // Retrieve the "RouteMethodDecorator" object assigned by the @route decorator at .route
+                const routeMethodDecorator: RouteMethodDecorator = method.route;
+
+                // Build the Route object that will be used the the router to dispatch a request to
+                // the appropriate controller method
+                const route = new Route(controller.constructor, routeMethodDecorator.methodKeyname);
+                route.methodArguments = method.arguments ?? [];
+                route.context = mergeWith({}, controller.__metadata__?.controller?.__routeContext__, method.__routeContext__);
+
+                // Build the proper path
+                let path = routeMethodDecorator.path;
+
+                // Clean the path by removing the first and trailing slashes.
+                if (path.startsWith("/")) {
+                    path = path.slice(1, path.length);
+                }
+
+                if (path.endsWith("/")) {
+                    path = path.slice(0, path.length - 1);
+                }
+
+                // Build the proper path
+                const routePath = basePath + "/" + path;
+
+                // Register the route
+                this.register(routePath, routeMethodDecorator.httpMethod, route);
+            }
+        })
+
+        this.setupCompleted = true;
+    }
+
     /**
      * This method receives a Request object, identifies the "path" its trying to hit, navigates the internally
      * maintained Route Tree, identifies the method in the controller that represents this "path", and calls the
@@ -63,6 +137,10 @@ export class Router implements RouterInterface {
      * @param container
      */
     public execute(request: Request, container: DependencyContainer): Promise<Response> {
+        // todo: remove all the rejects and replace it with a response that contains an error.
+        // This method cannot throw.
+
+
         const tracingManager: TracingManagerInterface = container.resolve("TracingManagerInterface");
 
         const routerRequestExecutionSpan = tracingManager.startSpan(SpanKeynameEnum.RouterRequestExecution, SpanKeynameEnum.RequestExecution);
@@ -214,6 +292,8 @@ export class Router implements RouterInterface {
                 this.loghandler.error("There was an error trying to execute the request in the router", {
                     error,
                 }, NetworkingModuleKeyname)
+
+                // Execute router interceptors for the error response;
 
                 routerRequestExecutionSpan.end();
                 return reject(error);

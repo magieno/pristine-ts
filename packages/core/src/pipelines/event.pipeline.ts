@@ -185,7 +185,15 @@ export class EventPipeline {
                         const eventResponses = [];
 
                         for (const event of eventExecutionOptions.events) {
-                            const childContainer = container.createChildContainer();
+                            const childContainer = container.createChildContainer() as DependencyContainer;
+
+                            // It's important to register the CurrentChildContainer since even though it's not 100% recommended,
+                            // some handlers might want to retrieve the container. For example, the RequestHandler needs this mechanism
+                            // to dynamically load the controllers and not load all the containers all the time.
+                            childContainer.register(ServiceDefinitionTagEnum.CurrentChildContainer, {
+                                useValue: childContainer,
+                            });
+
                             const eventDispatcher = childContainer.resolve("EventDispatcherInterface") as EventDispatcherInterface;
 
                             try {
@@ -203,6 +211,14 @@ export class EventPipeline {
                     for (const event of eventExecutionOptions.events) {
                         eventsExecutionPromises.push(new Promise<EventResponse<any, any> | EventResponse<any, any>[]>(async (resolve, reject) => {
                             const childContainer = container.createChildContainer();
+
+                            // It's important to register the CurrentChildContainer since even though it's not 100% recommended,
+                            // some handlers might want to retrieve the container. For example, the RequestHandler needs this mechanism
+                            // to dynamically load the controllers and not load all the containers all the time.
+                            childContainer.register(ServiceDefinitionTagEnum.CurrentChildContainer, {
+                                useValue: childContainer,
+                            });
+
                             const eventDispatcher = childContainer.resolve("EventDispatcherInterface") as EventDispatcherInterface;
 
                             this.executeEvent(event, eventDispatcher).then(eventResponse => resolve(eventResponse)).catch(error => reject(error));
