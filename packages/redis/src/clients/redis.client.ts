@@ -6,12 +6,27 @@ import {RedisClientInterface} from "../interfaces/redis-client.interface";
 import {ClientV3} from "@camaro/redis";
 import {RedisModuleKeyname} from "../redis.module.keyname";
 
+/**
+ * The client to use to interact with Redis. It is a wrapper around the ClientV3 of library @camaro/redis.
+ * It is tagged so it can be injected using RedisClientInterface.
+ */
 @tag("RedisClientInterface")
 @injectable()
 export class RedisClient implements RedisClientInterface {
 
+    /**
+     * The client from the library @camaro/redis.
+     * @private
+     */
     private client?: ClientV3;
 
+    /**
+     * The client to use to interact with Redis.
+     * @param host The host on which Redis is hosted.
+     * @param port The port at which Redis is hosted.
+     * @param namespace The namespace to use when saving a key in Redis. Our keys are creating using this pattern namespace:table:key.
+     * @param logHandler The log handler to use to output logs.
+     */
     public constructor(@inject("%pristine.redis.host%") private readonly host: string,
                        @inject("%pristine.redis.port%") private readonly port: number,
                        @inject("%pristine.redis.namespace%") private readonly namespace: string,
