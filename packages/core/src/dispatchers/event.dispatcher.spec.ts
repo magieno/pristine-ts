@@ -6,6 +6,7 @@ import {LogHandlerInterface} from "@pristine-ts/logging";
 import {EventResponse} from "../models/event.response";
 import {LogHandlerMock} from "../../../../tests/mocks/log.handler.mock";
 import {EventListenerInterface} from "../interfaces/event-listener.interface";
+import {EventDispatcherNoEventHandlersError} from "../errors/event-dispatcher-no-event-handlers.error";
 
 describe("Event Dispatcher", () => {
     it("should transform an event by calling all the event handlers", () => {
@@ -152,9 +153,47 @@ describe("Event Dispatcher", () => {
     })
 
     it("should throw an error if there are no handlers that support this event.", async () => {
-        expect(false).toBeTruthy();
-    })
-    it("should throw an error if there the handler returns undefined.", async () => {
-        expect(false).toBeTruthy();
+        let count = 0;
+
+        const eventListener1: EventListenerInterface = {
+            execute<EventPayload>(event: Event<EventPayload>): Promise<void> {
+                count++;
+                return Promise.resolve()
+            },
+            supports<T>(event: Event<T>): boolean {
+                return true;
+            }
+        }
+
+        const eventListener2: EventListenerInterface = {
+            execute<EventPayload>(event: Event<EventPayload>): Promise<void> {
+                count++;
+                return Promise.resolve()
+            },
+            supports<T>(event: Event<T>): boolean {
+                return false;
+            }
+        }
+
+        const eventListener3: EventListenerInterface = {
+            execute<EventPayload>(event: Event<EventPayload>): Promise<void> {
+                count++;
+                return Promise.resolve()
+            },
+            supports<T>(event: Event<T>): boolean {
+                return true;
+            }
+        }
+
+        const eventDispatcher = new EventDispatcher([], [eventListener1, eventListener2, eventListener3], new LogHandlerMock());
+
+        const event: Event<any> = {
+            type: "type",
+            payload: {
+                type: "type"
+            }
+        }
+
+        return expect(eventDispatcher.dispatch(event)).rejects.toThrow(new EventDispatcherNoEventHandlersError("There are no EventHandlers that support this event.", event));
     })
 })

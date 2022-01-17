@@ -1,4 +1,5 @@
 export * from "./error-response-interception-execution.error";
+export * from "./event-dispatcher-no-event-handlers.error";
 export * from "./event-dispatching.error";
 export * from "./event-interception-execution.error";
 export * from "./event-mapping.error";

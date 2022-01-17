@@ -8,6 +8,7 @@ import {EventResponse} from "../models/event.response";
 import {EventDispatcherInterface} from "../interfaces/event-dispatcher.interface";
 import {EventListenerInterface} from "../interfaces/event-listener.interface";
 import {EventDispatchingError} from "../errors/event-dispatching.error";
+import {EventDispatcherNoEventHandlersError} from "../errors/event-dispatcher-no-event-handlers.error";
 
 /**
  * This class receives all the event handlers and listeners that were registered and calls them if they support the event.
@@ -77,17 +78,13 @@ export class EventDispatcher implements EventDispatcherInterface {
         }
 
         if(supportingEventHandlers.length === 0) {
-            throw new Error("There are no EventHandlers that support this event.");
+            throw new EventDispatcherNoEventHandlersError("There are no EventHandlers that support this event.", event);
         } else if (supportingEventHandlers.length > 1) {
             this.logHandler.warning("There are more than one EventHandler that support this event.")
         }
 
         // We only support executing the handler with the highest priority.
         const eventResponse = await supportingEventHandlers[0].handle(event);
-
-        if(eventResponse === undefined) {
-            throw new Error("The EventResponse object is undefined and shouldn't be. It might be because no EventHandlers support the event or because the EventHandler")
-        }
 
         await Promise.allSettled(eventListenerPromises);
 
