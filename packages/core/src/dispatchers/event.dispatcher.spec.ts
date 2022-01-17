@@ -55,7 +55,7 @@ describe("Event Dispatcher", () => {
         expect(eventParser2ParseMethodSpy).toHaveBeenCalledTimes(0);
     })
 
-    it("should dispatch all the handlers in order of priority", async () => {
+    it("should dispatch to only the handler with the highest priority", async () => {
         let order = 0;
 
         const eventHandler1: EventHandlerInterface<any, any> = {
@@ -77,7 +77,7 @@ describe("Event Dispatcher", () => {
             },
             handle(event: Event<any>): Promise<EventResponse<any, any>> {
                 order++;
-                expect(order).toBe(2);
+                expect(false).toBeTruthy() // This shouldn't be called
                 return Promise.resolve(new EventResponse(event, {}));
             },
         };
@@ -93,7 +93,7 @@ describe("Event Dispatcher", () => {
 
         await eventDispatcher.dispatch(event);
 
-        expect.assertions(2);
+        expect.assertions(1);
     })
 
     it("should notify all the listeners", async() => {
@@ -129,7 +129,15 @@ describe("Event Dispatcher", () => {
             }
         }
 
-        const eventDispatcher = new EventDispatcher([], [eventListener1, eventListener2, eventListener3], new LogHandlerMock());
+        const eventDispatcher = new EventDispatcher([{
+            priority: Number.MAX_SAFE_INTEGER,
+            supports<T>(event: Event<T>): boolean {
+                return true;
+            },
+            handle(event: Event<any>): Promise<EventResponse<any, any>> {
+                return Promise.resolve(new EventResponse(event, {}));
+            },
+        }], [eventListener1, eventListener2, eventListener3], new LogHandlerMock());
 
         const event: Event<any> = {
             type: "type",

@@ -1,8 +1,8 @@
-export class HttpRequestEventPayload {
+export class HttpApiEventPayload {
     version: string;
     routeKey: string;
     rawPath: string;
-    rawQueryString: string;
+    rawQueryString?: string;
     cookies: string[] = [];
     headers: {[key: string]: string} = {};
     queryStringParameters: {[key: string]: string} = {};
@@ -31,10 +31,9 @@ export class HttpRequestEventPayload {
     pathParameters?: {[key: string]: string};
     stageVariables?: {[key: string]: string};
 
-    constructor(version: string, routeKey: string, rawPath: string, rawQueryString: string) {
+    constructor(version: string, routeKey: string, rawPath: string) {
         this.version = version;
         this.routeKey = routeKey;
         this.rawPath = rawPath;
-        this.rawQueryString = rawQueryString;
     }
 }

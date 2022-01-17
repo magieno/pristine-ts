@@ -23,11 +23,11 @@ export const AwsApiGatewayModule: ModuleInterface = {
             ],
         },
         {
-            parameterName: AwsApiGatewayModuleKeyname + ".http_request_events.handling_strategy",
+            parameterName: AwsApiGatewayModuleKeyname + ".http_api_events.handling_strategy",
             isRequired: false,
             defaultValue: ApiGatewayEventsHandlingStrategyEnum.Request,
             defaultResolvers: [
-                new EnumResolver(new EnvironmentVariableResolver("PRISTINE_AWS_API_GATEWAY_HTTP_REQUEST_EVENTS_HANDLING_STRATEGY"), ApiGatewayEventsHandlingStrategyEnum),
+                new EnumResolver(new EnvironmentVariableResolver("PRISTINE_AWS_API_GATEWAY_HTTP_API_EVENTS_HANDLING_STRATEGY"), ApiGatewayEventsHandlingStrategyEnum),
             ],
         }
     ],

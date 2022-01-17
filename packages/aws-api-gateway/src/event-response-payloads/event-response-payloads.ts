@@ -1,2 +1,2 @@
-export * from "./http-request.event-response-payload";
+export * from "./http-api.event-response-payload";
 export * from "./rest-api.event-response-payload";

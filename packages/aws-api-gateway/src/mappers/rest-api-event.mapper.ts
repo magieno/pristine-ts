@@ -64,7 +64,7 @@ export class RestApiEventMapper extends BaseApiEventMapper implements EventMappe
                 restApiEventPayload.isBase64Encoded = rawEvent.isBase64Encoded;
                 if (rawEvent.hasOwnProperty("requestContext")) {
                     restApiEventPayload.requestContext = {
-                        resourceId: rawEvent.requestContext.resourceId,
+                        resourceId: rawEvent.requestContext.resourceId ?? undefined,
                         resourcePath: rawEvent.requestContext.resourcePath,
                         httpMethod: rawEvent.requestContext.httpMethod,
                         extendedRequestId: rawEvent.requestContext.extendedRequestId,
@@ -80,19 +80,19 @@ export class RestApiEventMapper extends BaseApiEventMapper implements EventMappe
                         apiId: rawEvent.requestContext.apiId,
                         authorizer: rawEvent.requestContext.authorizer,
                         identity: {
-                            cognitoIdentityPoolId: rawEvent.requestContext.identity?.cognitoIdentityPoolId,
-                            accountId: rawEvent.requestContext.identity?.accountId,
-                            cognitoIdentityId: rawEvent.requestContext.identity?.cognitoIdentityId,
-                            caller: rawEvent.requestContext.identity?.caller,
-                            sourceIp: rawEvent.requestContext.identity?.sourceIp,
-                            principalOrgId: rawEvent.requestContext.identity?.principalOrgId,
-                            accessKey: rawEvent.requestContext.identity?.accessKey,
-                            cognitoAuthenticationType: rawEvent.requestContext.identity?.cognitoAuthenticationType,
-                            cognitoAuthenticationProvider: rawEvent.requestContext.identity?.cognitoAuthenticationProvider,
-                            userArn: rawEvent.requestContext.identity?.userArn,
-                            userAgent: rawEvent.requestContext.identity?.userAgent,
-                            user: rawEvent.requestContext.identity?.user,
-                            clientCert: rawEvent.requestContext.identity.clientCert,
+                            cognitoIdentityPoolId: rawEvent.requestContext.identity?.cognitoIdentityPoolId ?? undefined,
+                            accountId: rawEvent.requestContext.identity?.accountId ?? undefined,
+                            cognitoIdentityId: rawEvent.requestContext.identity?.cognitoIdentityId ?? undefined,
+                            caller: rawEvent.requestContext.identity?.caller ?? undefined,
+                            sourceIp: rawEvent.requestContext.identity?.sourceIp ?? undefined,
+                            principalOrgId: rawEvent.requestContext.identity?.principalOrgId ?? undefined,
+                            accessKey: rawEvent.requestContext.identity?.accessKey ?? undefined,
+                            cognitoAuthenticationType: rawEvent.requestContext.identity?.cognitoAuthenticationType ?? undefined,
+                            cognitoAuthenticationProvider: rawEvent.requestContext.identity?.cognitoAuthenticationProvider ?? undefined,
+                            userArn: rawEvent.requestContext.identity?.userArn ?? undefined,
+                            userAgent: rawEvent.requestContext.identity?.userAgent ?? undefined,
+                            user: rawEvent.requestContext.identity?.user ?? undefined,
+                            clientCert: rawEvent.requestContext.identity.clientCert ?? undefined,
                         }
                     }
                 }
@@ -113,12 +113,13 @@ export class RestApiEventMapper extends BaseApiEventMapper implements EventMappe
         if(eventResponse.response instanceof RestApiEventResponsePayload) {
             return eventResponse.response;
         } else if(eventResponse.response instanceof Response) {
-            return {
-                statusCode: eventResponse.response.status,
-                headers: eventResponse.response.headers ?? {},
-                body: eventResponse.response.body,
-                isBase64Encoded: false,
-            } as RestApiEventResponsePayload;
+            const restApiEventResponsePayload = new RestApiEventResponsePayload(eventResponse.response.status, eventResponse.response.body);
+            if(eventResponse.response.headers) {
+                restApiEventResponsePayload.headers = eventResponse.response.headers;
+            }
+            restApiEventResponsePayload.isBase64Encoded = false;
+
+            return restApiEventResponsePayload;
         }
     }
 

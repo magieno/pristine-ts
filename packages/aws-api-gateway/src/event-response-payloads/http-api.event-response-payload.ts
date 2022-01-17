@@ -1,4 +1,4 @@
-export class HttpRequestEventResponsePayload {
+export class HttpApiEventResponsePayload {
     headers: {[key: string]: string} = {};
     isBase64Encoded: boolean = false;
     multiValueHeaders: {[key: string]: string[]} = {};

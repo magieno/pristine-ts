@@ -1,13 +1,16 @@
 import {HttpMethod, RequestInterface} from "@pristine-ts/common";
 import {RestApiEventMapper} from "./rest-api-event.mapper";
 import {ApiGatewayEventsHandlingStrategyEnum} from "../enums/api-gateway-events-handling-strategy.enum";
-import {Request} from "@pristine-ts/networking";
+import {Request, Response} from "@pristine-ts/networking";
 import {RestApiEventPayload} from "../event-payloads/rest-api.event-payload";
 import {ApiGatewayEventTypeEnum} from "../enums/api-gateway-event-type.enum";
 import {map} from "lodash";
+import {EventResponse} from "@pristine-ts/core";
+import {RestApiEventResponsePayload} from "../event-response-payloads/rest-api.event-response-payload";
 
 describe("Rest API Event (Api Gateway 1.0)", () => {
     // https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
+    const executionContext = {keyname: "", context: {}};
     const rawEvent: any = {
         "version": "1.0",
         "resource": "/my/path",
@@ -92,6 +95,8 @@ describe("Rest API Event (Api Gateway 1.0)", () => {
     it("should map a rest api request into a Request Object", () => {
         const restApiRequestMapper = new RestApiEventMapper(ApiGatewayEventsHandlingStrategyEnum.Request);
 
+        expect(restApiRequestMapper.supportsMapping(rawEvent, executionContext));
+
         const expectedRequest: Request = new Request({
             url: "/my/path",
             body: rawEvent.body,
@@ -103,30 +108,48 @@ describe("Rest API Event (Api Gateway 1.0)", () => {
             httpMethod: HttpMethod.Get
         });
 
-        const mappedEvent = restApiRequestMapper.map(rawEvent, {keyname: "", context: {}});
+        const mappedEvent = restApiRequestMapper.map(rawEvent, executionContext);
 
         expect(mappedEvent.executionOrder).toBe("sequential");
         expect(mappedEvent.events.length).toBe(1);
         expect(mappedEvent.events[0].type).toBe(ApiGatewayEventTypeEnum.RestApiEvent);
         expect(mappedEvent.events[0].payload instanceof Request).toBeTruthy()
         expect(mappedEvent.events[0].payload).toEqual(expectedRequest);
+
+
+        // Reverse map
+        const response = new Response();
+        response.status = 201;
+        response.headers = {"Content-Type": "application/json"}
+        response.body = {"allo": true}
+
+        const eventResponse = new EventResponse(mappedEvent.events[0], response);
+
+        expect(restApiRequestMapper.supportsReverseMapping(eventResponse, {}, executionContext)).toBeTruthy();
+
+        const mappedResponse = restApiRequestMapper.reverseMap(eventResponse, {}, executionContext) as RestApiEventResponsePayload;
+        expect(mappedResponse instanceof RestApiEventResponsePayload).toBeTruthy()
+        expect(mappedResponse.statusCode).toBe(201)
+        expect(mappedResponse.headers).toStrictEqual({"Content-Type": "application/json"})
+        expect(mappedResponse.body).toStrictEqual({"allo": true})
+        expect(mappedResponse.isBase64Encoded).toBeFalsy()
     })
 
 
-    it("should map a rest api request properly into an Event Object", () => {
+    it("should map a rest api request properly into an Event Object and should reverse map it properly", () => {
         const restApiRequestMapper = new RestApiEventMapper(ApiGatewayEventsHandlingStrategyEnum.Event);
 
-        const restApiEventPayload: RestApiEventPayload = new RestApiEventPayload("1.0", "/my/path", "/my/path", "GET");
+        expect(restApiRequestMapper.supportsMapping(rawEvent, executionContext));
 
-        const mappedEvent = restApiRequestMapper.map(rawEvent, {keyname: "", context: {}});
+        const mappedEvent = restApiRequestMapper.map(rawEvent, executionContext);
 
-        const eventPayload: RestApiEventPayload = mappedEvent.events[0].payload as RestApiEventPayload;
+        const expectedEvent = new RestApiEventPayload("1.0", "/my/path", "/my/path", "GET")
 
-        eventPayload.headers = {
+        expectedEvent.headers = {
             "header1": "value1",
                 "header2": "value2"
         };
-        eventPayload.multiValueHeaders = {
+        expectedEvent.multiValueHeaders = {
             "header1": [
                 "value1"
             ],
@@ -135,12 +158,12 @@ describe("Rest API Event (Api Gateway 1.0)", () => {
                 "value2"
             ]
         };
-        eventPayload.queryStringParameters = {
+        expectedEvent.queryStringParameters = {
             "parameter1": "value1",
                 "parameter2": "value"
         };
 
-        eventPayload.multiValueQueryStringParameters = {
+        expectedEvent.multiValueQueryStringParameters = {
             "parameter1": [
                 "value1",
                 "value2"
@@ -150,7 +173,7 @@ describe("Rest API Event (Api Gateway 1.0)", () => {
             ]
         };
 
-        eventPayload.requestContext = {
+        expectedEvent.requestContext = {
             "accountId": "123456789012",
                 "apiId": "id",
                 "authorizer": {
@@ -194,22 +217,25 @@ describe("Rest API Event (Api Gateway 1.0)", () => {
                 "resourcePath": "/my/path",
                 "stage": "$default"
         };
-        eventPayload.pathParameters = {};
-        eventPayload.stageVariables = {};
-        eventPayload.body = JSON.stringify({ message: "Hello from Lambda"});
-        eventPayload.isBase64Encoded = false;
+        expectedEvent.pathParameters = {};
+        expectedEvent.stageVariables = {};
+        expectedEvent.body = JSON.stringify({ message: "Hello from Lambda"});
+        expectedEvent.isBase64Encoded = false;
 
         expect(mappedEvent.executionOrder).toBe("sequential")
         expect(mappedEvent.events.length).toBe(1);
         expect(mappedEvent.events[0].type).toBe(ApiGatewayEventTypeEnum.RestApiEvent)
         expect(mappedEvent.events[0].payload instanceof RestApiEventPayload).toBeTruthy()
-        expect(mappedEvent.events[0].payload).toEqual(eventPayload);
+        expect(mappedEvent.events[0].payload).toEqual(expectedEvent);
+
+        // Reverse map
+        const restApiEventResponsePayload = new RestApiEventResponsePayload(200)
+        const eventResponse = new EventResponse(mappedEvent.events[0], restApiEventResponsePayload);
+
+        expect(restApiRequestMapper.supportsReverseMapping(eventResponse, {}, executionContext)).toBeTruthy();
+
+        const mappedResponse = restApiRequestMapper.reverseMap(eventResponse, {}, executionContext);
+        expect(mappedResponse instanceof RestApiEventResponsePayload).toBeTruthy()
     })
 
-    it("should reverse map into a Response Object", () => {
-        throw new Error("");
-    });
-    it("should reverse map into the ApiGateway expected response", () => {
-        throw new Error("");
-    });
 })
