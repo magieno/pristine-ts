@@ -6,6 +6,7 @@ import {LogHandlerInterface} from "@pristine-ts/logging";
 import {EventResponse} from "../models/event.response";
 import {LogHandlerMock} from "../../../../tests/mocks/log.handler.mock";
 import {EventListenerInterface} from "../interfaces/event-listener.interface";
+import {EventDispatcherNoEventHandlersError} from "../errors/event-dispatcher-no-event-handlers.error";
 
 describe("Event Dispatcher", () => {
     it("should transform an event by calling all the event handlers", () => {
@@ -13,23 +14,23 @@ describe("Event Dispatcher", () => {
             id: string
         }
 
-        const eventHandler1: EventHandlerInterface =  {
+        const eventHandler1: EventHandlerInterface<any, any> =  {
             supports(event: any): boolean {
                 return true;
             },
 
-            handle<T, R>(event: Event<T>, eventResponse: EventResponse<T, R>): Promise<EventResponse<T, R>> {
-                return Promise.resolve(eventResponse);
+            handle(event: Event<any>): Promise<EventResponse<any, any>> {
+                return Promise.resolve(new EventResponse(event, {}));
             }
         }
 
-        const eventHandler2: EventHandlerInterface =  {
+        const eventHandler2: EventHandlerInterface<any, any> =  {
             supports(event: any): boolean {
                 return false;
             },
 
-            handle<T, R>(event: Event<T>, eventResponse: EventResponse<T, R>): Promise<EventResponse<T, R>> {
-                return Promise.resolve(eventResponse);
+            handle(event: Event<any>): Promise<EventResponse<any,any>> {
+                return Promise.resolve(new EventResponse(event, {}));
             }
         }
 
@@ -55,30 +56,30 @@ describe("Event Dispatcher", () => {
         expect(eventParser2ParseMethodSpy).toHaveBeenCalledTimes(0);
     })
 
-    it("should dispatch all the handlers in order of priority", async () => {
+    it("should dispatch to only the handler with the highest priority", async () => {
         let order = 0;
 
-        const eventHandler1: EventHandlerInterface = {
+        const eventHandler1: EventHandlerInterface<any, any> = {
             priority: Number.MAX_SAFE_INTEGER,
             supports<T>(event: Event<T>): boolean {
                 return true;
             },
-            handle<T, R>(event: Event<T>, eventResponse: EventResponse<T, R>): Promise<EventResponse<T, R>> {
+            handle(event: Event<any>): Promise<EventResponse<any, any>> {
                 order++;
                 expect(order).toBe(1);
-                return Promise.resolve(eventResponse);
+                return Promise.resolve(new EventResponse(event, {}));
             },
         };
 
-        const eventHandler2: EventHandlerInterface = {
+        const eventHandler2: EventHandlerInterface<any, any> = {
             priority: 0,
             supports<T>(event: Event<T>): boolean {
                 return true;
             },
-            handle<T, R>(event: Event<T>, eventResponse: EventResponse<T, R>): Promise<EventResponse<T, R>> {
+            handle(event: Event<any>): Promise<EventResponse<any, any>> {
                 order++;
-                expect(order).toBe(2);
-                return Promise.resolve(eventResponse);
+                expect(false).toBeTruthy() // This shouldn't be called
+                return Promise.resolve(new EventResponse(event, {}));
             },
         };
 
@@ -93,10 +94,65 @@ describe("Event Dispatcher", () => {
 
         await eventDispatcher.dispatch(event);
 
-        expect.assertions(2);
+        expect.assertions(1);
     })
 
     it("should notify all the listeners", async() => {
+        let count = 0;
+
+        const eventListener1: EventListenerInterface = {
+            execute<EventPayload>(event: Event<EventPayload>): Promise<void> {
+                count++;
+                return Promise.resolve()
+            },
+            supports<T>(event: Event<T>): boolean {
+                return true;
+            }
+        }
+
+        const eventListener2: EventListenerInterface = {
+            execute<EventPayload>(event: Event<EventPayload>): Promise<void> {
+                count++;
+                return Promise.resolve()
+            },
+            supports<T>(event: Event<T>): boolean {
+                return false;
+            }
+        }
+
+        const eventListener3: EventListenerInterface = {
+            execute<EventPayload>(event: Event<EventPayload>): Promise<void> {
+                count++;
+                return Promise.resolve()
+            },
+            supports<T>(event: Event<T>): boolean {
+                return true;
+            }
+        }
+
+        const eventDispatcher = new EventDispatcher([{
+            priority: Number.MAX_SAFE_INTEGER,
+            supports<T>(event: Event<T>): boolean {
+                return true;
+            },
+            handle(event: Event<any>): Promise<EventResponse<any, any>> {
+                return Promise.resolve(new EventResponse(event, {}));
+            },
+        }], [eventListener1, eventListener2, eventListener3], new LogHandlerMock());
+
+        const event: Event<any> = {
+            type: "type",
+            payload: {
+                type: "type"
+            }
+        }
+
+        await eventDispatcher.dispatch(event);
+
+        expect(count).toBe(2);
+    })
+
+    it("should throw an error if there are no handlers that support this event.", async () => {
         let count = 0;
 
         const eventListener1: EventListenerInterface = {
@@ -138,8 +194,6 @@ describe("Event Dispatcher", () => {
             }
         }
 
-        await eventDispatcher.dispatch(event);
-
-        expect(count).toBe(2);
+        return expect(eventDispatcher.dispatch(event)).rejects.toThrow(new EventDispatcherNoEventHandlersError("There are no EventHandlers that support this event.", event));
     })
 })

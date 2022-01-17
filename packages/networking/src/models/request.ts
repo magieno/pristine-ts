@@ -25,11 +25,17 @@ export class Request implements RequestInterface {
      */
     body: any = {};
 
+    /**
+     * The raw body of the request.
+     */
+    rawBody?: any;
+
     constructor(requestInterface: RequestInterface) {
         this.httpMethod = requestInterface.httpMethod;
         this.url = requestInterface.url;
         this.headers = requestInterface.headers ?? {};
         this.body = requestInterface.body ?? {};
+        this.rawBody = requestInterface.rawBody;
     }
 
     /**

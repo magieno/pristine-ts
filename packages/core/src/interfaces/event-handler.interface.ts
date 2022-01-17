@@ -4,7 +4,7 @@ import {EventResponse} from "../models/event.response";
 /**
  * The Event Listener Interface defines the methods that an Event Listener must implement.
  */
-export interface EventHandlerInterface {
+export interface EventHandlerInterface<EventPayload, EventResponsePayload> {
 
     /**
      * This property represents the priority (highest number has the highest priority). Use this to specify
@@ -22,7 +22,6 @@ export interface EventHandlerInterface {
     /**
      * This method receives an event and handles it and returns an EventResponse.
      * @param event
-     * @param eventResponse The event response that was handled by a previous Handler.
      */
-    handle<EventPayload, EventResponsePayload>(event: Event<EventPayload>, eventResponse: EventResponse<EventPayload, EventResponsePayload>): Promise<EventResponse<EventPayload, EventResponsePayload>>;
+    handle(event: Event<EventPayload>): Promise<EventResponse<EventPayload, EventResponsePayload>>;
 }

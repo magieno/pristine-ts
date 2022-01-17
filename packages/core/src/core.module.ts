@@ -1,5 +1,4 @@
 import {ModuleInterface} from "@pristine-ts/common";
-import {NetworkingModule} from "@pristine-ts/networking";
 import {CoreModuleKeyname} from "./core.module.keyname";
 import {TelemetryModule} from "@pristine-ts/telemetry";
 import {ConfigurationModule, EnvironmentVariableResolver} from "@pristine-ts/configuration";
@@ -22,7 +21,6 @@ export const CoreModule: ModuleInterface =  {
     keyname: CoreModuleKeyname,
     importModules: [
         ConfigurationModule,
-        NetworkingModule,
         TelemetryModule,
         LoggingModule,
     ],

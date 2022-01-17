@@ -4,20 +4,19 @@ import {DynamoDbTable} from "@awslabs-community-fork/dynamodb-data-mapper";
 import {LoggingModule, LogHandlerInterface} from "@pristine-ts/logging";
 import {DependencyContainer} from "tsyringe";
 import {AwsModuleKeyname} from "./aws.module.keyname";
-import {EnvironmentVariableResolver} from "@pristine-ts/configuration";
+import {BooleanResolver, EnumResolver, EnvironmentVariableResolver} from "@pristine-ts/configuration";
 import {CoreModule} from "@pristine-ts/core";
+import {ApiGatewayEventsHandlingStrategyEnum} from "../../aws-api-gateway/src/enums/api-gateway-events-handling-strategy.enum";
 
 export * from "./clients/clients";
 export * from "./decorators/decorators";
 export * from "./enums/enums";
 export * from "./errors/errors";
 export * from "./event-payloads/event-payloads";
-export * from "./factories/factories";
 export * from "./interfaces/interfaces";
 export * from "./mappers/mappers";
 export * from "./models/models";
 export * from "./resolvers/resolvers";
-export * from "./types/types";
 
 export * from "./aws.module.keyname";
 
@@ -31,7 +30,7 @@ export const AwsModule: ModuleInterface = {
             defaultResolvers: [
                 new EnvironmentVariableResolver("AWS_REGION"),
             ]
-        }
+        },
     ],
     importModules: [
         LoggingModule,
