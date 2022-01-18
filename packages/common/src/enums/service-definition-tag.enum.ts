@@ -6,7 +6,6 @@
  */
 export enum ServiceDefinitionTagEnum {
     CurrentChildContainer = "CURRENT_CHILD_CONTAINER",
-    ErrorResponseInterceptor = "ERROR_RESPONSE_INTERCEPTOR",
     EventHandler = "EVENT_HANDLER",
     EventInterceptor = "EVENT_INTERCEPTOR",
     EventListener = "EVENT_LISTENER",
@@ -18,9 +17,6 @@ export enum ServiceDefinitionTagEnum {
     Logger = "LOGGER",
     MethodParameterDecoratorResolver = "METHOD_PARAMETER_DECORATOR_RESOLVER",
     RequestInterceptor = "REQUEST_INTERCEPTOR",
-    ResponseInterceptor = "RESPONSE_INTERCEPTOR",
-    RouterRequestEnricher = "ROUTER_REQUEST_ENRICHER",
-    RouterResponseEnricher = "ROUTER_RESPONSE_ENRICHER",
     ScheduledTask = "SCHEDULED_TASK",
     Tracer = "TRACER",
     Voter = "VOTER",

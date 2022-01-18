@@ -1,5 +1,5 @@
 import "reflect-metadata"
-import {BodyValidationRequestEnricher} from "./body-validation.request-enricher";
+import {BodyValidationRequestInterceptor} from "./body-validation.request-interceptor";
 import {MethodRouterNode, PathRouterNode, Request, Route} from "@pristine-ts/networking";
 import {HttpMethod} from "@pristine-ts/common";
 import {IsDate, IsInt, Max, Min} from "class-validator";
@@ -18,15 +18,15 @@ describe("Body Validation Request Enricher", () => {
     class BodyPayload {
         @IsInt()
         @Min(0)
-        minimumValue: number;
+        minimumValue: number = -1;
 
         @IsInt()
         @Max(10)
-        maximumValue: number;
+        maximumValue: number = -1;
     }
 
     it("should simply return the request if the bodyValidator is undefined", async () => {
-        const bodyValidationRequestEnricher = new BodyValidationRequestEnricher(logHandlerMock);
+        const bodyValidationRequestEnricher = new BodyValidationRequestInterceptor(logHandlerMock);
 
         const request: Request = new Request({
             url: "url",
@@ -41,13 +41,13 @@ describe("Body Validation Request Enricher", () => {
 
         const methodRouterNode: MethodRouterNode = new MethodRouterNode(new PathRouterNode("/"), HttpMethod.Get, route, 1)
 
-        const returnedRequest = await bodyValidationRequestEnricher.enrichRequest(request, methodRouterNode);
+        const returnedRequest = await bodyValidationRequestEnricher.interceptRequest(request, methodRouterNode);
 
         expect(returnedRequest).toBe(request);
     })
 
     it("should simply return the request if the classType is undefined", async () => {
-        const bodyValidationRequestEnricher = new BodyValidationRequestEnricher(logHandlerMock);
+        const bodyValidationRequestEnricher = new BodyValidationRequestInterceptor(logHandlerMock);
 
         const request: Request = new Request({
             url: "url",
@@ -63,13 +63,13 @@ describe("Body Validation Request Enricher", () => {
 
         const methodRouterNode: MethodRouterNode = new MethodRouterNode(new PathRouterNode("/"), HttpMethod.Get, route, 1)
 
-        const returnedRequest = await bodyValidationRequestEnricher.enrichRequest(request, methodRouterNode);
+        const returnedRequest = await bodyValidationRequestEnricher.interceptRequest(request, methodRouterNode);
 
         expect(returnedRequest).toBe(request);
     })
 
     it("should return the request if there are no errors with the classType", async () => {
-        const bodyValidationRequestEnricher = new BodyValidationRequestEnricher(logHandlerMock);
+        const bodyValidationRequestEnricher = new BodyValidationRequestInterceptor(logHandlerMock);
 
         const request: Request = new Request({
             url: "url",
@@ -88,13 +88,13 @@ describe("Body Validation Request Enricher", () => {
 
         const methodRouterNode: MethodRouterNode = new MethodRouterNode(new PathRouterNode("/"), HttpMethod.Get, route, 1)
 
-        const returnedRequest = await bodyValidationRequestEnricher.enrichRequest(request, methodRouterNode);
+        const returnedRequest = await bodyValidationRequestEnricher.interceptRequest(request, methodRouterNode);
 
         expect(returnedRequest).toBe(request);
     })
 
     it("should reject if there are validation errors. ", async () => {
-        const bodyValidationRequestEnricher = new BodyValidationRequestEnricher(logHandlerMock);
+        const bodyValidationRequestEnricher = new BodyValidationRequestInterceptor(logHandlerMock);
 
         const request: Request = new Request({
             url: "url",
@@ -113,6 +113,6 @@ describe("Body Validation Request Enricher", () => {
 
         const methodRouterNode: MethodRouterNode = new MethodRouterNode(new PathRouterNode("/"), HttpMethod.Get, route, 1)
 
-        expect(bodyValidationRequestEnricher.enrichRequest(request, methodRouterNode)).rejects.toThrow();
+        expect(bodyValidationRequestEnricher.interceptRequest(request, methodRouterNode)).rejects.toThrow();
     })
 })

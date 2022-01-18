@@ -14,8 +14,6 @@ export enum SpanKeynameEnum {
     RouterControllerResolver = "router.controller.resolver",
     RouterFindMethodRouterNode = "router.find.method.router.node",
     RouterRequestAuthentication = "router.request.authentication",
-    RouterRequestEnrichers = "router.request.enrichers",
     RouterRequestExecution = "router.request.execution",
-    RouterResponseEnrichers = "router.response.enrichers",
     RouterSetup = "router.setup",
 }

@@ -1,1 +1,1 @@
-export * from "./body-validation.request-enricher";
+export * from "./body-validation.request-interceptor";

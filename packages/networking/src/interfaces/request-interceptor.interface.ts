@@ -1,10 +1,6 @@
-/**
- * The Request Interceptor Interface defines the methods that a Request Interceptor must implement. This
- * interceptor is called before the request is being passed to the controllers, even before the Request is passed
- * to the Router.
- */
 import {Request} from "../models/request";
-
+import {Response} from "../models/response";
+import {MethodRouterNode} from "../nodes/method-router.node";
 
 export interface RequestInterceptorInterface {
     /**
@@ -14,6 +10,34 @@ export interface RequestInterceptorInterface {
      * If you force to never resolve the promise, the execution will stall. Be careful.
      *
      * @param request
+     * @param methodeNode
      */
-    interceptRequest(request: Request): Promise<Request>;
+    interceptRequest?(request: Request, methodeNode: MethodRouterNode): Promise<Request>;
+
+    /**
+     * This method receives a response object and the associated request and must return a transformed response object.
+     * If you don't want to manipulate the response object (when logging for example), juste resolve a promise with the response passed to this method.
+     *
+     * If you force to never resolve the promise, the execution will stall. Be careful.
+     *
+     * @param response
+     * @param request
+     * @param methodNode
+     */
+    interceptResponse?(response: Response, request: Request, methodNode?: MethodRouterNode): Promise<Response>;
+
+    /**
+     * Receives an error with the associated request and maybe a response (if you have multiple error response interceptors
+     * and they are chained, response will not be empty as it will contain the returned response of the previous error response interceptor).
+     *
+     * This method must transform the error into a Response object.
+     *
+     * If you force to never resolve the promise, the execution will stall. Be careful.
+     *
+     * @param error
+     * @param request
+     * @param response
+     * @param methodNode
+     */
+    interceptError?(error: Error,  response: Response, request: Request, methodNode?: MethodRouterNode): Promise<Response>;
 }
