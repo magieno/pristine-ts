@@ -1,11 +1,11 @@
-import {LoggableError, RequestInterface} from "@pristine-ts/common";
+import {LoggableError, Request} from "@pristine-ts/common";
 
 /**
  * This Error is thrown when there's an error that happens while handling a request.
  */
 export class RequestHandlingError extends LoggableError {
 
-    public constructor(message: string, request: RequestInterface) {
+    public constructor(message: string, request: Request) {
         super(message, {
             request,
         });

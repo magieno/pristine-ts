@@ -1,9 +1,8 @@
 import {injectable, inject} from "tsyringe";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {moduleScoped, Request, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {NetworkingModuleKeyname} from "../networking.module.keyname";
 import {RequestInterceptorInterface} from "../interfaces/request-interceptor.interface";
-import {Request} from "../models/request";
 import {InvalidBodyHttpError} from "../errors/invalid-body.http-error";
 
 @tag(ServiceDefinitionTagEnum.RequestInterceptor)

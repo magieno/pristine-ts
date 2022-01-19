@@ -1,5 +1,4 @@
 import {ApiGatewayEventsHandlingStrategyEnum} from "../enums/api-gateway-events-handling-strategy.enum";
-import {Request, Response} from "@pristine-ts/networking";
 import {
     Event,
     EventMapperInterface,
@@ -8,7 +7,7 @@ import {
     ExecutionContextInterface
 } from "@pristine-ts/core";
 import {inject, injectable} from "tsyringe";
-import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {moduleScoped, Request, Response, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {HttpApiEventPayload} from "../event-payloads/http-api.event-payload";
 import {HttpApiEventResponsePayload} from "../event-response-payloads/http-api.event-response-payload";
 import {AwsApiGatewayModuleKeyname} from "../aws-api-gateway.module.keyname";
@@ -34,13 +33,13 @@ export class HttpApiEventMapper extends BaseApiEventMapper implements EventMappe
     map(rawEvent: any, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<HttpApiEventPayload | Request> {
         switch(this.httpRequestsHandlingStrategy) {
             case ApiGatewayEventsHandlingStrategyEnum.Request:
-                const request = new Request({
-                    url: rawEvent.requestContext.http.path + (rawEvent.rawQueryString ? "?" + rawEvent.rawQueryString : ""),
-                    headers: rawEvent.headers,
-                    httpMethod: this.mapHttpMethod(rawEvent.requestContext.http.method),
-                    body: rawEvent.body,
-                    rawBody: rawEvent.body,
-                });
+                const request = new Request(
+                    this.mapHttpMethod(rawEvent.requestContext.http.method),
+                    rawEvent.requestContext.http.path + (rawEvent.rawQueryString ? "?" + rawEvent.rawQueryString : "")
+                );
+                request.headers = rawEvent.headers;
+                request.body = rawEvent.body;
+                request.rawBody = rawEvent.body;
 
                 return {
                     executionOrder: "sequential",

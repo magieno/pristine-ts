@@ -1,6 +1,4 @@
-import {Response} from "../models/response";
-import {Request} from "../models/request";
-import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {moduleScoped, Request, Response, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {NetworkingModuleKeyname} from "../networking.module.keyname";
 import {MethodRouterNode} from "../nodes/method-router.node";
 import {RequestInterceptorInterface} from "../interfaces/request-interceptor.interface";

@@ -1,10 +1,9 @@
-import {HttpMethod} from "@pristine-ts/common";
-import {RequestInterface} from "@pristine-ts/common";
-
 /**
  * This Request object represents the class used internally that represents a Request.
  */
-export class Request implements RequestInterface {
+import {HttpMethod} from "../enums/http-method.enum";
+
+export class Request {
     /**
      * The http method of the request.
      */
@@ -30,12 +29,9 @@ export class Request implements RequestInterface {
      */
     rawBody?: any;
 
-    constructor(requestInterface: RequestInterface) {
-        this.httpMethod = requestInterface.httpMethod;
-        this.url = requestInterface.url;
-        this.headers = requestInterface.headers ?? {};
-        this.body = requestInterface.body ?? {};
-        this.rawBody = requestInterface.rawBody;
+    constructor(httpMethod: HttpMethod | string, url: string) {
+        this.httpMethod = httpMethod;
+        this.url = url;
     }
 
     /**

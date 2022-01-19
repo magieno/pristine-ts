@@ -1,7 +1,7 @@
-import {RequestInterceptorInterface, Request, MethodRouterNode} from "@pristine-ts/networking";
+import {RequestInterceptorInterface, MethodRouterNode} from "@pristine-ts/networking";
 import {validate} from "class-validator";
 import {BadRequestHttpError} from "@pristine-ts/networking";
-import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {moduleScoped, ServiceDefinitionTagEnum, tag, Request} from "@pristine-ts/common";
 import {ValidationModuleKeyname} from "../validation.module.keyname";
 import {injectable, inject} from "tsyringe";
 import { plainToClass } from 'class-transformer';

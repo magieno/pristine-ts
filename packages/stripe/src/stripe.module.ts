@@ -1,5 +1,6 @@
 import {ModuleInterface} from "@pristine-ts/common";
 import {StripeModuleKeyname} from "./stripe.module.keyname";
+import {NetworkingModule} from "@pristine-ts/networking";
 
 export * from './clients/clients';
 export * from './enums/enums';
@@ -16,5 +17,7 @@ export const StripeModule: ModuleInterface = {
             isRequired: true,
         }
     ],
-    importModules: [],
+    importModules: [
+        NetworkingModule,
+    ],
 }

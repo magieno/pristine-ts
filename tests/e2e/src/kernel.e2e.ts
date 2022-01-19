@@ -17,13 +17,10 @@ import {
     tag,
     moduleScoped,
     IdentityInterface,
-    RequestInterface, HttpMethod
+    HttpMethod
 } from "@pristine-ts/common";
 import {
     Kernel,
-    RequestInterceptorInterface,
-    ResponseInterceptorInterface,
-    ErrorResponseInterceptorInterface,
     CoreModule,
 } from "@pristine-ts/core";
 import {AuthenticationManagerInterface, AuthorizerManagerInterface} from "@pristine-ts/security";

@@ -4,9 +4,8 @@ import {DynamoDbTable} from "@awslabs-community-fork/dynamodb-data-mapper";
 import {LoggingModule, LogHandlerInterface} from "@pristine-ts/logging";
 import {DependencyContainer} from "tsyringe";
 import {AwsModuleKeyname} from "./aws.module.keyname";
-import {BooleanResolver, EnumResolver, EnvironmentVariableResolver} from "@pristine-ts/configuration";
+import {EnvironmentVariableResolver} from "@pristine-ts/configuration";
 import {CoreModule} from "@pristine-ts/core";
-import {ApiGatewayEventsHandlingStrategyEnum} from "../../aws-api-gateway/src/enums/api-gateway-events-handling-strategy.enum";
 
 export * from "./clients/clients";
 export * from "./decorators/decorators";

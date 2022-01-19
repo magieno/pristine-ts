@@ -6,7 +6,7 @@ import {controller, NetworkingModule, route} from "@pristine-ts/networking";
 import {JwtModule, jwtPayload, JwtProtectedGuard} from "@pristine-ts/jwt";
 import {CoreModule} from "@pristine-ts/core";
 import {JWTKeys} from "./jwt.keys";
-import {AppModuleInterface, HttpMethod, RequestInterface} from "@pristine-ts/common";
+import {AppModuleInterface, HttpMethod} from "@pristine-ts/common";
 import {guard} from "@pristine-ts/security";
 
 describe("JWT Module instantiation in the Kernel", () => {
@@ -42,7 +42,7 @@ describe("JWT Module instantiation in the Kernel", () => {
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        const request: RequestInterface = {
+        const request: Request = {
             httpMethod: HttpMethod.Get,
             url: "http://localhost:8080/api/2.0/jwt/services",
             headers: {
@@ -80,7 +80,7 @@ describe("JWT Module instantiation in the Kernel", () => {
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        const request: RequestInterface = {
+        const request: Request = {
             httpMethod: HttpMethod.Get,
             url: "http://localhost:8080/api/2.0/jwt/services",
             headers: {

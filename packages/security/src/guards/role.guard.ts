@@ -1,7 +1,8 @@
 import {inject, injectable} from "tsyringe";
-import {IdentityInterface, RequestInterface} from "@pristine-ts/common";
+import {IdentityInterface} from "@pristine-ts/common";
 import {GuardInterface} from "../interfaces/guard.interface";
 import {GuardContextInterface} from "../interfaces/guard-context.interface";
+import {Request} from "@pristine-ts/common";
 
 @injectable()
 export class RoleGuard implements GuardInterface {
@@ -18,7 +19,7 @@ export class RoleGuard implements GuardInterface {
         return Promise.resolve();
     }
 
-    async isAuthorized(request: RequestInterface, identity?: IdentityInterface): Promise<boolean> {
+    async isAuthorized(request: Request, identity?: IdentityInterface): Promise<boolean> {
         const neededRoles: string[] = [];
 
         if(this.guardContext === undefined) {

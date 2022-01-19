@@ -1,6 +1,6 @@
 import {IsInt, Max, Min} from "class-validator";
 import {controller, NetworkingModule, route} from "@pristine-ts/networking";
-import {HttpMethod, RequestInterface} from "@pristine-ts/common";
+import {HttpMethod} from "@pristine-ts/common";
 import {bodyValidation, ValidationModule} from "@pristine-ts/validation";
 import {CoreModule, Kernel} from "@pristine-ts/core";
 import {injectable} from "tsyringe";
@@ -35,7 +35,7 @@ describe("Request Body Converter", () => {
     })
 
     it("should throw an error if the header Content-Type contains 'application/json' and the body contains invalid JSON.", async () => {
-        const request: RequestInterface = {
+        const request: Request = {
             httpMethod: HttpMethod.Get,
             url: "http://localhost:8080/test",
             body: "{allo:fdfsa,}",
@@ -92,7 +92,7 @@ describe("Request Body Converter", () => {
             "pristine.core.requestBodyConverterActive": true,
         });
 
-        const request: RequestInterface = {
+        const request: Request = {
             httpMethod: HttpMethod.Get,
             url: "http://localhost:8080/test",
             body: "{allo:fdfsa,}",

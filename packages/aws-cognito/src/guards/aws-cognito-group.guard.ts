@@ -1,6 +1,7 @@
 import {inject, injectable} from "tsyringe";
-import {IdentityInterface, RequestInterface} from "@pristine-ts/common";
+import {IdentityInterface} from "@pristine-ts/common";
 import {GuardContextInterface, GuardInterface} from "@pristine-ts/security";
+import {Request} from "@pristine-ts/common";
 
 /**
  * A guard for which you can specify the Cognito groups that a user needs to access call. To be used with the @guard decorator (ie:
@@ -27,7 +28,7 @@ export class AwsCognitoGroupGuard implements GuardInterface {
      * @param request The request being made.
      * @param identity The identity making the request.
      */
-    async isAuthorized(request: RequestInterface, identity?: IdentityInterface): Promise<boolean> {
+    async isAuthorized(request: Request, identity?: IdentityInterface): Promise<boolean> {
         const neededGroups: string[] = [];
         if(this.guardContext === undefined) {
             return false;

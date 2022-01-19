@@ -4,7 +4,7 @@ import {controller, NetworkingModule, route} from "@pristine-ts/networking";
 import {bodyValidation, ValidationModule} from "@pristine-ts/validation";
 import {IsInt, Max, Min} from "class-validator";
 import {CoreModule, Kernel} from "@pristine-ts/core";
-import {HttpMethod, RequestInterface} from "@pristine-ts/common";
+import {HttpMethod} from "@pristine-ts/common";
 
 describe("Request Body Validation", () => {
 
@@ -45,7 +45,7 @@ describe("Request Body Validation", () => {
     })
 
     it("should validate the instance passed as a request body and return success when there are no validation errors", async () => {
-        const request: RequestInterface = {
+        const request: Request = {
             httpMethod: HttpMethod.Get,
             url: "http://localhost:8080/test",
             body: {
@@ -61,7 +61,7 @@ describe("Request Body Validation", () => {
     })
 
     it("should validate the instance passed as a request body and return a response error when there are validation errors", async () => {
-        const request: RequestInterface = {
+        const request: Request = {
             httpMethod: HttpMethod.Get,
             url: "http://localhost:8080/test",
             body: {

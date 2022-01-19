@@ -1,8 +1,8 @@
-import {RequestInterface} from "@pristine-ts/common";
-
 /**
  * This Response object represents the class used internally that represents a Response.
  */
+import {Request} from "./request";
+
 export class Response {
     /**
      * The status code of the response. By default we return a 200.
@@ -22,5 +22,5 @@ export class Response {
     /**
      * The request that triggered this response.
      */
-    request?: RequestInterface;
+    request?: Request;
 }

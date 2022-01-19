@@ -1,6 +1,6 @@
 import "reflect-metadata"
 import {AwsCognitoAuthenticator} from "./aws-cognito.authenticator";
-import {HttpMethod, RequestInterface} from "@pristine-ts/common";
+import {HttpMethod, Request} from "@pristine-ts/common";
 import * as jwt from "jsonwebtoken";
 import {HttpClientInterface, HttpRequestInterface, HttpResponseInterface} from "@pristine-ts/http";
 import {LogHandlerInterface} from "@pristine-ts/logging";
@@ -112,13 +112,9 @@ describe("AWS Cognito authenticator ", () => {
     it("should validateRequestAndReturnToken", async () => {
         const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
 
-        const request: RequestInterface = {
-            body: {},
-            url: "",
-            httpMethod: HttpMethod.Get,
-            headers: {
-                "Authorization": "Bearer " + "token",
-            }
+        const request: Request = new Request(HttpMethod.Get, "");
+        request.headers = {
+            "Authorization": "Bearer " + "token",
         }
         expect(cognitoAuthenticator["validateRequestAndReturnToken"](request)).toBe("token");
     });
@@ -126,56 +122,43 @@ describe("AWS Cognito authenticator ", () => {
     it("should not validateRequestAndReturnToken if not headers", async () => {
         const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
 
-        const request: RequestInterface = {
-            body: {},
-            url: "",
-            httpMethod: HttpMethod.Get,
-            headers: undefined
-        }
+        const request: Request = new Request(HttpMethod.Get, "");
+
         expect(() => cognitoAuthenticator["validateRequestAndReturnToken"](request)).toThrow(new Error("The Authorization header wasn't found in the Request."));
     });
 
     it("should not validateRequestAndReturnToken if no authorization header", async () => {
         const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
 
-        const request: RequestInterface = {
-            body: {},
-            url: "",
-            httpMethod: HttpMethod.Get,
-            headers: {
-                hello: "string"
-            }
+        const request: Request = new Request(HttpMethod.Get, "");
+        request.headers = {
+            hello: "string"
         }
+
         expect(() => cognitoAuthenticator["validateRequestAndReturnToken"](request)).toThrow(new Error("The Authorization header wasn't found in the Request."));
     });
 
     it("should not validateRequestAndReturnToken if authorization header undefined", async () => {
         const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
 
-        const request: RequestInterface = {
-            body: {},
-            url: "",
-            httpMethod: HttpMethod.Get,
-            headers: {
-                // @ts-ignore
-                "Authorization": undefined
-            }
+        const request: Request = new Request(HttpMethod.Get, "");
+        request.headers = {
+            // @ts-ignore
+            "Authorization": undefined
         }
+
         expect(() => cognitoAuthenticator["validateRequestAndReturnToken"](request)).toThrow(new Error("The Authorization header wasn't found in the Request."));
     });
 
     it("should not validateRequestAndReturnToken if authorization header does not start with Bearer", async () => {
         const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
 
-        const request: RequestInterface = {
-            body: {},
-            url: "",
-            httpMethod: HttpMethod.Get,
-            headers: {
-                // @ts-ignore
-                "Authorization": "token"
-            }
+        const request: Request = new Request(HttpMethod.Get, "");
+        request.headers = {
+            // @ts-ignore
+            "Authorization": "token"
         }
+
         expect(() => cognitoAuthenticator["validateRequestAndReturnToken"](request)).toThrow(new Error("The value in Authorization header doesn't start with 'Bearer '"));
     });
 
@@ -241,15 +224,11 @@ describe("AWS Cognito authenticator ", () => {
     it("should authenticate", async () => {
         const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
 
-        const request: RequestInterface = {
-            body: {},
-            url: "",
-            httpMethod: HttpMethod.Get,
-            headers: {
-                // @ts-ignore
-                "Authorization": "Bearer " + jwt.sign(payload, privateKey, { algorithm: 'RS256', keyid: tokenHeader.kid})
-            }
+        const request: Request = new Request(HttpMethod.Get, "");
+        request.headers = {
+            "Authorization": "Bearer " + jwt.sign(payload, privateKey, { algorithm: 'RS256', keyid: tokenHeader.kid})
         }
+
         expect(await cognitoAuthenticator["authenticate"](request)).toEqual({
             id: payload["cognito:username"],
             claims: payload

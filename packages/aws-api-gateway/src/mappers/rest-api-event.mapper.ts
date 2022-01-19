@@ -1,4 +1,4 @@
-import {HttpMethod, moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {HttpMethod, moduleScoped, Request, Response, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {inject, injectable} from "tsyringe";
 import {
     Event,
@@ -12,7 +12,6 @@ import {RestApiEventResponsePayload} from "../event-response-payloads/rest-api.e
 import {RestApiEventPayload} from "../event-payloads/rest-api.event-payload";
 import {ApiGatewayEventTypeEnum} from "../enums/api-gateway-event-type.enum";
 import {ApiGatewayEventsHandlingStrategyEnum} from "../enums/api-gateway-events-handling-strategy.enum";
-import {Request, Response} from "@pristine-ts/networking";
 import {AwsApiGatewayModuleKeyname} from "../aws-api-gateway.module.keyname";
 import {BaseApiEventMapper} from "./base-api-event.mapper";
 
@@ -38,13 +37,10 @@ export class RestApiEventMapper extends BaseApiEventMapper implements EventMappe
 
         switch (this.restApiEventsHandlingStrategy) {
             case ApiGatewayEventsHandlingStrategyEnum.Request:
-                const request = new Request({
-                    url: rawEvent.path,
-                    httpMethod: this.mapHttpMethod(rawEvent.httpMethod),
-                    headers: rawEvent.headers,
-                    body: rawEvent.body,
-                    rawBody: rawEvent.body,
-                })
+                const request = new Request(this.mapHttpMethod(rawEvent.httpMethod), rawEvent.path);
+                request.headers = rawEvent.headers;
+                request.body = rawEvent.body;
+                request.rawBody = rawEvent.body;
 
                 return {
                     executionOrder: "sequential",

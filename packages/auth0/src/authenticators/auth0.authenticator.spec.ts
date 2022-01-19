@@ -1,6 +1,6 @@
 import "reflect-metadata"
 import {Auth0Authenticator} from "./auth0.authenticator";
-import {HttpMethod, RequestInterface} from "@pristine-ts/common";
+import {HttpMethod, Request} from "@pristine-ts/common";
 import * as jwt from "jsonwebtoken";
 import {HttpClientInterface, HttpRequestInterface, HttpResponseInterface} from "@pristine-ts/http";
 import {LogHandlerInterface} from "@pristine-ts/logging";
@@ -112,70 +112,52 @@ describe("Auth0 authenticator ", () => {
     it("should validateRequestAndReturnToken", async () => {
         const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
 
-        const request: RequestInterface = {
-            body: {},
-            url: "",
-            httpMethod: HttpMethod.Get,
-            headers: {
-                "Authorization": "Bearer " + "token",
-            }
-        }
+        const request: Request = new Request(HttpMethod.Get, "");
+        request.headers = {
+            "Authorization": "Bearer " + "token",
+        };
+
         expect(auth0Authenticator["validateRequestAndReturnToken"](request)).toBe("token");
     });
 
     it("should not validateRequestAndReturnToken if not headers", async () => {
         const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
 
-        const request: RequestInterface = {
-            body: {},
-            url: "",
-            httpMethod: HttpMethod.Get,
-            headers: undefined
-        }
+        const request: Request = new Request(HttpMethod.Get, "");
+
         expect(() => auth0Authenticator["validateRequestAndReturnToken"](request)).toThrow(new Error("The Authorization header wasn't found in the Request."));
     });
 
     it("should not validateRequestAndReturnToken if no authorization header", async () => {
         const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
 
-        const request: RequestInterface = {
-            body: {},
-            url: "",
-            httpMethod: HttpMethod.Get,
-            headers: {
-                hello: "string"
-            }
-        }
+        const request: Request = new Request(HttpMethod.Get, "");
+        request.headers = {
+            hello: "string"
+        };
+
         expect(() => auth0Authenticator["validateRequestAndReturnToken"](request)).toThrow(new Error("The Authorization header wasn't found in the Request."));
     });
 
     it("should not validateRequestAndReturnToken if authorization header undefined", async () => {
         const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
 
-        const request: RequestInterface = {
-            body: {},
-            url: "",
-            httpMethod: HttpMethod.Get,
-            headers: {
-                // @ts-ignore
-                "Authorization": undefined
-            }
+        const request: Request = new Request(HttpMethod.Get, "");
+        request.headers = {
+            "Authorization": undefined
         }
+
         expect(() => auth0Authenticator["validateRequestAndReturnToken"](request)).toThrow(new Error("The Authorization header wasn't found in the Request."));
     });
 
     it("should not validateRequestAndReturnToken if authorization header does not start with Bearer", async () => {
         const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
 
-        const request: RequestInterface = {
-            body: {},
-            url: "",
-            httpMethod: HttpMethod.Get,
-            headers: {
-                // @ts-ignore
-                "Authorization": "token"
-            }
+        const request: Request = new Request(HttpMethod.Get, "");
+        request.headers = {
+            "Authorization": "token"
         }
+
         expect(() => auth0Authenticator["validateRequestAndReturnToken"](request)).toThrow(new Error("The value in Authorization header doesn't start with 'Bearer '"));
     });
 
@@ -282,15 +264,11 @@ describe("Auth0 authenticator ", () => {
         }
 
         await auth0Authenticator.setContext(context);
-        const request: RequestInterface = {
-            body: {},
-            url: "",
-            httpMethod: HttpMethod.Get,
-            headers: {
-                // @ts-ignore
-                "Authorization": "Bearer " + jwt.sign(payload, privateKey, { algorithm: 'RS256', keyid: tokenHeader.kid})
-            }
+        const request: Request = new Request(HttpMethod.Get, "");
+        request.headers = {
+            "Authorization": "Bearer " + jwt.sign(payload, privateKey, { algorithm: 'RS256', keyid: tokenHeader.kid})
         }
+
         expect(await auth0Authenticator["authenticate"](request)).toEqual({
             id: payload.sub,
             claims: payload

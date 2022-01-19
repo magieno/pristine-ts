@@ -4,7 +4,7 @@ import {CoreModule, Kernel} from "@pristine-ts/core";
 import {controller, identity, NetworkingModule, route} from "@pristine-ts/networking";
 import {authenticator, guard, SecurityModule, SecurityModuleKeyname} from "@pristine-ts/security";
 import {AwsCognitoGroupGuard} from "@pristine-ts/aws-cognito";
-import {HttpMethod, IdentityInterface, ModuleInterface, RequestInterface, tag} from "@pristine-ts/common";
+import {HttpMethod, IdentityInterface, ModuleInterface, tag} from "@pristine-ts/common";
 import * as jwt from "jsonwebtoken";
 import {HttpClientInterface, HttpRequestInterface, HttpResponseInterface} from "@pristine-ts/http";
 import {Auth0Authenticator, Auth0Module, Auth0ModuleKeyname} from "@pristine-ts/auth0";
@@ -120,7 +120,7 @@ describe("Auth0 authenticator", () => {
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        const request: RequestInterface = {
+        const request: Request = {
             url: "https://localhost:8080/api/identity",
             httpMethod: HttpMethod.Get,
             body: {},
@@ -164,7 +164,7 @@ describe("Auth0 authenticator", () => {
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        const request: RequestInterface = {
+        const request: Request = {
             url: "https://localhost:8080/api/identity",
             httpMethod: HttpMethod.Get,
             body: {},
@@ -209,7 +209,7 @@ describe("Auth0 authenticator", () => {
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        const request: RequestInterface = {
+        const request: Request = {
             url: "https://localhost:8080/api/identity",
             httpMethod: HttpMethod.Get,
             body: {},
@@ -254,7 +254,7 @@ describe("Auth0 authenticator", () => {
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        const request: RequestInterface = {
+        const request: Request = {
             url: "https://localhost:8080/api/identity",
             httpMethod: HttpMethod.Get,
             body: {},

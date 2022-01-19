@@ -7,7 +7,7 @@ import {PermissionManager} from "../src/managers/permission.manager";
 import {controller, identity, NetworkingModule, route, routeParameter} from "@pristine-ts/networking";
 import {authenticator, guard, SecurityModule, SecurityModuleKeyname} from "@pristine-ts/security";
 import {AwsCognitoAuthenticator, AwsCognitoGroupGuard, AwsCognitoModule} from "@pristine-ts/aws-cognito";
-import {HttpMethod, IdentityInterface, ModuleInterface, RequestInterface, tag} from "@pristine-ts/common";
+import {HttpMethod, IdentityInterface, ModuleInterface, tag} from "@pristine-ts/common";
 import * as jwt from "jsonwebtoken";
 import {HttpClientInterface, HttpRequestInterface, HttpResponseInterface} from "@pristine-ts/http";
 
@@ -121,7 +121,7 @@ describe("Aws cognito authenticator", () => {
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        const request: RequestInterface = {
+        const request: Request = {
             url: "https://localhost:8080/api/identity",
             httpMethod: HttpMethod.Get,
             body: {},
@@ -165,7 +165,7 @@ describe("Aws cognito authenticator", () => {
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        const request: RequestInterface = {
+        const request: Request = {
             url: "https://localhost:8080/api/identity",
             httpMethod: HttpMethod.Get,
             body: {},

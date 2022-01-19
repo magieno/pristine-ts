@@ -1,5 +1,5 @@
 import {injectable} from "tsyringe";
-import {Response as PristineResponse} from "@pristine-ts/networking";
+import {Response as PristineResponse} from "@pristine-ts/common";
 import {HeadersMapper} from "./headers.mapper";
 
 @injectable()

@@ -2,7 +2,7 @@ import "reflect-metadata"
 import {container, singleton} from "tsyringe";
 import {CoreModule, ExecutionContextKeynameEnum, Kernel} from "@pristine-ts/core";
 import {controller, NetworkingModule, Response, responseHeader, route} from "@pristine-ts/networking";
-import {AppModuleInterface, HttpMethod, RequestInterface} from "@pristine-ts/common";
+import {AppModuleInterface, HttpMethod} from "@pristine-ts/common";
 
 @controller("/api")
 @singleton()
@@ -39,7 +39,7 @@ describe("Response header interception", () => {
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        const request: RequestInterface = {
+        const request: Request = {
             url: "https://localhost:8080/api/test",
             httpMethod: HttpMethod.Get,
             body: {},

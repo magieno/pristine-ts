@@ -1,9 +1,7 @@
 import {Event, EventHandlerInterface, EventResponse} from "@pristine-ts/core";
 import {injectable, inject, DependencyContainer} from "tsyringe";
-import {Response} from "../models/response";
-import {Request} from "../models/request";
 import {RouterInterface} from "../interfaces/router.interface";
-import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {moduleScoped, Request, Response, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {TracingManagerInterface} from "@pristine-ts/telemetry";
 import {NetworkingModuleKeyname} from "../networking.module.keyname";
 
