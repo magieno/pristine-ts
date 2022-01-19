@@ -1,4 +1,4 @@
-import {RouterRequestEnricherInterface, Request, MethodRouterNode} from "@pristine-ts/networking";
+import {RequestInterceptorInterface, Request, MethodRouterNode} from "@pristine-ts/networking";
 import {validate} from "class-validator";
 import {BadRequestHttpError} from "@pristine-ts/networking";
 import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
@@ -8,13 +8,13 @@ import { plainToClass } from 'class-transformer';
 import {LogHandlerInterface} from "@pristine-ts/logging";
 
 @moduleScoped(ValidationModuleKeyname)
-@tag(ServiceDefinitionTagEnum.RouterRequestEnricher)
+@tag(ServiceDefinitionTagEnum.RequestInterceptor)
 @injectable()
-export class BodyValidationRequestEnricher implements RouterRequestEnricherInterface {
+export class BodyValidationRequestInterceptor implements RequestInterceptorInterface {
     constructor(@inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface) {
     }
 
-    async enrichRequest(request: Request, methodNode: MethodRouterNode): Promise<Request> {
+    async interceptRequest(request: Request, methodNode: MethodRouterNode): Promise<Request> {
         if(methodNode.route.context.bodyValidator === undefined || methodNode.route.context.bodyValidator.classType === undefined) {
             return request;
         }

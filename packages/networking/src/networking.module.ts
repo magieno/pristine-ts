@@ -4,7 +4,6 @@ import {SecurityModule} from "@pristine-ts/security";
 import {TelemetryModule} from "@pristine-ts/telemetry";
 
 export * from "./decorators/decorators";
-export * from "./enrichers/enrichers";
 export * from "./errors/errors";
 export * from "./interfaces/interfaces";
 export * from "./models/models";
