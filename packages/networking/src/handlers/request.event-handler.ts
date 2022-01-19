@@ -3,9 +3,12 @@ import {injectable, inject, DependencyContainer} from "tsyringe";
 import {Response} from "../models/response";
 import {Request} from "../models/request";
 import {RouterInterface} from "../interfaces/router.interface";
-import {ServiceDefinitionTagEnum} from "@pristine-ts/common";
+import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {TracingManagerInterface} from "@pristine-ts/telemetry";
+import {NetworkingModuleKeyname} from "../networking.module.keyname";
 
+@moduleScoped(NetworkingModuleKeyname)
+@tag(ServiceDefinitionTagEnum.EventHandler)
 @injectable()
 export class RequestEventHandler implements EventHandlerInterface<Request, Response> {
     priority: number = 10000; // Arbitrarily set to 10 000 so that another handler can have more priority, but be certain you know what you are doing.

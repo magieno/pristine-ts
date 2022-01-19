@@ -26,7 +26,7 @@ describe("Body Validation Request Enricher", () => {
     }
 
     it("should simply return the request if the bodyValidator is undefined", async () => {
-        const bodyValidationRequestEnricher = new BodyValidationRequestInterceptor(logHandlerMock);
+        const bodyValidationRequestInterceptor = new BodyValidationRequestInterceptor(logHandlerMock);
 
         const request: Request = new Request({
             url: "url",
@@ -41,7 +41,7 @@ describe("Body Validation Request Enricher", () => {
 
         const methodRouterNode: MethodRouterNode = new MethodRouterNode(new PathRouterNode("/"), HttpMethod.Get, route, 1)
 
-        const returnedRequest = await bodyValidationRequestEnricher.interceptRequest(request, methodRouterNode);
+        const returnedRequest = await bodyValidationRequestInterceptor.interceptRequest(request, methodRouterNode);
 
         expect(returnedRequest).toBe(request);
     })

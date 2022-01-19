@@ -1,8 +1,8 @@
 import "reflect-metadata"
 import {container, singleton} from "tsyringe";
-import {CoreModule, Kernel} from "@pristine-ts/core";
-import {controller, NetworkingModule, responseHeader, route} from "@pristine-ts/networking";
-import {ModuleInterface, RequestInterface, HttpMethod} from "@pristine-ts/common";
+import {CoreModule, ExecutionContextKeynameEnum, Kernel} from "@pristine-ts/core";
+import {controller, NetworkingModule, Response, responseHeader, route} from "@pristine-ts/networking";
+import {AppModuleInterface, HttpMethod, RequestInterface} from "@pristine-ts/common";
 
 @controller("/api")
 @singleton()
@@ -16,7 +16,8 @@ class TestController {
     }
 }
 
-const moduleTest: ModuleInterface = {
+const moduleTest: AppModuleInterface = {
+    importServices: [],
     keyname: "Module",
     importModules: [
         CoreModule,
@@ -24,16 +25,16 @@ const moduleTest: ModuleInterface = {
     ]
 }
 
-describe("Response header enricher", () => {
+describe("Response header interception", () => {
     beforeEach(async () => {
         // Very import to clear the instances in between executions.
         container.clearInstances();
     })
 
-    it("should enrich the response with the specified header", async () => {
+    it("should intercept the response and augment it with the specified header", async () => {
 
         const kernel = new Kernel();
-        await kernel.init(moduleTest, {
+        await kernel.start(moduleTest, {
             "pristine.logging.consoleLoggerActivated": false,
             "pristine.logging.fileLoggerActivated": false,
         });
@@ -44,8 +45,9 @@ describe("Response header enricher", () => {
             body: {},
         }
 
-        const response = await kernel.handleRequest(request);
+        const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
 
+        expect(response instanceof Response).toBeTruthy();
         expect(response.status).toBe(200);
         expect(response.body).toEqual("test");
         expect(response.headers).toEqual({"header1": "value1", "Cache-Control": "no-cache"});

@@ -4,7 +4,7 @@ import {NetworkingModule} from "@pristine-ts/networking";
 import {CoreModule} from "@pristine-ts/core";
 
 export * from "./decorators/decorators";
-export * from "./enrichers/enrichers";
+export * from "./interceptors/interceptors";
 
 export * from "./validation.module.keyname";
 

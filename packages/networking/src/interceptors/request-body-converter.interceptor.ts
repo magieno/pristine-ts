@@ -10,7 +10,7 @@ import {InvalidBodyHttpError} from "../errors/invalid-body.http-error";
 @moduleScoped(NetworkingModuleKeyname)
 @injectable()
 export class RequestBodyConverterInterceptor implements RequestInterceptorInterface {
-    constructor(@inject("%" + NetworkingModuleKeyname + ".requestBodyConverterActive%") private readonly isActive: boolean,
+    constructor(@inject("%" + NetworkingModuleKeyname + ".request_body_converter.is_active%") private readonly isActive: boolean,
                 @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface) {
     }
 

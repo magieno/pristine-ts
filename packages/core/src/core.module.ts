@@ -13,7 +13,9 @@ export * from "./handlers/handlers";
 export * from "./interceptors/interceptors";
 export * from "./interfaces/interfaces";
 export * from "./listeners/listeners";
+export * from "./mappers/mappers";
 export * from "./models/models";
+export * from "./pipelines/pipelines";
 
 export * from "./core.module.keyname";
 
