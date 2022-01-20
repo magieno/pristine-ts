@@ -1,8 +1,8 @@
 import "reflect-metadata"
 import {container, singleton} from "tsyringe";
 import {CoreModule, ExecutionContextKeynameEnum, Kernel} from "@pristine-ts/core";
-import {controller, NetworkingModule, Response, responseHeader, route} from "@pristine-ts/networking";
-import {AppModuleInterface, HttpMethod} from "@pristine-ts/common";
+import {controller, NetworkingModule, responseHeader, route} from "@pristine-ts/networking";
+import {AppModuleInterface, HttpMethod, Request, Response} from "@pristine-ts/common";
 
 @controller("/api")
 @singleton()
@@ -39,11 +39,7 @@ describe("Response header interception", () => {
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        const request: Request = {
-            url: "https://localhost:8080/api/test",
-            httpMethod: HttpMethod.Get,
-            body: {},
-        }
+        const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/test");
 
         const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
 

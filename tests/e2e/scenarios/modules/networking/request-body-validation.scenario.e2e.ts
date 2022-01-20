@@ -3,8 +3,8 @@ import {injectable} from "tsyringe";
 import {controller, NetworkingModule, route} from "@pristine-ts/networking";
 import {bodyValidation, ValidationModule} from "@pristine-ts/validation";
 import {IsInt, Max, Min} from "class-validator";
-import {CoreModule, Kernel} from "@pristine-ts/core";
-import {HttpMethod} from "@pristine-ts/common";
+import {CoreModule, ExecutionContextKeynameEnum, Kernel} from "@pristine-ts/core";
+import {HttpMethod, Request, Response} from "@pristine-ts/common";
 
 describe("Request Body Validation", () => {
 
@@ -34,9 +34,14 @@ describe("Request Body Validation", () => {
 
     beforeAll(async () => {
         kernel = new Kernel();
-        await kernel.init({
+        await kernel.start({
+            importServices: [],
             keyname: "pristine.validation.test",
-            importModules: [CoreModule, NetworkingModule, ValidationModule],
+            importModules: [
+                CoreModule,
+                NetworkingModule,
+                ValidationModule
+            ],
             providerRegistrations: []
         }, {
             "pristine.logging.consoleLoggerActivated": false,
@@ -45,32 +50,26 @@ describe("Request Body Validation", () => {
     })
 
     it("should validate the instance passed as a request body and return success when there are no validation errors", async () => {
-        const request: Request = {
-            httpMethod: HttpMethod.Get,
-            url: "http://localhost:8080/test",
-            body: {
-                minimumValue: 10,
-                maximumValue: 5,
-            },
+        const request: Request = new Request(HttpMethod.Get, "http://localhost:8080/test");
+        request.body = {
+            minimumValue: 10,
+            maximumValue: 5,
         };
 
-        const response = await kernel.handleRequest(request);
+        const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
 
         expect(response.status).toBe(200)
         expect(response.body.response).toBeTruthy()
     })
 
     it("should validate the instance passed as a request body and return a response error when there are validation errors", async () => {
-        const request: Request = {
-            httpMethod: HttpMethod.Get,
-            url: "http://localhost:8080/test",
-            body: {
-                minimumValue: 10,
-                maximumValue: 15,
-            },
+        const request: Request = new Request(HttpMethod.Get, "http://localhost:8080/test");
+        request.body = {
+            minimumValue: 10,
+            maximumValue: 15,
         };
 
-        const response = await kernel.handleRequest(request);
+        const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
 
         expect(response.status).toBe(400)
         expect(response.body.message).toBe("Validation error")
