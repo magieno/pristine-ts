@@ -28,7 +28,6 @@ describe("Express - Request Execution", () => {
             await kernel.handle(req, {keyname: ExecutionContextKeynameEnum.Express, context: {req, res}}) as Response
         });
 
-
         const server = app.listen(0, async () => {
             await kernel.start({
                 keyname: "PRISTINE_E2E_EXPRESS",
@@ -52,6 +51,13 @@ describe("Express - Request Execution", () => {
             expect(response.body).toStrictEqual(JSON.stringify({
                 healthy: true,
             }))
+
+            const errorResponse = await httpClientWrapper.executeRequest({
+                url: "http://127.0.0.1:" + port + "/not_found",
+                httpMethod: HttpMethod.Get,
+            })
+
+            expect(errorResponse.status).toBe(404)
 
             done();
 

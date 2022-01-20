@@ -6,6 +6,7 @@ import {JwtModule, JwtProtectedGuard, jwtPayload} from "@pristine-ts/jwt";
 import {JWTKeys} from "./jwt.keys";
 import {AppModuleInterface, HttpMethod, Request, Response} from "@pristine-ts/common";
 import {guard} from "@pristine-ts/security";
+import {ConfigurationValidationError} from "@pristine-ts/configuration";
 
 describe("JWT Module instantiation in the Kernel", () => {
 
@@ -56,8 +57,17 @@ describe("JWT Module instantiation in the Kernel", () => {
         })
     })
 
-    it("should throw an error when the configuration is not defined properly", () => {
-        expect(false).toBeTruthy();
+    it("should throw an error when the configuration the public key is not defined", async () => {
+        const kernel = new Kernel();
+        return expect(kernel.start({
+            keyname: "jwt.test",
+            importServices: [
+                JwtTestController,
+            ],
+            importModules: [CoreModule, NetworkingModule, JwtModule],
+            providerRegistrations: [],
+        } as AppModuleInterface, {
+        })).rejects.toThrow(new ConfigurationValidationError(["The Configuration with key: 'pristine.jwt.publicKey' is required and must be defined."]));
     })
 
     it("should return a forbidden exception when the JWT is invalid", async () => {
