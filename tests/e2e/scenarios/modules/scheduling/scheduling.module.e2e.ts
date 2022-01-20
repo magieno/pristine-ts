@@ -2,7 +2,7 @@ import "reflect-metadata"
 import {container} from "tsyringe";
 import {CoreModule, Kernel} from "@pristine-ts/core";
 import {AppModuleInterface} from "@pristine-ts/common";
-import {SchedulerManager, SchedulingModule} from "@pristine-ts/scheduling/src/scheduling.module";
+import {SchedulerManager, SchedulingModule} from "@pristine-ts/scheduling";
 
 describe("Schedulinng Module instantiation in the Kernel", () => {
 
@@ -13,7 +13,7 @@ describe("Schedulinng Module instantiation in the Kernel", () => {
 
     it("should instantiate the scheduling module", async () => {
         const kernel = new Kernel();
-        await kernel.init({
+        await kernel.start({
             keyname: "e2e.scheduling",
             importServices: [
             ],
@@ -29,7 +29,7 @@ describe("Schedulinng Module instantiation in the Kernel", () => {
 
     it('should instantiate all the services', async() => {
         const kernel = new Kernel();
-        await kernel.init({
+        await kernel.start({
             keyname: "e2e.scheduling",
             importServices: [
             ],

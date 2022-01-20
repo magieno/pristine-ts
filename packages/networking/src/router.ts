@@ -393,12 +393,20 @@ export class Router implements RouterInterface {
         let interceptedResponse = new Response();
         if(error instanceof HttpError) {
             interceptedResponse.status = error.httpStatus;
+            interceptedResponse.body = {
+                name: error.name,
+                message: error.message,
+                stack: error.stack,
+                errors: error.errors,
+                extra: error.extra,
+            }
         }
         else {
             interceptedResponse.status = 500;
+            interceptedResponse.body = {name: error.name, message: error.message, stack: error.stack};
         }
 
-        interceptedResponse.body = {name: error.name, message: error.message, stack: error.stack};
+
         interceptedResponse.request = request;
 
         // Check first if there are any Request interceptors

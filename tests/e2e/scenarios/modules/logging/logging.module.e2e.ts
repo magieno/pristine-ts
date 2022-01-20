@@ -24,10 +24,11 @@ describe("Logging Module instantiation in the Kernel", () => {
     it("should log properly", async () => {
 
         const kernel = new Kernel();
-        await kernel.init({
+        await kernel.start({
             keyname: "logging.test",
             importModules: [CoreModule, NetworkingModule, LoggingModule],
-            providerRegistrations: []
+            providerRegistrations: [],
+            importServices: [],
         }, {
             "pristine.logging.numberOfStackedLogs": 10,
             "pristine.logging.logSeverityLevelConfiguration": 0,
@@ -48,8 +49,6 @@ describe("Logging Module instantiation in the Kernel", () => {
         await new Promise(res => setTimeout(res, 1000));
 
         expect(global.console.info).toHaveBeenCalled();
-
-
     })
 
 })

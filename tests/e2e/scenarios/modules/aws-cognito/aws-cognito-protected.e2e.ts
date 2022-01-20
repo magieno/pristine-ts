@@ -1,13 +1,10 @@
 import "reflect-metadata"
-import {singleton, container} from "tsyringe";
-import {CoreModule, Kernel} from "@pristine-ts/core";
-import {testModule} from "../src/test.module";
-import {ResolvedClassModel} from "../src/models/resolved-class.model";
-import {PermissionManager} from "../src/managers/permission.manager";
-import {controller, identity, NetworkingModule, route, routeParameter} from "@pristine-ts/networking";
-import {authenticator, guard, SecurityModule, SecurityModuleKeyname} from "@pristine-ts/security";
+import {container, singleton} from "tsyringe";
+import {CoreModule, ExecutionContextKeynameEnum, Kernel} from "@pristine-ts/core";
+import {controller, NetworkingModule, route, identity} from "@pristine-ts/networking";
+import {authenticator, guard, SecurityModule} from "@pristine-ts/security";
 import {AwsCognitoAuthenticator, AwsCognitoGroupGuard, AwsCognitoModule} from "@pristine-ts/aws-cognito";
-import {HttpMethod, IdentityInterface, ModuleInterface, tag} from "@pristine-ts/common";
+import {AppModuleInterface, HttpMethod, IdentityInterface, Request, Response, tag} from "@pristine-ts/common";
 import * as jwt from "jsonwebtoken";
 import {HttpClientInterface, HttpRequestInterface, HttpResponseInterface} from "@pristine-ts/http";
 
@@ -79,14 +76,15 @@ class TestController {
     }
 }
 
-const moduleTest: ModuleInterface = {
+const moduleTest: AppModuleInterface = {
     keyname: "Module",
     importModules: [
         CoreModule,
         NetworkingModule,
         AwsCognitoModule,
         SecurityModule,
-    ]
+    ],
+    importServices: [],
 }
 
 describe("Aws cognito authenticator", () => {
@@ -115,24 +113,20 @@ describe("Aws cognito authenticator", () => {
         }
 
         const kernel = new Kernel();
-        await kernel.init(moduleTest, {
+        await kernel.start(moduleTest, {
             "pristine.aws-cognito.poolId": "poolId",
             "pristine.logging.consoleLoggerActivated": false,
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        const request: Request = {
-            url: "https://localhost:8080/api/identity",
-            httpMethod: HttpMethod.Get,
-            body: {},
-            headers: {
-                // @ts-ignore
-                "Authorization": "Bearer " + jwt.sign(payload, privateKey, { algorithm: 'RS256', keyid: tokenHeader.kid})
-            }
+        const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/identity");
+        request.headers = {
+            "Authorization": "Bearer " + jwt.sign(payload, privateKey, { algorithm: 'RS256', keyid: tokenHeader.kid})
         }
 
-        const response = await kernel.handleRequest(request);
+        const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
 
+        expect(response instanceof Response).toBeTruthy()
         expect(response.status).toBe(200);
         expect(response.body).toEqual({
             id: "anaya",
@@ -159,28 +153,23 @@ describe("Aws cognito authenticator", () => {
         }
 
         const kernel = new Kernel();
-        await kernel.init(moduleTest, {
+        await kernel.start(moduleTest, {
             "pristine.aws-cognito.poolId": "poolId",
             "pristine.logging.consoleLoggerActivated": false,
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        const request: Request = {
-            url: "https://localhost:8080/api/identity",
-            httpMethod: HttpMethod.Get,
-            body: {},
-            headers: {
-                // @ts-ignore
-                "Authorization": "Bearer " + jwt.sign(payload, privateKey, { algorithm: 'RS256', keyid: tokenHeader.kid})
-            }
+        const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/identity");
+        request.headers = {
+            "Authorization": "Bearer " + jwt.sign(payload, privateKey, { algorithm: 'RS256', keyid: tokenHeader.kid})
         }
 
-        const response = await kernel.handleRequest(request);
+        const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
 
         expect(response.status).toBe(403);
-        expect(response.body).toEqual({
+        expect(response.body).toEqual(expect.objectContaining({
                 message: "You are not allowed to access this.",
                 name: "Error",
-        })
+        }))
     })
 });

@@ -1,26 +1,27 @@
 import "reflect-metadata"
 import {
     CoreModule,
-    Event,
+    Event, EventHandlerInterface,
     EventListenerInterface,
-    EventMappingError,
+    EventMappingError, EventResponse,
     ExecutionContextKeynameEnum,
     Kernel
 } from "@pristine-ts/core";
 import {NetworkingModule} from "@pristine-ts/networking";
 import {SecurityModule} from "@pristine-ts/security";
-import {ModuleInterface, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {AppModuleInterface, ModuleInterface, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {AwsModule, KafkaEventPayload, KafkaEventType} from "@pristine-ts/aws";
+import {injectable} from 'tsyringe';
 
-
-const moduleTest: ModuleInterface = {
+const moduleTest: AppModuleInterface = {
     keyname: "Module",
     importModules: [
         CoreModule,
         AwsModule,
         NetworkingModule,
         SecurityModule,
-    ]
+    ],
+    importServices: [],
 }
 
 
@@ -30,7 +31,7 @@ describe("Handle events", () => {
         it("should throw an error when no support for mapping the event", async () => {
             const rawEvent = {}
             const kernel = new Kernel();
-            await kernel.init(moduleTest, {
+            await kernel.start(moduleTest, {
                 "pristine.logging.consoleLoggerActivated": false,
                 "pristine.logging.fileLoggerActivated": false,
             });
@@ -74,22 +75,24 @@ describe("Handle events", () => {
             }
         };
 
-        @tag(ServiceDefinitionTagEnum.EventListener)
-        class KafkaEventListener implements EventListenerInterface {
-            async execute<KafkaEventPayload>(event: Event<KafkaEventPayload>): Promise<void> {
-                valuesToBeModified.push(event);
-            }
+        @tag(ServiceDefinitionTagEnum.EventHandler)
+        @injectable()
+        class KafkaEventHandler implements EventHandlerInterface<any, any> {
 
             supports<T>(event: Event<T>): boolean {
                 return event.payload instanceof KafkaEventPayload
             }
 
+            async handle(event: Event<any>): Promise<EventResponse<any, any>> {
+                valuesToBeModified.push(event);
+                return new EventResponse(event, {});
+            }
         }
 
         it("should handle a kafka event", async () => {
 
             const kernel = new Kernel();
-            await kernel.init(moduleTest, {
+            await kernel.start(moduleTest, {
                 "pristine.logging.consoleLoggerActivated": false,
                 "pristine.logging.fileLoggerActivated": false,
             });

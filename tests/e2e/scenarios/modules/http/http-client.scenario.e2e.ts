@@ -446,8 +446,8 @@ describe("Http Client", () => {
     // Https Tests
     globalAgent.options.rejectUnauthorized = false
     runTest(createServerHttps({
-        key: readFileSync(__dirname + '/../files/localhost.key'),
-        cert: readFileSync(__dirname + '/../files/localhost.crt'),
+        key: readFileSync(__dirname + '/../../../files/localhost.key'),
+        cert: readFileSync(__dirname + '/../../../files/localhost.crt'),
         rejectUnauthorized: false,
     }), 'https');
 
