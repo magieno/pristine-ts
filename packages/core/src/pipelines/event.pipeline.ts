@@ -139,40 +139,47 @@ export class EventPipeline {
      * @param container
      */
     async execute(event: object, executionContext: ExecutionContextInterface<any>, container: DependencyContainer): Promise<any> {
-        // 1- We have the raw event, we start by executing the PreMapping Interceptors
-        const interceptedEvent = await this.preMappingIntercept(event, executionContext);
-
-        // 2- With the intercepted raw event, run the Events Mapping to get all the Events and the EventsExecutionOptions.
-        // For each event mapper that supports the event, we batch the executions for each mapper. So it's possible to execute the same
-        // event twice. This is up to the EventMappers to properly identify when they map or don't map an event. Pristine
-        // isn't responsible to determine if two events are executed twice, so be careful.
-
         const eventExecutions: EventsExecutionOptionsInterface<any>[] = [];
 
-        let numberOfEventMappers = 0;
-
-        try {
-            this.eventMappers.forEach(eventMapper => {
-                if (eventMapper.supportsMapping(interceptedEvent, executionContext)) {
-                    eventExecutions.push(eventMapper.map(interceptedEvent, executionContext));
-                    numberOfEventMappers++;
-                }
+        // If the event passed is already properly typed, we simply execute it, without mapping and without calling the pre-mapping interceptors
+        if(event instanceof Event) {
+            eventExecutions.push({
+                events: [event],
+                executionOrder: "sequential",
             })
-        } catch (error) {
-            throw new EventMappingError("There was an error mapping the event into an Event object", event, interceptedEvent, executionContext, error)
+        } else {
+            // 1- We have the raw event, we start by executing the PreMapping Interceptors
+            const interceptedEvent = await this.preMappingIntercept(event, executionContext);
+
+            // 2- With the intercepted raw event, run the Events Mapping to get all the Events and the EventsExecutionOptions.
+            // For each event mapper that supports the event, we batch the executions for each mapper. So it's possible to execute the same
+            // event twice. This is up to the EventMappers to properly identify when they map or don't map an event. Pristine
+            // isn't responsible to determine if two events are executed twice, so be careful.
+            let numberOfEventMappers = 0;
+
+            try {
+                this.eventMappers.forEach(eventMapper => {
+                    if (eventMapper.supportsMapping(interceptedEvent, executionContext)) {
+                        eventExecutions.push(eventMapper.map(interceptedEvent, executionContext));
+                        numberOfEventMappers++;
+                    }
+                })
+            } catch (error) {
+                throw new EventMappingError("There was an error mapping the event into an Event object", event, interceptedEvent, executionContext, error)
+            }
+
+            if (numberOfEventMappers === 0) {
+                throw new EventMappingError("There are no Event Mappers that support the event", event, interceptedEvent, executionContext);
+            }
+
+            if (eventExecutions.length === 0 || eventExecutions.reduce((agg, eventExecution) => {
+                return agg + eventExecution.events.length;
+            }, 0) === 0) {
+                throw new EventMappingError("There are no events to execute.", event, interceptedEvent, executionContext)
+            }
         }
 
 
-        if (numberOfEventMappers === 0) {
-            throw new EventMappingError("There are no Event Mappers that support the event", event, interceptedEvent, executionContext);
-        }
-
-
-        if (eventExecutions.length === 0 || eventExecutions.reduce((agg, eventExecution) => {
-            return agg + eventExecution.events.length;
-        }, 0) === 0) {
-            throw new EventMappingError("There are no events to execute.", event, interceptedEvent, executionContext)
-        }
 
         const eventsExecutionPromises: Promise<EventResponse<any, any> | EventResponse<any, any>[]>[] = [];
 

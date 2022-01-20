@@ -5,7 +5,7 @@ import {
     InternalContainerParameterEnum,
     ModuleInterface,
     moduleScopedServicesRegistry,
-    ProviderRegistration,
+    ProviderRegistration, Request,
     ServiceDefinitionTagEnum,
     taggedProviderRegistrationsRegistry,
     TaggedRegistrationInterface
@@ -18,6 +18,7 @@ import {CoreModuleKeyname} from "./core.module.keyname";
 import { v4 as uuidv4 } from 'uuid';
 import {ExecutionContextInterface} from "./interfaces/execution-context.interface";
 import {EventPipeline} from "./pipelines/event.pipeline";
+import {Event} from "./models/event";
 
 /**
  * This is the central class that manages the lifecyle of this library.
@@ -253,7 +254,7 @@ export class Kernel {
      * @param event
      * @param executionContext
      */
-    public async handle<T>(event: object, executionContext: ExecutionContextInterface<T>): Promise<object> {
+    public async handle<T>(event: any | Request | Event<any>, executionContext: ExecutionContextInterface<T>): Promise<object> {
         // todo: Put the code here to start the tracing.
         // previous code:
         //         // Start the tracing

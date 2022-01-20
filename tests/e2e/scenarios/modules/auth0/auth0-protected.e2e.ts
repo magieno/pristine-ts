@@ -1,14 +1,12 @@
 import "reflect-metadata"
 import {container, singleton} from "tsyringe";
-import {CoreModule, Kernel} from "@pristine-ts/core";
-import {controller, identity, NetworkingModule, route} from "@pristine-ts/networking";
-import {authenticator, guard, SecurityModule, SecurityModuleKeyname} from "@pristine-ts/security";
-import {AwsCognitoGroupGuard} from "@pristine-ts/aws-cognito";
-import {HttpMethod, IdentityInterface, ModuleInterface, tag} from "@pristine-ts/common";
+import {CoreModule, ExecutionContextKeynameEnum, Kernel} from "@pristine-ts/core";
+import {controller, NetworkingModule, route, identity} from "@pristine-ts/networking";
+import {authenticator, guard, RoleGuard, SecurityModule, SecurityModuleKeyname} from "@pristine-ts/security";
+import {AppModuleInterface, HttpMethod, IdentityInterface, Request, Response, tag} from "@pristine-ts/common";
 import * as jwt from "jsonwebtoken";
 import {HttpClientInterface, HttpRequestInterface, HttpResponseInterface} from "@pristine-ts/http";
 import {Auth0Authenticator, Auth0Module, Auth0ModuleKeyname} from "@pristine-ts/auth0";
-import {RoleGuard} from "@pristine-ts/security";
 
 const privateKey = "-----BEGIN RSA PRIVATE KEY-----\n" +
     "MIIBOQIBAAJAXmWi+JMuW8v5Ng5sDso+H6wl+i9u7lwMxJrZ+j0VQNEh4E7EwHQM\n" +
@@ -78,7 +76,7 @@ class TestController {
     }
 }
 
-const moduleTest: ModuleInterface = {
+const moduleTest: AppModuleInterface = {
     keyname: "Module",
     importModules: [
         CoreModule,
@@ -86,6 +84,7 @@ const moduleTest: ModuleInterface = {
         Auth0Module,
         SecurityModule,
     ],
+    importServices: [],
 }
 
 describe("Auth0 authenticator", () => {
@@ -113,25 +112,21 @@ describe("Auth0 authenticator", () => {
         }
 
         const kernel = new Kernel();
-        await kernel.init(moduleTest, {
+        await kernel.start(moduleTest, {
             [Auth0ModuleKeyname + ".domain"]: "auth0.com",
             [SecurityModuleKeyname + ".rolesClaimKey"]: "https://pristine-ts.com/roles",
             "pristine.logging.consoleLoggerActivated": false,
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        const request: Request = {
-            url: "https://localhost:8080/api/identity",
-            httpMethod: HttpMethod.Get,
-            body: {},
-            headers: {
-                // @ts-ignore
-                "Authorization": "Bearer " + jwt.sign(payload, privateKey, { algorithm: 'RS256', keyid: tokenHeader.kid})
-            }
+        const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/identity");
+        request.headers = {
+            "Authorization": "Bearer " + jwt.sign(payload, privateKey, { algorithm: 'RS256', keyid: tokenHeader.kid})
         }
 
-        const response = await kernel.handleRequest(request);
+        const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
 
+        expect(response instanceof Response).toBeTruthy();
         expect(response.status).toBe(200);
         expect(response.body).toEqual({
             id: payload.sub,
@@ -157,30 +152,23 @@ describe("Auth0 authenticator", () => {
         }
 
         const kernel = new Kernel();
-        await kernel.init(moduleTest, {
+        await kernel.start(moduleTest, {
             [Auth0ModuleKeyname + ".domain"]: "auth0.com",
             [SecurityModuleKeyname + ".rolesClaimKey"]: "https://pristine-ts.com/roles",
             "pristine.logging.consoleLoggerActivated": false,
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        const request: Request = {
-            url: "https://localhost:8080/api/identity",
-            httpMethod: HttpMethod.Get,
-            body: {},
-            headers: {
-                // @ts-ignore
-                "Authorization": "Bearer " + jwt.sign(payload, privateKey, { algorithm: 'RS256', keyid: tokenHeader.kid})
-            }
+        const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/identity")
+        request.headers = {
+            "Authorization": "Bearer " + jwt.sign(payload, privateKey, { algorithm: 'RS256', keyid: tokenHeader.kid})
         }
 
-        const response = await kernel.handleRequest(request);
+        const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
 
         expect(response.status).toBe(403);
-        expect(response.body).toEqual({
-                message: "You are not allowed to access this.",
-                name: "Error",
-        })
+        expect(response.body.name).toBe("Error");
+        expect(response.body.message).toBe("You are not allowed to access this.");
     })
 
     it("should return forbidden if does not have the scope", async () => {
@@ -202,30 +190,23 @@ describe("Auth0 authenticator", () => {
         }
 
         const kernel = new Kernel();
-        await kernel.init(moduleTest, {
+        await kernel.start(moduleTest, {
             [Auth0ModuleKeyname + ".domain"]: "auth0.com",
             [SecurityModuleKeyname + ".rolesClaimKey"]: "https://pristine-ts.com/roles",
             "pristine.logging.consoleLoggerActivated": false,
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        const request: Request = {
-            url: "https://localhost:8080/api/identity",
-            httpMethod: HttpMethod.Get,
-            body: {},
-            headers: {
-                // @ts-ignore
-                "Authorization": "Bearer " + jwt.sign(payload, privateKey, { algorithm: 'RS256', keyid: tokenHeader.kid})
-            }
+        const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/identity");
+        request.headers = {
+            "Authorization": "Bearer " + jwt.sign(payload, privateKey, { algorithm: 'RS256', keyid: tokenHeader.kid})
         }
 
-        const response = await kernel.handleRequest(request);
+        const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
 
         expect(response.status).toBe(403);
-        expect(response.body).toEqual({
-                message: "You are not allowed to access this.",
-                name: "Error",
-        })
+        expect(response.body.name).toBe("Error");
+        expect(response.body.message).toBe("You are not allowed to access this.");
     })
 
     it("should return forbidden if does not have the role", async () => {
@@ -247,29 +228,22 @@ describe("Auth0 authenticator", () => {
         }
 
         const kernel = new Kernel();
-        await kernel.init(moduleTest, {
+        await kernel.start(moduleTest, {
             [Auth0ModuleKeyname + ".domain"]: "auth0.com",
             [SecurityModuleKeyname + ".rolesClaimKey"]: "https://pristine-ts.com/roles",
             "pristine.logging.consoleLoggerActivated": false,
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        const request: Request = {
-            url: "https://localhost:8080/api/identity",
-            httpMethod: HttpMethod.Get,
-            body: {},
-            headers: {
-                // @ts-ignore
-                "Authorization": "Bearer " + jwt.sign(payload, privateKey, { algorithm: 'RS256', keyid: tokenHeader.kid})
-            }
+        const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/identity");
+        request.headers = {
+            "Authorization": "Bearer " + jwt.sign(payload, privateKey, { algorithm: 'RS256', keyid: tokenHeader.kid})
         }
 
-        const response = await kernel.handleRequest(request);
+        const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
 
         expect(response.status).toBe(403);
-        expect(response.body).toEqual({
-                message: "You are not allowed to access this.",
-                name: "Error",
-        })
+        expect(response.body.name).toBe("Error");
+        expect(response.body.message).toBe("You are not allowed to access this.");
     })
 });
