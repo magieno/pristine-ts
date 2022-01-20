@@ -57,11 +57,16 @@ export class Utils {
             } else {
                 const newObj: any = {}
                 for (const key in object) {
-                    if (this.isFlat(object[key])) {
-                        newObj[key] = object[key];
-                    } else {
-                        newObj[key] = this.truncate(object[key], maxDepth, newDepth);
+                    try {
+                        if (this.isFlat(object[key])) {
+                            newObj[key] = object[key];
+                        } else {
+                            newObj[key] = this.truncate(object[key], maxDepth, newDepth);
+                        }
+                    }catch (e) {
+
                     }
+
                 }
                 return newObj;
             }

@@ -128,6 +128,10 @@ export class EventPipeline {
 
             return response;
         } catch (error) {
+            this.logHandler.error("There was an error while dispatching the event", {
+                error,
+                interceptedEvent,
+            })
             throw new EventDispatchingError("There was an error while dispatching the event", error, interceptedEvent);
         }
     }

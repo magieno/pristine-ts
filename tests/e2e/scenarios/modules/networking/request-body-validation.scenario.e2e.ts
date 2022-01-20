@@ -11,11 +11,11 @@ describe("Request Body Validation", () => {
     class RequestBody {
         @IsInt()
         @Min(0)
-        minimumValue: number;
+        minimumValue: number = -1;
 
         @IsInt()
         @Max(10)
-        maximumValue: number;
+        maximumValue: number = 100;
     }
 
     @controller("/test")
