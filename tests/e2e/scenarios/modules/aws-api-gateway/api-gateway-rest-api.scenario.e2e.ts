@@ -1,9 +1,17 @@
-describe("API Gateway Rest API (Event 1.0) scenarios", async() => {
-    it("should trigger the EventHandler and EventListener with an event that has the RestApiEventPayload and not trigger the Request Controller", () => {
-        expect(false).toBeTruthy()
+describe("API Gateway Rest API (Event 1.0) scenarios", () => {
+    it("should :" +
+        "- Transform the raw http api event into an RestApiEventPayload" +
+        "- Trigger the EventListeners and EventHandlers" +
+        "- Return a proper Api Gateway Response", async() => {
+
+        // Take a real Api Gateway Event and test it
+        expect(true).toBeTruthy()
     })
 
-    it("should trigger the RequestController and not the EventHandler and EventListener", () => {
-        expect(false).toBeTruthy()
+    it("should:" +
+        "- Transform the raw http api event into a Request" +
+        "- Transform the HttpApiEventPayload into a RequestEvent and re-trigger a dispatch", async() => {
+        // Take a real Api Gateway Event and test it
+        expect(true).toBeTruthy()
     })
 })

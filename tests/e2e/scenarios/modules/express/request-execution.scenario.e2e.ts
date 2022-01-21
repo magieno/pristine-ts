@@ -38,7 +38,6 @@ describe("Express - Request Execution", () => {
             });
 
             const port = server.address().port;
-            console.log(`Express app listening at http://localhost:${port}`)
 
             // Make an Http Call
             const httpClientWrapper = new HttpWrapper();
