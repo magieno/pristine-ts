@@ -22,5 +22,11 @@ export class TestController {
     @route(HttpMethod.Put, "/services/:id")
     public update(@body() body: any, @routeParameter("id") id: string) {
         const a  = 0;
+
+        return body;
+    }
+    @route(HttpMethod.Get, "/error")
+    public errorThrown(@body() body: any, @routeParameter("id") id: string) {
+        throw new Error("Error thrown");
     }
 }
