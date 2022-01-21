@@ -1,91 +1,124 @@
+import "reflect-metadata"
+import {injectable, inject, DependencyContainer, container} from "tsyringe";
+import {v4 as uuidv4} from "uuid";
+import {
+    AppModuleInterface,
+    ServiceDefinitionTagEnum,
+    tag,
+    taggedProviderRegistrationsRegistry
+} from "@pristine-ts/common";
+import {
+    CoreModule,
+    Event,
+    EventHandlerInterface,
+    EventMapperInterface,
+    EventResponse,
+    EventsExecutionOptionsInterface,
+    ExecutionContextInterface,
+    ExecutionContextKeynameEnum,
+    Kernel
+} from "@pristine-ts/core";
+
+
 
 describe("Event Pipeline Scenarios", () => {
+// to test this, will ensure that two events have two different instances of a class. To do so, we'll create a
+// class that generates a random uuid and ensures that the same handler hasn't seen the same class twice.
+    @injectable()
+    class MustBeUniqueInChildContainer {
+        public uniqueId: string = uuidv4();
+    }
 
-    it("should set the ChildContainer into itself under the tag ServiceDefinitionTag.CurrentChildContainer when events are to be executed in sequence", () => {
-        // to test this, will ensure that two events have two different instances of a class. To do so, we'll create a
-        // class that generates a random uuid and ensures that the same handler hasn't seen the same class twice.
-        @injec
-        class MustBeUniqueInChildContainer {
-            public uniqueId: string = uuidv4();
+    let seenIds: string[] = [];
+
+    @tag(ServiceDefinitionTagEnum.EventHandler)
+    @injectable()
+    class EventHandler implements EventHandlerInterface<any, any> {
+        constructor(private readonly mustBeUniqueInChildContainer: MustBeUniqueInChildContainer, @inject(ServiceDefinitionTagEnum.CurrentChildContainer) private readonly currentChildContainer: DependencyContainer) {
         }
 
-        const interceptedEvent = {
-            "interceptedEvent": true,
+        handle(event: Event<any>): Promise<EventResponse<any, any>> {
+            seenIds.push(this.mustBeUniqueInChildContainer.uniqueId);
+
+            expect(this.currentChildContainer).toBeDefined()
+
+            return Promise.resolve(new EventResponse(event, {}));
         }
 
-        const mappedEvent1 = new Event<any>("event1", interceptedEvent);
-        const mappedEvent2 = new Event<any>("event2", interceptedEvent);
-
-        const eventMapper: EventMapperInterface<any, any> = {
-            supportsMapping(event: object, executionContext: ExecutionContextInterface<any>): boolean {
-                return true;
-            },
-            map(event: object, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<any> {
-                return {
-                    executionOrder: "sequential",
-                    events: [
-                        mappedEvent1,
-                        mappedEvent2,
-                    ]
-                }
-            },
-            supportsReverseMapping(eventResponse: EventResponse<any, any>, response: object, executionContext: ExecutionContextInterface<any>): boolean {
-                return false;
-            },
-            reverseMap(eventResponse: EventResponse<any, any>, response: object, executionContext: ExecutionContextInterface<any>) {
-                return {};
-            }
+        supports<T>(event: Event<T>): boolean {
+            return true;
         }
 
-        const eventPipeline = new EventPipeline([
-        ], [
-            eventMapper,
-        ], logHandlerMock);
+    }
 
-        let executionOrder = 0;
-
-        // @ts-ignore
-        dependencyContainerMock.resolve = (token) => {
-            if(token === "EventDispatcherInterface") {
-                const eventDispatcher = new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}), {}));
-
-                eventDispatcher.dispatch = (event: Event<any>): Promise<EventResponse<any, any>> => {
-                    executionOrder++;
-
-                    if(executionOrder === 1) {
-                        expect(event.type).toBe("event1")
-                    }
-                    else if(executionOrder === 2) {
-                        expect(event.type).toBe("event2");
-                    }
-
-                    return Promise.resolve(new EventResponse<any, any>(new Event<any>("", {}), {}));
-                }
-
-                return eventDispatcher;
-            }
+    @tag(ServiceDefinitionTagEnum.EventMapper)
+    @injectable()
+    class EventMapper implements EventMapperInterface<any, any> {
+        constructor() {
         }
 
-        const event = {};
-        const executionContext = {
-            keyname: ExecutionContextKeynameEnum.AwsLambda,
-            context: {},
-        };
+        map(rawEvent: any, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<any> {
 
-        await eventPipeline.execute(event, executionContext, dependencyContainerMock);
+            return {
+                events: [
+                    new Event<any>("type", rawEvent),
+                    new Event<any>("type", rawEvent),
+                ],
+                executionOrder: executionContext.context.executionOrder,
+            };
+        }
 
-        expect.assertions(2)
+        reverseMap(eventResponse: EventResponse<any, any>, response: any, executionContext: ExecutionContextInterface<any>): any {
+            return eventResponse;
+        }
 
-        expect(false).toBeTruthy()
+        supportsMapping(rawEvent: any, executionContext: ExecutionContextInterface<any>): boolean {
+            return true;
+        }
 
+        supportsReverseMapping(eventResponse: EventResponse<any, any>, response: any, executionContext: ExecutionContextInterface<any>): boolean {
+            return false;
+        }
+
+    }
+
+    let kernel = new Kernel();
+
+    beforeAll( async () => {
+        const appModule: AppModuleInterface = {
+            keyname: "test.app",
+            importModules: [CoreModule],
+            importServices: [],
+        }
+
+        await kernel.start(appModule);
     })
 
-    it("should set the ChildContainer into itself under the tag ServiceDefinitionTag.CurrentChildContainer when events are to be executed in parallel", () => {
-        // to test this, will ensure that two events have two different instances of a class. To do so, we'll create a
-        // class that generates a random uuid and ensures that the same handler hasn't seen the same class twice.
+    beforeEach(() => {
+        seenIds = [];
+    })
 
+    it("should set the ChildContainer into itself under the tag ServiceDefinitionTag.CurrentChildContainer when events are to be executed in sequence", async () => {
 
-        expect(false).toBeTruthy()
+        await kernel.handle({}, {keyname: ExecutionContextKeynameEnum.Jest, context: {executionOrder: 'sequential'}})
 
+        expect(kernel.container.isRegistered(ServiceDefinitionTagEnum.CurrentChildContainer)).toBeFalsy();
+
+        expect(seenIds.length).toBe(2);
+        expect(seenIds[0]).not.toEqual(seenIds[1]);
+
+        expect.assertions(5);
+    })
+
+    it("should set the ChildContainer into itself under the tag ServiceDefinitionTag.CurrentChildContainer when events are to be executed in parallel", async () => {
+
+        await kernel.handle({}, {keyname: ExecutionContextKeynameEnum.Jest, context: {executionOrder: 'parallel'}})
+
+        expect(kernel.container.isRegistered(ServiceDefinitionTagEnum.CurrentChildContainer)).toBeFalsy();
+
+        expect(seenIds.length).toBe(2);
+        expect(seenIds[0]).not.toEqual(seenIds[1]);
+
+        expect.assertions(5);
     })
 })
