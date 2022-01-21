@@ -117,6 +117,10 @@ export class RestApiEventMapper extends BaseApiEventMapper implements EventMappe
 
             return restApiEventResponsePayload;
         }
+        else {
+            return new RestApiEventResponsePayload(200, eventResponse.response);
+        }
+
     }
 
 }

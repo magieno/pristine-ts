@@ -13,13 +13,12 @@ import {HttpApiEventResponsePayload} from "../event-response-payloads/http-api.e
 import {AwsApiGatewayModuleKeyname} from "../aws-api-gateway.module.keyname";
 import {ApiGatewayEventTypeEnum} from "../enums/api-gateway-event-type.enum";
 import {BaseApiEventMapper} from "./base-api-event.mapper";
-import {RestApiEventResponsePayload} from "../event-response-payloads/rest-api.event-response-payload";
 
 @moduleScoped(AwsApiGatewayModuleKeyname)
 @tag(ServiceDefinitionTagEnum.EventMapper)
 @injectable()
 export class HttpApiEventMapper extends BaseApiEventMapper implements EventMapperInterface<HttpApiEventPayload | Request, HttpApiEventResponsePayload | Response> {
-    constructor(@inject("%" + AwsApiGatewayModuleKeyname + ".api_gateway.http_request_events.handling_strategy%") private readonly httpRequestsHandlingStrategy: ApiGatewayEventsHandlingStrategyEnum) {
+    constructor(@inject("%" + AwsApiGatewayModuleKeyname + ".http_api_events.handling_strategy%") private readonly httpRequestsHandlingStrategy: ApiGatewayEventsHandlingStrategyEnum) {
         super();
     }
 
@@ -103,6 +102,9 @@ export class HttpApiEventMapper extends BaseApiEventMapper implements EventMappe
             httpRequestEventResponsePayload.isBase64Encoded = false;
 
             return httpRequestEventResponsePayload;
+        }
+        else {
+            return new HttpApiEventResponsePayload(200, eventResponse.response);
         }
     }
 }

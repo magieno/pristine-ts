@@ -1,1 +1,1 @@
-export const AwsApiGatewayModuleKeyname: string = "pristine.aws-gateway";
+export const AwsApiGatewayModuleKeyname: string = "pristine.aws-api-gateway";
