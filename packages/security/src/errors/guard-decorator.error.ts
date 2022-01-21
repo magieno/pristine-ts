@@ -1,9 +1,9 @@
-/**
- * This Error is thrown when there's an error that happens when the guards ere being initialized
- */
 import {LoggableError} from "@pristine-ts/common";
 import {GuardInterface} from "../interfaces/guard.interface";
 
+/**
+ * This Error is thrown when there's an error that happens when the guards ere being initialized
+ */
 export class GuardDecoratorError extends LoggableError {
 
     public constructor(message: string, guard: GuardInterface | Function, options: any, target: any,
