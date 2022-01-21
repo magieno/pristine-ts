@@ -1,9 +1,9 @@
-/**
- * This Error is thrown when there's an error that happens when the guards ere being initialized
- */
 import {LoggableError} from "@pristine-ts/common";
 import {AuthenticatorInterface} from "../interfaces/authenticator.interface";
 
+/**
+ * This Error is thrown when there's an error with the authenticator decorator.
+ */
 export class AuthenticatorDecoratorError extends LoggableError {
 
     public constructor(message: string, authenticator: AuthenticatorInterface | Function, options: any, target: any,
