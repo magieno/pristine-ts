@@ -102,7 +102,7 @@ class TracerMock implements TracerInterface {
 
 describe("Tracing Manager", () => {
     it("should start the tracing by creating the trace and the root span", () => {
-        const tracingManager: TracingManager = new TracingManager([], logHandlerMock, true, new TracingContext());
+        const tracingManager: TracingManager = new TracingManager([], logHandlerMock, true, false, new TracingContext());
 
         tracingManager.startTracing();
 
@@ -140,7 +140,7 @@ describe("Tracing Manager", () => {
                 })(),
             }
 
-            const tracingManager: TracingManager = new TracingManager([tracer], logHandlerMock, true, new TracingContext());
+            const tracingManager: TracingManager = new TracingManager([tracer], logHandlerMock, true, false, new TracingContext());
 
             tracingManager.startTracing();
             expect.assertions(2);
@@ -178,7 +178,7 @@ describe("Tracing Manager", () => {
                 }),
             }
 
-            const tracingManager: TracingManager = new TracingManager([tracer], logHandlerMock, true, new TracingContext());
+            const tracingManager: TracingManager = new TracingManager([tracer], logHandlerMock, true, false, new TracingContext());
 
             tracingManager.startTracing();
 
@@ -221,7 +221,7 @@ describe("Tracing Manager", () => {
                 })(),
             }
 
-            const tracingManager: TracingManager = new TracingManager([tracer], logHandlerMock, true, new TracingContext());
+            const tracingManager: TracingManager = new TracingManager([tracer], logHandlerMock, true, false, new TracingContext());
 
             tracingManager.startTracing();
             tracingManager.endTrace();
@@ -233,7 +233,7 @@ describe("Tracing Manager", () => {
     })
 
     it("should not override the endDate on the span when it already exists", async () => {
-        const tracingManager: TracingManager = new TracingManager([], logHandlerMock, true, new TracingContext());
+        const tracingManager: TracingManager = new TracingManager([], logHandlerMock, true, false, new TracingContext());
 
         tracingManager.startTracing();
 
@@ -249,18 +249,18 @@ describe("Tracing Manager", () => {
     })
 
     it("should end all the spans when the trace is ended", async () => {
-        const tracingManager: TracingManager = new TracingManager([], logHandlerMock, true, new TracingContext());
+        const tracingManager: TracingManager = new TracingManager([], logHandlerMock, true, false, new TracingContext());
 
         tracingManager.startTracing();
 
         const span = new Span("span");
-        tracingManager.trace!.rootSpan.addChild(span);
+        tracingManager.trace!.rootSpan!.addChild(span);
 
         const span2 = new Span("span2");
-        tracingManager.trace!.rootSpan.addChild(span2);
+        tracingManager.trace!.rootSpan!.addChild(span2);
 
         const span3 = new Span("span3");
-        tracingManager.trace!.rootSpan.addChild(span3);
+        tracingManager.trace!.rootSpan!.addChild(span3);
 
         tracingManager.addSpan(span);
         tracingManager.addSpan(span2);
@@ -274,7 +274,7 @@ describe("Tracing Manager", () => {
     })
 
     it('should end all the children spans when the parent span is ended', async () => {
-        const tracingManager: TracingManager = new TracingManager([], logHandlerMock, true, new TracingContext());
+        const tracingManager: TracingManager = new TracingManager([], logHandlerMock, true, false, new TracingContext());
 
         tracingManager.startTracing();
 
@@ -335,7 +335,7 @@ describe("Tracing Manager", () => {
             done();
         })
 
-        const tracingManager: TracingManager = new TracingManager([tracer], logHandlerMock, true, new TracingContext());
+        const tracingManager: TracingManager = new TracingManager([tracer], logHandlerMock, true, false, new TracingContext());
         tracingManager.startTracing();
 
         const span = new Span("parent");
@@ -343,7 +343,7 @@ describe("Tracing Manager", () => {
         const childSpan = new Span("child");
         const grandChildSpan = new Span("grandchild");
 
-        tracingManager.trace!.rootSpan.addChild(span);
+        tracingManager.trace!.rootSpan!.addChild(span);
         span.addChild(childSpan);
         childSpan.addChild(grandChildSpan);
 
@@ -380,7 +380,7 @@ describe("Tracing Manager", () => {
             done();
         })
 
-        const tracingManager: TracingManager = new TracingManager([tracer], logHandlerMock, true, new TracingContext());
+        const tracingManager: TracingManager = new TracingManager([tracer], logHandlerMock, true, false, new TracingContext());
         tracingManager.startTracing();
 
         const span = new Span("parent");
@@ -388,7 +388,7 @@ describe("Tracing Manager", () => {
         const childSpan = new Span("child");
         const grandChildSpan = new Span("grandchild");
 
-        tracingManager.trace!.rootSpan.addChild(span);
+        tracingManager.trace!.rootSpan!.addChild(span);
         span.addChild(childSpan);
         childSpan.addChild(grandChildSpan);
 

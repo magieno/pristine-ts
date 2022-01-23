@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import {AwsCognitoGroupGuard} from "./aws-cognito-group.guard";
-import {HttpMethod} from "@pristine-ts/common";
+import {HttpMethod, Request} from "@pristine-ts/common";
 
 describe("AWS Cognito group Guard", () => {
     it("should return true when no group is needed", async () => {
@@ -13,12 +13,9 @@ describe("AWS Cognito group Guard", () => {
             }
         })
 
-        expect(await cognitoGroupGuard.isAuthorized({
-            headers: {},
-            httpMethod: HttpMethod.Get,
-            url: "https://url",
-            body: {},
-        }, {
+        const request = new Request(HttpMethod.Get, "https://url");
+
+        expect(await cognitoGroupGuard.isAuthorized(request, {
             id: "id",
             claims: {
                 "cognito:groups": ["ADMIN"]
@@ -36,12 +33,9 @@ describe("AWS Cognito group Guard", () => {
             }
         })
 
-        expect(await cognitoGroupGuard.isAuthorized({
-            headers: {},
-            httpMethod: HttpMethod.Get,
-            url: "https://url",
-            body: {},
-        }, {
+        const request = new Request(HttpMethod.Get, "https://url");
+
+        expect(await cognitoGroupGuard.isAuthorized(request, {
             id: "id",
             claims: {
             }
@@ -58,12 +52,9 @@ describe("AWS Cognito group Guard", () => {
             }
         })
 
-        expect(await cognitoGroupGuard.isAuthorized({
-            headers: {},
-            httpMethod: HttpMethod.Get,
-            url: "https://url",
-            body: {},
-        }, {
+        const request = new Request(HttpMethod.Get, "https://url");
+
+        expect(await cognitoGroupGuard.isAuthorized(request, {
             id: "id",
             claims: {
                 "cognito:groups": {}
@@ -81,12 +72,9 @@ describe("AWS Cognito group Guard", () => {
             }
         })
 
-        expect(await cognitoGroupGuard.isAuthorized({
-            headers: {},
-            httpMethod: HttpMethod.Get,
-            url: "https://url",
-            body: {},
-        }, {
+        const request = new Request(HttpMethod.Get, "https://url");
+
+        expect(await cognitoGroupGuard.isAuthorized(request, {
             id: "id",
             claims: {
                 "cognito:groups": ["USER"]
@@ -104,12 +92,9 @@ describe("AWS Cognito group Guard", () => {
             }
         })
 
-        expect(await cognitoGroupGuard.isAuthorized({
-            headers: {},
-            httpMethod: HttpMethod.Get,
-            url: "https://url",
-            body: {},
-        }, {
+        const request = new Request(HttpMethod.Get, "https://url");
+
+        expect(await cognitoGroupGuard.isAuthorized(request, {
             id: "id",
             claims: {
                 "cognito:groups": ["USER", "ADMIN", "DEVELOPER"]

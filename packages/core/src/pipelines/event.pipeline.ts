@@ -15,6 +15,7 @@ import {EventPostMappingInterceptionError} from "../errors/event-post-mapping-in
 import {EventDispatchingError} from "../errors/event-dispatching.error";
 import {EventPreResponseMappingInterceptionError} from "../errors/event-pre-response-mapping-interception.error";
 import {EventPostResponseMappingInterceptionError} from "../errors/event-post-response-mapping-interception.error";
+import {SpanKeynameEnum, TracingManagerInterface} from "@pristine-ts/telemetry";
 
 @injectable()
 export class EventPipeline {
@@ -23,6 +24,7 @@ export class EventPipeline {
         @injectAll(ServiceDefinitionTagEnum.EventInterceptor) private readonly eventInterceptors: EventInterceptorInterface[],
         @injectAll(ServiceDefinitionTagEnum.EventMapper) private readonly eventMappers: EventMapperInterface<any, any>[],
         @inject('LogHandlerInterface') private readonly logHandler: LogHandlerInterface,
+        @inject("TracingManagerInterface") private readonly tracingManager: TracingManagerInterface,
     ) {
     }
 
@@ -37,6 +39,8 @@ export class EventPipeline {
     private async preMappingIntercept(event: object, executionContext: ExecutionContextInterface<any>): Promise<object> {
         let interceptedEvent = event;
 
+        const span = this.tracingManager.startSpan(SpanKeynameEnum.EventPreMappingInterception);
+
         for (const eventInterceptor of this.eventInterceptors) {
             try {
                 interceptedEvent = await eventInterceptor.preMappingIntercept?.(interceptedEvent, executionContext) ?? interceptedEvent;
@@ -44,6 +48,8 @@ export class EventPipeline {
                 throw new EventPreMappingInterceptionError("There was an error while executing the PreMapping Event interceptors", error, eventInterceptor.constructor.name, event, executionContext);
             }
         }
+
+        span.end();
 
         return interceptedEvent;
     }
@@ -58,6 +64,8 @@ export class EventPipeline {
     private async postMappingIntercept(event: Event<any>): Promise<Event<any>> {
         let interceptedEvent = event;
 
+        const span = this.tracingManager.startSpan(SpanKeynameEnum.EventPostMappingInterception);
+
         for (const eventInterceptor of this.eventInterceptors) {
             try {
                 interceptedEvent = await eventInterceptor.postMappingIntercept?.(interceptedEvent) ?? interceptedEvent;
@@ -65,6 +73,8 @@ export class EventPipeline {
                 throw new EventPostMappingInterceptionError("There was an error while executing the PostMapping Event interceptors", error, eventInterceptor.constructor.name, event);
             }
         }
+
+        span.end();
 
         return interceptedEvent;
     }
@@ -79,6 +89,8 @@ export class EventPipeline {
     private async preResponseMappingIntercept(eventResponse: EventResponse<any, any>): Promise<EventResponse<any, any>> {
         let interceptedEventResponse = eventResponse;
 
+        const span = this.tracingManager.startSpan(SpanKeynameEnum.EventPreResponseMappingInterception);
+
         for (const eventInterceptor of this.eventInterceptors) {
             try {
                 interceptedEventResponse = await eventInterceptor.preResponseMappingIntercept?.(interceptedEventResponse) ?? interceptedEventResponse;
@@ -86,6 +98,8 @@ export class EventPipeline {
                 throw new EventPreResponseMappingInterceptionError("There was an error while executing the PreResponseMapping Event interceptors", error, eventInterceptor.constructor.name, eventResponse);
             }
         }
+
+        span.end();
 
         return interceptedEventResponse;
     }
@@ -100,6 +114,8 @@ export class EventPipeline {
     private async postResponseMappingIntercept(eventResponse: object): Promise<object> {
         let interceptedEventResponse = eventResponse;
 
+        const span = this.tracingManager.startSpan(SpanKeynameEnum.EventPostResponseMappingInterception);
+
         for (const eventInterceptor of this.eventInterceptors) {
             try {
                 interceptedEventResponse = await eventInterceptor.postResponseMappingIntercept?.(interceptedEventResponse) ?? interceptedEventResponse;
@@ -107,6 +123,8 @@ export class EventPipeline {
                 throw new EventPostResponseMappingInterceptionError("There was an error while executing the PostResponseMapping Event interceptors", error, eventInterceptor.constructor.name, eventResponse);
             }
         }
+
+        span.end();
 
         return interceptedEventResponse;
     }
@@ -123,8 +141,12 @@ export class EventPipeline {
         let interceptedEvent = await this.postMappingIntercept(event)
 
         try {
+            const eventExecutionSpan = this.tracingManager.startSpan(SpanKeynameEnum.EventExecution);
+
             // 2 - Call the EventDispatcher and retrieve the Event Response
             const response = await eventDispatcher.dispatch(interceptedEvent);
+
+            eventExecutionSpan.end();
 
             return response;
         } catch (error) {
@@ -162,12 +184,16 @@ export class EventPipeline {
             let numberOfEventMappers = 0;
 
             try {
+                const span = this.tracingManager.startSpan(SpanKeynameEnum.EventMapping);
+
                 this.eventMappers.forEach(eventMapper => {
                     if (eventMapper.supportsMapping(interceptedEvent, executionContext)) {
                         eventExecutions.push(eventMapper.map(interceptedEvent, executionContext));
                         numberOfEventMappers++;
                     }
                 })
+
+                span.end();
             } catch (error) {
                 throw new EventMappingError("There was an error mapping the event into an Event object", event, interceptedEvent, executionContext, error)
             }

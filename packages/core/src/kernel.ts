@@ -45,7 +45,7 @@ export class Kernel {
      * Contains the span for the initialization.
      * @private
      */
-    private initializationSpan!: Span
+    private initializationSpan?: Span
 
     /**
      * Contains the unique instantiation identifier of this specific kernel instance.
@@ -73,7 +73,7 @@ export class Kernel {
         const initializedModuleSpans = await this.initModule(module);
 
         // Add every spans as a child of the Initialization Span
-        initializedModuleSpans.forEach(span => this.initializationSpan.addChild(span));
+        initializedModuleSpans.forEach(span => this.initializationSpan!.addChild(span));
 
         // Register all the service tags in the container.
         await this.registerServiceTags();
@@ -255,22 +255,29 @@ export class Kernel {
      * @param executionContext
      */
     public async handle<T>(event: any | Request | Event<any>, executionContext: ExecutionContextInterface<T>): Promise<object> {
-        // todo: Put the code here to start the tracing.
-        // previous code:
-        //         // Start the tracing
-        //         const tracingManager: TracingManagerInterface = childContainer.resolve("TracingManagerInterface");
-        //         tracingManager.startTracing();
-        //         tracingManager.trace?.rootSpan?.addChild(this.initializationSpan)
-        //         tracingManager.addSpan(this.initializationSpan);
-        //
-        //         // End the spans
-        //         this.initializationSpan.end();
-        //         routerSetupSpan.end();
+        // Start the tracing
+        const tracingManager: TracingManagerInterface = this.container.resolve("TracingManagerInterface");
+        tracingManager.startTracing();
+
+        if(this.initializationSpan) {
+            tracingManager.trace?.rootSpan?.addChild(this.initializationSpan)
+            tracingManager.addSpan(this.initializationSpan);
+
+            // End the spans
+            this.initializationSpan.end();
+
+            // We set the initialization span to undefined since we will only add it to the Trace once
+            this.initializationSpan = undefined;
+        }
 
         // Retrieve the EventPipeline. It's the class responsible for executing all the events successfully.
         const eventPipeline = this.container.resolve(EventPipeline);
 
-        return eventPipeline.execute(event, executionContext, this.container);
+        const response = await eventPipeline.execute(event, executionContext, this.container);
+
+        tracingManager.endTrace();
+
+        return response;
     }
 
 }
