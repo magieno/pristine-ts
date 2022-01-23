@@ -2,22 +2,13 @@ import "reflect-metadata";
 import {testModule} from "../test.module";
 import {TestGuard} from "./test.guard";
 import {PermissionManager} from "../managers/permission.manager";
-import {container, DependencyContainer, inject, injectable, singleton} from "tsyringe";
+import {container, singleton} from "tsyringe";
 
 
-import {
-    ForbiddenHttpError,
-    controllerRegistry,
-    controller,
-    body,
-    routeParameter,
-    route,
-} from "@pristine-ts/networking";
-import {
-    Kernel,
-} from "@pristine-ts/core";
+import {body, controller, route, routeParameter,} from "@pristine-ts/networking";
+import {ExecutionContextKeynameEnum, Kernel,} from "@pristine-ts/core";
 import {guard} from "@pristine-ts/security";
-import {HttpMethod} from "@pristine-ts/common";
+import {HttpMethod, Request, Response} from "@pristine-ts/common";
 
 @controller("/api/2.0/guards")
 @singleton()
@@ -61,18 +52,17 @@ describe("Guards", () => {
             useValue: new TestGuard(true),
         })
 
-        await kernel.init(testModuleCopied, {
+        await kernel.start(testModuleCopied, {
             "pristine.logging.consoleLoggerActivated": false,
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        const response = await kernel.handleRequest({
-            url: "https://localhost:8080/api/2.0/guards/services/0a931a57-c238-4d07-ab5e-e51b10320997",
-            httpMethod: HttpMethod.Put,
-            body: {
-                specialBody: "body"
-            }
-        });
+        const request = new Request(HttpMethod.Put, "https://localhost:8080/api/2.0/guards/services/0a931a57-c238-4d07-ab5e-e51b10320997");
+        request.body = {
+            specialBody: "body"
+        };
+
+        const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
 
         expect(response.status).toBe(200);
     })
@@ -90,18 +80,17 @@ describe("Guards", () => {
             useValue: new TestGuard(false),
         })
 
-        await kernel.init(testModuleCopied, {
+        await kernel.start(testModuleCopied, {
             "pristine.logging.consoleLoggerActivated": false,
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        const response = await kernel.handleRequest({
-            url: "https://localhost:8080/api/2.0/guards/services/0a931a57-c238-4d07-ab5e-e51b10320997",
-            httpMethod: HttpMethod.Put,
-            body: {
-                specialBody: "body"
-            }
-        });
+        const request = new Request(HttpMethod.Put, "https://localhost:8080/api/2.0/guards/services/0a931a57-c238-4d07-ab5e-e51b10320997");
+        request.body = {
+            specialBody: "body"
+        };
+
+        const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
 
         expect(response.status).toBe(403);
     })
@@ -124,18 +113,17 @@ describe("Guards", () => {
             useValue: testGuard,
         })
 
-        await kernel.init(testModuleCopied, {
+        await kernel.start(testModuleCopied, {
             "pristine.logging.consoleLoggerActivated": false,
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        const response = await kernel.handleRequest({
-            url: "https://localhost:8080/api/2.0/guards/services/0a931a57-c238-4d07-ab5e-e51b10320997",
-            httpMethod: HttpMethod.Put,
-            body: {
-                specialBody: "body"
-            }
-        });
+        const request = new Request(HttpMethod.Put, "https://localhost:8080/api/2.0/guards/services/0a931a57-c238-4d07-ab5e-e51b10320997");
+        request.body = {
+            specialBody: "body"
+        };
+
+        const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
 
         expect(response.status).toBe(403);
     })
