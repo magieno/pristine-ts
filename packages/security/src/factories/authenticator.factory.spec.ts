@@ -4,8 +4,6 @@ import {AuthenticatorInterface} from "../interfaces/authenticator.interface";
 import {IdentityInterface, RequestInterface} from "@pristine-ts/common";
 import {AuthenticatorFactory} from "./authenticator.factory";
 import {AuthenticatorInstantiationError} from "../errors/authenticator-instantiation.error";
-import {GuardFactory} from "./guard.factory";
-import {GuardDecoratorError} from "../errors/guard-decorator.error";
 
 describe("Authenticator Factory", () => {
     @injectable()
