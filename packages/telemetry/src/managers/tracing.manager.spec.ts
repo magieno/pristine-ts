@@ -9,16 +9,13 @@ import {Span} from "../models/span.model";
 import {Trace} from "../models/trace.model";
 
 const logHandlerMock: LogHandlerInterface = {
-    debug(message: string, extra?: any) {
-    },
-    info(message: string, extra?: any) {
-    },
-    error(message: string, extra?: any) {
+    critical(message: string, extra?: any): void {
+    }, debug(message: string, extra?: any): void {
+    }, error(message: string, extra?: any): void {
+    }, info(message: string, extra?: any): void {
+    }, warning(message: string, extra?: any): void {
+    }, terminate() {
     }
-    ,critical(message: string, extra?: any) {
-    },
-    warning(message: string, extra?: any) {
-    },
 }
 
 class TracerMock implements TracerInterface {
