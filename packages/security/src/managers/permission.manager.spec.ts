@@ -32,16 +32,13 @@ const voterGrant: VoterInterface = {
 
 describe("", ()=> {
     const logHandlerMock: LogHandlerInterface = {
-        debug(message: string, extra?: any) {
-        },
-        info(message: string, extra?: any) {
-        },
-        error(message: string, extra?: any) {
+        critical(message: string, extra?: any): void {
+        }, debug(message: string, extra?: any): void {
+        }, error(message: string, extra?: any): void {
+        }, info(message: string, extra?: any): void {
+        }, warning(message: string, extra?: any): void {
+        }, terminate() {
         }
-        ,critical(message: string, extra?: any) {
-        },
-        warning(message: string, extra?: any) {
-        },
     }
 
     it("should return deny if no voter and DenyOnUnanimousAbstention", async () => {

@@ -14,6 +14,7 @@ describe("AuthenticationManager", () => {
         }, error(message: string, extra?: any): void {
         }, info(message: string, extra?: any): void {
         }, warning(message: string, extra?: any): void {
+        }, terminate() {
         }
     }
 
