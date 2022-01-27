@@ -12,9 +12,9 @@ describe("Body Validation Request Enricher", () => {
         }, error(message: string, extra?: any): void {
         }, info(message: string, extra?: any): void {
         }, warning(message: string, extra?: any): void {
+        }, terminate() {
         }
     }
-
     class BodyPayload {
         @IsInt()
         @Min(0)
