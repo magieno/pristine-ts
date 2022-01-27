@@ -16,6 +16,7 @@ import {BodyParameterDecoratorInterface} from "./interfaces/body-parameter-decor
 import {HttpMethod, IdentityInterface, Request} from "@pristine-ts/common";
 import {Span, TracingManagerInterface} from "@pristine-ts/telemetry";
 import {DependencyContainer, container} from "tsyringe";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 
 describe("Router.spec", () => {
     let root: PathRouterNode;
@@ -112,11 +113,12 @@ describe("Router.spec", () => {
 
         // Force the node as the root node
         router = new Router( {
-            error(message: string, extra?: any) {
-            }, critical(message: string, extra?: any): void {
+            critical(message: string, extra?: any): void {
             }, debug(message: string, extra?: any): void {
+            }, error(message: string, extra?: any): void {
             }, info(message: string, extra?: any): void {
             }, warning(message: string, extra?: any): void {
+            }, terminate() {
             }
         },new ControllerMethodParameterDecoratorResolver([
             new BodyParameterDecoratorResolver(),
