@@ -1,12 +1,13 @@
 import {DependencyContainer, inject, injectable, injectAll} from "tsyringe";
 import {AuthenticationManagerInterface} from "../interfaces/authentication-manager.interface";
-import {IdentityInterface, moduleScoped, RequestInterface, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {IdentityInterface, moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {AuthenticatorInterface} from "../interfaces/authenticator.interface";
 import {AuthenticatorContextInterface} from "../interfaces/authenticator-context.interface";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {AuthenticatorFactory} from "../factories/authenticator.factory";
 import {SecurityModuleKeyname} from "../security.module.keyname";
 import {IdentityProviderInterface} from "../interfaces/identity-provider.interface";
+import {Request} from "@pristine-ts/common";
 
 @moduleScoped(SecurityModuleKeyname)
 @tag("AuthenticationManagerInterface")
@@ -18,7 +19,7 @@ export class AuthenticationManager implements AuthenticationManagerInterface {
                        private readonly authenticatorFactory: AuthenticatorFactory) {
     }
 
-    public async authenticate(request: RequestInterface, routeContext: any, container: DependencyContainer): Promise<IdentityInterface | undefined> {
+    public async authenticate(request: Request, routeContext: any, container: DependencyContainer): Promise<IdentityInterface | undefined> {
         if(!routeContext || routeContext.authenticator === undefined) {
             return undefined;
         }

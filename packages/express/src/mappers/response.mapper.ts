@@ -1,6 +1,6 @@
 import {Response as ExpressResponse} from "express";
 import {injectable} from "tsyringe";
-import {Response} from "@pristine-ts/networking";
+import {Response} from "@pristine-ts/common";
 
 @injectable()
 export class ResponseMapper {

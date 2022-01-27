@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import {RequestInterface} from "@pristine-ts/common";
+import {Request} from "@pristine-ts/common";
 
 export interface StripeClientInterface {
     /**
@@ -12,5 +12,5 @@ export interface StripeClientInterface {
      * @param request The whole request received to the endpoint.
      * @param stripeSigningEndpointSecret The endpoint secret that stripe uses to sign the request.
      */
-    verifySignature(request: RequestInterface, stripeSigningEndpointSecret: string): Promise<Stripe.Event>;
+    verifySignature(request: Request, stripeSigningEndpointSecret: string): Promise<Stripe.Event>;
 }

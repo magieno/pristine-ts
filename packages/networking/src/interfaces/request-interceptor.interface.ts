@@ -1,5 +1,4 @@
-import {Request} from "../models/request";
-import {Response} from "../models/response";
+import {Request, Response} from "@pristine-ts/common";
 import {MethodRouterNode} from "../nodes/method-router.node";
 
 export interface RequestInterceptorInterface {

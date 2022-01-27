@@ -1,7 +1,6 @@
-import {HttpMethod, RequestInterface} from "@pristine-ts/common";
+import {HttpMethod, Request, Response} from "@pristine-ts/common";
 import {RestApiEventMapper} from "./rest-api-event.mapper";
 import {ApiGatewayEventsHandlingStrategyEnum} from "../enums/api-gateway-events-handling-strategy.enum";
-import {Request, Response} from "@pristine-ts/networking";
 import {RestApiEventPayload} from "../event-payloads/rest-api.event-payload";
 import {ApiGatewayEventTypeEnum} from "../enums/api-gateway-event-type.enum";
 import {map} from "lodash";
@@ -97,16 +96,13 @@ describe("Rest API Event (Api Gateway 1.0)", () => {
 
         expect(restApiRequestMapper.supportsMapping(rawEvent, executionContext));
 
-        const expectedRequest: Request = new Request({
-            url: "/my/path",
-            body: rawEvent.body,
-            rawBody: rawEvent.body,
-            headers: {
-                "header1": "value1",
-                "header2": "value2"
-            },
-            httpMethod: HttpMethod.Get
-        });
+        const expectedRequest: Request = new Request(HttpMethod.Get, "/my/path");
+        expectedRequest.body = rawEvent.body;
+        expectedRequest.rawBody = rawEvent.body,
+        expectedRequest.headers = {
+            "header1": "value1",
+            "header2": "value2"
+        };
 
         const mappedEvent = restApiRequestMapper.map(rawEvent, executionContext);
 

@@ -1,12 +1,11 @@
-import {LoggableError, RequestInterface} from "@pristine-ts/common";
-import {Response} from "../models/response";
+import {LoggableError, Request, Response} from "@pristine-ts/common";
 
 /**
  * This Error is thrown when an error happens in the execution of a response interceptor.
  */
 export class ResponseInterceptionExecutionError extends LoggableError {
 
-    public constructor(message: string, request: RequestInterface, response: Response, interceptor: any, previousError?: Error) {
+    public constructor(message: string, request: Request, response: Response, interceptor: any, previousError?: Error) {
         super(message, {
             previousError,
             request,

@@ -1,6 +1,4 @@
 import {DependencyContainer, inject, singleton} from "tsyringe";
-import {Request} from "./models/request";
-import {Response} from "./models/response";
 import {UrlUtil} from "./utils/url.util";
 import {NotFoundHttpError} from "./errors/not-found.http-error";
 import {RouterInterface} from "./interfaces/router.interface";
@@ -11,7 +9,7 @@ import {MethodRouterNode} from "./nodes/method-router.node";
 import {ForbiddenHttpError} from "./errors/forbidden.http-error";
 import {ControllerMethodParameterDecoratorResolver} from "./resolvers/controller-method-parameter-decorator.resolver";
 import Url from 'url-parse';
-import {tag, HttpMethod, IdentityInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
+import {tag, HttpMethod, IdentityInterface, ServiceDefinitionTagEnum, Request, Response} from "@pristine-ts/common";
 import {AuthenticationManagerInterface, AuthorizerManagerInterface} from "@pristine-ts/security";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {NetworkingModuleKeyname} from "./networking.module.keyname";
@@ -20,6 +18,7 @@ import {controllerRegistry} from "./decorators/controller.decorator";
 import {RouteMethodDecorator} from "./interfaces/route-method-decorator.interface";
 import {mergeWith} from "lodash";
 import {RequestInterceptorInterface} from "./interfaces/request-interceptor.interface";
+import {HttpError} from "./errors/http.error";
 
 /**
  * The router service is the service that creates the routing tree from the controllers.
@@ -392,8 +391,22 @@ export class Router implements RouterInterface {
     private async executeErrorResponseInterceptors(error: Error, request: Request, container: DependencyContainer, methodNode?: MethodRouterNode): Promise<Response> {
         // Execute all the request interceptors
         let interceptedResponse = new Response();
-        interceptedResponse.status = 500;
-        interceptedResponse.body = {name: error.name, message: error.message, stack: error.stack};
+        if(error instanceof HttpError) {
+            interceptedResponse.status = error.httpStatus;
+            interceptedResponse.body = {
+                name: error.name,
+                message: error.message,
+                stack: error.stack,
+                errors: error.errors,
+                extra: error.extra,
+            }
+        }
+        else {
+            interceptedResponse.status = 500;
+            interceptedResponse.body = {name: error.name, message: error.message, stack: error.stack};
+        }
+
+
         interceptedResponse.request = request;
 
         // Check first if there are any Request interceptors

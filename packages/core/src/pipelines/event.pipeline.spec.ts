@@ -19,10 +19,12 @@ import {EventPreResponseMappingInterceptionError} from "../errors/event-pre-resp
 import {EventPostResponseMappingInterceptionError} from "../errors/event-post-response-mapping-interception.error";
 import {EventDispatchingError} from "../errors/event-dispatching.error";
 import { v4 as uuidv4 } from 'uuid';
+import {TracingManagerMock} from "../../../../tests/mocks/tracing.manager.mock";
 
 describe("Event Pipeline", () => {
     const dependencyContainerMock = new DependencyContainerMock();
     const logHandlerMock = new LogHandlerMock();
+    const tracingManagerMock = new TracingManagerMock();
 
     it('should properly call the preMapping Interceptors and passed the intercepted event to the Event Mappers', async () => {
         const interceptedEvent = {
@@ -61,7 +63,7 @@ describe("Event Pipeline", () => {
             eventInterceptor
         ], [
             eventMapper,
-        ], logHandlerMock);
+        ], logHandlerMock, tracingManagerMock);
 
         // @ts-ignore
         dependencyContainerMock.resolve = (token) => {
@@ -129,7 +131,7 @@ describe("Event Pipeline", () => {
             eventInterceptor
         ], [
             eventMapper,
-        ], logHandlerMock);
+        ], logHandlerMock, tracingManagerMock);
 
         // @ts-ignore
         dependencyContainerMock.resolve = (token) => {
@@ -189,7 +191,7 @@ describe("Event Pipeline", () => {
         const eventPipeline = new EventPipeline([
         ], [
             eventMapper,
-        ], logHandlerMock);
+        ], logHandlerMock, tracingManagerMock);
 
         let executionOrder = 0;
 
@@ -276,7 +278,7 @@ describe("Event Pipeline", () => {
         const eventPipeline = new EventPipeline([
         ], [
             eventMapper,
-        ], logHandlerMock);
+        ], logHandlerMock, tracingManagerMock);
 
         const executionOrders: Event<any>[] = [];
 
@@ -362,7 +364,7 @@ describe("Event Pipeline", () => {
             eventInterceptor
         ], [
             eventMapper,
-        ], logHandlerMock);
+        ], logHandlerMock, tracingManagerMock);
 
         // @ts-ignore
         dependencyContainerMock.resolve = (token) => {
@@ -425,7 +427,7 @@ describe("Event Pipeline", () => {
             eventInterceptor
         ], [
             eventMapper,
-        ], logHandlerMock);
+        ], logHandlerMock, tracingManagerMock);
 
         // @ts-ignore
         dependencyContainerMock.resolve = (token) => {
@@ -464,7 +466,7 @@ describe("Event Pipeline", () => {
         const eventPipeline = new EventPipeline([], [
             eventMapper,
             eventMapper,
-        ], logHandlerMock);
+        ], logHandlerMock, tracingManagerMock);
 
         // @ts-ignore
         dependencyContainerMock.resolve = (token) => {
@@ -481,7 +483,7 @@ describe("Event Pipeline", () => {
     })
 
     it("should throw an error if there are no events returned by any mappers", async () => {
-        const eventPipeline = new EventPipeline([], [], logHandlerMock);
+        const eventPipeline = new EventPipeline([], [], logHandlerMock, tracingManagerMock);
 
         // @ts-ignore
         dependencyContainerMock.resolve = (token) => {
@@ -498,7 +500,7 @@ describe("Event Pipeline", () => {
     })
 
     it("should throw an error if there are no events mapper", async () => {
-        const eventPipeline = new EventPipeline([], [], logHandlerMock);
+        const eventPipeline = new EventPipeline([], [], logHandlerMock, tracingManagerMock);
 
         // @ts-ignore
         dependencyContainerMock.resolve = (token) => {
@@ -530,7 +532,7 @@ describe("Event Pipeline", () => {
 
         const eventPipeline = new EventPipeline([], [
             eventMapper,
-        ], logHandlerMock);
+        ], logHandlerMock, tracingManagerMock);
 
         // @ts-ignore
         dependencyContainerMock.resolve = (token) => {
@@ -585,7 +587,7 @@ describe("Event Pipeline", () => {
             eventInterceptor
         ], [
             eventMapper,
-        ], logHandlerMock);
+        ], logHandlerMock, tracingManagerMock);
 
         // @ts-ignore
         dependencyContainerMock.resolve = (token) => {
@@ -638,7 +640,7 @@ describe("Event Pipeline", () => {
             eventInterceptor
         ], [
             eventMapper,
-        ], logHandlerMock);
+        ], logHandlerMock, tracingManagerMock);
 
         // @ts-ignore
         dependencyContainerMock.resolve = (token) => {
@@ -699,7 +701,7 @@ describe("Event Pipeline", () => {
             eventInterceptor
         ], [
             eventMapper,
-        ], logHandlerMock);
+        ], logHandlerMock, tracingManagerMock);
 
         // @ts-ignore
         dependencyContainerMock.resolve = (token) => {
@@ -763,7 +765,7 @@ describe("Event Pipeline", () => {
             eventInterceptor
         ], [
             eventMapper,
-        ], logHandlerMock);
+        ], logHandlerMock, tracingManagerMock);
 
         // @ts-ignore
         dependencyContainerMock.resolve = (token) => {
@@ -826,7 +828,7 @@ describe("Event Pipeline", () => {
             eventInterceptor
         ], [
             eventMapper,
-        ], logHandlerMock);
+        ], logHandlerMock, tracingManagerMock);
 
         // @ts-ignore
         dependencyContainerMock.resolve = (token) => {
@@ -882,7 +884,7 @@ describe("Event Pipeline", () => {
         const eventPipeline = new EventPipeline([
         ], [
             eventMapper,
-        ], logHandlerMock);
+        ], logHandlerMock, tracingManagerMock);
 
         let executionOrder = 0;
 
@@ -933,7 +935,7 @@ describe("Event Pipeline", () => {
         const eventPipeline = new EventPipeline([
         ], [
             eventMapper,
-        ], logHandlerMock);
+        ], logHandlerMock, tracingManagerMock);
 
 
         const event = {};

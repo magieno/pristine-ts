@@ -10,7 +10,8 @@
     "e2e": "cd tests/e2e && jest && cd ..",
     "perf": "cd tests/perf && jest && cd ..",
     "bump-patch": "lerna version patch --yes",
-    "publish-ci": "lerna publish from-git --yes --no-verify-access"
+    "publish-ci": "lerna publish from-git --yes --no-verify-access",
+    "prune": "rm -rf `find . -type d -name node_modules` && rm -rf `find . -type d -name dist`"
   },
   "repository": {
     "type": "git",

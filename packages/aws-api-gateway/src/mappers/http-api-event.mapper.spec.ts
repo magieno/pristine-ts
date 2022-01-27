@@ -1,8 +1,7 @@
 import {HttpApiEventMapper} from "./http-api-event.mapper";
 import {ApiGatewayEventsHandlingStrategyEnum} from "../enums/api-gateway-events-handling-strategy.enum";
-import {HttpMethod, RequestInterface} from "@pristine-ts/common";
+import {HttpMethod, Request, Response} from "@pristine-ts/common";
 import {ApiGatewayEventTypeEnum} from "../enums/api-gateway-event-type.enum";
-import {Request, Response} from "@pristine-ts/networking";
 import {HttpApiEventPayload} from "../event-payloads/http-api.event-payload";
 import {RestApiEventResponsePayload} from "../event-response-payloads/rest-api.event-response-payload";
 import {EventResponse} from "@pristine-ts/core";
@@ -87,16 +86,13 @@ describe("Http request mapper", () => {
 
         expect(httpApiEventMapper.supportsMapping(rawEvent, executionContext));
 
-        const expectedRequest: RequestInterface = {
-            url: "/my/path?parameter1=value1&parameter1=value2&parameter2=value",
-            body: rawEvent.body,
-            rawBody: rawEvent.body,
-            headers: {
-                "header1": "value1",
-                "header2": "value2"
-            },
-            httpMethod: HttpMethod.Post
-        }
+        const expectedRequest: Request = new Request(HttpMethod.Post, "/my/path?parameter1=value1&parameter1=value2&parameter2=value");
+        expectedRequest.body = rawEvent.body;
+        expectedRequest.rawBody = rawEvent.body,
+        expectedRequest.headers = {
+            "header1": "value1",
+            "header2": "value2"
+        };
 
         const mappedEvent = httpApiEventMapper.map(rawEvent, executionContext);
 

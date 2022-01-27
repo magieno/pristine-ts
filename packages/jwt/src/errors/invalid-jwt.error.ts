@@ -1,4 +1,5 @@
-import {LoggableError, RequestInterface} from "@pristine-ts/common";
+import {LoggableError} from "@pristine-ts/common";
+import {Request} from "@pristine-ts/common";
 
 /**
  * This Error is thrown when you try to decode a JWT but the token is invalid.
@@ -14,7 +15,7 @@ export class InvalidJwtError extends LoggableError {
      * @param algorithm The algorithm used to decode the JWT.
      * @param publicKey The public key used to decode the JWT.
      */
-    public constructor(message: string, previousError: Error, request: RequestInterface, token: string, algorithm: string, publicKey: string) {
+    public constructor(message: string, previousError: Error, request: Request, token: string, algorithm: string, publicKey: string) {
         super(message, {
             request,
             previousError,

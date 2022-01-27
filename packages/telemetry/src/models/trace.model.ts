@@ -19,6 +19,9 @@ export class Trace {
         this.context = context ?? {};
     }
 
+    /**
+     * This returns the duration of the trace in miliseconds.
+     */
     public getDuration(): number {
         return (this.endDate ?? Date.now()) - this.startDate;
     }

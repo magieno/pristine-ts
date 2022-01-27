@@ -1,16 +1,15 @@
 import {injectable, inject} from "tsyringe";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {moduleScoped, Request, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {NetworkingModuleKeyname} from "../networking.module.keyname";
 import {RequestInterceptorInterface} from "../interfaces/request-interceptor.interface";
-import {Request} from "../models/request";
 import {InvalidBodyHttpError} from "../errors/invalid-body.http-error";
 
 @tag(ServiceDefinitionTagEnum.RequestInterceptor)
 @moduleScoped(NetworkingModuleKeyname)
 @injectable()
 export class RequestBodyConverterInterceptor implements RequestInterceptorInterface {
-    constructor(@inject("%" + NetworkingModuleKeyname + ".requestBodyConverterActive%") private readonly isActive: boolean,
+    constructor(@inject("%" + NetworkingModuleKeyname + ".request_body_converter.is_active%") private readonly isActive: boolean,
                 @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface) {
     }
 

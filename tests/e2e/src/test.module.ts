@@ -8,11 +8,12 @@ import {TestController} from "./controllers/test.controller";
 import {TestGuard} from "./guards/test.guard";
 import {SecurityModule} from "@pristine-ts/security";
 import {AppModuleInterface} from "@pristine-ts/common";
+import {NetworkingModule} from "@pristine-ts/networking";
 
 export const testModule: AppModuleInterface = {
     keyname: "test",
     importServices: [TestController],
-    importModules: [CoreModule, SecurityModule],
+    importModules: [CoreModule, SecurityModule, NetworkingModule],
     providerRegistrations: [
         {
             token: "voter",

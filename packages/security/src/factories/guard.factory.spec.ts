@@ -3,7 +3,7 @@ import {GuardFactory} from "./guard.factory";
 import {container, injectable} from "tsyringe";
 import {GuardInterface} from "../interfaces/guard.interface";
 import {GuardContextInterface} from "../interfaces/guard-context.interface";
-import {IdentityInterface, RequestInterface} from "@pristine-ts/common";
+import {IdentityInterface, Request} from "@pristine-ts/common";
 import {GuardDecoratorError} from "../errors/guard-decorator.error";
 import {GuardInstantiationError} from "../errors/guard-instantiation.error";
 
@@ -13,7 +13,7 @@ describe("Guard Factory", () => {
         guardContext: GuardContextInterface;
         keyname: string;
 
-        isAuthorized(request: RequestInterface, identity?: IdentityInterface): Promise<boolean> {
+        isAuthorized(request: Request, identity?: IdentityInterface): Promise<boolean> {
             return Promise.resolve(false);
         }
 
@@ -57,7 +57,7 @@ describe("Guard Factory", () => {
         expect(() => guardFactory.fromContext({
             //@ts-ignore
             guard: {
-                isAuthorized(request: RequestInterface, identity?: IdentityInterface): Promise<boolean> {
+                isAuthorized(request: Request, identity?: IdentityInterface): Promise<boolean> {
                     return Promise.resolve(true);
                 }
             },
