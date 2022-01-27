@@ -12,6 +12,7 @@ export enum ServiceDefinitionTagEnum {
     EventMapper = "EventMapperInterface",
     HttpRequestInterceptor = "HttpRequestInterceptorInterface",
     HttpResponseInterceptor = "HttpResponseInterceptorInterface",
+    HttpErrorResponseInterceptor = "HttpErrorResponseInterceptorInterface",
     IdentityProvider = "IdentityProviderInterface",
     Logger = "LoggerInterface",
     MethodParameterDecoratorResolver = "METHOD_PARAMETER_DECORATOR_RESOLVER",
@@ -20,3 +21,4 @@ export enum ServiceDefinitionTagEnum {
     Tracer = "TracerInterface",
     Voter = "VoterInterface",
 }
+
