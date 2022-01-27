@@ -15,4 +15,8 @@ export class LogHandlerMock implements LogHandlerInterface {
 
     warning(message: string, extra?: any) {
     }
+
+    terminate() {
+
+    }
 }

@@ -10,10 +10,15 @@ export interface LoggerInterface {
   /**
    * The readable stream from which the logger reads the logs that need to be outputted.
    */
-  readableStream: Readable;
+  readableStream?: Readable;
 
   /**
    * Returns whether or not this particular logger is active and should ouput logs.
    */
   isActive(): boolean;
+
+  /**
+   * This will be called when the logger is to be terminated.
+   */
+  terminate(): void;
 }

@@ -59,6 +59,7 @@ describe("Express - Request Execution", () => {
 
             expect(errorResponse.status).toBe(404)
 
+            server.close()
             done();
 
         })

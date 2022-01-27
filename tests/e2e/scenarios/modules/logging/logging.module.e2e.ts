@@ -49,6 +49,9 @@ describe("Logging Module instantiation in the Kernel", () => {
         await new Promise(res => setTimeout(res, 1000));
 
         expect(global.console.info).toHaveBeenCalled();
-    })
 
+        logHandler.terminate();
+
+        await new Promise(res => setTimeout(res, 1000));
+    })
 })
