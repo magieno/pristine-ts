@@ -5,18 +5,33 @@ import format from "date-fns/format";
 import {DiagnosticsModel} from "../models/diagnostics.model";
 import {last} from "lodash";
 
+/**
+ * This class provides some utility functions to help with the logging.
+ */
 export class Utils {
 
     static flatTypes = [String, Number, Boolean, Date]
 
+    /**
+     * Returns whether or not the value is defined
+     * @param val
+     */
     public static isDefined(val: any) {
         return val !== null && val !== undefined;
     }
 
+    /**
+     * Returns whether or not the value is flat, meaning it is not an object.
+     * @param val
+     */
     public static isFlat(val: any) {
         return !this.isDefined(val) || ~this.flatTypes.indexOf(val.constructor)
     }
 
+    /**
+     * Gets the deep keys of an object.
+     * @param obj The object.
+     */
     public static getDeepKeys(obj: any): string[] {
         let subkeys: string[];
         let keys: string[] = [];
@@ -37,7 +52,12 @@ export class Utils {
         return keys;
     }
 
-
+    /**
+     * This function truncates an object to the max depth required.
+     * @param object The object to truncate.
+     * @param maxDepth The max depth of the object.
+     * @param curDepth The current depth at which we are at.
+     */
     public static truncate(object: any, maxDepth: number, curDepth = 0) {
         if (curDepth < maxDepth) {
             const newDepth = curDepth + 1;
@@ -75,6 +95,10 @@ export class Utils {
         return;
     }
 
+    /**
+     * Gets the string representing a value of the log severity enum.
+     * @param logSeverity The log severity for which to get the string representation.
+     */
     public static getSeverityText(logSeverity: SeverityEnum): string {
         switch (logSeverity) {
             case SeverityEnum.Debug:
@@ -94,6 +118,13 @@ export class Utils {
         }
     }
 
+    /**
+     * Returns the string formatted log based on the output model.
+     * @param log The log to be string formatted.
+     * @param outputMode The output mode desired.
+     * @param logDepth The log depth.
+     * @param spaceNumber The number of spaces for a tab.
+     */
     public static outputLog(log: LogModel, outputMode: OutputModeEnum, logDepth: number, spaceNumber = 0): string {
         const jsonSortOrders: string[] = ["severity", "message", "date", "module", "traceId", "kernelInstantiationId"];
 
@@ -112,6 +143,10 @@ export class Utils {
         }
     }
 
+    /**
+     * Creates the diagnostic model from an error object to attach to a log.
+     * @param error The error object from which to get the stack trace.
+     */
     public static getDiagnostics(error: Error): DiagnosticsModel {
         const diagnostics: DiagnosticsModel = new DiagnosticsModel();
 

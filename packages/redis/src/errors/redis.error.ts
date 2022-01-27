@@ -1,8 +1,8 @@
+import {LoggableError} from "@pristine-ts/common";
+
 /**
  * This Error represents a Redis error.
  */
-import {LoggableError} from "@pristine-ts/common";
-
 export class RedisError extends LoggableError {
     public constructor(message?: string,
                        public readonly originalError?: Error,
