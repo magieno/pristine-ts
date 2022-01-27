@@ -116,11 +116,12 @@ export class RestApiEventMapper extends BaseApiEventMapper implements EventMappe
             restApiEventResponsePayload.isBase64Encoded = false;
 
             return restApiEventResponsePayload;
+        } else {
+            return new RestApiEventResponsePayload(200, eventResponse.response);
         }
         else {
             return new RestApiEventResponsePayload(200, eventResponse.response);
         }
 
     }
-
 }

@@ -19,6 +19,8 @@ import { v4 as uuidv4 } from 'uuid';
 import {ExecutionContextInterface} from "./interfaces/execution-context.interface";
 import {EventPipeline} from "./pipelines/event.pipeline";
 import {Event} from "./models/event";
+import {KernelInitializationError} from "./errors/kernel-initialization.error";
+
 
 /**
  * This is the central class that manages the lifecyle of this library.
@@ -71,6 +73,10 @@ export class Kernel {
 
         // Inits the application module and its dependencies.
         const initializedModuleSpans = await this.initModule(module);
+
+        if(this.initializationSpan === undefined) {
+            throw new KernelInitializationError("The InitializationSpan is undefined and shouldn't be.")
+        }
 
         // Add every spans as a child of the Initialization Span
         initializedModuleSpans.forEach(span => this.initializationSpan!.addChild(span));
