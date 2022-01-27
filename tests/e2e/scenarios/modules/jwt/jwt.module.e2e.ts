@@ -67,6 +67,8 @@ describe("JWT Module instantiation in the Kernel", () => {
             importModules: [CoreModule, NetworkingModule, JwtModule],
             providerRegistrations: [],
         } as AppModuleInterface, {
+            "pristine.logging.consoleLoggerActivated": false,
+            "pristine.logging.fileLoggerActivated": false,
         })).rejects.toThrow(new ConfigurationValidationError(["The Configuration with key: 'pristine.jwt.publicKey' is required and must be defined."]));
     })
 

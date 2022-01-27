@@ -91,7 +91,10 @@ describe("Event Pipeline Scenarios", () => {
             importServices: [],
         }
 
-        await kernel.start(appModule);
+        await kernel.start(appModule, {
+            "pristine.logging.consoleLoggerActivated" : false,
+            "pristine.logging.fileLoggerActivated" : false,
+        });
     })
 
     beforeEach(() => {
