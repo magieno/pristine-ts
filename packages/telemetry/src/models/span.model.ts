@@ -26,6 +26,9 @@ export class Span {
         this.context = context ?? {};
     }
 
+    /**
+     * This returns the duration of the span in miliseconds.
+     */
     public getDuration(): number {
         return (this.endDate ?? Date.now()) - this.startDate;
     }

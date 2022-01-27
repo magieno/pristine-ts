@@ -25,5 +25,13 @@ export const TelemetryModule: ModuleInterface = {
         defaultResolvers: [
             new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_TRACING_IS_ACTIVE")),
         ]
+    },
+        {
+        parameterName: TelemetryModuleKeyname + ".debug",
+        defaultValue: false,
+        isRequired: false,
+        defaultResolvers: [
+            new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_TRACING_DEBUG")),
+        ]
     }]
 }

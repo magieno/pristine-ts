@@ -23,13 +23,13 @@ export class FileLogger extends BaseLogger implements LoggerInterface {
   /**
    * The readable stream from which the logger reads the logs that need to be outputted.
    */
-  public readableStream!: Readable;
+  public readableStream?: Readable;
 
   /**
    * The writable stream used to write to the file.
    * @private
    */
-  public writableStream!: Writable;
+  public writableStream?: Writable;
 
   /**
    * The ConsoleLogger outputs the logs in the console.
@@ -78,6 +78,14 @@ export class FileLogger extends BaseLogger implements LoggerInterface {
   }
 
   /**
+   * This will be called when the logger is to be terminated. It must destroy the readable stream.
+   */
+  terminate(): void {
+    this.readableStream?.destroy();
+    this.writableStream?.end();
+  }
+
+  /**
    * Initializes the file logger, and opens the write stream.
    * @protected
    */
@@ -102,6 +110,10 @@ export class FileLogger extends BaseLogger implements LoggerInterface {
    * @protected
    */
   protected log(log: LogModel): void {
+    if(this.writableStream === undefined) {
+      return;
+    }
+
     const outputLog = this.getFormattedOutputLog(log) + ";\n";
 
     switch (log.severity) {

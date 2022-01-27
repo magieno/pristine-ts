@@ -21,7 +21,6 @@
   "dependencies": {
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/core": "file:../core",
-    "@pristine-ts/event": "file:../event",
     "@pristine-ts/logging": "file:../logging"
   },
   "jest": {

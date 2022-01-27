@@ -25,7 +25,7 @@ export class ConsoleLogger extends BaseLogger implements LoggerInterface {
   /**
    * The readable stream from which the logger reads the logs that need to be outputted.
    */
-  public readableStream!: Readable;
+  public readableStream?: Readable;
 
   /**
    * The ConsoleLogger outputs the logs in the console.
@@ -67,6 +67,13 @@ export class ConsoleLogger extends BaseLogger implements LoggerInterface {
 
     this.initialize();
   }
+
+  /**
+   * This will be called when the logger is to be terminated. It must destroy the readable stream.
+   */
+  terminate(): void {
+        this.readableStream?.destroy();
+    }
 
   /**
    * Initializes the console logger.

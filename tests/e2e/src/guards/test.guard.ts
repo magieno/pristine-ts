@@ -1,6 +1,6 @@
 import {injectable} from "tsyringe";
 import {GuardContextInterface, GuardInterface} from "@pristine-ts/security";
-import {RequestInterface} from "@pristine-ts/common";
+import {Request} from "@pristine-ts/common";
 
 export class TestGuard implements GuardInterface {
     public keyname = "testGuard"
@@ -8,7 +8,7 @@ export class TestGuard implements GuardInterface {
     public constructor(private readonly shouldAuthorize: boolean) {
     }
 
-    async isAuthorized(request: RequestInterface): Promise<boolean> {
+    async isAuthorized(request: Request): Promise<boolean> {
         return this.shouldAuthorize;
     }
 

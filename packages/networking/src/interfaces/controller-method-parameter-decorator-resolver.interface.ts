@@ -1,4 +1,4 @@
-import {Request} from "../models/request";
+import {Request} from "@pristine-ts/common";
 import {IdentityInterface} from "@pristine-ts/common";
 import {ParameterDecoratorInterface} from "./parameter-decorator.interface";
 

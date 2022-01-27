@@ -1,4 +1,6 @@
-import {Event} from "@pristine-ts/event";
+import {ExecutionContextInterface} from "./execution-context.interface";
+import {EventResponse} from "../models/event.response";
+import {Event} from "../models/event";
 
 /**
  * The Event Interceptor Interface defines the methods that an Event Interceptor must implement. This
@@ -12,8 +14,9 @@ export interface EventInterceptorInterface {
      * If you force to never resolve the promise, the execution will stall. Be careful.
      *
      * @param event
+     * @param executionContextInterface
      */
-    interceptRawEvent(event: any): Promise<any>;
+    preMappingIntercept?(event: object, executionContextInterface: ExecutionContextInterface<any>): Promise<object>;
 
     /**
      * This method receives an event object and must return a transformed event object. If you don't want to
@@ -23,5 +26,23 @@ export interface EventInterceptorInterface {
      *
      * @param event
      */
-    interceptEvent(event: Event<any>): Promise<Event<any>>;
+    postMappingIntercept?(event: Event<any>): Promise<Event<any>>;
+
+    /**
+     * This method receives the EventResponse returned by the EventDispatcher before it is being reverse mapped by the EventMappers.
+     *
+     * If you force to never resolve the promise, the execution will stall. Be careful.
+     *
+     * @param eventResponse
+     */
+    preResponseMappingIntercept?(eventResponse: EventResponse<any, any>): Promise<EventResponse<any, any>>;
+
+    /**
+     * This method receives the reverse mapped EventResponse returned by the EventMappers, but before they are leaving Pristine entirely.
+     *
+     * If you force to never resolve the promise, the execution will stall. Be careful.
+     *
+     * @param eventResponse
+     */
+    postResponseMappingIntercept?(eventResponse: object): Promise<object>;
 }

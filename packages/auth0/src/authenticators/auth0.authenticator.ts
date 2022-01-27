@@ -1,6 +1,6 @@
 import {inject, injectable, singleton} from "tsyringe";
 import * as jwt from "jsonwebtoken";
-import {HttpMethod, IdentityInterface, RequestInterface} from "@pristine-ts/common";
+import {HttpMethod, IdentityInterface} from "@pristine-ts/common";
 import {TokenHeaderInterface} from "../interfaces/token-header.interface";
 import {ClaimInterface} from "../interfaces/claim.interface";
 import {AuthenticatorInterface} from "@pristine-ts/security";
@@ -8,6 +8,7 @@ import {HttpClientInterface, ResponseTypeEnum} from "@pristine-ts/http";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import jwkToBuffer from "jwk-to-pem";
 import {Auth0ModuleKeyname} from "../auth0.module.keyname";
+import {Request} from "@pristine-ts/common";
 
 
 @singleton()
@@ -46,7 +47,7 @@ export class Auth0Authenticator implements AuthenticatorInterface {
      * Gets the identity from the request
      * @param request
      */
-    async authenticate(request: RequestInterface): Promise<IdentityInterface> {
+    async authenticate(request: Request): Promise<IdentityInterface> {
         this.cachedPems = this.cachedPems ?? await this.getPems();
         const token = this.validateRequestAndReturnToken(request);
         const key = this.getKeyFromToken(token, this.cachedPems);
@@ -108,7 +109,7 @@ export class Auth0Authenticator implements AuthenticatorInterface {
      * @private
      */
     // todo: this is a copy from jwt manager should we put that somewhere common ?
-    private validateRequestAndReturnToken(request: RequestInterface): string {
+    private validateRequestAndReturnToken(request: Request): string {
         if (request.headers === undefined || (request.headers.hasOwnProperty("Authorization") === false && request.headers.hasOwnProperty("authorization") === false)) {
             throw new Error("The Authorization header wasn't found in the Request.");
             // throw new MissingAuthorizationHeaderError("The Authorization header wasn't found in the Request.");

@@ -21,12 +21,9 @@
   "dependencies": {
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/configuration": "file:../configuration",
-    "@pristine-ts/event": "file:../event",
     "@pristine-ts/logging": "file:../logging",
-    "@pristine-ts/networking": "file:../networking",
     "@pristine-ts/security": "file:../security",
     "@pristine-ts/telemetry": "file:../telemetry",
-    "lodash": "^4.17.21",
     "uuid": "^8.3.2"
   },
   "devDependencies": {

@@ -1,12 +1,13 @@
 import "reflect-metadata"
 import {container, DependencyContainer, inject, injectable, singleton} from "tsyringe";
-import {moduleScoped, RequestInterface, tag} from "@pristine-ts/common";
+import {moduleScoped, tag} from "@pristine-ts/common";
 
 import {Algorithm, verify} from "jsonwebtoken"
 import {JwtAuthorizationHeaderError} from "../errors/jwt-authorization-header.error";
 import {InvalidJwtError} from "../errors/invalid-jwt.error";
 import {JwtManagerInterface} from "../interfaces/jwt-manager.interface";
 import {JwtModuleKeyname} from "../jwt.module.keyname";
+import {Request} from "@pristine-ts/common";
 
 /**
  * The JwtManager makes decodes and validates JWT token so that they can be used.
@@ -35,7 +36,7 @@ export class JwtManager implements JwtManagerInterface {
      * @param request The request to validate.
      * @private
      */
-    private validateRequestAndReturnToken(request: RequestInterface): string {
+    private validateRequestAndReturnToken(request: Request): string {
         if (request.headers === undefined || request.headers.hasOwnProperty("Authorization") === false) {
             throw new JwtAuthorizationHeaderError("The Authorization header wasn't found in the Request.", request);
         }
@@ -57,7 +58,7 @@ export class JwtManager implements JwtManagerInterface {
      * Validates that the request is authorized by validating the JWT and returning the decoded JWT.
      * @param request The request to validate that contains the JWT.
      */
-    public validateAndDecode(request: RequestInterface): Promise<any> {
+    public validateAndDecode(request: Request): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             try {
                 const token = this.validateRequestAndReturnToken(request);

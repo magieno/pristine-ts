@@ -32,6 +32,15 @@ export class LogHandler implements LogHandlerInterface {
   }
 
   /**
+   * This method terminates the loggers.
+   */
+  terminate(): void {
+        this.loggers.forEach( (logger: LoggerInterface) => {
+          logger.terminate();
+        })
+    }
+
+  /**
    * Logs the message if the severity is set to critical or above.
    * This function is wrapper function for the log method with the proper severity to make it cleaner when using it in the code.
    * @param message The message to log.
@@ -123,7 +132,7 @@ export class LogHandler implements LogHandlerInterface {
     // Log in every logger that is activated.
     for(const logger of this.loggers){
       if(logger.isActive()) {
-        logger.readableStream.push(log);
+        logger.readableStream?.push(log);
       }
     }
   }

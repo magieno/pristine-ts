@@ -2,13 +2,10 @@ import "reflect-metadata"
 import {container, injectable} from "tsyringe";
 import {AuthorizerManager} from "./authorizer.manager";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import {IdentityInterface, RequestInterface} from "@pristine-ts/common";
+import {IdentityInterface, Request} from "@pristine-ts/common";
 import {GuardFactory} from "../factories/guard.factory";
 import {GuardInterface} from "../interfaces/guard.interface";
 import {GuardContextInterface} from "../interfaces/guard-context.interface";
-import {AuthenticationManager} from "./authentication.manager";
-import {AuthenticatorContextInterface} from "../interfaces/authenticator-context.interface";
-import {AuthenticatorInterface} from "../interfaces/authenticator.interface";
 
 describe("AuthorizerManager", () => {
     const logHandlerMock: LogHandlerInterface = {
@@ -17,22 +14,20 @@ describe("AuthorizerManager", () => {
         }, error(message: string, extra?: any): void {
         }, info(message: string, extra?: any): void {
         }, warning(message: string, extra?: any): void {
+        }, terminate() {
         }
     }
 
-    const requestMock: RequestInterface = {
-        httpMethod: "",
-        body: {},
-        url: "",
-        headers: {}
-    }
+    const requestMock: Request = new Request("", "");
+    requestMock.body = {};
+    requestMock.headers = {};
 
     @injectable()
     class Guard1 implements GuardInterface {
         guardContext: GuardContextInterface;
         keyname: string;
 
-        isAuthorized(request: RequestInterface, identity?: IdentityInterface): Promise<boolean> {
+        isAuthorized(request: Request, identity?: IdentityInterface): Promise<boolean> {
             return Promise.resolve(true);
         }
 
@@ -47,7 +42,7 @@ describe("AuthorizerManager", () => {
         guardContext: GuardContextInterface;
         keyname: string;
 
-        isAuthorized(request: RequestInterface, identity?: IdentityInterface): Promise<boolean> {
+        isAuthorized(request: Request, identity?: IdentityInterface): Promise<boolean> {
             return Promise.resolve(true);
         }
 
@@ -111,13 +106,13 @@ describe("AuthorizerManager", () => {
 
         const guard1 = new Guard1();
         const spy1 = jest.spyOn(guard1, "isAuthorized");
-        spy1.mockImplementation((request: RequestInterface, identity?: IdentityInterface) => {
+        spy1.mockImplementation((request: Request, identity?: IdentityInterface) => {
             return Promise.resolve(false)
         })
 
         const guard2 = new Guard2();
         const spy2 = jest.spyOn(guard2, "isAuthorized");
-        spy2.mockImplementation((request: RequestInterface, identity?: IdentityInterface) => {
+        spy2.mockImplementation((request: Request, identity?: IdentityInterface) => {
             return Promise.resolve(true)
         })
 
@@ -151,13 +146,13 @@ describe("AuthorizerManager", () => {
 
         const guard1 = new Guard1();
         const spy1 = jest.spyOn(guard1, "isAuthorized");
-        spy1.mockImplementation((request: RequestInterface, identity?: IdentityInterface) => {
+        spy1.mockImplementation((request: Request, identity?: IdentityInterface) => {
             return Promise.reject(new Error())
         })
 
         const guard2 = new Guard2();
         const spy2 = jest.spyOn(guard2, "isAuthorized");
-        spy2.mockImplementation((request: RequestInterface, identity?: IdentityInterface) => {
+        spy2.mockImplementation((request: Request, identity?: IdentityInterface) => {
             return Promise.resolve(true)
         })
 
@@ -198,7 +193,7 @@ describe("AuthorizerManager", () => {
 
                         return Promise.resolve();
                     },
-                    isAuthorized(request: RequestInterface, identity?: IdentityInterface): Promise<boolean> {
+                    isAuthorized(request: Request, identity?: IdentityInterface): Promise<boolean> {
                         expect(index).toBe(1);
                         return Promise.resolve(true);
                     }

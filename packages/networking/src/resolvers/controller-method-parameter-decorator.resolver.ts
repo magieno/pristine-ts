@@ -1,7 +1,7 @@
 import {injectable, injectAll} from "tsyringe";
 import {IdentityInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {ControllerMethodParameterDecoratorResolverInterface} from "../interfaces/controller-method-parameter-decorator-resolver.interface";
-import {Request} from "../models/request";
+import {Request} from "@pristine-ts/common";
 import {ParameterDecoratorInterface} from "../interfaces/parameter-decorator.interface";
 
 /**
