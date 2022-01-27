@@ -15,7 +15,9 @@ export * from "./event-payloads/event-payloads";
 export * from "./interfaces/interfaces";
 export * from "./mappers/mappers";
 export * from "./models/models";
+export * from "./options/options";
 export * from "./resolvers/resolvers";
+export * from "./results/results";
 
 export * from "./aws.module.keyname";
 

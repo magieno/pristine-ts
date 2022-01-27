@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/aws",
-  "version": "0.0.174",
+  "version": "0.0.175",
   "description": "",
   "module": "dist/lib/esm/aws.module.js",
   "main": "dist/lib/cjs/aws.module.js",
@@ -18,8 +18,10 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.27.0",
     "@aws-sdk/client-eventbridge": "^3.27.0",
+    "@aws-sdk/client-s3": "^3.27.0",
     "@aws-sdk/client-sqs": "^3.27.0",
     "@aws-sdk/client-ssm": "^3.27.0",
+    "@aws-sdk/s3-request-presigner": "^3.27.0",
     "@awslabs-community-fork/dynamodb-data-mapper": "^0.7.9",
     "@awslabs-community-fork/dynamodb-data-marshaller": "^0.7.9",
     "@awslabs-community-fork/dynamodb-expressions": "^0.7.9",
