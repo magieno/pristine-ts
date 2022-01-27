@@ -16,7 +16,9 @@ export * from "./factories/factories";
 export * from "./interfaces/interfaces";
 export * from "./mappers/mappers";
 export * from "./models/models";
+export * from "./options/options";
 export * from "./resolvers/resolvers";
+export * from "./results/results";
 export * from "./types/types";
 
 export * from "./aws.module.keyname";
