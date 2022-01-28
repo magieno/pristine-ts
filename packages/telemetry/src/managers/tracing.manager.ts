@@ -238,7 +238,8 @@ export class TracingManager implements TracingManagerInterface {
 
         // Trace time
         // Top 5 longest spans
-        let longestSpans = Object.values(this.spans).sort( (a, b) => b.getDuration() - a.getDuration()).splice(5);
+        let longestSpans = Object.values(this.spans).sort( (a, b) => b.getDuration() - a.getDuration());
+        longestSpans.splice(5);
 
         this.loghandler.info("Ending the trace. \n" +
             "Trace duration: " + this.trace.getDuration() + " ms \n" +

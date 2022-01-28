@@ -2,12 +2,21 @@ import {ModuleInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {AwsXrayModuleKeyname} from "./aws-xray.module.keyname";
 import {TelemetryModule} from "@pristine-ts/telemetry";
 import {LoggingModule} from "@pristine-ts/logging";
+import {BooleanResolver, EnvironmentVariableResolver} from "@pristine-ts/configuration";
 
 export * from "./tracers/tracers";
 
 export const AwsXrayModule: ModuleInterface = {
     keyname: AwsXrayModuleKeyname,
     configurationDefinitions: [
+        {
+            parameterName: AwsXrayModuleKeyname + ".debug",
+            defaultValue: false,
+            isRequired: false,
+            defaultResolvers: [
+                new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_AWS_XRAY_DEBUG")),
+            ]
+        }
     ],
 
     importModules:[
