@@ -155,7 +155,7 @@ export class Router implements RouterInterface {
             const methodNode: MethodRouterNode = this.root.find(splitPath, request.httpMethod) as MethodRouterNode;
             methodNodeSpan.end();
 
-            this.loghandler.debug("Execute request", {
+            this.loghandler.debug("Router - Execute request", {
                 rootNode: this.root,
                 request,
                 url,
@@ -182,7 +182,7 @@ export class Router implements RouterInterface {
             const controller: any = container.resolve(methodNode.route.controllerInstantiationToken);
             routerControllerResolverSpan.end();
 
-            this.loghandler.debug("Before calling the authenticationManager", {
+            this.loghandler.debug("Router - Before calling the authenticationManager", {
                 controller,
                 routeParameters
             }, NetworkingModuleKeyname);
@@ -195,7 +195,7 @@ export class Router implements RouterInterface {
                 identity = await this.authenticationManager.authenticate(request, methodNode.route.context, container);
                 routerRequestAuthenticationSpan.end();
 
-                this.loghandler.debug("Found identity.", {
+                this.loghandler.debug("Router - Found identity.", {
                     identity
                 }, NetworkingModuleKeyname);
             } catch (error) {
@@ -236,7 +236,7 @@ export class Router implements RouterInterface {
                 const interceptedRequest = await this.executeRequestInterceptors(request, container, methodNode);
                 requestInterceptorsSpan.end();
 
-                this.loghandler.debug("This request has been enriched", {
+                this.loghandler.debug("Intercepted Request", {
                     request,
                     interceptedRequest,
                 }, NetworkingModuleKeyname)
@@ -248,7 +248,7 @@ export class Router implements RouterInterface {
                     resolvedMethodArguments.push(await this.controllerMethodParameterDecoratorResolver.resolve(methodArgument, interceptedRequest, routeParameters, identity));
                 }
 
-                this.loghandler.debug("Controller argument resolved", {
+                this.loghandler.debug("Router - Controller argument resolved", {
                     resolvedMethodArguments,
                 }, NetworkingModuleKeyname)
 
@@ -258,7 +258,7 @@ export class Router implements RouterInterface {
                 // https://stackoverflow.com/a/27760489/684101
                 const response = await Promise.resolve(controllerResponse);
 
-                this.loghandler.debug("The returned response by the controller", {
+                this.loghandler.debug("Router - The response returned by the controller", {
                     response
                 }, NetworkingModuleKeyname)
 
@@ -278,16 +278,11 @@ export class Router implements RouterInterface {
                 const interceptedResponse = await this.executeResponseInterceptors(returnedResponse, request, container, methodNode);
                 responseInterceptorsSpan.end();
 
-                this.loghandler.debug("This response has been enriched", {
-                    returnedResponse,
-                    enrichedResponse: interceptedResponse,
-                }, NetworkingModuleKeyname)
-
                 routerRequestExecutionSpan.end();
-                return resolve(returnedResponse);
+                return resolve(interceptedResponse);
             }
             catch (error) {
-                this.loghandler.error("There was an error trying to execute the request in the router", {
+                this.loghandler.error("Router - There was an error trying to execute the request in the router", {
                     error,
                 }, NetworkingModuleKeyname)
 
@@ -310,6 +305,11 @@ export class Router implements RouterInterface {
      * @private
      */
     private async executeRequestInterceptors( request: Request, container: DependencyContainer, methodNode: MethodRouterNode): Promise<Request> {
+        this.loghandler.debug("Router - Request Interceptors - Start", {
+            request,
+            methodNode,
+        }, NetworkingModuleKeyname)
+
         // Execute all the request interceptors
         let interceptedRequest = request;
 
@@ -336,6 +336,12 @@ export class Router implements RouterInterface {
             }
         }
 
+        this.loghandler.debug("Router - Request Interceptors - End", {
+            request,
+            interceptedRequest,
+            methodNode,
+        }, NetworkingModuleKeyname)
+
         return interceptedRequest;
     }
 
@@ -350,6 +356,12 @@ export class Router implements RouterInterface {
      * @private
      */
     private async executeResponseInterceptors(response: Response, request: Request, container: DependencyContainer, methodNode?: MethodRouterNode): Promise<Response> {
+        this.loghandler.debug("Router - Response Interceptors - Start", {
+            response,
+            request,
+            methodNode,
+        }, NetworkingModuleKeyname)
+
         // Execute all the request interceptors
         let interceptedResponse = response;
 
@@ -362,18 +374,25 @@ export class Router implements RouterInterface {
                 // So, we have to verify that the method exists, and if it doesn't we throw
                 if (typeof interceptor.interceptResponse === "undefined") {
                     // Simply log a message for now that the interceptors doesn't implement the 'interceptResponse' method.
-                    this.loghandler.info("The Request Interceptor doesn't implement the interceptResponse method.", {name: interceptor.constructor.name, interceptor});
+                    this.loghandler.info("Router - The Request Interceptor doesn't implement the interceptResponse method.", {name: interceptor.constructor.name, interceptor}, NetworkingModuleKeyname);
                     continue;
                 }
 
                 try {
                     interceptedResponse = await (interceptor as RequestInterceptorInterface).interceptResponse?.(interceptedResponse, request, methodNode) ?? interceptedResponse;
                 } catch (e) {
-                    this.loghandler.error("There was an exception thrown while executing the 'interceptResponse' method of the RequestInterceptor named: '" + interceptor.constructor.name + "'.", {e}, NetworkingModuleKeyname);
+                    this.loghandler.error("Router - There was an exception thrown while executing the 'interceptResponse' method of the RequestInterceptor named: '" + interceptor.constructor.name + "'.", {e}, NetworkingModuleKeyname);
                     throw e;
                 }
             }
         }
+
+        this.loghandler.debug("Router - Response Interceptors - End", {
+            response,
+            interceptedResponse,
+            request,
+            methodNode,
+        }, NetworkingModuleKeyname)
 
         return interceptedResponse;
     }
@@ -389,6 +408,12 @@ export class Router implements RouterInterface {
      * @private
      */
     private async executeErrorResponseInterceptors(error: Error, request: Request, container: DependencyContainer, methodNode?: MethodRouterNode): Promise<Response> {
+        this.loghandler.debug("Router - Error Response Interceptors - Start", {
+            error,
+            request,
+            methodNode,
+        }, NetworkingModuleKeyname)
+
         // Execute all the request interceptors
         let interceptedResponse = new Response();
         if(error instanceof HttpError) {
@@ -405,7 +430,6 @@ export class Router implements RouterInterface {
             interceptedResponse.status = 500;
             interceptedResponse.body = {name: error.name, message: error.message, stack: error.stack};
         }
-
 
         interceptedResponse.request = request;
 
@@ -432,6 +456,13 @@ export class Router implements RouterInterface {
         }
 
         interceptedResponse = await this.executeResponseInterceptors(interceptedResponse, request, container, methodNode);
+
+        this.loghandler.debug("Router - Error Response Interceptors - End", {
+            error,
+            interceptedResponse,
+            request,
+            methodNode,
+        }, NetworkingModuleKeyname)
 
         return interceptedResponse;
     }

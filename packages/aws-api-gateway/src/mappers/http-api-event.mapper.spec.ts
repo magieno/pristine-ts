@@ -117,7 +117,7 @@ describe("Http request mapper", () => {
         expect(mappedResponse instanceof HttpApiEventResponsePayload).toBeTruthy()
         expect(mappedResponse.statusCode).toBe(201)
         expect(mappedResponse.headers).toStrictEqual({"Content-Type": "application/json"})
-        expect(mappedResponse.body).toStrictEqual({"allo": true})
+        expect(mappedResponse.body).toStrictEqual('{"allo":true}')
         expect(mappedResponse.isBase64Encoded).toBeFalsy()
 
     })

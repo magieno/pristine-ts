@@ -96,7 +96,7 @@ export class HttpApiEventMapper extends BaseApiEventMapper implements EventMappe
         if(eventResponse.response instanceof HttpApiEventResponsePayload) {
             return eventResponse.response;
         } else if(eventResponse.response instanceof Response) {
-            let body = response.body;
+            let body = eventResponse.response.body;
 
             if(typeof body === "object") {
                 try {
@@ -117,8 +117,7 @@ export class HttpApiEventMapper extends BaseApiEventMapper implements EventMappe
             httpRequestEventResponsePayload.isBase64Encoded = false;
 
             return httpRequestEventResponsePayload;
-        }
-        else {
+        } else {
             return new HttpApiEventResponsePayload(200, eventResponse.response);
         }
     }

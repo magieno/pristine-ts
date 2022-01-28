@@ -111,7 +111,7 @@ export class RestApiEventMapper extends BaseApiEventMapper implements EventMappe
         if(eventResponse.response instanceof RestApiEventResponsePayload) {
             return eventResponse.response;
         } else if(eventResponse.response instanceof Response) {
-            let body = response.body;
+            let body = eventResponse.response.body;
 
             if(typeof body === "object") {
                 try {

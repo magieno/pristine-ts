@@ -38,7 +38,7 @@ export class EventDispatcher implements EventDispatcherInterface {
      * @param event
      */
     async dispatch(event: Event<any>): Promise<EventResponse<any, any>> {
-        this.logHandler.debug("Dispatch the event", {
+        this.logHandler.debug("EventDispatcher - Dispatch the event - Start", {
             event,
             eventHandlers: this.eventHandlers,
             eventHandlerNames: this.eventHandlers.map(eventHandler => eventHandler.constructor.name),
@@ -59,7 +59,7 @@ export class EventDispatcher implements EventDispatcherInterface {
 
         for (const eventHandler of this.eventHandlers) {
             if(eventHandler.supports(event)) {
-                this.logHandler.debug("The EventHandler supports the event", {
+                this.logHandler.debug("EventDispatcher - The EventHandler supports the event", {
                     event,
                     eventHandler: eventHandler,
                     eventHandlerName: eventHandler.constructor.name,
@@ -69,7 +69,7 @@ export class EventDispatcher implements EventDispatcherInterface {
                 break;
             }
             else {
-                this.logHandler.debug("The EventHandler doesn't support the event", {
+                this.logHandler.debug("EventDispatcher - The EventHandler doesn't support the event", {
                     event,
                     eventHandler: eventHandler,
                     eventHandlerName: eventHandler.constructor.name,
@@ -80,11 +80,20 @@ export class EventDispatcher implements EventDispatcherInterface {
         if(supportingEventHandlers.length === 0) {
             throw new EventDispatcherNoEventHandlersError("There are no EventHandlers that support this event.", event);
         } else if (supportingEventHandlers.length > 1) {
-            this.logHandler.warning("There are more than one EventHandler that support this event.")
+            this.logHandler.warning("EventDispatcher - There are more than one EventHandler that support this event. The first one will be used.")
         }
+
+        this.logHandler.debug("EventDispatcher - Calling EventHandler - Start", {
+            event,
+        })
 
         // We only support executing the handler with the highest priority.
         const eventResponse = await supportingEventHandlers[0].handle(event);
+
+        this.logHandler.debug("EventDispatcher - Calling EventHandler - End", {
+            event,
+            eventResponse,
+        })
 
         await Promise.allSettled(eventListenerPromises);
 
