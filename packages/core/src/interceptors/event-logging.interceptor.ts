@@ -19,7 +19,7 @@ export class EventLoggingInterceptor implements EventInterceptorInterface{
     }
 
     preMappingIntercept(event: object, executionContextInterface: ExecutionContextInterface<any>): Promise<object> {
-        this.logHandler.debug("Event just before the EventMapping into an Event object.", {
+        this.logHandler.info("Event just before the EventMapping into an Event object.", {
             event,
             executionContextInterface
         }, CoreModuleKeyname)
@@ -28,7 +28,7 @@ export class EventLoggingInterceptor implements EventInterceptorInterface{
     }
 
     postMappingIntercept(event: Event<any>): Promise<Event<any>> {
-        this.logHandler.debug("Event just after being mapped into an Event object.", {
+        this.logHandler.info("Event just after being mapped into an Event object.", {
             event,
         }, CoreModuleKeyname)
 
@@ -36,7 +36,7 @@ export class EventLoggingInterceptor implements EventInterceptorInterface{
     }
 
     preResponseMappingIntercept(eventResponse: EventResponse<any, any>): Promise<EventResponse<any, any>> {
-        this.logHandler.debug("Event response just after being dispatched to the Event Listeners.", {
+        this.logHandler.info("Event response just after being dispatched to the Event Listeners.", {
             eventResponse,
         }, CoreModuleKeyname)
 
@@ -44,7 +44,7 @@ export class EventLoggingInterceptor implements EventInterceptorInterface{
     }
 
     postResponseMappingIntercept(eventResponse: object): Promise<object> {
-        this.logHandler.debug("Final event response that will be returned.", {
+        this.logHandler.info("Final event response that will be returned.", {
             eventResponse,
         }, CoreModuleKeyname)
 

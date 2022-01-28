@@ -14,12 +14,14 @@ import {ApiGatewayEventTypeEnum} from "../enums/api-gateway-event-type.enum";
 import {ApiGatewayEventsHandlingStrategyEnum} from "../enums/api-gateway-events-handling-strategy.enum";
 import {AwsApiGatewayModuleKeyname} from "../aws-api-gateway.module.keyname";
 import {BaseApiEventMapper} from "./base-api-event.mapper";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 
 @moduleScoped(AwsApiGatewayModuleKeyname)
 @tag(ServiceDefinitionTagEnum.EventMapper)
 @injectable()
 export class RestApiEventMapper extends BaseApiEventMapper implements EventMapperInterface<RestApiEventPayload | Request, RestApiEventResponsePayload | Response> {
-    constructor(@inject("%" + AwsApiGatewayModuleKeyname + ".rest_api_events.handling_strategy%") private readonly restApiEventsHandlingStrategy: ApiGatewayEventsHandlingStrategyEnum) {
+    constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
+                @inject("%" + AwsApiGatewayModuleKeyname + ".rest_api_events.handling_strategy%") private readonly restApiEventsHandlingStrategy: ApiGatewayEventsHandlingStrategyEnum) {
         super();
     }
 
@@ -109,7 +111,20 @@ export class RestApiEventMapper extends BaseApiEventMapper implements EventMappe
         if(eventResponse.response instanceof RestApiEventResponsePayload) {
             return eventResponse.response;
         } else if(eventResponse.response instanceof Response) {
-            const restApiEventResponsePayload = new RestApiEventResponsePayload(eventResponse.response.status, eventResponse.response.body);
+            let body = response.body;
+
+            if(typeof body === "object") {
+                try {
+                    body = JSON.stringify(body);
+                }
+                catch (e) {
+                    this.logHandler.error("Could not convert the response body into a string by stringifying it as a JSON", {
+
+                    }, AwsApiGatewayModuleKeyname)
+                }
+            }
+
+            const restApiEventResponsePayload = new RestApiEventResponsePayload(eventResponse.response.status, body);
             if(eventResponse.response.headers) {
                 restApiEventResponsePayload.headers = eventResponse.response.headers;
             }
@@ -119,6 +134,5 @@ export class RestApiEventMapper extends BaseApiEventMapper implements EventMappe
         } else {
             return new RestApiEventResponsePayload(200, eventResponse.response);
         }
-
     }
 }
