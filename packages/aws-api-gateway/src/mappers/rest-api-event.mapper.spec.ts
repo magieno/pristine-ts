@@ -6,6 +6,7 @@ import {ApiGatewayEventTypeEnum} from "../enums/api-gateway-event-type.enum";
 import {map} from "lodash";
 import {EventResponse} from "@pristine-ts/core";
 import {RestApiEventResponsePayload} from "../event-response-payloads/rest-api.event-response-payload";
+import {LogHandlerMock} from "../../../../tests/mocks/log.handler.mock";
 
 describe("Rest API Event (Api Gateway 1.0)", () => {
     // https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
@@ -92,7 +93,7 @@ describe("Rest API Event (Api Gateway 1.0)", () => {
     };
 
     it("should map a rest api request into a Request Object", () => {
-        const restApiRequestMapper = new RestApiEventMapper(ApiGatewayEventsHandlingStrategyEnum.Request);
+        const restApiRequestMapper = new RestApiEventMapper(new LogHandlerMock(), ApiGatewayEventsHandlingStrategyEnum.Request);
 
         expect(restApiRequestMapper.supportsMapping(rawEvent, executionContext));
 
@@ -133,7 +134,7 @@ describe("Rest API Event (Api Gateway 1.0)", () => {
 
 
     it("should map a rest api request properly into an Event Object and should reverse map it properly", () => {
-        const restApiRequestMapper = new RestApiEventMapper(ApiGatewayEventsHandlingStrategyEnum.Event);
+        const restApiRequestMapper = new RestApiEventMapper(new LogHandlerMock(), ApiGatewayEventsHandlingStrategyEnum.Event);
 
         expect(restApiRequestMapper.supportsMapping(rawEvent, executionContext));
 
