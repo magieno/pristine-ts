@@ -80,8 +80,8 @@ export class S3Client implements S3ClientInterface {
         }
     }
 
-    async createSignedUrl(bucketName: string, key: string, operation: S3PresignedOperationTypeEnum, returnFileName?: string, expiresIn: number = 300): Promise<string> {
-        const command = this.getCommandForPresign(operation, bucketName, key, returnFileName);
+    async createSignedUrl(bucketName: string, key: string, operation: S3PresignedOperationTypeEnum, fileName?: string, expiresIn: number = 300): Promise<string> {
+        const command = this.getCommandForPresign(operation, bucketName, key, fileName);
         let url;
         try {
             url = await getSignedUrl(this.getClient(), command, { expiresIn });
@@ -92,13 +92,13 @@ export class S3Client implements S3ClientInterface {
         return url;
     }
 
-    private getCommandForPresign(operation: S3PresignedOperationTypeEnum, bucketName: string, key: string, returnFileName?: string): GetObjectCommand | PutObjectCommand {
+    private getCommandForPresign(operation: S3PresignedOperationTypeEnum, bucketName: string, key: string, fileName?: string): GetObjectCommand | PutObjectCommand {
         switch (operation) {
             case S3PresignedOperationTypeEnum.Get:
                 return new GetObjectCommand({
                     Bucket: bucketName,
                     Key: key,
-                    ResponseContentDisposition: returnFileName ? `attachment; filename=${returnFileName}` : undefined,
+                    ResponseContentDisposition: fileName ? `attachment; filename=${fileName}` : undefined,
                 })
             case S3PresignedOperationTypeEnum.Upload:
                 return new PutObjectCommand({

@@ -5,5 +5,5 @@ export interface S3ClientInterface {
     listKeys(bucketName: string): Promise<string[]>;
     listObjects(bucketName: string): Promise<any[]>;
     upload(bucketName: string, key: string, data: any, contentEncoding?: string, contentType?: string): Promise<void>;
-    createSignedUrl(bucketName: string, key: string, operation: S3PresignedOperationTypeEnum, returnFileName?: string, expiresIn?: number): Promise<string>;
+    createSignedUrl(bucketName: string, key: string, operation: S3PresignedOperationTypeEnum, fileName?: string, expiresIn?: number): Promise<string>;
 }
