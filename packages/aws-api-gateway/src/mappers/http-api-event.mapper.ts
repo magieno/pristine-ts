@@ -13,12 +13,14 @@ import {HttpApiEventResponsePayload} from "../event-response-payloads/http-api.e
 import {AwsApiGatewayModuleKeyname} from "../aws-api-gateway.module.keyname";
 import {ApiGatewayEventTypeEnum} from "../enums/api-gateway-event-type.enum";
 import {BaseApiEventMapper} from "./base-api-event.mapper";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 
 @moduleScoped(AwsApiGatewayModuleKeyname)
 @tag(ServiceDefinitionTagEnum.EventMapper)
 @injectable()
 export class HttpApiEventMapper extends BaseApiEventMapper implements EventMapperInterface<HttpApiEventPayload | Request, HttpApiEventResponsePayload | Response> {
-    constructor(@inject("%" + AwsApiGatewayModuleKeyname + ".http_api_events.handling_strategy%") private readonly httpRequestsHandlingStrategy: ApiGatewayEventsHandlingStrategyEnum) {
+    constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
+                @inject("%" + AwsApiGatewayModuleKeyname + ".http_api_events.handling_strategy%") private readonly httpRequestsHandlingStrategy: ApiGatewayEventsHandlingStrategyEnum) {
         super();
     }
 
@@ -94,7 +96,20 @@ export class HttpApiEventMapper extends BaseApiEventMapper implements EventMappe
         if(eventResponse.response instanceof HttpApiEventResponsePayload) {
             return eventResponse.response;
         } else if(eventResponse.response instanceof Response) {
-            const httpRequestEventResponsePayload = new HttpApiEventResponsePayload(eventResponse.response.status, eventResponse.response.body);
+            let body = response.body;
+
+            if(typeof body === "object") {
+                try {
+                    body = JSON.stringify(body);
+                }
+                catch (e) {
+                    this.logHandler.error("Could not convert the response body into a string by stringifying it as a JSON", {
+
+                    }, AwsApiGatewayModuleKeyname)
+                }
+            }
+
+            const httpRequestEventResponsePayload = new HttpApiEventResponsePayload(eventResponse.response.status, body);
 
             if(eventResponse.response.headers) {
                 httpRequestEventResponsePayload.headers = eventResponse.response.headers;
