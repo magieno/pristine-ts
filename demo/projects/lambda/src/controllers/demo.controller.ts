@@ -6,6 +6,7 @@ import {AwsCognitoAuthenticator, AwsCognitoGroupGuard} from "@pristine-ts/aws-co
 import {authenticator, guard} from "@pristine-ts/security";
 import {BodyOptions} from "../options/body.options";
 import {bodyValidation} from "@pristine-ts/validation";
+import {S3Client} from "@pristine-ts/aws";
 
 @injectable()
 @controller("/api/admin/demo")
@@ -13,11 +14,12 @@ import {bodyValidation} from "@pristine-ts/validation";
 @guard(AwsCognitoGroupGuard, {groups: ["ADMIN"]})
 @responseHeader("Cache-Control", "no-cache")
 export class DemoController {
-    constructor(private readonly logHandler: LogHandler){}
+    constructor(private readonly logHandler: LogHandler, private readonly s3Client: S3Client){}
 
     @route(HttpMethod.Get, "")
     @bodyValidation(BodyOptions)
     async list(@identity() identity: IdentityInterface, @body() body: BodyOptions) {
+        const keys = await this.s3Client.listKeys("allo");
         this.logHandler.debug("Identity", {identity});
 
         return
