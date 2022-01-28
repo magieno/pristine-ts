@@ -83,8 +83,9 @@ export class Utils {
                         } else {
                             newObj[key] = this.truncate(object[key], maxDepth, newDepth);
                         }
-                    }catch (e) {
-
+                    } catch (error) {
+                        console.error("Logging - There was an error truncating or accessing the element at the key specified for the object. (We can't log the object else we'll stumble upon an infinite loop). Key: '" + key + "'.");
+                        console.error(error);
                     }
 
                 }
