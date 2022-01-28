@@ -36,13 +36,17 @@ export class EventLoggingInterceptor implements EventInterceptorInterface{
     }
 
     preResponseMappingIntercept(eventResponse: EventResponse<any, any>): Promise<EventResponse<any, any>> {
-        this.logHandler.debug("Event response just after being dispatched to the Event Listeners.")
+        this.logHandler.debug("Event response just after being dispatched to the Event Listeners.", {
+            eventResponse,
+        }, CoreModuleKeyname)
 
         return Promise.resolve(eventResponse);
     }
 
     postResponseMappingIntercept(eventResponse: object): Promise<object> {
-        this.logHandler.debug("Final event response that will be returned.")
+        this.logHandler.debug("Final event response that will be returned.", {
+            eventResponse,
+        }, CoreModuleKeyname)
 
         return Promise.resolve(eventResponse);
     }
