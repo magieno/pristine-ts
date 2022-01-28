@@ -102,17 +102,19 @@ export abstract class BaseLogger {
         if (this.numberOfStackedLogs > 0) {
             this.setupStackedLogsArrayIfRequired(log.traceId);
 
-            // We only add to the stacked logs if the severity is set to ony show errors. If we show info, we don't want
-            // to see a debug every time we print an info. We want that when we have an error and that the configuration
-            // is set to error, we want some context and to output the previous logs.
-            if (this.logSeverityLevelConfiguration>= SeverityEnum.Error && log.severity < this.logSeverityLevelConfiguration) {
+            if (log.severity < this.logSeverityLevelConfiguration) {
                 // We still add a log to the stack to ensure that when there's an error, we log everything.
                 this.addStackedLog(log);
 
                 return;
             }
 
-            this.outputStackedLogs();
+            // We only output the stacked logs when the log severity is higher than an errore. If we show info, we don't want
+            // to see a debug every time we print an info. We want that when we have an error and that the configuration
+            // is set to error, we want some context and to output the previous logs.
+            if(log.severity >= SeverityEnum.Error) {
+                this.outputStackedLogs();
+            }
         }
 
         if (log.severity >= this.logSeverityLevelConfiguration) {
