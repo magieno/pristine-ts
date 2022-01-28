@@ -265,6 +265,9 @@ export class Router implements RouterInterface {
                 let returnedResponse: Response;
                 // If the response is already a Response object, return the response
                 if(response instanceof Response) {
+                    this.loghandler.debug("Router - Response returned by the controller is a Response object", {
+                        response,
+                    }, NetworkingModuleKeyname)
                     returnedResponse = response;
                 } else {
                     // If the response is not a response object, but the method hasn't thrown an error, assume the
@@ -272,7 +275,17 @@ export class Router implements RouterInterface {
                     returnedResponse = new Response();
                     returnedResponse.status = 200;
                     returnedResponse.body = response;
+
+                    this.loghandler.debug("Router - Response returned by the controller is NOT a Response object", {
+                        response,
+                        returnedResponse,
+                    }, NetworkingModuleKeyname)
                 }
+
+                this.loghandler.debug("Router - The response before calling the response interceptors ", {
+                    response,
+                    returnedResponse,
+                }, NetworkingModuleKeyname)
 
                 const responseInterceptorsSpan = tracingManager.startSpan(SpanKeynameEnum.ResponseInterceptors, SpanKeynameEnum.RouterRequestExecution);
                 const interceptedResponse = await this.executeResponseInterceptors(returnedResponse, request, container, methodNode);
