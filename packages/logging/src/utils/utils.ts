@@ -76,7 +76,9 @@ export class Utils {
                 return newArr;
             } else {
                 const newObj: any = {}
-                for (const key in object) {
+                const propertyNames = Object.getOwnPropertyNames(object);
+
+                propertyNames.forEach(key => {
                     try {
                         if (this.isFlat(object[key])) {
                             newObj[key] = object[key];
@@ -87,8 +89,8 @@ export class Utils {
                         console.error("Logging - There was an error truncating or accessing the element at the key specified for the object. (We can't log the object else we'll stumble upon an infinite loop). Key: '" + key + "'.");
                         console.error(error);
                     }
+                })
 
-                }
                 return newObj;
             }
         }
