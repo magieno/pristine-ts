@@ -17,7 +17,7 @@ export class RequestMapper {
      */
     map(expressRequest: ExpressRequest): Request {
         const request = new Request(this.methodMapper.map(expressRequest.method), expressRequest.url);
-        request.headers = this.httpHeadersMapper.map(request.headers);
+        request.headers = this.httpHeadersMapper.map(expressRequest.headers);
         request.body = expressRequest.body;
         request.rawBody = expressRequest.body;
 
