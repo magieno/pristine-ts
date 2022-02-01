@@ -6,12 +6,29 @@ import {VoteEnum} from "../enums/vote.enum";
 import {IdentityInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {SecurityModuleKeyname} from "../security.module.keyname";
 
+/**
+ * The permission manager verifies if the correct permission are there to access and take an action on a resource.
+ */
 @injectable()
 export class PermissionManager {
+
+    /**
+     * The permission manager verifies if the correct permission are there to access and take an action on a resource.
+     * @param voters The voters that determine if access is granted.
+     * All services with the tag ServiceDefinitionTagEnum.Voter will be injected here
+     * @param logHandler The log handler to output logs.
+     */
     public constructor(@injectAll(ServiceDefinitionTagEnum.Voter) private readonly voters: VoterInterface[],
                        @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface) {
     }
 
+    /**
+     * Returns whether or not the permission manager grants access to the resource.
+     * @param identity The identity trying to have access to a resource.
+     * @param action The action trying to be executed on the resource.
+     * @param resource The resource being accessed.
+     * @param votingStrategy The voting strategy that defines how to merge the votes. Default is DenyOnUnanimousAbstention.
+     */
     async hasAccessToResource(identity: IdentityInterface, action: string, resource: object, votingStrategy: VotingStrategyEnum = VotingStrategyEnum.DenyOnUnanimousAbstention): Promise<boolean>{
 
         if(this.voters.length === 0){
