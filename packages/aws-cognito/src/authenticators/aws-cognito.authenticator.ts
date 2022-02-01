@@ -111,7 +111,7 @@ export class AwsCognitoAuthenticator implements AuthenticatorInterface{
      */
     // todo: this is a copy from jwt manager should we put that somewhere common ?
     private validateRequestAndReturnToken(request: Request): string {
-        if (request.headers === undefined || (request.headers.hasOwnProperty("Authorization") === false && request.headers.hasOwnProperty("authorization") === false)) {
+        if (request.headers === undefined || (request.hasHeader("Authorization") === false && request.hasHeader("authorization") === false)) {
             throw new Error("The Authorization header wasn't found in the Request.");
             // throw new MissingAuthorizationHeaderError("The Authorization header wasn't found in the Request.");
         }

@@ -20,7 +20,7 @@ describe("AuthenticationManager", () => {
 
     const requestMock: Request = new Request("", "");
     requestMock.body = {};
-    requestMock.headers = {};
+
 
     it("should return undefined if the routecontext is undefined or if no authenticator is present in the context", async () => {
 

@@ -20,7 +20,6 @@ describe("AuthorizerManager", () => {
 
     const requestMock: Request = new Request("", "");
     requestMock.body = {};
-    requestMock.headers = {};
 
     @injectable()
     class Guard1 implements GuardInterface {

@@ -110,9 +110,9 @@ describe("Auth0 authenticator ", () => {
         const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
 
         const request: Request = new Request(HttpMethod.Get, "");
-        request.headers = {
+        request.setHeaders({
             "Authorization": "Bearer " + "token",
-        };
+        });
 
         expect(auth0Authenticator["validateRequestAndReturnToken"](request)).toBe("token");
     });
@@ -129,9 +129,9 @@ describe("Auth0 authenticator ", () => {
         const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
 
         const request: Request = new Request(HttpMethod.Get, "");
-        request.headers = {
+        request.setHeaders({
             hello: "string"
-        };
+        });
 
         expect(() => auth0Authenticator["validateRequestAndReturnToken"](request)).toThrow(new Error("The Authorization header wasn't found in the Request."));
     });
@@ -140,9 +140,9 @@ describe("Auth0 authenticator ", () => {
         const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
 
         const request: Request = new Request(HttpMethod.Get, "");
-        request.headers = {
+        request.setHeaders({
             "Authorization": undefined
-        }
+        });
 
         expect(() => auth0Authenticator["validateRequestAndReturnToken"](request)).toThrow(new Error("The Authorization header wasn't found in the Request."));
     });
@@ -151,9 +151,9 @@ describe("Auth0 authenticator ", () => {
         const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
 
         const request: Request = new Request(HttpMethod.Get, "");
-        request.headers = {
+        request.setHeaders({
             "Authorization": "token"
-        }
+        });
 
         expect(() => auth0Authenticator["validateRequestAndReturnToken"](request)).toThrow(new Error("The value in Authorization header doesn't start with 'Bearer '"));
     });
@@ -262,9 +262,9 @@ describe("Auth0 authenticator ", () => {
 
         await auth0Authenticator.setContext(context);
         const request: Request = new Request(HttpMethod.Get, "");
-        request.headers = {
+        request.setHeaders({
             "Authorization": "Bearer " + jwt.sign(payload, privateKey, { algorithm: 'RS256', keyid: tokenHeader.kid})
-        }
+        });
 
         expect(await auth0Authenticator["authenticate"](request)).toEqual({
             id: payload.sub,

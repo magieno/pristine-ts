@@ -38,7 +38,7 @@ export class HttpApiEventMapper extends BaseApiEventMapper implements EventMappe
                     this.mapHttpMethod(rawEvent.requestContext.http.method),
                     rawEvent.requestContext.http.path + (rawEvent.rawQueryString ? "?" + rawEvent.rawQueryString : "")
                 );
-                request.headers = rawEvent.headers;
+                request.setHeaders(rawEvent.headers);
                 request.body = rawEvent.body;
                 request.rawBody = rawEvent.body;
 

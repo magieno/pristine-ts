@@ -100,10 +100,10 @@ describe("Rest API Event (Api Gateway 1.0)", () => {
         const expectedRequest: Request = new Request(HttpMethod.Get, "/my/path");
         expectedRequest.body = rawEvent.body;
         expectedRequest.rawBody = rawEvent.body,
-        expectedRequest.headers = {
+        expectedRequest.setHeaders({
             "header1": "value1",
             "header2": "value2"
-        };
+        });
 
         const mappedEvent = restApiRequestMapper.map(rawEvent, executionContext);
 

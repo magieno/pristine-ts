@@ -37,11 +37,11 @@ export class JwtManager implements JwtManagerInterface {
      * @private
      */
     private validateRequestAndReturnToken(request: Request): string {
-        if (request.headers === undefined || request.headers.hasOwnProperty("Authorization") === false) {
+        if (request.headers === undefined || request.hasHeader("Authorization") === false) {
             throw new JwtAuthorizationHeaderError("The Authorization header wasn't found in the Request.", request);
         }
 
-        const authorizationHeader = request.headers.Authorization;
+        const authorizationHeader = request.getHeader("Authorization");
 
         if (authorizationHeader === undefined) {
             throw new JwtAuthorizationHeaderError("The Authorization header wasn't found in the Request.", request);
