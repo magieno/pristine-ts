@@ -41,7 +41,7 @@ export class Request {
      * @param value The value of the header.
      */
     setHeader(name: string, value: string) {
-        this.headers[name] = value;
+        this.headers[name.toLowerCase()] = value;
     }
 
     /**
@@ -50,7 +50,7 @@ export class Request {
      * @param name The name of the header.
      */
     hasHeader(name: string): boolean {
-        return this.headers.hasOwnProperty(name);
+        return this.headers.hasOwnProperty(name.toLowerCase());
     }
 
     /**
@@ -59,6 +59,6 @@ export class Request {
      * @param name The name of the header.
      */
     getHeader(name: string): string | undefined {
-        return this.headers[name];
+        return this.headers[name.toLowerCase()];
     }
 }
