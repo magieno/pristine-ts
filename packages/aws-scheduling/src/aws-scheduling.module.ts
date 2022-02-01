@@ -3,6 +3,7 @@ import {AwsSchedulingModuleKeyname} from "./aws-scheduling.module.keyname";
 import {TelemetryModule} from "@pristine-ts/telemetry";
 import {LoggingModule} from "@pristine-ts/logging";
 import {SchedulingModule} from "@pristine-ts/scheduling";
+import {AwsModule} from "@pristine-ts/aws";
 
 export * from "./event-listeners/event-listeners";
 
@@ -12,6 +13,7 @@ export const AwsSchedulingModule: ModuleInterface = {
     ],
 
     importModules:[
+        AwsModule,
         SchedulingModule,
         LoggingModule,
     ],

@@ -109,7 +109,12 @@ export abstract class BaseLogger {
                 return;
             }
 
-            this.outputStackedLogs();
+            // We only output the stacked logs when the log severity is higher than an errore. If we show info, we don't want
+            // to see a debug every time we print an info. We want that when we have an error and that the configuration
+            // is set to error, we want some context and to output the previous logs.
+            if(log.severity >= SeverityEnum.Error) {
+                this.outputStackedLogs();
+            }
         }
 
         if (log.severity >= this.logSeverityLevelConfiguration) {

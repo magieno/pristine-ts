@@ -27,6 +27,7 @@ export class TracingManager implements TracingManagerInterface {
     public constructor(@injectAll(ServiceDefinitionTagEnum.Tracer) private readonly tracers: TracerInterface[],
                        @inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface,
                        @inject("%pristine.telemetry.active%") private readonly isActive: boolean,
+                       @inject("%pristine.telemetry.debug%") private readonly debug: boolean,
                        private readonly tracingContext: TracingContext,) {
     }
 
@@ -50,13 +51,15 @@ export class TracingManager implements TracingManagerInterface {
         }
 
         // Log that we are starting the tracing
-        this.loghandler.info("Start Tracing", {
-            spanRootKeyname,
-            traceId,
-            context,
-            trace: this.trace,
-            span,
-        }, TelemetryModuleKeyname)
+        if(this.debug) {
+            this.loghandler.debug("Start Tracing", {
+                spanRootKeyname,
+                traceId,
+                context,
+                trace: this.trace,
+                span,
+            }, TelemetryModuleKeyname)
+        }
 
         // Call the tracers and push the trace that was just started
         this.tracers.forEach( (tracer:TracerInterface) => {
@@ -130,11 +133,13 @@ export class TracingManager implements TracingManagerInterface {
             return span;
         }
 
-        this.loghandler.debug("Adding the span", {
-            keyname: span.keyname,
-            trace: this.trace,
-            span,
-        }, TelemetryModuleKeyname)
+        if(this.debug) {
+            this.loghandler.debug("Adding the span", {
+                keyname: span.keyname,
+                trace: this.trace,
+                span,
+            }, TelemetryModuleKeyname)
+        }
 
         // Notify the Tracers that a new span was started.
         this.tracers.forEach( (tracer:TracerInterface) => {
@@ -185,10 +190,12 @@ export class TracingManager implements TracingManagerInterface {
             return;
         }
 
-        this.loghandler.debug("Ending the span", {
-            trace: this.trace,
-            span,
-        }, TelemetryModuleKeyname)
+        if(this.debug) {
+            this.loghandler.debug("Ending the span", {
+                trace: this.trace,
+                span,
+            }, TelemetryModuleKeyname)
+        }
 
         // Notify the TraceListeners that the span was ended.
         this.tracers.forEach( (tracer:TracerInterface) => {
@@ -229,7 +236,15 @@ export class TracingManager implements TracingManagerInterface {
             tracer.traceEndedStream?.push(this.trace);
         })
 
-        this.loghandler.info("Ending the trace", {
+        // Trace time
+        // Top 5 longest spans
+        let longestSpans = Object.values(this.spans).sort( (a, b) => b.getDuration() - a.getDuration());
+        longestSpans.splice(5);
+
+        this.loghandler.info("Ending the trace. \n" +
+            "Trace duration: " + this.trace.getDuration() + " ms \n" +
+            "Top 5 longest spans: \n" + longestSpans.map(span => "\t" + span.getDuration() + " ms - " + span.keyname).join("\n")
+            , {
             trace: this.trace,
         }, TelemetryModuleKeyname)
     }

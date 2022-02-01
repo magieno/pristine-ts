@@ -3,7 +3,7 @@ import {LogHandlerInterface, SeverityEnum} from "@pristine-ts/logging";
 import {AuthenticationManager} from "./authentication.manager";
 import {AuthenticatorContextInterface} from "../interfaces/authenticator-context.interface";
 import {AuthenticatorInterface} from "../interfaces/authenticator.interface";
-import {IdentityInterface, RequestInterface} from "@pristine-ts/common";
+import {IdentityInterface, Request} from "@pristine-ts/common";
 import {container} from "tsyringe";
 import {IdentityProviderInterface} from "../interfaces/identity-provider.interface";
 
@@ -14,15 +14,13 @@ describe("AuthenticationManager", () => {
         }, error(message: string, extra?: any): void {
         }, info(message: string, extra?: any): void {
         }, warning(message: string, extra?: any): void {
+        }, terminate() {
         }
     }
 
-    const requestMock: RequestInterface = {
-        httpMethod: "",
-        body: {},
-        url: "",
-        headers: {}
-    }
+    const requestMock: Request = new Request("", "");
+    requestMock.body = {};
+    requestMock.headers = {};
 
     it("should return undefined if the routecontext is undefined or if no authenticator is present in the context", async () => {
 
@@ -32,7 +30,7 @@ describe("AuthenticationManager", () => {
                     setContext(context: any): Promise<void> {
                         return Promise.resolve();
                     },
-                    authenticate(request: RequestInterface): Promise<IdentityInterface | undefined> {
+                    authenticate(request: Request): Promise<IdentityInterface | undefined> {
                         return Promise.resolve(undefined)
                     }
                 };
@@ -57,7 +55,7 @@ describe("AuthenticationManager", () => {
                     setContext(context: any): Promise<void> {
                         return Promise.resolve();
                     },
-                    authenticate(request: RequestInterface): Promise<IdentityInterface | undefined> {
+                    authenticate(request: Request): Promise<IdentityInterface | undefined> {
                         return Promise.resolve(identity);
                     }
                 };
@@ -86,7 +84,7 @@ describe("AuthenticationManager", () => {
 
                         return Promise.resolve();
                     },
-                    authenticate(request: RequestInterface): Promise<IdentityInterface | undefined> {
+                    authenticate(request: Request): Promise<IdentityInterface | undefined> {
                         expect(index).toBe(1);
                         return Promise.resolve(identity);
                     }
@@ -121,7 +119,7 @@ describe("AuthenticationManager", () => {
                     setContext(context: any): Promise<void> {
                         return Promise.resolve();
                     },
-                    authenticate(request: RequestInterface): Promise<IdentityInterface | undefined> {
+                    authenticate(request: Request): Promise<IdentityInterface | undefined> {
                         return Promise.resolve(identity);
                     }
                 };

@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import {RoleGuard} from "./role.guard";
-import {HttpMethod} from "@pristine-ts/common";
+import {HttpMethod, Request} from "@pristine-ts/common";
 
 describe("Auth0 roles Guard", () => {
     it("should return true when no role is needed", async () => {
@@ -13,12 +13,9 @@ describe("Auth0 roles Guard", () => {
             }
         })
 
-        expect(await roleGuard.isAuthorized({
-            headers: {},
-            httpMethod: HttpMethod.Get,
-            url: "https://url",
-            body: {},
-        }, {
+        const request = new Request(HttpMethod.Get, "https://url");
+
+        expect(await roleGuard.isAuthorized(request, {
             id: "id",
             claims: {
             }
@@ -35,12 +32,9 @@ describe("Auth0 roles Guard", () => {
             }
         })
 
-        expect(await roleGuard.isAuthorized({
-            headers: {},
-            httpMethod: HttpMethod.Get,
-            url: "https://url",
-            body: {},
-        }, {
+        const request = new Request(HttpMethod.Get, "https://url");
+
+        expect(await roleGuard.isAuthorized(request, {
             id: "id",
             claims: {
             }
@@ -57,12 +51,9 @@ describe("Auth0 roles Guard", () => {
             }
         })
 
-        expect(await roleGuard.isAuthorized({
-            headers: {},
-            httpMethod: HttpMethod.Get,
-            url: "https://url",
-            body: {},
-        }, {
+        const request = new Request(HttpMethod.Get, "https://url");
+
+        expect(await roleGuard.isAuthorized(request, {
             id: "id",
             claims: {
                 "roles": {}
@@ -80,12 +71,9 @@ describe("Auth0 roles Guard", () => {
             }
         })
 
-        expect(await roleGuard.isAuthorized({
-            headers: {},
-            httpMethod: HttpMethod.Get,
-            url: "https://url",
-            body: {},
-        }, {
+        const request = new Request(HttpMethod.Get, "https://url");
+
+        expect(await roleGuard.isAuthorized(request, {
             id: "id",
             claims: {
                 "http://pristine.com/roles": ["USER"]
@@ -103,12 +91,9 @@ describe("Auth0 roles Guard", () => {
             }
         })
 
-        expect(await roleGuard.isAuthorized({
-            headers: {},
-            httpMethod: HttpMethod.Get,
-            url: "https://url",
-            body: {},
-        }, {
+        const request = new Request(HttpMethod.Get, "https://url");
+
+        expect(await roleGuard.isAuthorized(request, {
             id: "id",
             claims: {
                 "http://pristine.com/roles": ["USER", "ADMIN", "DEVELOPER"]
@@ -126,12 +111,9 @@ describe("Auth0 roles Guard", () => {
             }
         })
 
-        expect(await roleGuard.isAuthorized({
-            headers: {},
-            httpMethod: HttpMethod.Get,
-            url: "https://url",
-            body: {},
-        }, {
+        const request = new Request(HttpMethod.Get, "https://url");
+
+        expect(await roleGuard.isAuthorized(request, {
             id: "id",
             claims: {
                 "http://pristine.com/roles": ["USER", "ADMIN", "DEVELOPER"]

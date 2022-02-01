@@ -1,7 +1,6 @@
-import {HttpMethod} from "@pristine-ts/common";
+import {HttpMethod, Response} from "@pristine-ts/common";
 import {DependencyContainer} from "tsyringe";
-import {Response} from "../models/response";
-import {Request} from "../models/request";
+import {Request} from "@pristine-ts/common";
 import {Route} from "../models/route";
 
 /**
@@ -26,4 +25,9 @@ export interface RouterInterface {
      * @param container
      */
     execute(request: Request, container: DependencyContainer): Promise<Response>
+
+    /**
+     * This method is used to setup and initialize the router.
+     */
+    setup(): void;
 }

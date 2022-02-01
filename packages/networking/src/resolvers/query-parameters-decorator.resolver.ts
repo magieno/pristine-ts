@@ -1,6 +1,6 @@
 import {injectable} from "tsyringe";
 import {ControllerMethodParameterDecoratorResolverInterface} from "../interfaces/controller-method-parameter-decorator-resolver.interface";
-import {Request} from "../models/request";
+import {Request} from "@pristine-ts/common";
 import {IdentityInterface, moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {NetworkingModuleKeyname} from "../networking.module.keyname";
 import Url from 'url-parse';

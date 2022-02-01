@@ -6,7 +6,6 @@ import {QueryParametersDecoratorInterface} from "./interfaces/query-parameters-d
 import {PathRouterNode} from "./nodes/path-router.node";
 import {MethodRouterNode} from "./nodes/method-router.node";
 import {Router} from "./router";
-import {Request} from "./models/request";
 import {Route} from "./models/route";
 import {ControllerMethodParameterDecoratorResolver} from "./resolvers/controller-method-parameter-decorator.resolver";
 import {BodyParameterDecoratorResolver} from "./resolvers/body-parameter-decorator.resolver";
@@ -14,9 +13,10 @@ import {QueryParameterDecoratorResolver} from "./resolvers/query-parameter-decor
 import {QueryParametersDecoratorResolver} from "./resolvers/query-parameters-decorator.resolver";
 import {RouteParameterDecoratorResolver} from "./resolvers/route-parameter-decorator.resolver";
 import {BodyParameterDecoratorInterface} from "./interfaces/body-parameter-decorator.interface";
-import {HttpMethod, IdentityInterface, RequestInterface} from "@pristine-ts/common";
+import {HttpMethod, IdentityInterface, Request} from "@pristine-ts/common";
 import {Span, TracingManagerInterface} from "@pristine-ts/telemetry";
 import {DependencyContainer, container} from "tsyringe";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 
 describe("Router.spec", () => {
     let root: PathRouterNode;
@@ -113,11 +113,12 @@ describe("Router.spec", () => {
 
         // Force the node as the root node
         router = new Router( {
-            error(message: string, extra?: any) {
-            }, critical(message: string, extra?: any): void {
+            critical(message: string, extra?: any): void {
             }, debug(message: string, extra?: any): void {
+            }, error(message: string, extra?: any): void {
             }, info(message: string, extra?: any): void {
             }, warning(message: string, extra?: any): void {
+            }, terminate() {
             }
         },new ControllerMethodParameterDecoratorResolver([
             new BodyParameterDecoratorResolver(),
@@ -125,11 +126,11 @@ describe("Router.spec", () => {
             new QueryParametersDecoratorResolver(),
             new RouteParameterDecoratorResolver(),
         ]), {
-            isAuthorized(requestInterface: RequestInterface, routeContext: any, container, identity?: IdentityInterface): Promise<boolean> {
+            isAuthorized(requestInterface: Request, routeContext: any, container, identity?: IdentityInterface): Promise<boolean> {
                 return Promise.resolve(true);
             }
         }, {
-            authenticate(request: RequestInterface, routeContext: any, container): Promise<IdentityInterface | undefined> {
+            authenticate(request: Request, routeContext: any, container): Promise<IdentityInterface | undefined> {
                 return Promise.resolve(undefined);
             }
         });
@@ -148,13 +149,8 @@ describe("Router.spec", () => {
     })
 
     beforeEach(() => {
-        request = new Request({
-            httpMethod: HttpMethod.Put,
-            body: {
-                name: "name",
-            },
-            url: "",
-        });
+        request = new Request(HttpMethod.Put, "");
+        request.body = {name: "name"};
     })
 
     it("PUT - https://ima-tech.ca/api/1.0/dogs/caniche-royal", async () => {

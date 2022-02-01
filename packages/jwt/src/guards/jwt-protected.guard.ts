@@ -1,8 +1,9 @@
 import {inject, injectable} from "tsyringe";
 import {JwtManagerInterface} from "../interfaces/jwt-manager.interface";
-import {IdentityInterface, RequestInterface} from "@pristine-ts/common";
+import {IdentityInterface} from "@pristine-ts/common";
 import {GuardInterface} from "@pristine-ts/security";
 import {GuardContextInterface} from "@pristine-ts/security";
+import {Request} from "@pristine-ts/common";
 
 /**
  * This guard is used to verify that a route can only be accessed when a request has a valid JWT.
@@ -21,7 +22,7 @@ export class JwtProtectedGuard implements GuardInterface {
      * @param request
      * @param identity
      */
-    isAuthorized(request: RequestInterface, identity?: IdentityInterface): Promise<boolean> {
+    isAuthorized(request: Request, identity?: IdentityInterface): Promise<boolean> {
         return new Promise<boolean>((resolve) => {
             this.jwtManager.validateAndDecode(request)
                 .then(value => resolve(true))

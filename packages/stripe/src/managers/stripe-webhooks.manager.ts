@@ -1,11 +1,11 @@
 import {inject, injectable} from "tsyringe";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import Stripe from "stripe";
-import {Event, EventDispatcher} from "@pristine-ts/event";
+import {Event, EventDispatcher} from "@pristine-ts/core";
 import {StripeEventTypeEnum} from "../enums/stripe-event-type.enum";
-import {RequestInterface} from "@pristine-ts/common";
 import {StripeClient} from "../clients/stripe.client";
 import {StripeModuleKeyname} from "../stripe.module.keyname";
+import {Request} from "@pristine-ts/common";
 
 @injectable()
 export class StripeWebhooksManager {
@@ -20,7 +20,7 @@ export class StripeWebhooksManager {
      * @param request
      * @param stripeSigningEndpointSecret
      */
-    async emitSubscriptionEvent(request: RequestInterface, stripeSigningEndpointSecret: string): Promise<void> {
+    async emitSubscriptionEvent(request: Request, stripeSigningEndpointSecret: string): Promise<void> {
         const event = await this.stripeClient.verifySignature(request, stripeSigningEndpointSecret);
 
         if(!event.type.startsWith('customer.subscription')) {

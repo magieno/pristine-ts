@@ -10,7 +10,8 @@
     "e2e": "cd tests/e2e && jest && cd ..",
     "perf": "cd tests/perf && jest && cd ..",
     "bump-patch": "lerna version patch --yes",
-    "publish-ci": "lerna publish from-git --yes --no-verify-access"
+    "publish-ci": "lerna publish from-git --yes --no-verify-access",
+    "prune": "rm -rf `find . -type d -name node_modules` && rm -rf `find . -type d -name dist`"
   },
   "repository": {
     "type": "git",
@@ -38,6 +39,7 @@
   "dependencies": {
     "@pristine-ts/auth0": "file:packages/auth0",
     "@pristine-ts/aws": "file:packages/aws",
+    "@pristine-ts/aws-api-gateway": "file:packages/aws-api-gateway",
     "@pristine-ts/aws-cognito": "file:packages/aws-cognito",
     "@pristine-ts/aws-scheduling": "file:packages/aws-scheduling",
     "@pristine-ts/aws-xray": "file:packages/aws-xray",
@@ -46,7 +48,6 @@
     "@pristine-ts/configuration": "file:packages/configuration",
     "@pristine-ts/core": "file:packages/core",
     "@pristine-ts/e2e": "file:tests/e2e",
-    "@pristine-ts/event": "file:packages/event",
     "@pristine-ts/express": "file:packages/express",
     "@pristine-ts/http": "file:packages/http",
     "@pristine-ts/jwt": "file:packages/jwt",

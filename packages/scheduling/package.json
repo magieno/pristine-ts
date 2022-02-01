@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/scheduling",
-  "version": "0.0.174",
+  "version": "0.0.186",
   "description": "",
   "module": "dist/lib/esm/scheduling.module.js",
   "main": "dist/lib/cjs/scheduling.module.js",
@@ -21,7 +21,6 @@
   "dependencies": {
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/core": "file:../core",
-    "@pristine-ts/event": "file:../event",
     "@pristine-ts/logging": "file:../logging"
   },
   "jest": {

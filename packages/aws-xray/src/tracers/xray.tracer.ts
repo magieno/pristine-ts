@@ -15,7 +15,8 @@ import {LogHandlerInterface} from "@pristine-ts/logging";
 export class XrayTracer implements TracerInterface{
     traceEndedStream: Readable;
 
-    public constructor(@inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface) {
+    public constructor(@inject("%pristine.telemetry.debug%") private readonly debug: boolean,
+                       @inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface) {
         this.traceEndedStream = new Readable({
             objectMode: true,
             read(size: number) {
@@ -51,11 +52,14 @@ export class XrayTracer implements TracerInterface{
         const subsegment = this.captureSpan(trace.rootSpan, segment);
 
         segment.flush()
-        this.loghandler.debug("X-Ray trace ended", {
-            segment,
-            subsegment,
-            trace,
-        }, AwsXrayModuleKeyname)
+
+        if(this.debug) {
+            this.loghandler.debug("X-Ray trace ended", {
+                segment,
+                subsegment,
+                trace,
+            }, AwsXrayModuleKeyname)
+        }
     }
 
     /**
@@ -109,13 +113,15 @@ export class XrayTracer implements TracerInterface{
                 subsegment.parent.removeSubsegment(subsegment)
             }
         }
-        // End of the code ( close() function ) from the subsegment.js file of the aws-xray-sdk-core.
 
-        this.loghandler.debug("X-Ray capture span", {
-            span,
-            segment,
-            subsegment,
-        }, AwsXrayModuleKeyname)
+        // End of the code ( close() function ) from the subsegment.js file of the aws-xray-sdk-core.
+        if(this.debug) {
+            this.loghandler.debug("X-Ray capture span", {
+                span,
+                segment,
+                subsegment,
+            }, AwsXrayModuleKeyname)
+        }
 
         return subsegment;
     }

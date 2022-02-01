@@ -1,14 +1,18 @@
 import "reflect-metadata"
 import {container, injectable} from "tsyringe";
 import {AuthenticatorInterface} from "../interfaces/authenticator.interface";
-import {IdentityInterface, RequestInterface} from "@pristine-ts/common";
+import {IdentityInterface} from "@pristine-ts/common";
 import {AuthenticatorFactory} from "./authenticator.factory";
 import {AuthenticatorInstantiationError} from "../errors/authenticator-instantiation.error";
+import {GuardFactory} from "./guard.factory";
+import {GuardDecoratorError} from "../errors/guard-decorator.error";
+import {Request} from "@pristine-ts/common";
+
 
 describe("Authenticator Factory", () => {
     @injectable()
     class Authenticator implements AuthenticatorInterface {
-        authenticate(request: RequestInterface): Promise<IdentityInterface | undefined> {
+        authenticate(request: Request): Promise<IdentityInterface | undefined> {
             return Promise.resolve(undefined);
         }
 
@@ -52,7 +56,7 @@ describe("Authenticator Factory", () => {
         expect(() => authenticatorFactory.fromContext({
             //@ts-ignore
             authenticator: {
-                authenticate(request: RequestInterface): Promise<IdentityInterface | undefined> {
+                authenticate(request: Request): Promise<IdentityInterface | undefined> {
                     return Promise.resolve(undefined);
                 }
             },

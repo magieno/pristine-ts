@@ -1,7 +1,8 @@
 import {inject, injectable} from "tsyringe";
-import {IdentityInterface, RequestInterface} from "@pristine-ts/common";
+import {IdentityInterface} from "@pristine-ts/common";
 import {GuardInterface} from "../interfaces/guard.interface";
 import {GuardContextInterface} from "../interfaces/guard-context.interface";
+import {Request} from "@pristine-ts/common";
 
 /**
  * The role guard is a guard that validates if the identity making the request has the required roles.
@@ -42,7 +43,7 @@ export class RoleGuard implements GuardInterface {
      * @param request The request to authorize.
      * @param identity The identity making the request.
      */
-    async isAuthorized(request: RequestInterface, identity?: IdentityInterface): Promise<boolean> {
+    async isAuthorized(request: Request, identity?: IdentityInterface): Promise<boolean> {
         const neededRoles: string[] = [];
 
         // If we have no context we deny.

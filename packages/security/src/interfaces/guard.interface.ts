@@ -1,6 +1,7 @@
-import {ContextAwareInterface, RequestInterface} from "@pristine-ts/common";
+import {ContextAwareInterface} from "@pristine-ts/common";
 import {IdentityInterface} from "@pristine-ts/common";
 import {GuardContextInterface} from "./guard-context.interface";
+import {Request} from "@pristine-ts/common";
 
 /**
  * The Guard Interface defines what a guard should implement.
@@ -22,5 +23,5 @@ export interface GuardInterface extends ContextAwareInterface {
      * @param request The request ot authorize.
      * @param identity The identity making the request.
      */
-    isAuthorized(request: RequestInterface, identity?: IdentityInterface): Promise<boolean>;
+    isAuthorized(request: Request, identity?: IdentityInterface): Promise<boolean>;
 }

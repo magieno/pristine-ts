@@ -1,6 +1,4 @@
 import {DependencyContainer, inject, singleton} from "tsyringe";
-import {Request} from "./models/request";
-import {Response} from "./models/response";
 import {UrlUtil} from "./utils/url.util";
 import {NotFoundHttpError} from "./errors/not-found.http-error";
 import {RouterInterface} from "./interfaces/router.interface";
@@ -11,21 +9,28 @@ import {MethodRouterNode} from "./nodes/method-router.node";
 import {ForbiddenHttpError} from "./errors/forbidden.http-error";
 import {ControllerMethodParameterDecoratorResolver} from "./resolvers/controller-method-parameter-decorator.resolver";
 import Url from 'url-parse';
-import {HttpMethod, IdentityInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
+import {tag, HttpMethod, IdentityInterface, ServiceDefinitionTagEnum, Request, Response} from "@pristine-ts/common";
 import {AuthenticationManagerInterface, AuthorizerManagerInterface} from "@pristine-ts/security";
-import {RouterResponseEnricherInterface} from "./interfaces/router-response-enricher.interface";
-import {RouterRequestEnricherInterface} from "./interfaces/router-request-enricher.interface";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {NetworkingModuleKeyname} from "./networking.module.keyname";
 import {Span, SpanKeynameEnum, TracingManagerInterface} from "@pristine-ts/telemetry";
+import {controllerRegistry} from "./decorators/controller.decorator";
+import {RouteMethodDecorator} from "./interfaces/route-method-decorator.interface";
+import {mergeWith} from "lodash";
+import {RequestInterceptorInterface} from "./interfaces/request-interceptor.interface";
+import {HttpError} from "./errors/http.error";
 
 /**
  * The router service is the service that creates the routing tree from the controllers.
  * It also executes a request properly by routing it to the intended controller and returns the response.
  */
+@tag("RouterInterface")
 @singleton()
 export class Router implements RouterInterface {
     private root: RouterNode = new PathRouterNode("/");
+
+    // This property is used to track whether the router has been already been properly instantiated or not.
+    private setupCompleted = false;
 
     /**
      * The router service is the service that creates the routing tree from the controllers.
@@ -54,6 +59,73 @@ export class Router implements RouterInterface {
         this.root.add(splitPaths, method, route, 0);
     }
 
+    // /**
+    //  * This method loops through the all the classes decorated with @controller, loops through all the methods decorated
+    //  * with @route and builds the dependency tree of all the routes.
+    //  *
+    //  * @private
+    //  */
+    public setup() {
+        if(this.setupCompleted) {
+            return;
+        }
+
+        // Loop over all the controllers and control the Route Tree
+        controllerRegistry.forEach(controller => {
+            if (controller.hasOwnProperty("__metadata__") === false) {
+                return;
+            }
+
+            let basePath: string = controller.__metadata__?.controller?.basePath;
+
+            // Clean the base path by removing trailing slashes.
+            if (basePath.endsWith("/")) {
+                basePath = basePath.slice(0, basePath.length - 1);
+            }
+
+            for (const methodPropertyKey in controller.__metadata__?.methods) {
+                if (controller.__metadata__?.methods?.hasOwnProperty(methodPropertyKey) === false) {
+                    continue;
+                }
+
+                const method = controller.__metadata__?.methods[methodPropertyKey];
+
+                if (method.hasOwnProperty("route") === false) {
+                    continue;
+                }
+
+                // Retrieve the "RouteMethodDecorator" object assigned by the @route decorator at .route
+                const routeMethodDecorator: RouteMethodDecorator = method.route;
+
+                // Build the Route object that will be used the the router to dispatch a request to
+                // the appropriate controller method
+                const route = new Route(controller.constructor, routeMethodDecorator.methodKeyname);
+                route.methodArguments = method.arguments ?? [];
+                route.context = mergeWith({}, controller.__metadata__?.controller?.__routeContext__, method.__routeContext__);
+
+                // Build the proper path
+                let path = routeMethodDecorator.path;
+
+                // Clean the path by removing the first and trailing slashes.
+                if (path.startsWith("/")) {
+                    path = path.slice(1, path.length);
+                }
+
+                if (path.endsWith("/")) {
+                    path = path.slice(0, path.length - 1);
+                }
+
+                // Build the proper path
+                const routePath = basePath + "/" + path;
+
+                // Register the route
+                this.register(routePath, routeMethodDecorator.httpMethod, route);
+            }
+        })
+
+        this.setupCompleted = true;
+    }
+
     /**
      * This method receives a Request object, identifies the "path" its trying to hit, navigates the internally
      * maintained Route Tree, identifies the method in the controller that represents this "path", and calls the
@@ -63,6 +135,10 @@ export class Router implements RouterInterface {
      * @param container
      */
     public execute(request: Request, container: DependencyContainer): Promise<Response> {
+        // todo: remove all the rejects and replace it with a response that contains an error.
+        // This method cannot throw.
+
+
         const tracingManager: TracingManagerInterface = container.resolve("TracingManagerInterface");
 
         const routerRequestExecutionSpan = tracingManager.startSpan(SpanKeynameEnum.RouterRequestExecution, SpanKeynameEnum.RequestExecution);
@@ -79,7 +155,7 @@ export class Router implements RouterInterface {
             const methodNode: MethodRouterNode = this.root.find(splitPath, request.httpMethod) as MethodRouterNode;
             methodNodeSpan.end();
 
-            this.loghandler.debug("Execute request", {
+            this.loghandler.debug("Router - Execute request", {
                 rootNode: this.root,
                 request,
                 url,
@@ -95,7 +171,7 @@ export class Router implements RouterInterface {
                 }, NetworkingModuleKeyname);
 
                 routerRequestExecutionSpan.end();
-                return reject(new NotFoundHttpError("No route found for path: '" + url.pathname + "'."));
+                return resolve(this.executeErrorResponseInterceptors(new NotFoundHttpError("No route found for path: '" + url.pathname + "'."), request, container));
             }
 
             // Get the route parameters
@@ -106,7 +182,7 @@ export class Router implements RouterInterface {
             const controller: any = container.resolve(methodNode.route.controllerInstantiationToken);
             routerControllerResolverSpan.end();
 
-            this.loghandler.debug("Before calling the authenticationManager", {
+            this.loghandler.debug("Router - Before calling the authenticationManager", {
                 controller,
                 routeParameters
             }, NetworkingModuleKeyname);
@@ -119,7 +195,7 @@ export class Router implements RouterInterface {
                 identity = await this.authenticationManager.authenticate(request, methodNode.route.context, container);
                 routerRequestAuthenticationSpan.end();
 
-                this.loghandler.debug("Found identity.", {
+                this.loghandler.debug("Router - Found identity.", {
                     identity
                 }, NetworkingModuleKeyname);
             } catch (error) {
@@ -136,7 +212,7 @@ export class Router implements RouterInterface {
                 }
 
                 routerRequestExecutionSpan.end();
-                return reject(error);
+                return resolve(this.executeErrorResponseInterceptors(error, request, container, methodNode));
             }
 
             // Call the controller with the resolved Method arguments
@@ -152,27 +228,27 @@ export class Router implements RouterInterface {
                     }, NetworkingModuleKeyname);
 
                     routerRequestExecutionSpan.end();
-                    return reject(new ForbiddenHttpError("You are not allowed to access this."));
+                    return resolve(this.executeErrorResponseInterceptors(new ForbiddenHttpError("You are not allowed to access this."), request, container, methodNode));
                 }
 
-                // Execute all the enrichers to enrich the request.
-                const requestEnrichersSpan = tracingManager.startSpan(SpanKeynameEnum.RouterRequestEnrichers, SpanKeynameEnum.RouterRequestExecution);
-                const enrichedRequest = await this.executeRequestEnrichers(request, container, methodNode);
-                requestEnrichersSpan.end();
+                // Execute all the interceptors
+                const requestInterceptorsSpan = tracingManager.startSpan(SpanKeynameEnum.RequestInterceptors, SpanKeynameEnum.RouterRequestExecution);
+                const interceptedRequest = await this.executeRequestInterceptors(request, container, methodNode);
+                requestInterceptorsSpan.end();
 
-                this.loghandler.debug("This request has been enriched", {
+                this.loghandler.debug("Intercepted Request", {
                     request,
-                    enrichedRequest,
+                    interceptedRequest,
                 }, NetworkingModuleKeyname)
 
                 // Resolve the value to inject in the method arguments that have a decorator resolver
                 const resolvedMethodArguments: any[] = [];
 
                 for (const methodArgument of methodNode.route.methodArguments) {
-                    resolvedMethodArguments.push(await this.controllerMethodParameterDecoratorResolver.resolve(methodArgument, enrichedRequest, routeParameters, identity));
+                    resolvedMethodArguments.push(await this.controllerMethodParameterDecoratorResolver.resolve(methodArgument, interceptedRequest, routeParameters, identity));
                 }
 
-                this.loghandler.debug("Controller argument resolved", {
+                this.loghandler.debug("Router - Controller argument resolved", {
                     resolvedMethodArguments,
                 }, NetworkingModuleKeyname)
 
@@ -182,13 +258,16 @@ export class Router implements RouterInterface {
                 // https://stackoverflow.com/a/27760489/684101
                 const response = await Promise.resolve(controllerResponse);
 
-                this.loghandler.debug("The returned response by the controller", {
+                this.loghandler.debug("Router - The response returned by the controller", {
                     response
                 }, NetworkingModuleKeyname)
 
                 let returnedResponse: Response;
                 // If the response is already a Response object, return the response
                 if(response instanceof Response) {
+                    this.loghandler.debug("Router - Response returned by the controller is a Response object", {
+                        response,
+                    }, NetworkingModuleKeyname)
                     returnedResponse = response;
                 } else {
                     // If the response is not a response object, but the method hasn't thrown an error, assume the
@@ -196,33 +275,92 @@ export class Router implements RouterInterface {
                     returnedResponse = new Response();
                     returnedResponse.status = 200;
                     returnedResponse.body = response;
+
+                    this.loghandler.debug("Router - Response returned by the controller is NOT a Response object", {
+                        response,
+                        returnedResponse,
+                    }, NetworkingModuleKeyname)
                 }
 
-                const responseEnrichersSpan = tracingManager.startSpan(SpanKeynameEnum.RouterResponseEnrichers, SpanKeynameEnum.RouterRequestExecution);
-                const enrichedResponse = await this.executeResponseEnrichers(returnedResponse, request, container, methodNode);
-                responseEnrichersSpan.end();
-
-                this.loghandler.debug("This response has been enriched", {
+                this.loghandler.debug("Router - The response before calling the response interceptors ", {
+                    response,
                     returnedResponse,
-                    enrichedResponse,
                 }, NetworkingModuleKeyname)
 
+                const responseInterceptorsSpan = tracingManager.startSpan(SpanKeynameEnum.ResponseInterceptors, SpanKeynameEnum.RouterRequestExecution);
+                const interceptedResponse = await this.executeResponseInterceptors(returnedResponse, request, container, methodNode);
+                responseInterceptorsSpan.end();
+
                 routerRequestExecutionSpan.end();
-                return resolve(returnedResponse);
+                return resolve(interceptedResponse);
             }
             catch (error) {
-                this.loghandler.error("There was an error trying to execute the request in the router", {
+                this.loghandler.error("Router - There was an error trying to execute the request in the router", {
                     error,
                 }, NetworkingModuleKeyname)
 
+                // Execute router interceptors for the error response;
+
                 routerRequestExecutionSpan.end();
-                return reject(error);
+
+                return resolve(this.executeErrorResponseInterceptors(error, request, container, methodNode));
             }
         })
     }
 
+
     /**
-     * This method executes all the Router response enrichers and returns the response updated by the enrichers.
+     * This method executes all the Request Interceptors and returns the request updated by the interceptors.
+     *
+     * @param request
+     * @param container
+     * @param methodNode
+     * @private
+     */
+    private async executeRequestInterceptors( request: Request, container: DependencyContainer, methodNode: MethodRouterNode): Promise<Request> {
+        this.loghandler.debug("Router - Request Interceptors - Start", {
+            request,
+            methodNode,
+        }, NetworkingModuleKeyname)
+
+        // Execute all the request interceptors
+        let interceptedRequest = request;
+
+        // Check first if there are any Request Interceptors
+        if (container.isRegistered(ServiceDefinitionTagEnum.RequestInterceptor, true)) {
+            const interceptors: any[] = container.resolveAll(ServiceDefinitionTagEnum.RequestInterceptor);
+
+            for (const interceptor of interceptors) {
+                // We don't have a guarantee that the Router Interceptors will implement the Interface, even though we specify it should.
+                // So, we have to verify that the method exists, and if it doesn't we throw
+                if (typeof interceptor.interceptRequest === "undefined") {
+                    // Simply log a message for now that the interceptors doesn't implement the 'interceptRequest' method.
+                    this.loghandler.info("The Request Interceptor doesn't implement the interceptRequest method.", {name: interceptor.constructor.name, interceptor});
+                    continue;
+                }
+
+                try {
+                    // https://stackoverflow.com/a/27760489/684101
+                    interceptedRequest = await (interceptor as RequestInterceptorInterface).interceptRequest?.(interceptedRequest, methodNode) ?? interceptedRequest;
+                } catch (e) {
+                    this.loghandler.error("There was an exception thrown while executing the 'interceptedRequest' method of the RequestInterceptor named: '" + interceptor.constructor.name + "'.", {e}, NetworkingModuleKeyname);
+                    throw e;
+                }
+            }
+        }
+
+        this.loghandler.debug("Router - Request Interceptors - End", {
+            request,
+            interceptedRequest,
+            methodNode,
+        }, NetworkingModuleKeyname)
+
+        return interceptedRequest;
+    }
+
+
+    /**
+     * This method executes all the Request Interceptors and returns the response updated by the interceptors.
      *
      * @param response
      * @param request
@@ -230,69 +368,115 @@ export class Router implements RouterInterface {
      * @param methodNode
      * @private
      */
-    private async executeResponseEnrichers(response: Response, request: Request, container: DependencyContainer, methodNode: MethodRouterNode): Promise<Response> {
-        // Execute all the request enrichers
-        let enrichedResponse = response;
+    private async executeResponseInterceptors(response: Response, request: Request, container: DependencyContainer, methodNode?: MethodRouterNode): Promise<Response> {
+        this.loghandler.debug("Router - Response Interceptors - Start", {
+            response,
+            request,
+            methodNode,
+        }, NetworkingModuleKeyname)
 
-        // Check first if there are any Router Response enrichers
-        if (container.isRegistered(ServiceDefinitionTagEnum.RouterResponseEnricher, true)) {
-            const enrichers: any[] = container.resolveAll(ServiceDefinitionTagEnum.RouterResponseEnricher);
+        // Execute all the request interceptors
+        let interceptedResponse = response;
 
-            for (const enricher of enrichers) {
-                // We don't have a guarantee that the Router response enrichers will implement the Interface, even though we specify it should.
+        // Check first if there are any Request interceptors
+        if (container.isRegistered(ServiceDefinitionTagEnum.RequestInterceptor, true)) {
+            const interceptors: any[] = container.resolveAll(ServiceDefinitionTagEnum.RequestInterceptor);
+
+            for (const interceptor of interceptors) {
+                // We don't have a guarantee that the Router response interceptors will implement the Interface, even though we specify it should.
                 // So, we have to verify that the method exists, and if it doesn't we throw
-                if (typeof enricher.enrichResponse === "undefined") {
-                    //todo should we type this error ?
-                    throw new Error("The Router Response Enricher named: '" + enricher.constructor.name + "' doesn't have the 'enrichResponse' method. RouterResponseEnrichers should implement the RouterResponseEnricher interface.")
+                if (typeof interceptor.interceptResponse === "undefined") {
+                    // Simply log a message for now that the interceptors doesn't implement the 'interceptResponse' method.
+                    this.loghandler.info("Router - The Request Interceptor doesn't implement the interceptResponse method.", {name: interceptor.constructor.name, interceptor}, NetworkingModuleKeyname);
+                    continue;
                 }
 
                 try {
-                    // https://stackoverflow.com/a/27760489/684101
-                    enrichedResponse = await Promise.resolve((enricher as RouterResponseEnricherInterface).enrichResponse(enrichedResponse, request, methodNode));
+                    interceptedResponse = await (interceptor as RequestInterceptorInterface).interceptResponse?.(interceptedResponse, request, methodNode) ?? interceptedResponse;
                 } catch (e) {
-                    this.loghandler.error("There was an exception thrown while executing the 'enrichResponse' method of the RouterResponseEnricher named: '" + enricher.constructor.name + "'.", {e}, NetworkingModuleKeyname);
+                    this.loghandler.error("Router - There was an exception thrown while executing the 'interceptResponse' method of the RequestInterceptor named: '" + interceptor.constructor.name + "'.", {e}, NetworkingModuleKeyname);
                     throw e;
                 }
             }
         }
 
-        return enrichedResponse;
+        this.loghandler.debug("Router - Response Interceptors - End", {
+            response,
+            interceptedResponse,
+            request,
+            methodNode,
+        }, NetworkingModuleKeyname)
+
+        return interceptedResponse;
     }
 
+
     /**
-     * This method executes all the Router request enrichers and returns the request updated by the enrichers.
+     * This method executes all the Request Interceptors and returns the response updated by the error interceptors.
      *
+     * @param error
      * @param request
      * @param container
      * @param methodNode
      * @private
      */
-    private async executeRequestEnrichers( request: Request, container: DependencyContainer, methodNode: MethodRouterNode): Promise<Request> {
-        // Execute all the request enrichers
-        let enrichedRequest = request;
+    private async executeErrorResponseInterceptors(error: Error, request: Request, container: DependencyContainer, methodNode?: MethodRouterNode): Promise<Response> {
+        this.loghandler.debug("Router - Error Response Interceptors - Start", {
+            error,
+            request,
+            methodNode,
+        }, NetworkingModuleKeyname)
 
-        // Check first if there are any Router Request enrichers
-        if (container.isRegistered(ServiceDefinitionTagEnum.RouterRequestEnricher, true)) {
-            const enrichers: any[] = container.resolveAll(ServiceDefinitionTagEnum.RouterRequestEnricher);
+        // Execute all the request interceptors
+        let interceptedResponse = new Response();
+        if(error instanceof HttpError) {
+            interceptedResponse.status = error.httpStatus;
+            interceptedResponse.body = {
+                name: error.name,
+                message: error.message,
+                stack: error.stack,
+                errors: error.errors,
+                extra: error.extra,
+            }
+        }
+        else {
+            interceptedResponse.status = 500;
+            interceptedResponse.body = {name: error.name, message: error.message, stack: error.stack};
+        }
 
-            for (const enricher of enrichers) {
-                // We don't have a guarantee that the Router response enrichers will implement the Interface, even though we specify it should.
+        interceptedResponse.request = request;
+
+        // Check first if there are any Request interceptors
+        if (container.isRegistered(ServiceDefinitionTagEnum.RequestInterceptor, true)) {
+            const interceptors: any[] = container.resolveAll(ServiceDefinitionTagEnum.RequestInterceptor);
+
+            for (const interceptor of interceptors) {
+                // We don't have a guarantee that the Router response interceptors will implement the Interface, even though we specify it should.
                 // So, we have to verify that the method exists, and if it doesn't we throw
-                if (typeof enricher.enrichRequest === "undefined") {
-                    //todo should we type this error ?
-                    throw new Error("The Router Request Enricher named: '" + enricher.constructor.name + "' doesn't have the 'enrichRequest' method. RouterRequestEnrichers should implement the RouterRequestEnricher interface.")
+                if (typeof interceptor.interceptError === "undefined") {
+                    // Simply log a message for now that the interceptors doesn't implement the 'interceptError' method.
+                    this.loghandler.info("The Request Interceptor doesn't implement the interceptError method.", {name: interceptor.constructor.name, interceptor});
+                    continue;
                 }
 
                 try {
-                    // https://stackoverflow.com/a/27760489/684101
-                    enrichedRequest = await Promise.resolve((enricher as RouterRequestEnricherInterface).enrichRequest(enrichedRequest, methodNode));
+                    interceptedResponse = await (interceptor as RequestInterceptorInterface).interceptError?.(error, interceptedResponse, request, methodNode) ?? interceptedResponse;
                 } catch (e) {
-                    this.loghandler.error("There was an exception thrown while executing the 'enrichedRequest' method of the RouterRequestEnricher named: '" + enricher.constructor.name + "'.", {e}, NetworkingModuleKeyname);
+                    this.loghandler.error("There was an exception thrown while executing the 'interceptError' method of the RequestInterceptor named: '" + interceptor.constructor.name + "'.", {e}, NetworkingModuleKeyname);
                     throw e;
                 }
             }
         }
 
-        return enrichedRequest;
+        interceptedResponse = await this.executeResponseInterceptors(interceptedResponse, request, container, methodNode);
+
+        this.loghandler.debug("Router - Error Response Interceptors - End", {
+            error,
+            interceptedResponse,
+            request,
+            methodNode,
+        }, NetworkingModuleKeyname)
+
+        return interceptedResponse;
     }
 }

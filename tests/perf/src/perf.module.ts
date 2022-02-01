@@ -222,6 +222,7 @@ import {WrenController} from "./controllers/wren.controller";
 import {YakController} from "./controllers/yak.controller";
 import {ZebraController } from "./controllers/zebra.controller";
 import {AppModuleInterface} from "@pristine-ts/common";
+import {NetworkingModule} from "@pristine-ts/networking";
 
 
 export const perfModule: AppModuleInterface = {
@@ -449,7 +450,7 @@ export const perfModule: AppModuleInterface = {
         YakController,
         ZebraController,
     ],
-    importModules: [CoreModule],
+    importModules: [CoreModule, NetworkingModule],
     providerRegistrations: [
     ]
 }

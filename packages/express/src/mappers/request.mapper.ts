@@ -1,9 +1,9 @@
 import {injectable} from "tsyringe";
-import {Request} from "express";
+import {Request as ExpressRequest} from "express";
 
-import {RequestInterface} from "@pristine-ts/common";
 import {HttpHeadersMapper} from "./http-headers.mapper";
 import {MethodMapper} from "./method.mapper";
+import {Request} from "@pristine-ts/common";
 
 @injectable()
 export class RequestMapper {
@@ -12,16 +12,15 @@ export class RequestMapper {
     }
 
     /**
-     * Maps an http request from express to a Pristine request.
-     * @param request The http request from express.
+     * Maps an http expressRequest from express to a Pristine expressRequest.
+     * @param expressRequest The http expressRequest from express.
      */
-    map(request: Request): RequestInterface {
-        return {
-            url: request.url,
-            headers: this.httpHeadersMapper.map(request.headers),
-            httpMethod: this.methodMapper.map(request.method),
-            body: request.body,
-            rawBody: request.body,
-        }
+    map(expressRequest: ExpressRequest): Request {
+        const request = new Request(this.methodMapper.map(expressRequest.method), expressRequest.url);
+        request.headers = this.httpHeadersMapper.map(request.headers);
+        request.body = expressRequest.body;
+        request.rawBody = expressRequest.body;
+
+        return request;
     }
 }

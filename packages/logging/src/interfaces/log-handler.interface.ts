@@ -42,4 +42,9 @@ export interface LogHandlerInterface {
      * @param module The module from where the log was created.
      */
     debug(message: string, extra?: any, module?: string): void;
+
+    /**
+     * This is called when the log handler is to terminate
+     */
+    terminate(): void;
 }
