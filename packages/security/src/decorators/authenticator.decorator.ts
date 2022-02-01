@@ -3,7 +3,7 @@ import {AuthenticatorContextInterface} from "../interfaces/authenticator-context
 import {AuthenticatorDecoratorError} from "../errors/authenticator-decorator.error";
 
 /**
- * This decorator is to specify the authenticator that should be used to authenticate a request.
+ * This decorator specifies the authenticator that should be used to authenticate a request.
  * It should be used either on a controller class or directly on a method.
  * @param authenticator The authenticator to use.
  * @param options Any options that will be passed on to the authenticator.
