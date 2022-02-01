@@ -2,6 +2,7 @@
  * This Request object represents the class used internally that represents a Request.
  */
 import {HttpMethod} from "../enums/http-method.enum";
+import {values} from "lodash";
 
 export class Request {
     /**
@@ -17,7 +18,7 @@ export class Request {
     /**
      * The headers of the request.
      */
-    headers: { [key: string]: string } = {};
+    private _headers: { [key: string]: string } = {};
 
     /**
      * The body of the request.
@@ -35,12 +36,34 @@ export class Request {
     }
 
     /**
+     * This method returns all the headers.
+     */
+    get headers(): { [key: string]: string } {
+        return this._headers;
+    }
+
+    /**
+     * This method sets the headers appropriately.
+     *
+     * @param headers
+     */
+    public setHeaders(headers: { [key: string]: string }) {
+        for (const name in headers) {
+            if(headers.hasOwnProperty(name) === false) {
+                continue;
+            }
+
+            this.setHeader(name, headers[name])
+        }
+    }
+
+    /**
      * This method sets a header parameter in the Request.
      *
      * @param name The name of the header.
      * @param value The value of the header.
      */
-    setHeader(name: string, value: string) {
+    public setHeader(name: string, value: string) {
         this.headers[name.toLowerCase()] = value;
     }
 
@@ -49,7 +72,7 @@ export class Request {
      *
      * @param name The name of the header.
      */
-    hasHeader(name: string): boolean {
+    public hasHeader(name: string): boolean {
         return this.headers.hasOwnProperty(name.toLowerCase());
     }
 
@@ -58,7 +81,7 @@ export class Request {
      *
      * @param name The name of the header.
      */
-    getHeader(name: string): string | undefined {
+    public getHeader(name: string): string | undefined {
         return this.headers[name.toLowerCase()];
     }
 }

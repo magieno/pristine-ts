@@ -90,10 +90,10 @@ describe("Http request mapper", () => {
         const expectedRequest: Request = new Request(HttpMethod.Post, "/my/path?parameter1=value1&parameter1=value2&parameter2=value");
         expectedRequest.body = rawEvent.body;
         expectedRequest.rawBody = rawEvent.body,
-        expectedRequest.headers = {
+        expectedRequest.setHeaders({
             "header1": "value1",
             "header2": "value2"
-        };
+        });
 
         const mappedEvent = httpApiEventMapper.map(rawEvent, executionContext);
 

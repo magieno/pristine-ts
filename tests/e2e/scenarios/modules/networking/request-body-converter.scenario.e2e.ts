@@ -37,9 +37,9 @@ describe("Request Body Converter", () => {
     it("should throw an error if the header Content-Type contains 'application/json' and the body contains invalid JSON.", async () => {
         const request: Request = new Request(HttpMethod.Get, "http://localhost:8080/test");
         request.body = "{allo:fdfsa,}";
-        request.headers = {
+        request.setHeaders({
             "Content-Type": "application/json",
-        };
+        });
 
         const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
 
@@ -51,9 +51,9 @@ describe("Request Body Converter", () => {
     it("should not throw an error if the header Content-Type contains 'application/json' and the body contains valid JSON.", async () => {
 
         let request = new Request(HttpMethod.Get, "http://localhost:8080/test")
-        request.headers = {
+        request.setHeaders({
             "Content-Type": "application/json",
-        };
+        });
 
         request.body = "{\"allo\":2}";
         expect(((await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}})) as Response).status).toBe(200);

@@ -42,9 +42,9 @@ describe("JWT Module instantiation in the Kernel", () => {
         });
 
         const request: Request = new Request(HttpMethod.Get, "http://localhost:8080/api/2.0/jwt/services");
-        request.headers = {
+        request.setHeaders({
             "Authorization": "Bearer " + JWTKeys.token.valid,
-        };
+        });
 
         const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
 
@@ -89,9 +89,9 @@ describe("JWT Module instantiation in the Kernel", () => {
         });
 
         const request: Request = new Request(HttpMethod.Get, "http://localhost:8080/api/2.0/jwt/services");
-        request.headers = {
+        request.setHeaders({
             "Authorization": "Bearer dfsadfdsafdsfdsafds",
-        };
+        });
 
         const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
 

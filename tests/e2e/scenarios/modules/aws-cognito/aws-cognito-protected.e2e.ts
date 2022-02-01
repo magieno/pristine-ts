@@ -120,9 +120,9 @@ describe("Aws cognito authenticator", () => {
         });
 
         const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/identity");
-        request.headers = {
+        request.setHeaders({
             "Authorization": "Bearer " + jwt.sign(payload, privateKey, { algorithm: 'RS256', keyid: tokenHeader.kid})
-        }
+        })
 
         const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
 
@@ -160,9 +160,9 @@ describe("Aws cognito authenticator", () => {
         });
 
         const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/identity");
-        request.headers = {
+        request.setHeaders({
             "Authorization": "Bearer " + jwt.sign(payload, privateKey, { algorithm: 'RS256', keyid: tokenHeader.kid})
-        }
+        })
 
         const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
 

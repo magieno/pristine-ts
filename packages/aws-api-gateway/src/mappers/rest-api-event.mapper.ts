@@ -40,7 +40,7 @@ export class RestApiEventMapper extends BaseApiEventMapper implements EventMappe
         switch (this.restApiEventsHandlingStrategy) {
             case ApiGatewayEventsHandlingStrategyEnum.Request:
                 const request = new Request(this.mapHttpMethod(rawEvent.httpMethod), rawEvent.path);
-                request.headers = rawEvent.headers;
+                request.setHeaders(rawEvent.headers);
                 request.body = rawEvent.body;
                 request.rawBody = rawEvent.body;
 
