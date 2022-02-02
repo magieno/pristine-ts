@@ -3,7 +3,7 @@ import {GuardDecoratorError} from "../errors/guard-decorator.error";
 import {GuardContextInterface} from "../interfaces/guard-context.interface";
 
 /**
- * This decorator is to specify the guard that should be used to authorize a request.
+ * This decorator specifies the guard that should be used to authorize a request.
  * It should be used either on a controller class or directly on a method.
  * @param guard
  * @param options Any options that will be passed on to the guard.
