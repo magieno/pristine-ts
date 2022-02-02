@@ -1,9 +1,13 @@
 import {AuthenticatorInterface} from "../interfaces/authenticator.interface";
-import {AuthenticatorInstantiationError} from "../errors/authenticator-instantiation.error";
-import {GuardContextInterface} from "../interfaces/guard-context.interface";
 import {AuthenticatorContextInterface} from "../interfaces/authenticator-context.interface";
 import {AuthenticatorDecoratorError} from "../errors/authenticator-decorator.error";
 
+/**
+ * This decorator specifies the authenticator that should be used to authenticate a request.
+ * It should be used either on a controller class or directly on a method.
+ * @param authenticator The authenticator to use.
+ * @param options Any options that will be passed on to the authenticator.
+ */
 export const authenticator = (authenticator: AuthenticatorInterface | Function, options?: any) => {
     return ( target: any,
              propertyKey?: string,

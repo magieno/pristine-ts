@@ -8,6 +8,7 @@ import {GuardFactory} from "./guard.factory";
 import {GuardDecoratorError} from "../errors/guard-decorator.error";
 import {Request} from "@pristine-ts/common";
 
+
 describe("Authenticator Factory", () => {
     @injectable()
     class Authenticator implements AuthenticatorInterface {

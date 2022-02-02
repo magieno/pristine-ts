@@ -9,16 +9,33 @@ import {SecurityModuleKeyname} from "../security.module.keyname";
 import {IdentityProviderInterface} from "../interfaces/identity-provider.interface";
 import {Request} from "@pristine-ts/common";
 
+/**
+ * The authentication manager provides authentication by returning the identity executing the action.
+ * It is tagged and can be injected using AuthenticationManagerInterface which facilitates mocking.
+ */
 @moduleScoped(SecurityModuleKeyname)
 @tag("AuthenticationManagerInterface")
 @injectable()
 export class AuthenticationManager implements AuthenticationManagerInterface {
+
+    /**
+     * The authentication manager provides authentication by returning the identity executing the action.
+     * @param identityProviders The identity providers to use to provide the identity. All services tagged with ServiceDefinitionTagEnum.IdentityProvider will be injected here.
+     * @param logHandler The log handler to output logs.
+     * @param authenticatorFactory The factory to create the authenticator.
+     */
     public constructor(
         @injectAll(ServiceDefinitionTagEnum.IdentityProvider) private readonly identityProviders: IdentityProviderInterface[],
         @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
                        private readonly authenticatorFactory: AuthenticatorFactory) {
     }
 
+    /**
+     * Authenticates a request by providing the identity that made the request.
+     * @param request The request to authenticate
+     * @param routeContext The context associated with the route.
+     * @param container The dependency container from which to resolve the authenticator.
+     */
     public async authenticate(request: Request, routeContext: any, container: DependencyContainer): Promise<IdentityInterface | undefined> {
         if(!routeContext || routeContext.authenticator === undefined) {
             return undefined;
@@ -44,10 +61,8 @@ export class AuthenticationManager implements AuthenticationManagerInterface {
                 identity = await identityProvider.provide(identity);
             }
 
-        }
-        catch (e) {
+        } catch (e) {
             this.logHandler.error(e.message, {e}, SecurityModuleKeyname);
-            identity = undefined;
             throw e;
         }
 

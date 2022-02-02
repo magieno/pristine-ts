@@ -20,6 +20,9 @@ export const SecurityModule: ModuleInterface = {
     ],
     providerRegistrations: [],
     configurationDefinitions: [
+        /**
+         * The key in the claims of the access token where the roles are defined.
+         */
         {
             parameterName: SecurityModuleKeyname + ".rolesClaimKey",
             isRequired: false,
