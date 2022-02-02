@@ -1,16 +1,34 @@
-import {injectable, inject} from "tsyringe";
+import { inject, injectable } from "tsyringe";
 import * as Sentry from "@sentry/node";
-import {Severity as SentrySeverity} from "@sentry/node";
-import {Readable, Writable} from "stream";
-import {LogModel, SeverityEnum, LoggerInterface} from "@pristine-ts/logging";
-import {moduleScoped} from "@pristine-ts/common";
-import {SentryModule} from "../sentry.module";
+import { Severity as SentrySeverity } from "@sentry/node";
+import { Readable } from "stream";
+import { LoggerInterface, LogModel, SeverityEnum } from "@pristine-ts/logging";
+import { moduleScoped, ServiceDefinitionTagEnum, tag } from "@pristine-ts/common";
+import { SentryModule } from "../sentry.module";
 
+/**
+ * The SentryLogger captures the logs and sends it to Sentry.
+ * It is registered with the tag Logger so that it can be injected along with all the other Loggers.
+ * It is module scoped to the Sentry module so that it is only registered if the Sentry module is imported in the app module.
+ */
+@tag(ServiceDefinitionTagEnum.Logger)
 @moduleScoped(SentryModule.keyname)
 @injectable()
 export class SentryLogger implements LoggerInterface {
+
+    /**
+     * The readable stream from which the logger reads the logs that need to be captured.
+     */
     public readableStream?: Readable;
 
+    /**
+     * The SentryLogger captures the logs and sends it to Sentry.
+     * @param sentryDsn The sentry dsn.
+     * @param tagRelease The release to tag the captured logs with.
+     * @param sentrySampleRate The sample rate at which logs should be captured. Only a certain percentage of the logs will be sent to Sentry to avoid sending to many logs.
+     * Should be between 0 and 1. If no value or a value outside this range is provided, the default value of 0.1 will be used.
+     * @param sentryActivated Whether or not logs should be captured and sent to Sentry.
+     */
     constructor(@inject("%pristine.sentry.sentryDsn%") private readonly sentryDsn: string,
                 @inject("%pristine.sentry.tagRelease%") private readonly tagRelease?: string,
                 @inject("%pristine.sentry.sentrySampleRate%") private readonly sentrySampleRate?: number,
@@ -18,10 +36,16 @@ export class SentryLogger implements LoggerInterface {
         this.initialize();
     }
 
+    /**
+     * Terminates the readable stream.
+     */
     public terminate() {
         this.readableStream?.destroy();
     }
 
+    /**
+     * Initializes the Sentry logger.
+     */
     public initialize() {
         if (this.isActive() === false) {
             return;
@@ -44,6 +68,10 @@ export class SentryLogger implements LoggerInterface {
         });
     }
 
+    /**
+     * Determines whether or not it should send the logs to Sentry based on the sample rate.
+     * @private
+     */
     private shouldSendToSentry(): boolean {
         // We capture by default only 10% of all the events.
         let sampleRate = this.sentrySampleRate ?? 0.1;
@@ -60,10 +88,17 @@ export class SentryLogger implements LoggerInterface {
         return randomNumber <= sampleRate;
     }
 
+    /**
+     * Whether or not the Sentry logger is activated.
+     */
     public isActive(): boolean {
         return this.sentryActivated ?? true;
     }
 
+    /**
+     * Captures and sends the log to sentry.
+     * @param log The log to capture.
+     */
     public async capture(log: LogModel): Promise<void> {
         if (this.isActive() === false) {
             return;
