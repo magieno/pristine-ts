@@ -1,15 +1,12 @@
-import {inject, injectable, singleton } from "tsyringe";
-import {SeverityEnum} from "../enums/severity.enum";
-import {LogModel} from "../models/log.model";
-import {LoggerInterface} from "../interfaces/logger.interface";
-import {Readable} from "stream";
-import * as util from "util";
-import {Utils} from "../utils/utils";
-import {CommonModuleKeyname, moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
-import {OutputModeEnum} from "../enums/output-mode.enum";
-import format from "date-fns/format";
-import {LoggingModuleKeyname} from "../logging.module.keyname";
-import {BaseLogger} from "./base.logger";
+import { inject, injectable, singleton } from "tsyringe";
+import { SeverityEnum } from "../enums/severity.enum";
+import { LogModel } from "../models/log.model";
+import { LoggerInterface } from "../interfaces/logger.interface";
+import { Readable } from "stream";
+import { moduleScoped, ServiceDefinitionTagEnum, tag } from "@pristine-ts/common";
+import { OutputModeEnum } from "../enums/output-mode.enum";
+import { LoggingModuleKeyname } from "../logging.module.keyname";
+import { BaseLogger } from "./base.logger";
 
 /**
  * The ConsoleLogger outputs the logs in the console.
