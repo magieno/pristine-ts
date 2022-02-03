@@ -1,5 +1,8 @@
 import {HttpError} from "@pristine-ts/networking";
 
+/**
+ * This Error represents an error when authenticating with Stripe.
+ */
 export class StripeAuthenticationError extends HttpError {
     public constructor(readonly httpStatus: number, readonly message: string, readonly errors?: any[] | undefined) {
         super(httpStatus, message, errors);
