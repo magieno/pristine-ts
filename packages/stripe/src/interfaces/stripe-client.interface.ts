@@ -1,6 +1,9 @@
 import Stripe from "stripe";
 import {Request} from "@pristine-ts/common";
 
+/**
+ * This interface represents the Stripe client and can be used to inject it. It facilitates mocking and testing.
+ */
 export interface StripeClientInterface {
     /**
      * Returns the Stripe client of the Stripe library with the api version '2020-08-27'

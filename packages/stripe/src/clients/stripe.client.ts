@@ -7,12 +7,26 @@ import {StripeModuleKeyname} from "../stripe.module.keyname";
 import Stripe from "stripe";
 import {Request} from "@pristine-ts/common";
 
+/**
+ * The client to use to interact with Stripe. It is a wrapper around the Stripe library.
+ * It is tagged so it can be injected using StripeClientInterface.
+ */
 @tag("StripeClientInterface")
 @injectable()
 export class StripeClient implements StripeClientInterface{
 
+    /**
+     * The client from the Stripe library.
+     * @private
+     */
     private client?: Stripe;
 
+    /**
+     * The client to use to interact with Stripe. It is a wrapper around the Stripe library.
+     * It is tagged so it can be injected using StripeClientInterface.
+     * @param logHandler The log handler to output logs.
+     * @param stripeApiKey The api key to use when contacting Stripe.
+     */
     constructor(
         @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
         @inject(`%${StripeModuleKeyname}.stripeApiKey%`) private readonly stripeApiKey: string,
