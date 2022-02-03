@@ -98,7 +98,7 @@ export class HttpApiEventMapper extends BaseApiEventMapper implements EventMappe
         } else if(eventResponse.response instanceof Response) {
             let body = eventResponse.response.body;
 
-            if(typeof body === "object") {
+            if(body !== null && typeof body === "object") {
                 try {
                     body = JSON.stringify(body);
                 }

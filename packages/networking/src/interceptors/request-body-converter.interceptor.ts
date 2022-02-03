@@ -18,30 +18,26 @@ export class RequestBodyConverterInterceptor implements RequestInterceptorInterf
             return request;
         }
 
-        let contentType: undefined | string;
-
-        for (let key in request.headers) {
-            if (request.headers.hasOwnProperty(key) === false) {
-                continue;
-            }
-
-            const requestHeader = request.headers[key];
-
-            if(key.toLowerCase() === "content-type") {
-                contentType = requestHeader;
-                break;
-            }
-        }
-
-        if(contentType === undefined) {
+        if(request.hasHeader("Content-Type") === false) {
             return request;
         }
+
+        const contentType: string = request.getHeader("Content-Type") as string;
 
         switch (contentType.toLowerCase()) {
             case "application/json":
 
+
                 switch (typeof request.body) {
+                    case "undefined":
+                        return request;
                     case "object":
+                        if(request.body.constructor === Date) {
+                            const errorMessage = "This request has the Content-Type header 'application/json' but the body is a Date object which is invalid JSON.";
+                            this.logHandler.error(errorMessage);
+
+                            throw new InvalidBodyHttpError(errorMessage);
+                        }
                         return request;
 
                     case "string":
@@ -51,7 +47,7 @@ export class RequestBodyConverterInterceptor implements RequestInterceptorInterf
                             }
                         }
                         catch (e) {
-                            const errorMessage = "This request has the Content-Type header 'application/json' but the body contains invalid JSON.";
+                            const errorMessage = "This request has the Content-Type header 'application/json', and the body is of type string, but the body contains invalid JSON.";
                             this.logHandler.error(errorMessage);
 
                             throw new InvalidBodyHttpError(errorMessage);
