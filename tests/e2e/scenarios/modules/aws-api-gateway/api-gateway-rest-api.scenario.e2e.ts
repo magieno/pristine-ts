@@ -58,7 +58,7 @@ describe("API Gateway Rest API (Event 1.0) scenarios", () => {
         await kernel.start(appModule, {
             "pristine.logging.consoleLoggerActivated" : false,
             "pristine.logging.fileLoggerActivated" : false,
-            "pristine.aws-api-gateway.rest_api_events.handling_strategy": ApiGatewayEventsHandlingStrategyEnum.Event,
+            "pristine.aws-api-gateway.restApiEvents.handlingStrategy": ApiGatewayEventsHandlingStrategyEnum.Event,
         });
 
         const rawEvent: any = {
@@ -181,7 +181,7 @@ describe("API Gateway Rest API (Event 1.0) scenarios", () => {
         await kernel.start(appModule, {
             "pristine.logging.consoleLoggerActivated" : false,
             "pristine.logging.fileLoggerActivated" : false,
-            "pristine.aws-api-gateway.rest_api_events.handling_strategy": ApiGatewayEventsHandlingStrategyEnum.Request,
+            "pristine.aws-api-gateway.restApiEvents.handlingStrategy": ApiGatewayEventsHandlingStrategyEnum.Request,
         });
 
         const rawEvent: any = {
