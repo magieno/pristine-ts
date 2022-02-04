@@ -106,7 +106,7 @@ describe("Http request mapper", () => {
         // Reverse map
         const response = new Response();
         response.status = 201;
-        response.headers = {"Content-Type": "application/json"}
+        response.setHeaders({"Content-Type": "application/json"})
         response.body = {"allo": true}
 
         const eventResponse = new EventResponse(mappedEvent.events[0], response);
@@ -116,7 +116,7 @@ describe("Http request mapper", () => {
         const mappedResponse = httpApiEventMapper.reverseMap(eventResponse, {}, executionContext) as HttpApiEventResponsePayload;
         expect(mappedResponse instanceof HttpApiEventResponsePayload).toBeTruthy()
         expect(mappedResponse.statusCode).toBe(201)
-        expect(mappedResponse.headers).toStrictEqual({"Content-Type": "application/json"})
+        expect(mappedResponse.headers).toStrictEqual({"content-type": "application/json"})
         expect(mappedResponse.body).toStrictEqual('{"allo":true}')
         expect(mappedResponse.isBase64Encoded).toBeFalsy()
 

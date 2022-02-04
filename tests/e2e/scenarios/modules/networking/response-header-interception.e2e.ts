@@ -46,6 +46,6 @@ describe("Response header interception", () => {
         expect(response instanceof Response).toBeTruthy();
         expect(response.status).toBe(200);
         expect(response.body).toEqual("test");
-        expect(response.headers).toEqual({"header1": "value1", "Cache-Control": "no-cache"});
+        expect(response.headers).toEqual({"header1": "value1", "cache-control": "no-cache"});
     })
 });
