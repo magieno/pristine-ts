@@ -11,6 +11,13 @@ import {injectable} from "tsyringe";
 @moduleScoped(NetworkingModuleKeyname)
 @injectable()
 export class ResponseHeadersInterceptor implements RequestInterceptorInterface {
+
+    /**
+     * Intercepts the response from the router and adds the headers specified by the response header decorator.
+     * @param response The response to intercept.
+     * @param request The request that triggered this response.
+     * @param methodNode The methode node.
+     */
     async interceptResponse(response: Response, request: Request, methodNode?: MethodRouterNode): Promise<Response> {
         if(methodNode && methodNode.route.context && methodNode.route.context.hasOwnProperty("responseHeaders")){
             response.setHeaders({...response.headers, ...methodNode.route.context.responseHeaders});
