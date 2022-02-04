@@ -13,7 +13,7 @@ import {injectable} from "tsyringe";
 export class ResponseHeadersInterceptor implements RequestInterceptorInterface {
     async interceptResponse(response: Response, request: Request, methodNode?: MethodRouterNode): Promise<Response> {
         if(methodNode && methodNode.route.context && methodNode.route.context.hasOwnProperty("responseHeaders")){
-            response.headers = {...response.headers, ...methodNode.route.context.responseHeaders}
+            response.setHeaders({...response.headers, ...methodNode.route.context.responseHeaders});
         }
 
         return response;
