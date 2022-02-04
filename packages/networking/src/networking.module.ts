@@ -52,7 +52,7 @@ export const NetworkingModule: ModuleInterface = {
          * The default Content-Type response header to set on responses that do not already have Content-Types.
          */
         {
-            parameterName: NetworkingModuleKeyname + "defaultContentTypeResponseHeader",
+            parameterName: NetworkingModuleKeyname + ".defaultContentTypeResponseHeader",
             isRequired: false,
             defaultValue: "application/json",
             defaultResolvers: [

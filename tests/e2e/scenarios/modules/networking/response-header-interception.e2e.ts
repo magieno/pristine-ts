@@ -14,6 +14,12 @@ class TestController {
     public list() {
         return "test"
     }
+
+    @responseHeader("Content-Type", "text/plain")
+    @route(HttpMethod.Get, "/textPlain")
+    public textPlain() {
+        return "test"
+    }
 }
 
 const moduleTest: AppModuleInterface = {
@@ -31,12 +37,32 @@ describe("Response header interception", () => {
         container.clearInstances();
     })
 
-    it("should intercept the response and augment it with the specified header", async () => {
+    it("should intercept the response and augment it with the specified header and the default content type", async () => {
 
         const kernel = new Kernel();
         await kernel.start(moduleTest, {
             "pristine.logging.consoleLoggerActivated": false,
             "pristine.logging.fileLoggerActivated": false,
+            "pristine.networking.defaultContentTypeResponseHeader.isActive": true,
+        });
+
+        const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/test");
+
+        const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
+
+        expect(response instanceof Response).toBeTruthy();
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual("test");
+        expect(response.headers).toEqual({"header1": "value1", "content-type": "application/json", "cache-control": "no-cache"});
+    })
+
+    it("should intercept the response and augment it with the specified header without the default content type", async () => {
+
+        const kernel = new Kernel();
+        await kernel.start(moduleTest, {
+            "pristine.logging.consoleLoggerActivated": false,
+            "pristine.logging.fileLoggerActivated": false,
+            "pristine.networking.defaultContentTypeResponseHeader.isActive": false,
         });
 
         const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/test");
@@ -47,5 +73,24 @@ describe("Response header interception", () => {
         expect(response.status).toBe(200);
         expect(response.body).toEqual("test");
         expect(response.headers).toEqual({"header1": "value1", "cache-control": "no-cache"});
+    })
+
+    it("should intercept the response and augment it with the specified header without overwriting the content type with the default one.", async () => {
+
+        const kernel = new Kernel();
+        await kernel.start(moduleTest, {
+            "pristine.logging.consoleLoggerActivated": false,
+            "pristine.logging.fileLoggerActivated": false,
+            "pristine.networking.defaultContentTypeResponseHeader.isActive": true,
+        });
+
+        const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/textPlain");
+
+        const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
+
+        expect(response instanceof Response).toBeTruthy();
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual("test");
+        expect(response.headers).toEqual({"header1": "value1", "content-type": "text/plain"});
     })
 });
