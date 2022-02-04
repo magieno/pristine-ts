@@ -54,7 +54,7 @@ describe("API Gateway HTTP API (Event 2.0) scenarios", () => {
         await kernel.start(appModule, {
             "pristine.logging.consoleLoggerActivated" : false,
             "pristine.logging.fileLoggerActivated" : false,
-            "pristine.aws-api-gateway.http_api_events.handling_strategy": ApiGatewayEventsHandlingStrategyEnum.Event,
+            "pristine.aws-api-gateway.httpApiEvents.handlingStrategy": ApiGatewayEventsHandlingStrategyEnum.Event,
         });
 
         const rawEvent = {
@@ -166,7 +166,7 @@ describe("API Gateway HTTP API (Event 2.0) scenarios", () => {
         await kernel.start(appModule, {
             "pristine.logging.consoleLoggerActivated" : false,
             "pristine.logging.fileLoggerActivated" : false,
-            "pristine.aws-api-gateway.http_api_events.handling_strategy": ApiGatewayEventsHandlingStrategyEnum.Request,
+            "pristine.aws-api-gateway.httpApiEvents.handlingStrategy": ApiGatewayEventsHandlingStrategyEnum.Request,
         });
 
         const rawEvent = {

@@ -21,7 +21,7 @@ import {LogHandlerInterface} from "@pristine-ts/logging";
 @injectable()
 export class RestApiEventMapper extends BaseApiEventMapper implements EventMapperInterface<RestApiEventPayload | Request, RestApiEventResponsePayload | Response> {
     constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-                @inject("%" + AwsApiGatewayModuleKeyname + ".rest_api_events.handling_strategy%") private readonly restApiEventsHandlingStrategy: ApiGatewayEventsHandlingStrategyEnum) {
+                @inject("%" + AwsApiGatewayModuleKeyname + ".restApiEvents.handlingStrategy%") private readonly restApiEventsHandlingStrategy: ApiGatewayEventsHandlingStrategyEnum) {
         super();
     }
 

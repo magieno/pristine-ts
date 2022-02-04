@@ -15,7 +15,7 @@ export const AwsApiGatewayModule: ModuleInterface = {
     keyname: AwsApiGatewayModuleKeyname,
     configurationDefinitions: [
         {
-            parameterName: AwsApiGatewayModuleKeyname + ".rest_api_events.handling_strategy",
+            parameterName: AwsApiGatewayModuleKeyname + ".restApiEvents.handlingStrategy",
             isRequired: false,
             defaultValue: ApiGatewayEventsHandlingStrategyEnum.Request,
             defaultResolvers: [
@@ -23,7 +23,7 @@ export const AwsApiGatewayModule: ModuleInterface = {
             ],
         },
         {
-            parameterName: AwsApiGatewayModuleKeyname + ".http_api_events.handling_strategy",
+            parameterName: AwsApiGatewayModuleKeyname + ".httpApiEvents.handlingStrategy",
             isRequired: false,
             defaultValue: ApiGatewayEventsHandlingStrategyEnum.Request,
             defaultResolvers: [

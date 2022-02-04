@@ -5,14 +5,29 @@ import {NetworkingModuleKeyname} from "../networking.module.keyname";
 import {RequestInterceptorInterface} from "../interfaces/request-interceptor.interface";
 import {InvalidBodyHttpError} from "../errors/invalid-body.http-error";
 
+/**
+ * The Request Body Converter Interceptor intercepts the request and parses the body based on the Content-tTpe header.
+ * It is tagged as a RequestInterceptor so it can be automatically injected with the all the other RequestInterceptor.
+ */
 @tag(ServiceDefinitionTagEnum.RequestInterceptor)
 @moduleScoped(NetworkingModuleKeyname)
 @injectable()
 export class RequestBodyConverterInterceptor implements RequestInterceptorInterface {
-    constructor(@inject("%" + NetworkingModuleKeyname + ".request_body_converter.is_active%") private readonly isActive: boolean,
+
+    /**
+     * The Request Body Converter Interceptor intercepts the request and parses the body based on the Content-Type header.
+     * It is tagged as a RequestInterceptor so it can be automatically injected with the all the other RequestInterceptor.
+     * @param isActive Whether or not this interceptor is active.
+     * @param logHandler The log handler to output logs.
+     */
+    constructor(@inject("%" + NetworkingModuleKeyname + ".requestBodyConverter.isActive%") private readonly isActive: boolean,
                 @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface) {
     }
 
+    /**
+     * Intercepts the request and parses the body based on it's Content-Type header.
+     * @param request The request to intercept.
+     */
     async interceptRequest(request: Request): Promise<Request> {
         if(this.isActive === false) {
             return request;

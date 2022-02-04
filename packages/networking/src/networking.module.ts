@@ -24,12 +24,39 @@ export const NetworkingModule: ModuleInterface = {
         TelemetryModule,
     ],
     configurationDefinitions: [
+        /**
+         * Whether or not the request body converter interceptor is active.
+         */
         {
-            parameterName: NetworkingModuleKeyname + ".request_body_converter.is_active",
+            parameterName: NetworkingModuleKeyname + ".requestBodyConverter.isActive",
             isRequired: false,
             defaultValue: true,
             defaultResolvers: [
                 new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_NETWORKING_REQUEST_BODY_CONVERTER_IS_ACTIVE")),
+            ],
+        },
+
+        /**
+         * Whether or not the default content type response header interceptor is active.
+         */
+        {
+            parameterName: NetworkingModuleKeyname + ".defaultContentTypeResponseHeader.isActive",
+            isRequired: false,
+            defaultValue: true,
+            defaultResolvers: [
+                new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_NETWORKING_DEFAULT_CONTENT_TYPE_RESPONSE_HEADER_IS_ACTIVE")),
+            ],
+        },
+
+        /**
+         * The default Content-Type response header to set on responses that do not already have Content-Types.
+         */
+        {
+            parameterName: NetworkingModuleKeyname + ".defaultContentTypeResponseHeader",
+            isRequired: false,
+            defaultValue: "application/json",
+            defaultResolvers: [
+                new EnvironmentVariableResolver("PRISTINE_NETWORKING_DEFAULT_CONTENT_TYPE_RESPONSE_HEADER"),
             ],
         }
     ],
