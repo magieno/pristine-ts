@@ -47,6 +47,39 @@ export class Router implements RouterInterface {
     }
 
     /**
+     * This method returns the whole route tree as a string.
+     */
+    getRouteTree(): string {
+        let message = ""
+        message = this.getRouteTreeLevel(this.root, message, 1);
+        return message;
+    }
+
+    /**
+     * This method takes the existing message and appends the following levels to it.
+     * It calls itself recursively.
+     * @param node The node to print the following levels.
+     * @param message The existing message on which to append.
+     * @param level The level at which we are at.
+     */
+    private getRouteTreeLevel(node: RouterNode, message: string, level: number): string {
+        for(const child of node.children) {
+            // @ts-ignore
+            for(let i = 0; i < level; i++){
+                message+="\t";
+            }
+            if(child instanceof PathRouterNode){
+                message+="--" + child.path + "\n";
+            }
+            if(child instanceof MethodRouterNode){
+                message+="--" + child.method + "\n";
+            }
+            message = this.getRouteTreeLevel(child, message, level+1);
+        }
+        return message;
+    }
+
+    /**
      * This method registers a Route into the Route Tree maintained by the router.
      *
      * @param path
@@ -124,6 +157,7 @@ export class Router implements RouterInterface {
         })
 
         this.setupCompleted = true;
+        this.loghandler.debug("Route tree: \n" + this.getRouteTree())
     }
 
     /**
