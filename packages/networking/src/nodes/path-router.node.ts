@@ -52,8 +52,15 @@ export class PathRouterNode extends RouterNode {
             return;
         }
 
-        // Loop over our children that are of PathRouterNode and check if the next path matches
-        const matchedChild = this.children.filter(child => child instanceof PathRouterNode).find((child: RouterNode) => (child as PathRouterNode).matches(splitPaths[1]));
+        let matchedChild;
+        if(this.isCatchAll()){
+            // If this is a catch all we can only match with a catch all.
+            matchedChild = this.children.filter(child => child instanceof PathRouterNode).find((child: RouterNode) => (child as PathRouterNode).isCatchAll());
+        } else {
+            // Loop over our children that are of PathRouterNode and check if the next path matches,
+            // but if it's not a catch all we can't match with a catch all.
+            matchedChild = this.children.filter(child => child instanceof PathRouterNode).find((child: RouterNode) => (child as PathRouterNode).matches(splitPaths[1]) && (child as PathRouterNode).isCatchAll() === false);
+        }
 
         // If there's a matched child, call the add method on it and return.
         if (matchedChild !== undefined) {
