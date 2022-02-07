@@ -41,4 +41,30 @@ export class UrlUtil {
 
         return paths;
     }
+
+    /**
+     *
+     * @param path Must start with a '/'.
+     */
+    public static isPathARouteParameter(path: string) {
+        // If the current path is a path parameter, meaning has services/{id-of-service}
+        if (path.startsWith("/{") && path.endsWith("}")) {
+            return true;
+        }
+
+        // We also support path parameter written as services/:id-of-service
+        if (path.startsWith("/:")) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     *
+     * @param path Must start with a '/'.
+     */
+    public static isPathACatchAll(path: string) {
+        return path.startsWith("/*");
+    }
 }
