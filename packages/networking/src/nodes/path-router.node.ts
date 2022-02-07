@@ -4,6 +4,7 @@ import {MethodRouterNode} from "./method-router.node";
 import {Route} from "../models/route";
 import {PathRouterInstantiationError} from "../errors/path-router-instantiation.error";
 import {PathRouterAddingError} from "../errors/path-router-adding.error";
+import {UrlUtil} from "../utils/url.util";
 
 /**
  * This class represents a Path Node in the Router Node. It can never be a leaf node and will always have children.
@@ -51,15 +52,19 @@ export class PathRouterNode extends RouterNode {
             this.children.push(new MethodRouterNode(this, method, route, levelFromRoot + 1));
             return;
         }
-
+        
         let matchedChild;
-        if(this.isCatchAll()){
+
+        if(UrlUtil.isPathACatchAll(splitPaths[1])){
             // If this is a catch all we can only match with a catch all.
             matchedChild = this.children.filter(child => child instanceof PathRouterNode).find((child: RouterNode) => (child as PathRouterNode).isCatchAll());
+        } else if(UrlUtil.isPathARouteParameter(splitPaths[1])) {
+            // If this is a catch all we can only match with a catch all.
+            matchedChild = this.children.filter(child => child instanceof PathRouterNode).find((child: RouterNode) => (child as PathRouterNode).isRouteParameter());
         } else {
             // Loop over our children that are of PathRouterNode and check if the next path matches,
             // but if it's not a catch all we can't match with a catch all.
-            matchedChild = this.children.filter(child => child instanceof PathRouterNode).find((child: RouterNode) => (child as PathRouterNode).matches(splitPaths[1]) && (child as PathRouterNode).isCatchAll() === false);
+            matchedChild = this.children.filter(child => child instanceof PathRouterNode).find((child: RouterNode) => (child as PathRouterNode).matches(splitPaths[1]) && (child as PathRouterNode).isCatchAll() === false && (child as PathRouterNode).isRouteParameter() === false);
         }
 
         // If there's a matched child, call the add method on it and return.
@@ -160,24 +165,14 @@ export class PathRouterNode extends RouterNode {
      * This method return whether or not this pathRouterNode's path is a catch-all path: "/*"
      */
     isCatchAll(): boolean {
-        return this.path.startsWith("/*");
+        return UrlUtil.isPathACatchAll(this.path);
     }
 
     /**
      * This method returns whether or not this pathRouterNode represents a route parameter, e.g.: /{id} or /:id
      */
     isRouteParameter(): boolean {
-        // If the current path is a path parameter, meaning has services/{id-of-service}
-        if (this.path.startsWith("/{") && this.path.endsWith("}")) {
-            return true;
-        }
-
-        // We also support path parameter written as services/:id-of-service
-        if (this.path.startsWith("/:")) {
-            return true;
-        }
-
-        return false;
+        return UrlUtil.isPathARouteParameter(this.path)
     }
 
     /**
