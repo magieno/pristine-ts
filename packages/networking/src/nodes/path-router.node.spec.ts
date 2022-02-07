@@ -37,6 +37,13 @@ describe("Path Router Node tests", () => {
     })
 
     it("should match if the path is a catch-all: '*'", () => {
+        const pathRouterNode = new PathRouterNode("/*", undefined)
+
+        expect(pathRouterNode.matches("24a12cf7-8bc7-447c-9cb0-d97f5eb23fbb")).toBeTruthy();
+        expect(pathRouterNode.matches("allo/fda/fdafs/fdasfsda")).toBeTruthy();
+    })
+
+    it("should match when there are nested catch-all", () => {
         // /api/2.0/patates
         // /api/2.0/tomatoes
 
@@ -82,10 +89,6 @@ describe("Path Router Node tests", () => {
         expect((api10CatchAllPatates!.parent!.parent as PathRouterNode).path).toBe("/*");
         expect((api10CatchAllPatates!.parent!.parent as PathRouterNode).isCatchAll()).toBeTruthy();
 
-    })
-
-    it("should match when there are nested catch-all", () => {
-        expect(true).toBeFalsy()
     })
 
     it("should return null if the split paths passed is less than 1", () => {
