@@ -3,12 +3,16 @@ import {Trace} from "../models/trace.model";
 import {Span} from "../models/span.model";
 import {TracingManagerInterface} from "../interfaces/tracing-manager.interface";
 import {moduleScoped, tag, ServiceDefinitionTagEnum, TracingContext} from "@pristine-ts/common";
-import { v4 as uuidv4 } from 'uuid';
 import {SpanKeynameEnum} from "../enums/span-keyname.enum";
 import {TelemetryModuleKeyname} from "../telemetry.module.keyname";
 import {TracerInterface} from "../interfaces/tracer.interface";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 
+/**
+ * The Tracing Manager provides methods to help with tracing.
+ * It is tagged and can be injected using TracingManagerInterface which facilitates mocking.
+ * It is module scoped to the TelemetryModuleKeyname.
+ */
 @moduleScoped(TelemetryModuleKeyname)
 @tag("TracingManagerInterface")
 @scoped(Lifecycle.ContainerScoped)
@@ -24,6 +28,17 @@ export class TracingManager implements TracingManagerInterface {
      */
     public spans: {[keyname: string]: Span} = {};
 
+    /**
+     * The Tracing Manager provides methods to help with tracing.
+     * It is tagged and can be injected using TracingManagerInterface which facilitates mocking.
+     * It is module scoped to the TelemetryModuleKeyname.
+     * @param tracers The tracers to use. All services tagged with ServiceDefinitionTagEnum.Tracer will be injected here.
+     * @param loghandler The log handler to output logs.
+     * @param isActive Whether or not tracing is activated.
+     * @param debug Whether or not tracing is in debug mode, meaning that it should output logs with the debug severity about the trace and spans.
+     * This can be set to false to prevent having to much logs for every single span created.
+     * @param tracingContext The tracing context.
+     */
     public constructor(@injectAll(ServiceDefinitionTagEnum.Tracer) private readonly tracers: TracerInterface[],
                        @inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface,
                        @inject("%pristine.telemetry.active%") private readonly isActive: boolean,
@@ -33,10 +48,9 @@ export class TracingManager implements TracingManagerInterface {
 
     /**
      * This methods starts the Tracing. This should be the first method called before doing anything else.
-     *
-     * @param spanRootKeyname
-     * @param traceId
-     * @param context
+     * @param spanRootKeyname The keyname of the span at the root.
+     * @param traceId The trace id if there is one.
+     * @param context The context if there is one.
      */
     startTracing(spanRootKeyname: string = SpanKeynameEnum.RootExecution, traceId?: string, context?: { [key: string]: string }): Span {
         this.trace = new Trace(traceId, context);
@@ -77,10 +91,9 @@ export class TracingManager implements TracingManagerInterface {
 
     /**
      * This method starts a new span.
-     *
-     * @param keyname
-     * @param parentKeyname
-     * @param context
+     * @param keyname The keyname for this new span.
+     * @param parentKeyname The keyname of the parent span.
+     * @param context The context if there is one.
      */
     public startSpan(keyname: string, parentKeyname?: string, context?: any): Span {
         // Check if there's an active trace. If not, start one.
@@ -110,8 +123,8 @@ export class TracingManager implements TracingManagerInterface {
     }
 
     /**
-     * This methods adds an already created Span. It assumes that it its hierarchy is correct.
-     * @param span
+     * This methods adds an already created Span to the trace. It assumes that it its hierarchy is correct.
+     * @param span The span to add.
      */
     public addSpan(span: Span): Span  {
         // Check if there's an active trace. If not, log an error and return;
@@ -154,8 +167,7 @@ export class TracingManager implements TracingManagerInterface {
 
     /**
      * This method ends the span using a keyname.
-     *
-     * @param keyname
+     * @param keyname The keyname of the span to end.
      */
     public endSpanKeyname(keyname: string) {
         if(this.spans.hasOwnProperty(keyname) === false) {
@@ -167,10 +179,8 @@ export class TracingManager implements TracingManagerInterface {
 
     /**
      * This methods ends the span by setting the end date and by calling the tracers.
-     *
      * It will also end the trace if the rootspan is being ended.
-     *
-     * @param span
+     * @param span The span to end.
      */
     public endSpan(span: Span) {
         if(span.inProgress === false) {
