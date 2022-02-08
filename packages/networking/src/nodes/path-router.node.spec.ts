@@ -72,6 +72,7 @@ describe("Path Router Node tests", () => {
 
         expect(api20CelerisNode).toBeDefined();
         expect(api20CelerisNode!.parent).toBeDefined();
+ expect((api20CelerisNode!.parent! as PathRouterNode).path).toBe("/celeris");
 
         const api10CelerisNode = pathRouterNode.find(["/", "/api", "/1.0", "/celeris"], HttpMethod.Get);
 
