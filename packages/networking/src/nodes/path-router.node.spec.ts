@@ -44,16 +44,11 @@ describe("Path Router Node tests", () => {
     })
 
     it("should match when there are nested catch-all", () => {
-        // /api/2.0/patates
-        // /api/2.0/tomatoes
-
         // /api/*
         // /api/*/patates
         // /api/{versionId}/
         // /api/2.0/celeris
         // /api/2.0/tomatoes
-
-        //let matchedChild = this.children.filter(child => child instanceof PathRouterNode).find((child: RouterNode) => (child as PathRouterNode).matches(splitPaths[1]));
 
         const pathRouterNode = new PathRouterNode("/", undefined)
         pathRouterNode.add(["/", "/api", "/*"], HttpMethod.Get, new Route(undefined, ""), 0);
