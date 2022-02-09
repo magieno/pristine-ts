@@ -8,7 +8,7 @@ export * from "./enums/enums";
 export * from "./interfaces/interfaces";
 export * from "./managers/managers";
 export * from "./models/models";
-export * from "./tracers/basic.tracer";
+export * from "./tracers/tracers";
 
 export const TelemetryModule: ModuleInterface = {
     keyname: TelemetryModuleKeyname,
@@ -18,20 +18,29 @@ export const TelemetryModule: ModuleInterface = {
     ],
     providerRegistrations: [
     ],
-    configurationDefinitions: [{
-        parameterName: TelemetryModuleKeyname + ".active",
-        defaultValue: true,
-        isRequired: false,
-        defaultResolvers: [
-            new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_TRACING_IS_ACTIVE")),
-        ]
-    },
+    configurationDefinitions: [
+        /**
+         * Whether or not tracing is activated.
+         */
         {
-        parameterName: TelemetryModuleKeyname + ".debug",
-        defaultValue: false,
-        isRequired: false,
-        defaultResolvers: [
-            new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_TRACING_DEBUG")),
-        ]
-    }]
+            parameterName: TelemetryModuleKeyname + ".active",
+            defaultValue: true,
+            isRequired: false,
+            defaultResolvers: [
+                new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_TRACING_IS_ACTIVE")),
+            ]
+        },
+        /**
+         * Whether or not tracing is in debug mode, meaning that it should output logs with the debug severity about the trace and spans.
+         * This can be set to false to prevent having to much logs for every single span created.
+         */
+        {
+            parameterName: TelemetryModuleKeyname + ".debug",
+            defaultValue: false,
+            isRequired: false,
+            defaultResolvers: [
+                new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_TRACING_DEBUG")),
+            ]
+        }
+    ]
 }
