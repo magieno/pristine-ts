@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/logging",
-  "version": "0.0.195",
+  "version": "0.0.196",
   "description": "",
   "module": "dist/lib/esm/logging.module.js",
   "main": "dist/lib/cjs/logging.module.js",
