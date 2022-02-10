@@ -43,7 +43,7 @@ export class S3Client implements S3ClientInterface {
         }
     }
 
-    async getObjectBodyArrayBuffer(bucketName: string, key: string): Promise<ArrayBuffer> {
+    async getObjectBodyAsArrayBuffer(bucketName: string, key: string): Promise<ArrayBuffer> {
         try {
             const object = await this.get(bucketName, key);
             return this.streamToArrayBuffer(object.Body);

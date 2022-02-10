@@ -5,7 +5,7 @@ import ReadableStream = NodeJS.ReadableStream;
 export interface S3ClientInterface {
     getClient(): AWSS3Client;
     get(bucketName: string, key: string): Promise<GetObjectCommandOutput>;
-    getObjectBodyArrayBuffer(bucketName: string, key: string): Promise<ArrayBuffer>;
+    getObjectBodyAsArrayBuffer(bucketName: string, key: string): Promise<ArrayBuffer>;
     listKeys(bucketName: string): Promise<string[]>;
     listObjects(bucketName: string): Promise<any[]>;
     upload(bucketName: string, key: string, data: any, contentEncoding?: string, contentType?: string): Promise<void>;
