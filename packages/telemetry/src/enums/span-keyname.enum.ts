@@ -1,3 +1,6 @@
+/**
+ * This enum is for the different span names that are integrated in Pristine.
+ */
 export enum SpanKeynameEnum {
     ChildContainerCreation = "child.container.creation",
     ConfigurationInitialization = "configuration.initialization",

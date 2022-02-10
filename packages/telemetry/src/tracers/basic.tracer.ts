@@ -5,6 +5,7 @@ import {TracerInterface} from "../interfaces/tracer.interface";
 
 /**
  * We need this to have at least one tracer so the @injectAll(ServiceDefinitionTagEnum.Tracer) does not fail
+ * Until there's a fix for: https://github.com/microsoft/tsyringe/issues/63
  */
 @tag(ServiceDefinitionTagEnum.Tracer)
 @injectable()

@@ -32,6 +32,7 @@ describe("Router.spec", () => {
             return span;
         }, endSpan(span: Span): any {
         }, endTrace(): any {
+        }, endSpanKeyname(keyname: string): any {
         }, startSpan(keyname: string, parentKeyname?: string, context?: { [p: string]: string }): Span {
             return new Span("root");
         }, startTracing(spanRootKeyname?: string, traceId?: string, context?: { [p: string]: string }): Span {
@@ -61,6 +62,7 @@ describe("Router.spec", () => {
                 return span;
             }, endSpan(span: Span): any {
             }, endTrace(): any {
+            }, endSpanKeyname(keyname: string): any {
             }, startSpan(keyname: string, parentKeyname?: string, context?: { [p: string]: string }): Span {
                 return new Span("root");
             }, startTracing(spanRootKeyname?: string, traceId?: string, context?: { [p: string]: string }): Span {
