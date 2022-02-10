@@ -3,9 +3,10 @@ import { LogHandlerInterface } from "@pristine-ts/logging";
 import { moduleScoped, tag } from "@pristine-ts/common";
 import { AwsModuleKeyname } from "../aws.module.keyname";
 import { S3ClientInterface } from "../interfaces/s3-client.interface";
-import { GetObjectCommand, ListObjectsCommand, PutObjectCommand, S3Client as AWSS3Client } from "@aws-sdk/client-s3";
+import { GetObjectCommand, GetObjectCommandOutput, ListObjectsCommand, ListObjectsCommandOutput, PutObjectCommand, S3Client as AWSS3Client } from "@aws-sdk/client-s3";
 import { S3PresignedOperationTypeEnum } from "../enums/s3-presigned-operation-type.enum";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import ReadableStream = NodeJS.ReadableStream;
 
 @tag("S3ClientInterface")
 @moduleScoped(AwsModuleKeyname)
@@ -20,7 +21,7 @@ export class S3Client implements S3ClientInterface {
     ) {
     }
 
-    getClient(){
+    getClient(): AWSS3Client {
         if(this.client === undefined){
             this.client = new AWSS3Client({
                 region: this.region,
@@ -29,19 +30,27 @@ export class S3Client implements S3ClientInterface {
         return this.client;
     }
 
-    async get(bucketName: string, key: string): Promise<any> {
+    async get(bucketName: string, key: string): Promise<GetObjectCommandOutput> {
         const command = new GetObjectCommand({
             Bucket: bucketName,
             Key: key,
         })
-        let object;
         try {
-            object = await this.getClient().send(command);
+            return this.getClient().send(command);
         } catch (e) {
             this.logHandler.error("Error getting object from S3", {error: e}, AwsModuleKeyname);
             throw e;
         }
-        return object;
+    }
+
+    async getObjectBodyArrayBuffer(bucketName: string, key: string): Promise<ArrayBuffer> {
+        try {
+            const object = await this.get(bucketName, key);
+            return this.streamToArrayBuffer(object.Body);
+        } catch (e) {
+            this.logHandler.error("Error getting content of object from S3", {error: e}, AwsModuleKeyname);
+            throw e;
+        }
     }
 
     async listKeys(bucketName: string): Promise<string[]> {
@@ -53,7 +62,7 @@ export class S3Client implements S3ClientInterface {
         const command = new ListObjectsCommand({
             Bucket: bucketName,
         })
-        let objects
+        let objects: ListObjectsCommandOutput
         try {
             objects = await this.getClient().send(command);
         } catch (e) {
@@ -106,5 +115,14 @@ export class S3Client implements S3ClientInterface {
                     Key: key,
                 });
         }
+    }
+
+    private async streamToArrayBuffer (stream): Promise<ArrayBuffer> {
+        const chunks: Buffer[] = [];
+        return new Promise((resolve, reject) => {
+            stream.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+            stream.on('error', (err) => reject(err));
+            stream.on('end', () => resolve(Buffer.concat(chunks).buffer));
+        })
     }
 }
