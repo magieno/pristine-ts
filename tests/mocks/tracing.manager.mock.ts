@@ -10,6 +10,9 @@ export class TracingManagerMock implements TracingManagerInterface {
     endSpan(span: Span): void {
     }
 
+    endSpanKeyname(keyname: string): void {
+    }
+
     endTrace(): void {
     }
 
