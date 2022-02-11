@@ -61,11 +61,11 @@ export class DynamodbClient implements DynamodbClientInterface{
     }
 
     /**
-     * Gets an object from Dynamodb.
+     * Gets an object from Dynamodb. Returns null if the item was not found.
      * @param classType The class type of the object to be retrieved.
      * @param primaryKeyAndValue An object containing the primary key and the value of the object to get. (ie: {id: value})
      */
-    public async get<T extends StringToAnyObjectMap>(classType: ZeroArgumentsConstructor<T>, primaryKeyAndValue: {[key: string]: string}): Promise<T> {
+    public async get<T extends StringToAnyObjectMap>(classType: ZeroArgumentsConstructor<T>, primaryKeyAndValue: {[key: string]: string}): Promise<T | null> {
         try {
             let item = this.createItemOfClassWithPrimaryKey(classType, primaryKeyAndValue);
             item = await (await this.getMapperClient()).get(item);
@@ -75,6 +75,7 @@ export class DynamodbClient implements DynamodbClientInterface{
             error = this.convertError(error, this.getTableName(classType.prototype), Object.keys(primaryKeyAndValue)[0]);
             if (error instanceof DynamodbItemNotFoundError) {
                 this.logHandler.warning("DYNAMODB CLIENT - Error getting", {error, classType, primaryKeyAndValue}, AwsModuleKeyname);
+                return null;
             } else {
                 this.logHandler.error("DYNAMODB CLIENT - Error getting", {error, classType, primaryKeyAndValue}, AwsModuleKeyname);
             }

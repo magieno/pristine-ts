@@ -24,7 +24,7 @@ export interface DynamodbClientInterface {
      * @param classType The class type of the object to be retrieved.
      * @param primaryKeyAndValue An object containing the primary key and the value of the object to get. (ie: {id: value})
      */
-    get<T extends StringToAnyObjectMap>(classType: ZeroArgumentsConstructor<T>, primaryKeyAndValue: { [key: string]: string }): Promise<T>
+    get<T extends StringToAnyObjectMap>(classType: ZeroArgumentsConstructor<T>, primaryKeyAndValue: { [key: string]: string }): Promise<T | null>
 
     /**
      * Lists all the objects of a type (table).
