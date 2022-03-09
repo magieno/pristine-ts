@@ -1,8 +1,24 @@
-
+/**
+ * The bodyValidation decorator can be used to validate the body of a request.
+ * @param classType The class that the request body is expected to fit.
+ */
 export const bodyValidation = (classType: Function) => {
-    return ( target: any,
-             propertyKey: string,
-             descriptor: PropertyDescriptor) => {
+    return (
+        /**
+         * The class on which the decorator is used.
+         */
+        target: Object,
+
+        /**
+         * The method on which the decorator is used.
+         */
+        propertyKey: string | symbol,
+
+        /**
+         * The descriptor of the property.
+         */
+        descriptor: PropertyDescriptor
+    ) => {
 
         // If there's a descriptor, then it's not a controller guard, but a method guard
         if(target.constructor.prototype.hasOwnProperty("__metadata__") === false) {
@@ -21,6 +37,7 @@ export const bodyValidation = (classType: Function) => {
             target.constructor.prototype["__metadata__"]["methods"][propertyKey]["__routeContext__"] = {}
         }
 
+        // Adds the validation to the route context.
         target.constructor.prototype["__metadata__"]["methods"][propertyKey]["__routeContext__"]["bodyValidator"] = {
             classType,
         };
