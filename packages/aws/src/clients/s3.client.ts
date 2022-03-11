@@ -31,6 +31,7 @@ export class S3Client implements S3ClientInterface {
     }
 
     async get(bucketName: string, key: string): Promise<GetObjectCommandOutput> {
+        this.logHandler.debug("S3 CLIENT - Getting item", {bucketName, key}, AwsModuleKeyname);
         const command = new GetObjectCommand({
             Bucket: bucketName,
             Key: key,
@@ -54,11 +55,13 @@ export class S3Client implements S3ClientInterface {
     }
 
     async listKeys(bucketName: string): Promise<string[]> {
+        this.logHandler.debug("S3 CLIENT - Listing bucket keys", {bucketName}, AwsModuleKeyname);
         const objects = await this.listObjects(bucketName)
         return objects.map((object) => object.Key);
     }
 
     async listObjects(bucketName: string): Promise<any[]> {
+        this.logHandler.debug("S3 CLIENT - Listing bucket objects", {bucketName}, AwsModuleKeyname);
         const command = new ListObjectsCommand({
             Bucket: bucketName,
         })
@@ -73,6 +76,8 @@ export class S3Client implements S3ClientInterface {
     }
 
     async upload(bucketName: string, key: string, data: any, contentEncoding?: string, contentType?: string): Promise<void> {
+        this.logHandler.debug("S3 CLIENT - Uploading object", {bucketName, key, data, contentEncoding, contentType}, AwsModuleKeyname);
+
         const command = new PutObjectCommand({
             Bucket: bucketName,
             Key: key,
@@ -90,6 +95,8 @@ export class S3Client implements S3ClientInterface {
     }
 
     async createSignedUrl(bucketName: string, key: string, operation: S3PresignedOperationTypeEnum, fileName?: string, expiresIn: number = 300): Promise<string> {
+        this.logHandler.debug("S3 CLIENT - Creating pre-signed url", {bucketName, key, operation, fileName, expiresIn}, AwsModuleKeyname);
+
         const command = this.getCommandForPresign(operation, bucketName, key, fileName);
         let url;
         try {
@@ -102,6 +109,8 @@ export class S3Client implements S3ClientInterface {
     }
 
     private getCommandForPresign(operation: S3PresignedOperationTypeEnum, bucketName: string, key: string, fileName?: string): GetObjectCommand | PutObjectCommand {
+        this.logHandler.debug("S3 CLIENT - Creating command for pre-signed url", {operation, bucketName, key, fileName}, AwsModuleKeyname);
+
         switch (operation) {
             case S3PresignedOperationTypeEnum.Get:
                 return new GetObjectCommand({
