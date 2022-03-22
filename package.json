@@ -27,7 +27,7 @@
   },
   "homepage": "https://github.com/magieno/pristine-ts#readme",
   "devDependencies": {
-    "@types/jest": "^26.0.20",
+    "@types/jest": "^27.4.1",
     "@types/lodash": "^4.14.168",
     "@types/node": "^14.14.31",
     "@types/url-parse": "^1.4.3",
