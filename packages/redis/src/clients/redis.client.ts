@@ -69,7 +69,7 @@ export class RedisClient implements RedisClientInterface {
 
             this.logHandler.debug("Redis response", {response}, RedisModuleKeyname)
         } catch (error) {
-            throw new RedisError("Error setting in redis", error, table, key, redisKey);
+            throw new RedisError("Error setting in redis", error as Error, table, key, redisKey);
         }
     }
 
@@ -88,7 +88,7 @@ export class RedisClient implements RedisClientInterface {
 
             this.logHandler.debug("Redis response", {response}, RedisModuleKeyname)
         } catch (error) {
-            throw new RedisError("Error setting in redis", error, table, key, redisKey);
+            throw new RedisError("Error setting in redis", error as Error, table, key, redisKey);
         }
     }
 
@@ -108,7 +108,7 @@ export class RedisClient implements RedisClientInterface {
 
             return response;
         } catch (error) {
-            throw new RedisError("Error getting in redis", error, table, key, redisKey);
+            throw new RedisError("Error getting in redis", error as Error, table, key, redisKey);
         }
     }
 
@@ -130,7 +130,7 @@ export class RedisClient implements RedisClientInterface {
 
             return response;
         } catch (error) {
-            throw new RedisError("Error getting in redis", error, table, key, redisKey);
+            throw new RedisError("Error getting in redis", error as Error, table, key, redisKey);
         }
     }
 
@@ -149,7 +149,7 @@ export class RedisClient implements RedisClientInterface {
             this.logHandler.debug("Redis response", {response}, RedisModuleKeyname)
 
         } catch (error) {
-            throw new RedisError("Error removing in redis", error, table, key, redisKey);
+            throw new RedisError("Error removing in redis", error as Error, table, key, redisKey);
         }
     }
 
@@ -165,7 +165,7 @@ export class RedisClient implements RedisClientInterface {
             this.logHandler.debug("Redis response", {response}, RedisModuleKeyname)
 
         } catch (error) {
-            throw new RedisError("Error clearing redis", error);
+            throw new RedisError("Error clearing redis", error as Error);
         }
     }
 
