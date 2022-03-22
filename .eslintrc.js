@@ -4,9 +4,9 @@ module.exports = {
         "node": true
     },
     "extends": [
-        "eslint:recommended",
         "plugin:@typescript-eslint/recommended"
     ],
+
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
         "ecmaVersion": "latest"
@@ -15,6 +15,13 @@ module.exports = {
         "@typescript-eslint"
     ],
     "rules": {
-        "no-throw-literal": "error"
+        "no-throw-literal": "error",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-unused-vars": "off",
+        "@typescript-eslint/no-inferrable-types": "off",
+        '@typescript-eslint/ban-ts-comment': [
+            'error',
+            {'ts-ignore': 'allow-with-description'},
+        ],
     }
 }
