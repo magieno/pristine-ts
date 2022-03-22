@@ -8,6 +8,10 @@ export class ConfigurationUtils {
 
         environmentVariables = process.env;
 
-        return environmentVariables!;
+        if(environmentVariables === undefined) {
+            return {};
+        }
+
+        return environmentVariables;
     }
 }

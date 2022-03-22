@@ -370,7 +370,7 @@ export class DynamodbClient implements DynamodbClientInterface{
     private createItemOfClassWithPrimaryKey<T extends StringToAnyObjectMap>(classType: ZeroArgumentsConstructor<T>, primaryKeyAndValue: {[key: string]: string}): T {
         const item: T = new classType();
         const primaryKeyName: string = Object.keys(primaryKeyAndValue)[0];
-        // @ts-ignore
+        // @ts-ignore - We know by the type from Dynamodb that we can access it.
         item[primaryKeyName] = primaryKeyAndValue[primaryKeyName];
 
         return item;

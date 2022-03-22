@@ -11,7 +11,7 @@ export class HttpHeadersMapper {
     map(incomingHttpHeaders: IncomingHttpHeaders): { [key: string]: string } {
         const headers: { [key: string]: string } = {};
 
-        for (let headersKey in incomingHttpHeaders) {
+        for (const headersKey in incomingHttpHeaders) {
             if(incomingHttpHeaders.hasOwnProperty(headersKey) === false) {
                 continue;
             }

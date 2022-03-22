@@ -7,7 +7,7 @@ export const bodyValidation = (classType: Function) => {
         /**
          * The class on which the decorator is used.
          */
-        target: Object,
+        target: Record<string, unknown>,
 
         /**
          * The method on which the decorator is used.

@@ -55,9 +55,6 @@ export class Kernel {
      */
     public instantiationId: string = uuidv4();
 
-    public constructor() {
-    }
-
     /**
      * This function is the entry point of the Kernel. It initializes the module for your application (AppModule) as well as its the dependencies,
      * it registers the services, registers the configurations and runs the afterInit for each module.
@@ -79,6 +76,7 @@ export class Kernel {
         }
 
         // Add every spans as a child of the Initialization Span
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         initializedModuleSpans.forEach(span => this.initializationSpan!.addChild(span));
 
         // Register all the service tags in the container.
@@ -114,15 +112,13 @@ export class Kernel {
         ];
 
         if (providerRegistration.hasOwnProperty("options")) {
-            // Ignore this since even if we check for the property to exist, it complains.
-            // @ts-ignore
+            // @ts-ignore - Ignore this since even if we check for the property to exist, it complains.
             args.push(providerRegistration.options);
         }
 
         try {
-            // Register the provider in the container
-            // @ts-ignore
-            this.container.register.apply(this.container, args);
+            // @ts-ignore - Register the provider in the container
+            this.container.register(...args);
         } catch (e) {
             throw new ProviderRegistrationError("There was an error registering the providerRegistration: ", providerRegistration, this);
         }
@@ -157,7 +153,7 @@ export class Kernel {
 
         if (module.importModules) {
             // Start by recursively importing all the packages
-            for (let importedModule of module.importModules) {
+            for (const importedModule of module.importModules) {
                 spans.push(...(await this.initModule(importedModule)));
             }
         }
@@ -194,7 +190,7 @@ export class Kernel {
         const configurationManager: ConfigurationManager = this.container.resolve(ConfigurationManager);
 
         // Start by loading the configuration definitions of all the modules
-        for (let key in this.instantiatedModules) {
+        for (const key in this.instantiatedModules) {
             if (this.instantiatedModules.hasOwnProperty(key) === false) {
                 continue;
             }
@@ -219,7 +215,7 @@ export class Kernel {
     private async afterInitModule(module: ModuleInterface) {
         if (module.importModules) {
             // Start by recursively importing all the packages
-            for (let importedModule of module.importModules) {
+            for (const importedModule of module.importModules) {
                 await this.afterInitModule(importedModule);
             }
         }

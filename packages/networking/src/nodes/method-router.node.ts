@@ -58,7 +58,7 @@ export class MethodRouterNode extends RouterNode {
      * @param method The http method for which to find a node.
      */
     find(splitPaths: string[], method: HttpMethod | string): RouterNode | null {
-        if(this.parent!.isCatchAll()) {
+        if(this.parent && this.parent.isCatchAll()) {
             return this.matches(method) ? this : null;
         }
 

@@ -23,5 +23,14 @@ module.exports = {
             'error',
             {'ts-ignore': 'allow-with-description'},
         ],
+        "@typescript-eslint/no-empty-function": "off",
+        "@typescript-eslint/ban-types": [
+            'error',
+            {
+                "types": {
+                    "Function": false,
+                }
+            }
+        ]
     }
 }

@@ -29,7 +29,7 @@ export class ControllerMethodParameterDecoratorResolver {
                    routeParameters: { [key: string]: string },
                    identity?: IdentityInterface): Promise<any> {
 
-        for (let methodParameterDecoratorResolver of this.methodParameterDecoratorResolvers) {
+        for (const methodParameterDecoratorResolver of this.methodParameterDecoratorResolvers) {
             if(methodParameterDecoratorResolver.supports(methodArgument)) {
                 return methodParameterDecoratorResolver.resolve(methodArgument, request, routeParameters, identity);
             }

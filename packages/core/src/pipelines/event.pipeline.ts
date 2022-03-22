@@ -138,7 +138,7 @@ export class EventPipeline {
      */
     private async executeEvent(event: Event<any>, eventDispatcher: EventDispatcherInterface): Promise<EventResponse<any, any>> {
         // 1 - Run the post mapped interceptors on every single event before they get executed.
-        let interceptedEvent = await this.postMappingIntercept(event)
+        const interceptedEvent = await this.postMappingIntercept(event)
 
         try {
             const eventExecutionSpan = this.tracingManager.startSpan(SpanKeynameEnum.EventExecution);
