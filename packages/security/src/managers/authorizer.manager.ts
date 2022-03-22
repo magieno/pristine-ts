@@ -49,7 +49,7 @@ export class AuthorizerManager implements AuthorizerManagerInterface {
                 isAuthorized = isAuthorized && didAuthorize;
             }
             catch (e) {
-                this.logHandler.error(e.message, SecurityModuleKeyname);
+                this.logHandler.error((e as Error).message, SecurityModuleKeyname);
                 isAuthorized = false;
             }
         }

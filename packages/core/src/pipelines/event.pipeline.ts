@@ -45,7 +45,7 @@ export class EventPipeline {
             try {
                 interceptedEvent = await eventInterceptor.preMappingIntercept?.(interceptedEvent, executionContext) ?? interceptedEvent;
             } catch (error) {
-                throw new EventPreMappingInterceptionError("There was an error while executing the PreMapping Event interceptors", error, eventInterceptor.constructor.name, event, executionContext);
+                throw new EventPreMappingInterceptionError("There was an error while executing the PreMapping Event interceptors", error as Error, eventInterceptor.constructor.name, event, executionContext);
             }
         }
 
@@ -70,7 +70,7 @@ export class EventPipeline {
             try {
                 interceptedEvent = await eventInterceptor.postMappingIntercept?.(interceptedEvent) ?? interceptedEvent;
             } catch (error) {
-                throw new EventPostMappingInterceptionError("There was an error while executing the PostMapping Event interceptors", error, eventInterceptor.constructor.name, event);
+                throw new EventPostMappingInterceptionError("There was an error while executing the PostMapping Event interceptors", error as Error, eventInterceptor.constructor.name, event);
             }
         }
 
@@ -95,7 +95,7 @@ export class EventPipeline {
             try {
                 interceptedEventResponse = await eventInterceptor.preResponseMappingIntercept?.(interceptedEventResponse) ?? interceptedEventResponse;
             } catch (error) {
-                throw new EventPreResponseMappingInterceptionError("There was an error while executing the PreResponseMapping Event interceptors", error, eventInterceptor.constructor.name, eventResponse);
+                throw new EventPreResponseMappingInterceptionError("There was an error while executing the PreResponseMapping Event interceptors", error as Error, eventInterceptor.constructor.name, eventResponse);
             }
         }
 
@@ -120,7 +120,7 @@ export class EventPipeline {
             try {
                 interceptedEventResponse = await eventInterceptor.postResponseMappingIntercept?.(interceptedEventResponse) ?? interceptedEventResponse;
             } catch (error) {
-                throw new EventPostResponseMappingInterceptionError("There was an error while executing the PostResponseMapping Event interceptors", error, eventInterceptor.constructor.name, eventResponse);
+                throw new EventPostResponseMappingInterceptionError("There was an error while executing the PostResponseMapping Event interceptors", error as Error, eventInterceptor.constructor.name, eventResponse);
             }
         }
 
@@ -154,7 +154,7 @@ export class EventPipeline {
                 error,
                 interceptedEvent,
             })
-            throw new EventDispatchingError("There was an error while dispatching the event", error, interceptedEvent);
+            throw new EventDispatchingError("There was an error while dispatching the event", error as Error, interceptedEvent);
         }
     }
 
@@ -195,7 +195,7 @@ export class EventPipeline {
 
                 span.end();
             } catch (error) {
-                throw new EventMappingError("There was an error mapping the event into an Event object", event, interceptedEvent, executionContext, error)
+                throw new EventMappingError("There was an error mapping the event into an Event object", event, interceptedEvent, executionContext, error as Error)
             }
 
             if (numberOfEventMappers === 0) {

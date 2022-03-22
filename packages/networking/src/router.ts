@@ -246,7 +246,7 @@ export class Router implements RouterInterface {
                 }
 
                 routerRequestExecutionSpan.end();
-                return resolve(this.executeErrorResponseInterceptors(error, request, container, methodNode));
+                return resolve(this.executeErrorResponseInterceptors(error as Error, request, container, methodNode));
             }
 
             // Call the controller with the resolved Method arguments
@@ -337,7 +337,7 @@ export class Router implements RouterInterface {
 
                 routerRequestExecutionSpan.end();
 
-                return resolve(this.executeErrorResponseInterceptors(error, request, container, methodNode));
+                return resolve(this.executeErrorResponseInterceptors(error as Error, request, container, methodNode));
             }
         })
     }

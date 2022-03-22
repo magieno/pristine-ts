@@ -62,7 +62,7 @@ export class AuthenticationManager implements AuthenticationManagerInterface {
             }
 
         } catch (e) {
-            this.logHandler.error(e.message, {e}, SecurityModuleKeyname);
+            this.logHandler.error((e as Error).message, {e}, SecurityModuleKeyname);
             throw e;
         }
 
