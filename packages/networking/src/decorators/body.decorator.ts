@@ -8,7 +8,7 @@ export const body = () => {
         /**
          * The class on which the decorator is used.
          */
-        target: unknown,
+        target: Record<string, unknown>,
 
         /**
          * The method on which the decorator is used.
