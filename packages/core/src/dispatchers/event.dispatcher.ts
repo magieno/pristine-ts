@@ -47,7 +47,7 @@ export class EventDispatcher implements EventDispatcherInterface {
         // Notify the EventListeners that an event exists. The difference between a Handler and a Listener, is that a handler is
         // expected to return an EventResponse, while a listener doesn't return anything. An EventListener simply does passive listening.
 
-        let eventListenerPromises: Promise<void>[] = [];
+        const eventListenerPromises: Promise<void>[] = [];
 
         this.eventListeners.forEach(eventListener => {
             if(eventListener.supports(event)) {

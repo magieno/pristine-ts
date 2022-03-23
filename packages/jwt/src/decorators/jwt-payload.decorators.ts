@@ -8,7 +8,7 @@ export const jwtPayload = () => {
         /**
          * The class on which the decorator is used.
          */
-        target: Object,
+        target: any,
 
         /**
          * The method on which the decorator is used.

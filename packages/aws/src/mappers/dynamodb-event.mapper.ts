@@ -10,9 +10,6 @@ import {DynamodbKeysModel} from "../models/dynamodb-keys.model";
 @injectable()
 export class DynamodbEventMapper implements EventMapperInterface<DynamodbEventPayload, void>{
 
-    public constructor() {
-    }
-
     /**
      * Finds the enum value corresponding to the event name.
      * @param eventName The event name of the DynamoDb event.

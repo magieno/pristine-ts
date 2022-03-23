@@ -103,9 +103,17 @@ export class TracingManager implements TracingManagerInterface {
 
         // Create the new span
         const span = new Span(keyname, context);
+
+        if(this.trace === undefined) {
+            this.loghandler.error("The trace should not be undefined at this point.")
+            return span; // Return because tracing should not throw.
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         span.trace = this.trace!;
 
         // Retrieve the parent and add it to the span.
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         let parentSpan: Span = this.trace!.rootSpan!;
 
         // Check to find the parentKeyname in our internal map of spans. If n ot, the rootSpan will be the parent since every span
@@ -136,6 +144,13 @@ export class TracingManager implements TracingManagerInterface {
 
         // Assign the tracing manager and the current trace to the span.
         span.tracingManager = this;
+
+        if(this.trace === undefined) {
+            this.loghandler.error("The trace should not be undefined at this point.")
+            return span; // Return because tracing should not throw.
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         span.trace = this.trace!;
 
         // Add it to the map of spans
@@ -248,7 +263,7 @@ export class TracingManager implements TracingManagerInterface {
 
         // Trace time
         // Top 5 longest spans
-        let longestSpans = Object.values(this.spans).sort( (a, b) => b.getDuration() - a.getDuration());
+        const longestSpans = Object.values(this.spans).sort( (a, b) => b.getDuration() - a.getDuration());
         longestSpans.splice(5);
 
         this.loghandler.info("Ending the trace. \n" +

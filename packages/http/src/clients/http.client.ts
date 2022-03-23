@@ -75,7 +75,7 @@ export class HttpClient implements HttpClientInterface {
     private async handleRequest(request: HttpRequestInterface, options: HttpRequestOptions): Promise<HttpRequestInterface> {
         let interceptedRequest = request;
 
-        for (let httpRequestInterceptor of this.httpRequestInterceptors) {
+        for (const httpRequestInterceptor of this.httpRequestInterceptors) {
             interceptedRequest = await httpRequestInterceptor.interceptRequest(interceptedRequest, options);
         }
 
@@ -114,7 +114,7 @@ export class HttpClient implements HttpClientInterface {
                 break;
         }
 
-        for (let httpResponseInterceptor of this.httpResponseInterceptors) {
+        for (const httpResponseInterceptor of this.httpResponseInterceptors) {
             interceptedResponse = await httpResponseInterceptor.interceptResponse(request, requestOptions, interceptedResponse);
         }
 

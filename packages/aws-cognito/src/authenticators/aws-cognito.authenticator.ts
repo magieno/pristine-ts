@@ -144,7 +144,7 @@ export class AwsCognitoAuthenticator implements AuthenticatorInterface{
         try {
             claim = jwt.verify(token, key) as ClaimInterface;
         } catch(err) {
-            throw new Error("Invalid jwt: " + err.message);
+            throw new Error("Invalid jwt: " + (err as Error).message);
         }
 
         const currentSeconds = Math.floor( (new Date()).valueOf() / 1000);

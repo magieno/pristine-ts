@@ -73,7 +73,7 @@ export class ConfigurationManager {
             if (configurationDefinition.defaultResolvers && Array.isArray(configurationDefinition.defaultResolvers)) {
                 let isConfigurationResolvedByDefaultResolver = false;
 
-                for (let defaultResolver of configurationDefinition.defaultResolvers) {
+                for (const defaultResolver of configurationDefinition.defaultResolvers) {
                     try {
                         const resolvedConfigurationValue = await this.configurationParser.resolve(defaultResolver, container);
 

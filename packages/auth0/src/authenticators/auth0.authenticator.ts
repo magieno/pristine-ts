@@ -143,7 +143,7 @@ export class Auth0Authenticator implements AuthenticatorInterface {
         try {
             claim = jwt.verify(token, key) as ClaimInterface;
         } catch(err) {
-            throw new Error("Invalid jwt: " + err.message);
+            throw new Error("Invalid jwt: " + (err as Error).message);
         }
 
         // Verify if the token is expired or was auth_time is invalid

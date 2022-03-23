@@ -64,7 +64,6 @@ export class Router implements RouterInterface {
      */
     private getRouteTreeLevel(node: RouterNode, message: string, level: number): string {
         for(const child of node.children) {
-            // @ts-ignore
             for(let i = 0; i < level; i++){
                 message+="\t";
             }
@@ -246,7 +245,7 @@ export class Router implements RouterInterface {
                 }
 
                 routerRequestExecutionSpan.end();
-                return resolve(this.executeErrorResponseInterceptors(error, request, container, methodNode));
+                return resolve(this.executeErrorResponseInterceptors(error as Error, request, container, methodNode));
             }
 
             // Call the controller with the resolved Method arguments
@@ -286,7 +285,7 @@ export class Router implements RouterInterface {
                     resolvedMethodArguments,
                 }, NetworkingModuleKeyname)
 
-                const controllerResponse = controller[methodNode.route.methodPropertyKey].apply(controller, resolvedMethodArguments);
+                const controllerResponse = controller[methodNode.route.methodPropertyKey](...resolvedMethodArguments);
 
                 // This resolves the promise if it's a promise or promisifies the value
                 // https://stackoverflow.com/a/27760489/684101
@@ -337,7 +336,7 @@ export class Router implements RouterInterface {
 
                 routerRequestExecutionSpan.end();
 
-                return resolve(this.executeErrorResponseInterceptors(error, request, container, methodNode));
+                return resolve(this.executeErrorResponseInterceptors(error as Error, request, container, methodNode));
             }
         })
     }

@@ -93,8 +93,7 @@ export class XrayTracer implements TracerInterface{
 
         segment.addSubsegment(subsegment);
 
-        // Force to rewrite the end time after closing it
-        // @ts-ignore
+        // @ts-ignore Force to rewrite the end time after closing it
         subsegment["end_time"] = span.endDate ? (span.endDate / 1000) : (Date.now() / 1000);
 
         // It seems that if you call the close method on the subsegment, it will send it before we get a chance to override the end_time

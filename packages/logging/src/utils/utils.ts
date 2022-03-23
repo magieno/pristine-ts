@@ -35,12 +35,12 @@ export class Utils {
     public static getDeepKeys(obj: any): string[] {
         let subkeys: string[];
         let keys: string[] = [];
-        for (var key in obj) {
+        for (const key in obj) {
             if (typeof obj[key] === "object" && !Array.isArray(obj[key])) {
                 subkeys = Utils.getDeepKeys(obj[key]);
                 keys = keys.concat(subkeys);
             } else if (Array.isArray(obj[key])) {
-                for (var i = 0; i < obj[key].length; i++) {
+                for (let i = 0; i < obj[key].length; i++) {
                     subkeys = Utils.getDeepKeys(obj[key][i]);
                     keys = keys.concat(subkeys);
                 }
