@@ -21,7 +21,7 @@ begin using Pristine in your project.
     3. [Decorators](01-overview/03.decorators.md)
     4. [Dependency Injection](01-overview/04.dependency-injection.md)
     5. [Modules](01-overview/05.modules.md)
-    6. [Lifecycle](01-overview/06.event-pipeline.md)
+    6. [Event Pipeline](01-overview/06.event-pipeline.md)
 2. [Controllers](02-controllers/00.index.md)
     1. [Request](02-controllers/02.request.md)
     2. [Response](02-controllers/03.response.md)
