@@ -3,12 +3,23 @@
 </p>
 
 <p align="center">
-    The Pristine framework is a very <strong>lightweight</strong>, incredibly <strong>fast</strong> with <strong>most of the features</strong> you expect from a <strong>full-fledge framework</strong>.
+    The Pristine framework is a <strong>lightweight</strong> and <strong>fast</strong> framework packed with <strong>all the features</strong> you expect from a <strong>full-fledge framework</strong>.
 </p>
 
 <p align="center">
 <strong>Our mission</strong>: Build a lightweight full-fledge framework that has a minimal impact on cold starts when being ran in FaaS while being as efficient in traditional hosting.
 </p>
+
+## Philosophy
+Pristine is an extremely light framework with extremely minimal dependencies. Pristine can be used in a serverless context when having a very fast
+cold start is necessary. The instantiation process is very quick (under 30ms). Finally, the term pristine inspires the code in this framework to be pristine, clear and concise. You will see that reading the code is easy as we believe it should always be.
+
+Pristine is built with the strong opinion that your business logic should be 100% agnostic from how it is hosted. Most NodeJS frameworks share this same mentality. However, Pristine does it differently.
+
+Instead of being tightly coupled with a Http Server, Pristine is entirely decoupled from how it is hosted. To do so, Pristine encapsulates its own Request object. Then, you have the choice of the Http Server you want to use. You simply need a mapper specific to the Http Server and that's it. (Don't worry, we try to create one for each available http server).
+
+## Getting started
+To get started, we invite you to begin reading our documentation: <a href="docs/getting-started/index.md">Getting Started</a>
 
 ## Description
 
@@ -30,13 +41,6 @@ that offers incredible performance while coming out of the box with all the feat
 * Tracing
 * Validation
 
-## Philosophy
-Pristine is an extremely light framework with extremely minimal dependencies. Pristine can be used in a serverless context where having a very fast
-cold start is necessary. The instantiation process is very quick. Finally, the term pristine inspires the code in this framework to be pristine, clear and concise.
-
-Pristine is built with the strong opinion that your business logic should be 100% agnostic from how it is hosted. Most NodeJS frameworks share this same mentality. However, Pristine does it differently.
-
-Instead of being tightly coupled with a Http Server, Pristine is entirely decoupled from how it is hosted. To do so, Pristine encapsulates its own Request object. Then, you have the choice of the Http Server you want to use. You simply need a mapper specific to the Http Server and that's it. (Don't worry, we try to create one for each available http server).
 
 ### Why bother you might ask?
 The biggest benefit of this approach is the performance gain you get when you host your code as a Function as a Service (FaaS) provider. In the Serverless world, being coupled with a Http Server is major handicap.
