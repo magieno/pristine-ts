@@ -20,6 +20,7 @@ begin using Pristine in your project.
     2. [Hosting](01-overview/02.hosting.md)
     3. [Decorators](01-overview/03.decorators.md)
     4. [Dependency Injection](01-overview/04.dependency-injection.md)
+    5. [Modules](01-overview/05.modules.md)
 2. [Controllers](02-controllers/00.index.md)
     1. [Request](02-controllers/02.request.md)
     2. [Response](02-controllers/03.response.md)
