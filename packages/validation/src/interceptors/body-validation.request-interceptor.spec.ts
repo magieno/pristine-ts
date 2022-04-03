@@ -42,7 +42,7 @@ describe("Body Validation Request Enricher", () => {
     })
 
     it("should simply return the request if the classType is undefined", async () => {
-        const bodyValidationRequestEnricher = new BodyValidationRequestInterceptor(logHandlerMock);
+        const bodyValidationRequestbodyValidationRequestInterceptor = new BodyValidationRequestInterceptor(logHandlerMock);
 
         const request: Request = new Request(HttpMethod.Get, "url");
 
@@ -53,13 +53,13 @@ describe("Body Validation Request Enricher", () => {
 
         const methodRouterNode: MethodRouterNode = new MethodRouterNode(new PathRouterNode("/"), HttpMethod.Get, route, 1)
 
-        const returnedRequest = await bodyValidationRequestEnricher.interceptRequest(request, methodRouterNode);
+        const returnedRequest = await bodyValidationRequestbodyValidationRequestInterceptor.interceptRequest(request, methodRouterNode);
 
         expect(returnedRequest).toBe(request);
     })
 
     it("should return the request if there are no errors with the classType", async () => {
-        const bodyValidationRequestEnricher = new BodyValidationRequestInterceptor(logHandlerMock);
+        const bodyValidationRequestInterceptor = new BodyValidationRequestInterceptor(logHandlerMock);
 
         const request: Request = new Request(HttpMethod.Get, "url");
 
@@ -75,13 +75,13 @@ describe("Body Validation Request Enricher", () => {
 
         const methodRouterNode: MethodRouterNode = new MethodRouterNode(new PathRouterNode("/"), HttpMethod.Get, route, 1)
 
-        const returnedRequest = await bodyValidationRequestEnricher.interceptRequest(request, methodRouterNode);
+        const returnedRequest = await bodyValidationRequestInterceptor.interceptRequest(request, methodRouterNode);
 
         expect(returnedRequest).toBe(request);
     })
 
     it("should reject if there are validation errors. ", async () => {
-        const bodyValidationRequestEnricher = new BodyValidationRequestInterceptor(logHandlerMock);
+        const bodyValidationRequestInterceptor = new BodyValidationRequestInterceptor(logHandlerMock);
 
         const request: Request = new Request(HttpMethod.Get, "url");
         request.body = {
@@ -96,6 +96,6 @@ describe("Body Validation Request Enricher", () => {
 
         const methodRouterNode: MethodRouterNode = new MethodRouterNode(new PathRouterNode("/"), HttpMethod.Get, route, 1)
 
-        expect(bodyValidationRequestEnricher.interceptRequest(request, methodRouterNode)).rejects.toThrow();
+        expect(bodyValidationRequestInterceptor.interceptRequest(request, methodRouterNode)).rejects.toThrow();
     })
 })
