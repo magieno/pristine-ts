@@ -84,6 +84,10 @@ export class S3Client implements S3ClientInterface {
         return objects.map((object) => object.Key);
     }
 
+    /**
+     * Lists the object of a bucket.
+     * @param bucketName The name of the bucket.
+     */
     async listObjects(bucketName: string): Promise<any[]> {
         this.logHandler.debug("S3 CLIENT - Listing bucket objects", {bucketName}, AwsModuleKeyname);
         const command = new ListObjectsCommand({
@@ -99,6 +103,14 @@ export class S3Client implements S3ClientInterface {
         return objects.Contents ?? [];
     }
 
+    /**
+     * Uploads an object to a bucket of S3.
+     * @param bucketName The name of the bucket.
+     * @param key The key for the new object.
+     * @param data The data to upload.
+     * @param contentEncoding The encoding of the data to upload.
+     * @param contentType The content type of the data to upload.
+     */
     async upload(bucketName: string, key: string, data: any, contentEncoding?: string, contentType?: string): Promise<void> {
         this.logHandler.debug("S3 CLIENT - Uploading object", {bucketName, key, data, contentEncoding, contentType}, AwsModuleKeyname);
 
@@ -118,6 +130,14 @@ export class S3Client implements S3ClientInterface {
         }
     }
 
+    /**
+     * Creates a pre signed url to allow a third party to take action on S3.
+     * @param bucketName The name of the bucket.
+     * @param key The key for the object on which the action will be allowed.
+     * @param operation The operation that will be allowed.
+     * @param fileName If operation is Get, then a filename can be provided for the name of the file that will be downloaded.
+     * @param expiresIn The amount on time in seconds before the pre signed url expires.
+     */
     async createSignedUrl(bucketName: string, key: string, operation: S3PresignedOperationTypeEnum, fileName?: string, expiresIn: number = 300): Promise<string> {
         this.logHandler.debug("S3 CLIENT - Creating pre-signed url", {bucketName, key, operation, fileName, expiresIn}, AwsModuleKeyname);
 
@@ -132,6 +152,14 @@ export class S3Client implements S3ClientInterface {
         return url;
     }
 
+    /**
+     * Creates the S3 command for a pre signed url.
+     * @param operation The operation that the pre signed url will allow.
+     * @param bucketName The name of the bucket.
+     * @param key The key for the object on which the action will be allowed.
+     * @param fileName If operation is Get, then a filename can be provided for the name of the file that will be downloaded.
+     * @private
+     */
     private getCommandForPresign(operation: S3PresignedOperationTypeEnum, bucketName: string, key: string, fileName?: string): GetObjectCommand | PutObjectCommand {
         this.logHandler.debug("S3 CLIENT - Creating command for pre-signed url", {operation, bucketName, key, fileName}, AwsModuleKeyname);
 
@@ -151,6 +179,11 @@ export class S3Client implements S3ClientInterface {
         }
     }
 
+    /**
+     * Transforms a stream to an array buffer.
+     * @param stream The stream to transform.
+     * @private
+     */
     private async streamToArrayBuffer (stream): Promise<ArrayBuffer> {
         const chunks: Buffer[] = [];
         return new Promise((resolve, reject) => {
