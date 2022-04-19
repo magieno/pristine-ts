@@ -5,7 +5,7 @@ import {DynamodbItemNotFoundError} from "../errors/dynamodb-item-not-found.error
 import {DynamodbItemAlreadyExistsError} from "../errors/dynamodb-item-already-exists.error";
 import {DynamodbTableNotFoundError} from "../errors/dynamodb-table-not-found.error";
 import {DynamodbValidationError} from "../errors/dynamodb-validation.error";
-import {ConsoleLogger, LogHandler, LogHandlerInterface} from "@pristine-ts/logging";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 import {DynamoDbTable} from "@awslabs-community-fork/dynamodb-data-mapper";
 import { ListResult } from "../results/list.result";
 import { PaginationResult } from "../results/pagination.result";

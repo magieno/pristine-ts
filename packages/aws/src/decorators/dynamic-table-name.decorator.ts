@@ -1,5 +1,8 @@
 import {DynamicTableNameModel} from "../models/dynamic-table-name.model";
 
+/**
+ * The registry where the table names used for DynamoDb are saved.
+ */
 export const dynamicTableNameRegistry: DynamicTableNameModel[] = [];
 
 /**
