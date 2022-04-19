@@ -66,7 +66,7 @@ export class SqsClient implements SqsClientInterface {
 
             const response = await client.send(command);
 
-            this.logHandler.debug("Message succesfully sent to the queue", {
+            this.logHandler.debug("Message successfully sent to the queue", {
                 queueUrl,
                 body,
                 messageGroupId,

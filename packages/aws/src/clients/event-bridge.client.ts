@@ -81,7 +81,7 @@ export class EventBridgeClient implements EventBridgeClientInterface {
 
             const response = await client.send(putEventsCommand);
 
-            this.logHandler.debug("Message succesfully sent to the EventBridge", {
+            this.logHandler.debug("Message successfully sent to the EventBridge", {
                 eventBridgeMessages,
                 eventBusName,
                 endpoint,
