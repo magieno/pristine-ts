@@ -1,9 +1,15 @@
+import {DynamodbError} from "./dynamodb.error";
+
 /**
  * This Error represents a Dynamodb error when the table is not found.
  */
-import {DynamodbError} from "./dynamodb.error";
-
 export class DynamodbTableNotFoundError extends DynamodbError {
+
+    /**
+     * This Error represents a Dynamodb error when the table is not found.
+     * @param originalError The original error that was caught.
+     * @param tableName The table name that does not exist.
+     */
     public constructor(originalError?: Error,
                        tableName?: string) {
         super(
