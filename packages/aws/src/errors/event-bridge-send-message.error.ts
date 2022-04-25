@@ -1,9 +1,14 @@
+import {LoggableError} from "@pristine-ts/common";
+
 /**
  * This Error represents an error when trying to send a message to Sqs
  */
-import {LoggableError} from "@pristine-ts/common";
-
 export class EventBridgeSendMessageError extends LoggableError {
+
+    /**
+     * This Error represents an error when trying to send a message to Sqs
+     * @param originalError The original error that was caught.
+     */
     public constructor(originalError?: Error,
     ) {
         super(
