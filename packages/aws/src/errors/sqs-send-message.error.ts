@@ -1,9 +1,18 @@
+import {LoggableError} from "@pristine-ts/common";
+
 /**
  * This Error represents an error when trying to send a message to Sqs
  */
-import {LoggableError} from "@pristine-ts/common";
-
 export class SqsSendMessageError extends LoggableError {
+
+    /**
+     * This Error represents an error when trying to send a message to Sqs
+     * @param originalError
+     * @param queueUrl
+     * @param body
+     * @param messageGroupId
+     * @param delaySeconds
+     */
     public constructor(originalError?: Error,
                        queueUrl?: string,
                        body?: string,
