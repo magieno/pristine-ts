@@ -1,3 +1,6 @@
+/**
+ * The Pristine event payload type of a parsed Event Bridge event
+ */
 export class EventBridgePayload {
     id: string;
     detailType: string;
