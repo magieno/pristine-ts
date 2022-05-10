@@ -1,12 +1,19 @@
 import {Event, EventMapperInterface, EventResponse, ExecutionContextInterface, EventsExecutionOptionsInterface} from "@pristine-ts/core";
-import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import { moduleScoped, ServiceDefinitionTagEnum, tag } from "@pristine-ts/common";
 import {injectable, inject} from "tsyringe";
 import {DynamodbEventType} from "../enums/dynamodb-event-type.enum";
 import {DynamodbEventPayload} from "../event-payloads/dynamodb.event-payload";
 import {DynamodbModel} from "../models/dynamodb.model";
 import {DynamodbKeysModel} from "../models/dynamodb-keys.model";
+import { AwsModuleKeyname } from "../aws.module.keyname";
 
+/**
+ * Mapper to map the DynamoDb event into a Pristine event.
+ * It is tagged as an ServiceDefinitionTagEnum.EventMapper so that it can be injected with all the other event mappers.
+ * It is module scoped so that it gets injected only if the AWS module is imported.
+ */
 @tag(ServiceDefinitionTagEnum.EventMapper)
+@moduleScoped(AwsModuleKeyname)
 @injectable()
 export class DynamodbEventMapper implements EventMapperInterface<DynamodbEventPayload, void>{
 
@@ -89,7 +96,8 @@ export class DynamodbEventMapper implements EventMapperInterface<DynamodbEventPa
     }
 
     /**
-     * Determines if the parser supports the event.
+     * Determines if the parser supports mapping the raw event to a Pristine event.
+     * This mapper only supports raw Dynamodb events.
      * @param event The event to verify if the parser supports.
      * @param executionContext The ExecutionContext from where the event is triggered. It can easily be used to determine
      * where the current service is hosted.
@@ -102,11 +110,25 @@ export class DynamodbEventMapper implements EventMapperInterface<DynamodbEventPa
             event.Records[0].hasOwnProperty("dynamodb")
     }
 
+    /**
+     * Determines if the parser supports mapping the Pristine event to an event response.
+     * For now it does not support a response.
+     * @param eventResponse The event response.
+     * @param response The response.
+     * @param executionContext The execution context of the event.
+     */
     supportsReverseMapping(eventResponse: EventResponse<DynamodbEventPayload, void>, response: any, executionContext: ExecutionContextInterface<any>): boolean {
         // todo: implement
         return false;
     }
 
+    /**
+     * Reverse maps the Pristine event into an event response.
+     * For now it does not mapping a Pristine event to a Dynamodb response.
+     * @param eventResponse The event response.
+     * @param response The response.
+     * @param executionContext The execution context of the event.
+     */
     reverseMap(eventResponse: EventResponse<DynamodbEventPayload, void>, response: any, executionContext: ExecutionContextInterface<any>): void {
         // todo: implement
     }
