@@ -16,6 +16,11 @@ import {S3BucketModel} from "../models/s3-bucket.model";
 import {S3ObjectModel} from "../models/s3-object.model";
 import {AwsModuleKeyname} from "../aws.module.keyname";
 
+/**
+ * Mapper to map the S3 event into a Pristine event.
+ * It is tagged as an ServiceDefinitionTagEnum.EventMapper so that it can be injected with all the other event mappers.
+ * It is module scoped so that it gets injected only if the AWS module is imported.
+ */
 @moduleScoped(AwsModuleKeyname)
 @tag(ServiceDefinitionTagEnum.EventMapper)
 @injectable()
@@ -100,11 +105,25 @@ export class S3EventMapper implements EventMapperInterface<S3EventPayload, void>
             event.Records[0].hasOwnProperty("s3")
     }
 
+    /**
+     * Determines if the parser supports mapping the Pristine event to an event response.
+     * For now it does not support a response.
+     * @param eventResponse The event response.
+     * @param response The response.
+     * @param executionContext The execution context of the event.
+     */
     supportsReverseMapping(eventResponse: EventResponse<S3EventPayload, void>, response: any, executionContext: ExecutionContextInterface<any>): boolean {
         // todo: implement
         return false;
     }
 
+    /**
+     * Reverse maps the Pristine event into an event response.
+     * For now it does not mapping a Pristine event to an S3 event response.
+     * @param eventResponse The event response.
+     * @param response The response.
+     * @param executionContext The execution context of the event.
+     */
     reverseMap(eventResponse: EventResponse<S3EventPayload, void>, response: any, executionContext: ExecutionContextInterface<any>): void {
         // todo: implement
     }
