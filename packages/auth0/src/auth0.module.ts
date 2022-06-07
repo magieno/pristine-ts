@@ -12,10 +12,10 @@ export const Auth0Module: ModuleInterface = {
     keyname: Auth0ModuleKeyname,
     configurationDefinitions: [
         {
-            parameterName: Auth0ModuleKeyname + ".domain",
+            parameterName: Auth0ModuleKeyname + ".issuer.domain",
             isRequired: true,
             defaultResolvers: [
-                new EnvironmentVariableResolver("AUTH0_DOMAIN"),
+                new EnvironmentVariableResolver("PRISTINE_AUTH0_ISSUER_DOMAIN"),
             ]
         },
     ],

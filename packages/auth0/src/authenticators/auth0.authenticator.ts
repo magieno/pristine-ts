@@ -22,11 +22,11 @@ export class Auth0Authenticator implements AuthenticatorInterface {
 
     /**
      * The Auth0 authenticator that can be passed to the @authenticator decorator.
-     * @param domain The Auth0 domain.
+     * @param issuerDomain The Auth0 issuer domain.
      * @param httpClient The Http client to use to make the requests to the issuer.
      * @param logHandler The log handler to print some logs.
      */
-    constructor(@inject(`%${Auth0ModuleKeyname}.domain%`) private readonly domain: string,
+    constructor(@inject(`%${Auth0ModuleKeyname}.issuer.domain%`) private readonly issuerDomain: string,
                 @inject("HttpClientInterface") private readonly httpClient: HttpClientInterface,
                 @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
                 ) {
@@ -69,7 +69,7 @@ export class Auth0Authenticator implements AuthenticatorInterface {
      * @private
      */
     private getAuth0Issuer(): string {
-        return "https://" + this.domain + "/";
+        return "https://" + this.issuerDomain + "/";
     }
 
     /**
