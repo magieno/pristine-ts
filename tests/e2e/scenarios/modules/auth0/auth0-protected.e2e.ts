@@ -113,7 +113,7 @@ describe("Auth0 authenticator", () => {
 
         const kernel = new Kernel();
         await kernel.start(moduleTest, {
-            [Auth0ModuleKeyname + ".domain"]: "auth0.com",
+            [Auth0ModuleKeyname + ".issuer.domain"]: "auth0.com",
             [SecurityModuleKeyname + ".rolesClaimKey"]: "https://pristine-ts.com/roles",
             "pristine.logging.consoleLoggerActivated": false,
             "pristine.logging.fileLoggerActivated": false,
@@ -153,7 +153,7 @@ describe("Auth0 authenticator", () => {
 
         const kernel = new Kernel();
         await kernel.start(moduleTest, {
-            [Auth0ModuleKeyname + ".domain"]: "auth0.com",
+            [Auth0ModuleKeyname + ".issuer.domain"]: "auth0.com",
             [SecurityModuleKeyname + ".rolesClaimKey"]: "https://pristine-ts.com/roles",
             "pristine.logging.consoleLoggerActivated": false,
             "pristine.logging.fileLoggerActivated": false,
@@ -191,7 +191,7 @@ describe("Auth0 authenticator", () => {
 
         const kernel = new Kernel();
         await kernel.start(moduleTest, {
-            [Auth0ModuleKeyname + ".domain"]: "auth0.com",
+            [Auth0ModuleKeyname + ".issuer.domain"]: "auth0.com",
             [SecurityModuleKeyname + ".rolesClaimKey"]: "https://pristine-ts.com/roles",
             "pristine.logging.consoleLoggerActivated": false,
             "pristine.logging.fileLoggerActivated": false,
@@ -229,7 +229,7 @@ describe("Auth0 authenticator", () => {
 
         const kernel = new Kernel();
         await kernel.start(moduleTest, {
-            [Auth0ModuleKeyname + ".domain"]: "auth0.com",
+            [Auth0ModuleKeyname + ".issuer.domain"]: "auth0.com",
             [SecurityModuleKeyname + ".rolesClaimKey"]: "https://pristine-ts.com/roles",
             "pristine.logging.consoleLoggerActivated": false,
             "pristine.logging.fileLoggerActivated": false,
