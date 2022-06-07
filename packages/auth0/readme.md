@@ -21,7 +21,7 @@ export const AppModule: AppModuleInterface = {
 ```
 
 ### 2- Put in the configuration the value for your Auth0 domain
-By default, you can define the environment variable: `AUTH0_DOMAIN`
+By default, you can define the environment variable: `PRISTINE_AUTH0_ISSSUER_DOMAIN`
 
 That's it, if you make an HTTP Request to a Pristine microservice and you pass a valid JWT as a HTTP Header:
 
