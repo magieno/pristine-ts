@@ -24,6 +24,9 @@ export * from "./aws.module.keyname";
 export const AwsModule: ModuleInterface = {
     keyname: AwsModuleKeyname,
     configurationDefinitions: [
+        /**
+         * The AWS region used.
+         */
         {
             parameterName: AwsModuleKeyname + ".region",
             isRequired: false,
