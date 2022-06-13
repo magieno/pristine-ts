@@ -7,77 +7,95 @@ import {EventBridgeClientInterface} from "../interfaces/event-bridge-client.inte
 import {moduleScoped, tag} from "@pristine-ts/common";
 import {AwsModuleKeyname} from "../aws.module.keyname";
 
+/**
+ * The client to use to interact with AWS Event Bridge. It is a wrapper around the AwsEventBridgeClient of @aws-sdk/client-eventbridge.
+ * It is tagged so it can be injected using EventBridgeClientInterface.
+ */
 @tag("EventBridgeClientInterface")
 @moduleScoped(AwsModuleKeyname)
 @injectable()
 export class EventBridgeClient implements EventBridgeClientInterface {
+
+    /**
+     * The client to use to interact with AWS Event Bridge. It is a wrapper around the AwsEventBridgeClient of @aws-sdk/client-eventbridge.
+     * @param logHandler The log handler used to output logs.
+     * @param region The aws region for which the client will be used.
+     */
     constructor(
         @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
         @inject("%pristine.aws.region%") private readonly region: string,
     ) {
     }
 
-    send(eventBridgeMessages: EventBridgeMessageModel | EventBridgeMessageModel[], eventBusName: string, endpoint?: string): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            try {
-
-                const client = new AwsEventBridgeClient({
-                    apiVersion: "2015-10-17",
-                    region: this.region,
-                    endpoint: endpoint ?? undefined,
-                })
-
-                const putEventsCommand: PutEventsCommand = new PutEventsCommand({
-                    Entries: []
-                });
-
-                this.logHandler.debug("Sending a message to the EventBridge", {
-                    eventBridgeMessages,
-                    eventBusName,
-                    endpoint,
-                }, AwsModuleKeyname)
-
-                if (Array.isArray(eventBridgeMessages)) {
-                    putEventsCommand.input.Entries = eventBridgeMessages.map(eventBridgeMessage => {
-                        return {
-
-                            EventBusName: eventBusName,
-                            Source: eventBridgeMessage.source,
-                            DetailType: eventBridgeMessage.detailType,
-                            Detail: eventBridgeMessage.detail,
-                            Resources: eventBridgeMessage.resources,
-                        }
-                    });
-                } else {
-                    putEventsCommand.input.Entries = [{
-                        EventBusName: eventBusName,
-                        Source: eventBridgeMessages.source,
-                        DetailType: eventBridgeMessages.detailType,
-                        Detail: eventBridgeMessages.detail,
-                        Resources: eventBridgeMessages.resources,
-                    }]
-                }
-
-                const response = await client.send(putEventsCommand);
-
-                this.logHandler.debug("Message succesfully sent to the EventBridge", {
-                    eventBridgeMessages,
-                    eventBusName,
-                    endpoint,
-                    response,
-                }, AwsModuleKeyname)
-
-                return resolve();
-            } catch (error) {
-                this.logHandler.error("There was an error sending the message to the Event Bus", {
-                    error,
-                    eventBridgeMessages,
-                    eventBusName,
-                    endpoint,
-                }, AwsModuleKeyname);
-
-                return reject(new EventBridgeSendMessageError(error));
-            }
+    /**
+     * Returns the instantiated AwsEventBridgeClient from the @aws-sdk/client-eventbridge library.
+     * @param endpoint The endpoint for which the Event Bridge client is created.
+     */
+    public getClient(endpoint?: string): AwsEventBridgeClient {
+        return new AwsEventBridgeClient({
+            apiVersion: "2015-10-17",
+            region: this.region,
+            endpoint: endpoint ?? undefined,
         });
+    }
+
+    /**
+     * Sends an event to event bridge.
+     * @param eventBridgeMessages The messages to send to event bridge.
+     * @param eventBusName The event bus name where to send the messages.
+     * @param endpoint The endpoint for event bridge.
+     */
+    async send(eventBridgeMessages: EventBridgeMessageModel | EventBridgeMessageModel[], eventBusName: string, endpoint?: string): Promise<void> {
+        try {
+            const client = this.getClient(endpoint);
+
+            const putEventsCommand: PutEventsCommand = new PutEventsCommand({
+                Entries: []
+            });
+
+            this.logHandler.debug("Sending a message to the EventBridge", {
+                eventBridgeMessages,
+                eventBusName,
+                endpoint,
+            }, AwsModuleKeyname)
+
+            if (Array.isArray(eventBridgeMessages)) {
+                putEventsCommand.input.Entries = eventBridgeMessages.map(eventBridgeMessage => {
+                    return {
+                        EventBusName: eventBusName,
+                        Source: eventBridgeMessage.source,
+                        DetailType: eventBridgeMessage.detailType,
+                        Detail: eventBridgeMessage.detail,
+                        Resources: eventBridgeMessage.resources,
+                    }
+                });
+            } else {
+                putEventsCommand.input.Entries = [{
+                    EventBusName: eventBusName,
+                    Source: eventBridgeMessages.source,
+                    DetailType: eventBridgeMessages.detailType,
+                    Detail: eventBridgeMessages.detail,
+                    Resources: eventBridgeMessages.resources,
+                }]
+            }
+
+            const response = await client.send(putEventsCommand);
+
+            this.logHandler.debug("Message successfully sent to the EventBridge", {
+                eventBridgeMessages,
+                eventBusName,
+                endpoint,
+                response,
+            }, AwsModuleKeyname)
+        } catch (error) {
+            this.logHandler.error("There was an error sending the message to the Event Bus", {
+                error,
+                eventBridgeMessages,
+                eventBusName,
+                endpoint,
+            }, AwsModuleKeyname);
+
+            throw new EventBridgeSendMessageError(error);
+        }
     }
 }

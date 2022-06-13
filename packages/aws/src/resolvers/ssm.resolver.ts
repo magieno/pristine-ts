@@ -2,6 +2,10 @@ import {ResolverInterface} from "@pristine-ts/common";
 import {SSM, GetParameterRequest} from "@aws-sdk/client-ssm";
 import {SSMResolverError} from "../errors/ssm-resolver.error";
 
+/**
+ * The resolver to resolve a parameter from AWS SSM.
+ * Extends the resolver interface with the generic as a string
+ */
 export class SSMResolver implements ResolverInterface<string> {
     /**
      * The resolver to resolve a parameter from AWS SSM

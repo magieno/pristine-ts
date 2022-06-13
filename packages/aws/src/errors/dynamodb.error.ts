@@ -1,9 +1,16 @@
-/**
- * This Error represents a 404 error.
- */
 import {LoggableError} from "@pristine-ts/common";
 
+/**
+ * This Error is the base class for DynamoDB errors.
+ */
 export class DynamodbError extends LoggableError {
+    /**
+     * This Error is the base class for DynamoDB errors.
+     * @param message The message of the error.
+     * @param originalError The original error that was caught.
+     * @param tableName The name of the DynamoDB table where the error happened.
+     * @param primaryKey The primary key of the item that caused the error.
+     */
     public constructor(message?: string,
                        public readonly originalError?: Error,
                        public readonly tableName?: string,

@@ -1,11 +1,18 @@
 import {Event, EventMapperInterface, EventResponse, ExecutionContextInterface, EventsExecutionOptionsInterface} from "@pristine-ts/core";
-import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import { moduleScoped, ServiceDefinitionTagEnum, tag } from "@pristine-ts/common";
 import {injectable} from "tsyringe";
 import {SqsEventPayload} from "../event-payloads/sqs.event-payload";
 import {SqsAttributesModel} from "../models/sqs-attributes.model";
 import {SqsEventType} from "../enums/sqs-event-type.enum";
+import { AwsModuleKeyname } from "../aws.module.keyname";
 
+/**
+ * Mapper to map the Sqs event into a Pristine event.
+ * It is tagged as an ServiceDefinitionTagEnum.EventMapper so that it can be injected with all the other event mappers.
+ * It is module scoped so that it gets injected only if the AWS module is imported.
+ */
 @tag(ServiceDefinitionTagEnum.EventMapper)
+@moduleScoped(AwsModuleKeyname)
 @injectable()
 export class SqsEventMapper implements EventMapperInterface<SqsEventPayload, void>{
 
@@ -68,11 +75,25 @@ export class SqsEventMapper implements EventMapperInterface<SqsEventPayload, voi
             event.Records[0].eventSource === "aws:sqs"
     }
 
+    /**
+     * Determines if the parser supports mapping the Pristine event to an event response.
+     * For now it does not support a response.
+     * @param eventResponse The event response.
+     * @param response The response.
+     * @param executionContext The execution context of the event.
+     */
     supportsReverseMapping(eventResponse: EventResponse<SqsEventPayload, void>, response: any, executionContext: ExecutionContextInterface<any>): boolean {
         // todo: implement
         return false;
     }
 
+    /**
+     * Reverse maps the Pristine event into an event response.
+     * For now it does not mapping a Pristine event to an Sqs event response.
+     * @param eventResponse The event response.
+     * @param response The response.
+     * @param executionContext The execution context of the event.
+     */
     reverseMap(eventResponse: EventResponse<SqsEventPayload, void>, response: any, executionContext: ExecutionContextInterface<any>): void {
         // todo: implement
     }

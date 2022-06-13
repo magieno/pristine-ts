@@ -7,6 +7,7 @@ import { ListResult } from "../results/list.result";
 
 /**
  * The DynamodbClient Interface defines the methods that a Dynamodb Client must implement.
+ * When injecting the Dynamodb client the 'DynamodbClientInterface' tag should be used.
  */
 export interface DynamodbClientInterface {
     /**

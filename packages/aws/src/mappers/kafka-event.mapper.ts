@@ -1,11 +1,18 @@
 import {Event, EventMapperInterface, EventResponse, ExecutionContextInterface, EventsExecutionOptionsInterface} from "@pristine-ts/core";
-import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import { moduleScoped, ServiceDefinitionTagEnum, tag } from "@pristine-ts/common";
 import {injectable} from "tsyringe";
 import {KafkaEventPayload} from "../event-payloads/kafka.event-payload";
 import {KafkaEventType} from "../enums/kafka-event-type.enum";
 import {KafkaMessageModel} from "../models/kafka-message.model";
+import { AwsModuleKeyname } from "../aws.module.keyname";
 
+/**
+ * Mapper to map the Kafka event from the AWS kafka connector into a Pristine event.
+ * It is tagged as an ServiceDefinitionTagEnum.EventMapper so that it can be injected with all the other event mappers.
+ * It is module scoped so that it gets injected only if the AWS module is imported.
+ */
 @tag(ServiceDefinitionTagEnum.EventMapper)
+@moduleScoped(AwsModuleKeyname)
 @injectable()
 export class KafkaEventMapper implements EventMapperInterface<KafkaEventPayload, void>{
 
@@ -60,11 +67,25 @@ export class KafkaEventMapper implements EventMapperInterface<KafkaEventPayload,
             event.eventSource === "aws:kafka"
     }
 
+    /**
+     * Determines if the parser supports mapping the Pristine event to an event response.
+     * For now it does not support a response.
+     * @param eventResponse The event response.
+     * @param response The response.
+     * @param executionContext The execution context of the event.
+     */
     supportsReverseMapping(eventResponse: EventResponse<KafkaEventPayload, void>, response: any, executionContext: ExecutionContextInterface<any>): boolean {
         // todo: implement
         return false;
     }
 
+    /**
+     * Reverse maps the Pristine event into an event response.
+     * For now it does not mapping a Pristine event to a Kafka event response.
+     * @param eventResponse The event response.
+     * @param response The response.
+     * @param executionContext The execution context of the event.
+     */
     reverseMap(eventResponse: EventResponse<KafkaEventPayload, void>, response: any, executionContext: ExecutionContextInterface<any>): void {
         // todo: implement
     }

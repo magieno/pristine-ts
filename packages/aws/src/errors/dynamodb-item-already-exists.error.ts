@@ -1,9 +1,16 @@
-/**
- * This Error represents a Dynamodb error when the item already exists.
- */
 import {DynamodbError} from "./dynamodb.error";
 
+/**
+ * This Error is for when an item already exists in DynamoDB.
+ */
 export class DynamodbItemAlreadyExistsError extends DynamodbError {
+
+    /**
+     * This Error is for when an item already exists in DynamoDB.
+     * @param originalError The original error that was caught.
+     * @param tableName The name of the DynamoDB table where the error happened.
+     * @param primaryKey The primary key of the item that caused the error.
+     */
     public constructor(originalError?: Error,
                        tableName?: string,
                        primaryKey?: string,) {

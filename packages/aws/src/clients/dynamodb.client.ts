@@ -21,16 +21,33 @@ import { AwsModuleKeyname } from "../aws.module.keyname";
 import { ListOptions } from "../options/list.options";
 import { FindBySecondaryIndexOptions } from "../options/find-by-secondary-index.options";
 import { ListResult } from "../results/list.result";
-import { PaginationResult } from "../results/pagination.result";
 import { DynamodbSortOrderEnum } from "../enums/dynamodb-sort-order.enum";
 
+/**
+ * The client to use to interact with AWS DynamoDb. It is a wrapper around the client of @aws-sdk/client-dynamodb.
+ * It is tagged so it can be injected using DynamodbClientInterface.
+ */
 @tag("DynamodbClientInterface")
 @injectable()
 export class DynamodbClient implements DynamodbClientInterface{
 
-    private client: any;
+    /**
+     * The instantiated client from the @aws-sdk/client-dynamodb library.
+     * @private
+     */
+    private client: DynamoDB;
+
+    /**
+     * The instantiated mapper client from the @awslabs-community-fork/dynamodb-data-mapper library.
+     * @private
+     */
     private mapperClient: any;
 
+    /**
+     * The client to use to interact with DynamoDb. It is a wrapper around the client of @aws-sdk/client-dynamodb.
+     * @param logHandler The log handler used to output logs.
+     * @param region The aws region for which the client will be used.
+     */
     constructor(
         @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
         @inject("%pristine.aws.region%") private readonly region: string,

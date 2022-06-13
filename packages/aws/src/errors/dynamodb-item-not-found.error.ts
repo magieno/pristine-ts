@@ -1,9 +1,20 @@
-/**
- * This Error represents a Dynamodb error when the item is not found.
- */
 import {DynamodbError} from "./dynamodb.error";
 
+/**
+ * This Error is for when an item is not found in the DynamoDB table.
+ * This error is not exported outside of this module as it should not be used.
+ * When an item is not found it should not throw an error but rather return null.
+ */
 export class DynamodbItemNotFoundError extends DynamodbError {
+
+    /**
+     * This Error is for when an item is not found in the DynamoDB table.
+     * This error is not exported outside of this module as it should not be used.
+     * When an item is not found it should not throw an error but rather return null.
+     * @param originalError The original error that was caught.
+     * @param tableName The name of the DynamoDB table where the error happened.
+     * @param primaryKey The primary key of the item that caused the error.
+     */
     public constructor(originalError?: Error,
                        tableName?: string,
                        primaryKey?: string,) {
