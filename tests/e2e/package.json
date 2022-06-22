@@ -9,8 +9,8 @@
     "@pristine-ts/logging": "file:../../packages/logging",
     "@pristine-ts/networking": "file:../../packages/networking",
     "@pristine-ts/security": "file:../../packages/security",
+    "@pristine-ts/class-validator": "1.0.5",
     "class-transformer": "^0.4.0",
-    "class-validator": "^0.13.1",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
