@@ -1,5 +1,5 @@
 import {RequestInterceptorInterface, MethodRouterNode} from "@pristine-ts/networking";
-import {validate} from "class-validator";
+import {Validator} from "@pristine-ts/class-validator";
 import {BadRequestHttpError} from "@pristine-ts/networking";
 import {moduleScoped, ServiceDefinitionTagEnum, tag, Request} from "@pristine-ts/common";
 import {ValidationModuleKeyname} from "../validation.module.keyname";
@@ -47,7 +47,8 @@ export class BodyValidationRequestInterceptor implements RequestInterceptorInter
         const mappedBody = plainToClass(methodNode.route.context.bodyValidator.classType, request.body);
 
         // Validates if all the conditions are respected in the expected type.
-        const errors = await validate(mappedBody);
+        const validator = new Validator();
+        const errors = await validator.validate(mappedBody);
 
         if(errors.length == 0) {
             return request;
