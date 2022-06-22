@@ -2,7 +2,7 @@ import "reflect-metadata"
 import {BodyValidationRequestInterceptor} from "./body-validation.request-interceptor";
 import {MethodRouterNode, PathRouterNode, Route} from "@pristine-ts/networking";
 import {HttpMethod, Request} from "@pristine-ts/common";
-import {IsDate, IsInt, Max, Min} from "class-validator";
+import {IsDate, IsInt, Max, Min} from "@pristine-ts/class-validator";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 
 describe("Body Validation Request Enricher", () => {
