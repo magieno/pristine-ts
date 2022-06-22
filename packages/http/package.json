@@ -18,7 +18,7 @@
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/logging": "file:../logging",
     "lodash": "^4.17.21",
-    "url-parse": "^1.4.7"
+    "url-parse": "1.4.7"
   },
   "author": "",
   "license": "ISC",
