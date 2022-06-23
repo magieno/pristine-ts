@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/validation",
-  "version": "0.0.210",
+  "version": "0.0.211",
   "description": "",
   "module": "dist/lib/esm/validation.module.js",
   "main": "dist/lib/cjs/validation.module.js",
@@ -12,11 +12,11 @@
     "test:cov": "jest --coverage"
   },
   "dependencies": {
+    "@pristine-ts/class-validator": "^1.0.5",
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/core": "file:../core",
     "@pristine-ts/networking": "file:../networking",
-    "class-transformer": "^0.4.0",
-    "@pristine-ts/class-validator": "^1.0.5"
+    "class-transformer": "^0.4.0"
   },
   "files": [
     "dist"
