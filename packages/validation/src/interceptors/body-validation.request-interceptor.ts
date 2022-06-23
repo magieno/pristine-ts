@@ -1,5 +1,5 @@
 import {RequestInterceptorInterface, MethodRouterNode} from "@pristine-ts/networking";
-import {validate} from "class-validator";
+import {Validator} from "@pristine-ts/class-validator";
 import {BadRequestHttpError} from "@pristine-ts/networking";
 import {moduleScoped, ServiceDefinitionTagEnum, tag, Request} from "@pristine-ts/common";
 import {ValidationModuleKeyname} from "../validation.module.keyname";
@@ -23,7 +23,7 @@ export class BodyValidationRequestInterceptor implements RequestInterceptorInter
      * It is module scoped to the Validation module so that it is only registered if the validation module is imported.
      * @param loghandler The log handler to output logs.
      */
-    constructor(@inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface) {
+    constructor(@inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface, private readonly validator: Validator) {
     }
 
     /**
@@ -47,7 +47,7 @@ export class BodyValidationRequestInterceptor implements RequestInterceptorInter
         const mappedBody = plainToClass(methodNode.route.context.bodyValidator.classType, request.body);
 
         // Validates if all the conditions are respected in the expected type.
-        const errors = await validate(mappedBody);
+        const errors = await this.validator.validate(mappedBody);
 
         if(errors.length == 0) {
             return request;
