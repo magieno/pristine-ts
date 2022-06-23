@@ -2,7 +2,7 @@ import "reflect-metadata"
 import {injectable} from "tsyringe";
 import {controller, NetworkingModule, route} from "@pristine-ts/networking";
 import {bodyValidation, ValidationModule} from "@pristine-ts/validation";
-import {IsInt, Max, Min} from "class-validator";
+import {IsInt, Max, Min} from "@pristine-ts/class-validator";
 import {CoreModule, ExecutionContextKeynameEnum, Kernel} from "@pristine-ts/core";
 import {HttpMethod, Request, Response} from "@pristine-ts/common";
 
