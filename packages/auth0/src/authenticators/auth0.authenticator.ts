@@ -10,19 +10,43 @@ import jwkToBuffer from "jwk-to-pem";
 import {Auth0ModuleKeyname} from "../auth0.module.keyname";
 import {Request} from "@pristine-ts/common";
 
-
+/**
+ * The Auth0Authenticator is an authenticator that can be passed to the @authenticator decorator on a
+ * controller class to authenticate the incoming requests using Auth0.
+ *
+ * It is singleton so that the PEMs can be cached.
+ */
 @singleton()
 @injectable()
 export class Auth0Authenticator implements AuthenticatorInterface {
 
+    /**
+     * The cached PEMs to avoid fetching everytime.
+     * @private
+     */
     private cachedPems: any;
+
+    /**
+     * The complete url of the Auth0 issuer.
+     * @private
+     */
     private auth0Issuer: string;
+
+    /**
+     * The url where to get the public key.
+     * @private
+     */
     private publicKeyUrl: string;
+
+    /**
+     * The context passed by the decorator.
+     * @private
+     */
     private context: any;
 
     /**
      * The Auth0 authenticator that can be passed to the @authenticator decorator.
-     * @param issuerDomain The Auth0 issuer domain.
+     * @param issuerDomain The Auth0 issuer domain (without the http://).
      * @param httpClient The Http client to use to make the requests to the issuer.
      * @param logHandler The log handler to print some logs.
      */
@@ -36,7 +60,7 @@ export class Auth0Authenticator implements AuthenticatorInterface {
 
     /**
      * Sets the context for the authenticator as it is passed in a decorator
-     * @param context
+     * @param context The context for the decorator.
      */
     setContext(context: any): Promise<void> {
         this.context = context;
@@ -45,7 +69,7 @@ export class Auth0Authenticator implements AuthenticatorInterface {
 
     /**
      * Gets the identity from the request
-     * @param request
+     * @param request The request to authenticate.
      */
     async authenticate(request: Request): Promise<IdentityInterface> {
         this.cachedPems = this.cachedPems ?? await this.getPems();
@@ -65,7 +89,7 @@ export class Auth0Authenticator implements AuthenticatorInterface {
     }
 
     /**
-     * Gets the issuer for Auth0
+     * Builds the complete url of the issuer for Auth0.
      * @private
      */
     private getAuth0Issuer(): string {
@@ -105,7 +129,7 @@ export class Auth0Authenticator implements AuthenticatorInterface {
 
     /**
      * Validates the request and returns the token
-     * @param request
+     * @param request The request to validate.
      * @private
      */
     // todo: this is a copy from jwt manager should we put that somewhere common ?
@@ -134,8 +158,8 @@ export class Auth0Authenticator implements AuthenticatorInterface {
 
     /**
      * Verifies the token and returns the claims.
-     * @param token
-     * @param key
+     * @param token The string token.
+     * @param key The key to verify the token.
      * @private
      */
     private getAndVerifyClaims(token: string, key: string): ClaimInterface {
@@ -177,8 +201,8 @@ export class Auth0Authenticator implements AuthenticatorInterface {
 
     /**
      * Gets the key based on the kid of the token
-     * @param token
-     * @param pems
+     * @param token The string token.
+     * @param pems The pems.
      * @private
      */
     private getKeyFromToken(token: string, pems:{[key: string]: string}): string {
@@ -191,8 +215,8 @@ export class Auth0Authenticator implements AuthenticatorInterface {
     }
 
     /**
-     * Gets the token header
-     * @param token
+     * Gets the token header from the string token.
+     * @param token The string token.
      * @private
      */
     private getTokenHeader(token: string): TokenHeaderInterface {
