@@ -231,6 +231,15 @@ const animals = [
     "Zebra"
 ];
 
+
+const myArgs = process.argv.slice(2);
+console.log(myArgs);
+const amountIndex = myArgs.findIndex((arg) => arg === "amount");
+console.log(amountIndex)
+const numberOfControllersToGenerate = amountIndex >= 0 && myArgs[amountIndex + 1] ? myArgs[amountIndex + 1] : animals.length;
+console.log(numberOfControllersToGenerate);
+
+
 const now = new Date();
 
 let outputFolder = "./output/";
@@ -247,7 +256,15 @@ if (!fs.existsSync(outputFolder)){
     fs.mkdirSync(outputFolder);
 }
 
-animals.forEach((animal: string) => {
+const createdAnimal: {[key: string]: boolean} = {}
+for(let i = 0; i < numberOfControllersToGenerate; i++){
+    let randomIndex = Math.floor(Math.random() * (animals.length))
+    let animal: string = animals[randomIndex];
+    while(createdAnimal[animal]){
+        randomIndex = Math.floor(Math.random() * (animals.length))
+        animal = animals[randomIndex];
+    }
+    createdAnimal[animal] = true;
     const capitalizedToken = animal;
     const lowercaseToken = animal.toLowerCase();
     const pluralToken = lowercaseToken + "s";
@@ -257,7 +274,7 @@ animals.forEach((animal: string) => {
 
 
     fs.writeFileSync(outputFolder + "/" + lowercaseToken + ".controller.ts", interpolatedContent);
-})
+}
 
 // Create a git commit and push
 const https = require('https');
