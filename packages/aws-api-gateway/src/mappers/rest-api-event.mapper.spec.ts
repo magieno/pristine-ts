@@ -1,12 +1,11 @@
-import {HttpMethod, Request, Response} from "@pristine-ts/common";
-import {RestApiEventMapper} from "./rest-api-event.mapper";
-import {ApiGatewayEventsHandlingStrategyEnum} from "../enums/api-gateway-events-handling-strategy.enum";
-import {RestApiEventPayload} from "../event-payloads/rest-api.event-payload";
-import {ApiGatewayEventTypeEnum} from "../enums/api-gateway-event-type.enum";
-import {map} from "lodash";
-import {EventResponse} from "@pristine-ts/core";
-import {RestApiEventResponsePayload} from "../event-response-payloads/rest-api.event-response-payload";
-import {LogHandlerMock} from "../../../../tests/mocks/log.handler.mock";
+import { HttpMethod, Request, Response } from "@pristine-ts/common";
+import { RestApiEventMapper } from "./rest-api-event.mapper";
+import { ApiGatewayEventsHandlingStrategyEnum } from "../enums/api-gateway-events-handling-strategy.enum";
+import { RestApiEventPayload } from "../event-payloads/rest-api.event-payload";
+import { ApiGatewayEventTypeEnum } from "../enums/api-gateway-event-type.enum";
+import { EventResponse } from "@pristine-ts/core";
+import { RestApiEventResponsePayload } from "../event-response-payloads/rest-api.event-response-payload";
+import { LogHandlerMock } from "../../../../tests/mocks/log.handler.mock";
 
 describe("Rest API Event (Api Gateway 1.0)", () => {
     // https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
