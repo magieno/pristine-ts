@@ -15,15 +15,33 @@ import {ApiGatewayEventTypeEnum} from "../enums/api-gateway-event-type.enum";
 import {BaseApiEventMapper} from "./base-api-event.mapper";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 
+/**
+ * The Http api event mapper maps a raw event to EventsExecutionOptionsInterface with either an HttpApiEventPayload or a Request
+ * depending on the handling strategy defined in the environment configs.
+ * It is tagged as an ServiceDefinitionTagEnum.EventMapper so that it can be injected with all the other event mappers.
+ * It is module scoped so that it gets injected only if the AWS-Api-Gateway module is imported.
+ */
 @moduleScoped(AwsApiGatewayModuleKeyname)
 @tag(ServiceDefinitionTagEnum.EventMapper)
 @injectable()
 export class HttpApiEventMapper extends BaseApiEventMapper implements EventMapperInterface<HttpApiEventPayload | Request, HttpApiEventResponsePayload | Response> {
+
+    /**
+     * The Http api event mapper maps a raw event to EventsExecutionOptionsInterface with either an HttpApiEventPayload or a Request
+     * depending on the handling strategy defined in the environment configs.
+     * @param logHandler The log handler to output logs.
+     * @param httpRequestsHandlingStrategy The handling strategy to use when handling http api events.
+     */
     constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
                 @inject("%" + AwsApiGatewayModuleKeyname + ".httpApiEvents.handlingStrategy%") private readonly httpRequestsHandlingStrategy: ApiGatewayEventsHandlingStrategyEnum) {
         super();
     }
 
+    /**
+     * Whether or not this mapper supports the raw event.
+     * @param rawEvent The raw event that needs to be mapped.
+     * @param executionContext The execution context in which the event is happening.
+     */
     supportsMapping(rawEvent: any, executionContext: ExecutionContextInterface<any>): boolean {
         return rawEvent.hasOwnProperty("version") &&
             rawEvent.version === "2.0" &&
@@ -31,9 +49,17 @@ export class HttpApiEventMapper extends BaseApiEventMapper implements EventMappe
             rawEvent.hasOwnProperty("requestContext");
     }
 
+    /**
+     * Maps a raw event to EventsExecutionOptionsInterface with either an HttpApiEventPayload or a Request
+     * depending on the handling strategy defined in the environment configs.
+     * @param rawEvent The raw event that needs to be mapped.
+     * @param executionContext The execution context in which the event is happening.
+     */
     map(rawEvent: any, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<HttpApiEventPayload | Request> {
         switch(this.httpRequestsHandlingStrategy) {
-            case ApiGatewayEventsHandlingStrategyEnum.Request:
+            // If the handling strategy is request, we create an event with a request object from the raw event,
+            // and set the execution order to sequential.
+            case ApiGatewayEventsHandlingStrategyEnum.Request: {
                 const request = new Request(
                     this.mapHttpMethod(rawEvent.requestContext.http.method),
                     rawEvent.requestContext.http.path + (rawEvent.rawQueryString ? "?" + rawEvent.rawQueryString : "")
@@ -46,8 +72,11 @@ export class HttpApiEventMapper extends BaseApiEventMapper implements EventMappe
                     executionOrder: "sequential",
                     events: [new Event<Request>(ApiGatewayEventTypeEnum.HttpApiEvent, request)],
                 };
+            }
 
-                case ApiGatewayEventsHandlingStrategyEnum.Event:
+            // If the handling strategy is Event, we create an event with a HttpApiEventPayload from the raw event,
+            // and set the execution order to sequential.
+            case ApiGatewayEventsHandlingStrategyEnum.Event: {
                 const httpRequestEventPayload = new HttpApiEventPayload(rawEvent.version, rawEvent.routeKey, rawEvent.rawPath)
                 httpRequestEventPayload.rawQueryString = rawEvent.rawQueryString;
                 httpRequestEventPayload.cookies = rawEvent.cookies;
@@ -59,7 +88,7 @@ export class HttpApiEventMapper extends BaseApiEventMapper implements EventMappe
                 httpRequestEventPayload.stageVariables = rawEvent.stageVariables;
 
                 if (rawEvent.hasOwnProperty("requestContext")) {
-                    httpRequestEventPayload.requestContext =  {
+                    httpRequestEventPayload.requestContext = {
                         accountId: rawEvent.requestContext.accountId,
                         apiId: rawEvent.requestContext.apiId,
                         domainName: rawEvent.requestContext.domainName,
@@ -85,14 +114,27 @@ export class HttpApiEventMapper extends BaseApiEventMapper implements EventMappe
                     executionOrder: "sequential",
                     events: [new Event<HttpApiEventPayload>(ApiGatewayEventTypeEnum.HttpApiEvent, httpRequestEventPayload)],
                 };
+            }
         }
     }
 
+    /**
+     * Whether or not this mapper supports reverse mapping an event response to a
+     * @param eventResponse The pristine event response to be reverse mapped.
+     * @param response The final response being built from all the mappers that support this type of event response.
+     * @param executionContext The execution context in which the event was handled.
+     */
     supportsReverseMapping(eventResponse: EventResponse<HttpApiEventPayload | Request, HttpApiEventResponsePayload | Response>, response: any, executionContext: ExecutionContextInterface<any>): boolean {
         return eventResponse.event.type === ApiGatewayEventTypeEnum.HttpApiEvent;
     }
 
-    reverseMap(eventResponse: EventResponse<HttpApiEventPayload | Request, HttpApiEventResponsePayload | Response>, response: any, executionContext: ExecutionContextInterface<any>): any {
+    /**
+     * Reverse maps a Pristine event response into an HttpApiEventResponsePayload to be returned to Api Gateway.
+     * @param eventResponse The pristine event response to be reverse mapped.
+     * @param response The final response being built from all the mappers that support this type of event response. It's possible to add on to a response from another mapper.
+     * @param executionContext The execution context in which the event was handled.
+     */
+    reverseMap(eventResponse: EventResponse<HttpApiEventPayload | Request, HttpApiEventResponsePayload | Response>, response: any, executionContext: ExecutionContextInterface<any>): HttpApiEventResponsePayload {
         if(eventResponse.response instanceof HttpApiEventResponsePayload) {
             return eventResponse.response;
         } else if(eventResponse.response instanceof Response) {

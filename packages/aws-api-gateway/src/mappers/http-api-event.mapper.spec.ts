@@ -3,7 +3,6 @@ import {ApiGatewayEventsHandlingStrategyEnum} from "../enums/api-gateway-events-
 import {HttpMethod, Request, Response} from "@pristine-ts/common";
 import {ApiGatewayEventTypeEnum} from "../enums/api-gateway-event-type.enum";
 import {HttpApiEventPayload} from "../event-payloads/http-api.event-payload";
-import {RestApiEventResponsePayload} from "../event-response-payloads/rest-api.event-response-payload";
 import {EventResponse} from "@pristine-ts/core";
 import {HttpApiEventResponsePayload} from "../event-response-payloads/http-api.event-response-payload";
 import {LogHandlerMock} from "../../../../tests/mocks/log.handler.mock";

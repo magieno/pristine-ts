@@ -1,4 +1,4 @@
-import {HttpMethod, moduleScoped, Request, Response, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {moduleScoped, Request, Response, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {inject, injectable} from "tsyringe";
 import {
     Event,
@@ -16,15 +16,33 @@ import {AwsApiGatewayModuleKeyname} from "../aws-api-gateway.module.keyname";
 import {BaseApiEventMapper} from "./base-api-event.mapper";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 
+/**
+ * The Rest api event mapper maps a raw event to EventsExecutionOptionsInterface with either an RestApiEventResponsePayload or a Request
+ * depending on the handling strategy defined in the environment configs.
+ * It is tagged as an ServiceDefinitionTagEnum.EventMapper so that it can be injected with all the other event mappers.
+ * It is module scoped so that it gets injected only if the AWS-Api-Gateway module is imported.
+ */
 @moduleScoped(AwsApiGatewayModuleKeyname)
 @tag(ServiceDefinitionTagEnum.EventMapper)
 @injectable()
 export class RestApiEventMapper extends BaseApiEventMapper implements EventMapperInterface<RestApiEventPayload | Request, RestApiEventResponsePayload | Response> {
+
+    /**
+     * The Http api event mapper maps a raw event to EventsExecutionOptionsInterface with either an RestApiEventResponsePayload or a Request
+     * depending on the handling strategy defined in the environment configs.
+     * @param logHandler The log handler to output logs.
+     * @param restApiEventsHandlingStrategy The handling strategy to use when handling rest api events.
+     */
     constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
                 @inject("%" + AwsApiGatewayModuleKeyname + ".restApiEvents.handlingStrategy%") private readonly restApiEventsHandlingStrategy: ApiGatewayEventsHandlingStrategyEnum) {
         super();
     }
 
+    /**
+     * Whether or not this mapper supports the raw event.
+     * @param rawEvent The raw event that needs to be mapped.
+     * @param executionContext The execution context in which the event is happening.
+     */
     supportsMapping(rawEvent: any, executionContext: ExecutionContextInterface<any>): boolean {
         return executionContext.keyname === ExecutionContextKeynameEnum.AwsLambda &&
             rawEvent.hasOwnProperty("version") &&
@@ -35,8 +53,13 @@ export class RestApiEventMapper extends BaseApiEventMapper implements EventMappe
             rawEvent.hasOwnProperty("headers");
     }
 
+    /**
+     * Maps a raw event to EventsExecutionOptionsInterface with either an RestApiEventPayload or a Request
+     * depending on the handling strategy defined in the environment configs.
+     * @param rawEvent The raw event that needs to be mapped.
+     * @param executionContext The execution context in which the event is happening.
+     */
     map(rawEvent: any, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<RestApiEventPayload | Request> {
-
         switch (this.restApiEventsHandlingStrategy) {
             case ApiGatewayEventsHandlingStrategyEnum.Request:
                 const request = new Request(this.mapHttpMethod(rawEvent.httpMethod), rawEvent.path);

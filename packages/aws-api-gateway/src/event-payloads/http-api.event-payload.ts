@@ -1,3 +1,6 @@
+/**
+ * The event payload that we expect to receive when Api gateway is set to version 2.0.
+ */
 export class HttpApiEventPayload {
     version: string;
     routeKey: string;

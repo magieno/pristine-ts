@@ -1,6 +1,5 @@
-import {ModuleInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
+import {ModuleInterface} from "@pristine-ts/common";
 import {AwsApiGatewayModuleKeyname} from "./aws-api-gateway.module.keyname";
-import {HttpModule} from "@pristine-ts/http";
 import {EnumResolver, EnvironmentVariableResolver} from "@pristine-ts/configuration";
 import {ApiGatewayEventsHandlingStrategyEnum} from "./enums/api-gateway-events-handling-strategy.enum";
 import {CoreModule} from "@pristine-ts/core";
@@ -14,6 +13,9 @@ export * from "./mappers/mappers";
 export const AwsApiGatewayModule: ModuleInterface = {
     keyname: AwsApiGatewayModuleKeyname,
     configurationDefinitions: [
+        /**
+         * The handling strategy to handle rest api events from api gateway.
+         */
         {
             parameterName: AwsApiGatewayModuleKeyname + ".restApiEvents.handlingStrategy",
             isRequired: false,
@@ -22,6 +24,10 @@ export const AwsApiGatewayModule: ModuleInterface = {
                 new EnumResolver(new EnvironmentVariableResolver("PRISTINE_AWS_API_GATEWAY_REST_API_EVENTS_HANDLING_STRATEGY"), ApiGatewayEventsHandlingStrategyEnum),
             ],
         },
+
+        /**
+         * The handling strategy to handle http api events from api gateway.
+         */
         {
             parameterName: AwsApiGatewayModuleKeyname + ".httpApiEvents.handlingStrategy",
             isRequired: false,

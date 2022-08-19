@@ -1,3 +1,6 @@
+/**
+ * The event payload that we expect to receive when Api gateway is set to version 1.0.
+ */
 export class RestApiEventPayload {
     version: string;
     resource: string;
