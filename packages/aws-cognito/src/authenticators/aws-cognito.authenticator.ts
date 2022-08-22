@@ -10,14 +10,38 @@ import {LogHandlerInterface} from "@pristine-ts/logging";
 import jwkToBuffer from "jwk-to-pem";
 import {Request} from "@pristine-ts/common";
 
-
+/**
+ * The AwsCognitoAuthenticator is an authenticator that can be passed to the @authenticator decorator on a
+ * controller class to authenticate the incoming requests using AWS Cognito.
+ *
+ * It is singleton so that the PEMs can be cached.
+ */
 @singleton()
 @injectable()
 export class AwsCognitoAuthenticator implements AuthenticatorInterface{
 
+    /**
+     * The cached PEMs to avoid fetching everytime.
+     * @private
+     */
     private cachedPems: any;
+
+    /**
+     * The complete url of the AWS Cognito issuer.
+     * @private
+     */
     private cognitoIssuer: string;
+
+    /**
+     * The url where to get the public key.
+     * @private
+     */
     private publicKeyUrl: string;
+
+    /**
+     * The context passed by the decorator.
+     * @private
+     */
     private context: any;
 
     /**
