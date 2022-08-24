@@ -4,13 +4,19 @@ import {GuardContextInterface, GuardInterface} from "@pristine-ts/security";
 import {Request} from "@pristine-ts/common";
 
 /**
- * A guard for which you can specify the Cognito groups that a user needs to access call. To be used with the @guard decorator (ie:
- @guard(AwsCognitoGroupGuard, {groups: ["ADMIN"]}) ).
+ * A guard for which you can specify the Cognito groups that a user needs to access the call. To be used with the @guard decorator (ie:
+ * @guard(AwsCognitoGroupGuard, {groups: ["ADMIN"]}) ).
  */
 @injectable()
 export class AwsCognitoGroupGuard implements GuardInterface {
+    /**
+     * The keyname of the guard.
+     */
     public keyname = "cognito.group";
 
+    /**
+     * The guard context.
+     */
     public guardContext?: GuardContextInterface;
 
     /**

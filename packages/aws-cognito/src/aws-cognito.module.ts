@@ -10,7 +10,9 @@ export * from "./interfaces/interfaces";
 export const AwsCognitoModule: ModuleInterface = {
     keyname: AwsCognitoModuleKeyname,
     configurationDefinitions: [
-        // The AWS region in which Cognito is setup.
+        /**
+         * The AWS region in which Cognito is setup.
+         */
         {
             parameterName: AwsCognitoModuleKeyname + ".region",
             isRequired: false,
@@ -19,7 +21,9 @@ export const AwsCognitoModule: ModuleInterface = {
                 new EnvironmentVariableResolver("AWS_REGION"),
             ]
         },
-        // The pool id of the Cognito user pool.
+        /**
+         * The pool id of the Cognito user pool.
+         */
         {
             parameterName: AwsCognitoModuleKeyname + ".poolId",
             isRequired: true,
