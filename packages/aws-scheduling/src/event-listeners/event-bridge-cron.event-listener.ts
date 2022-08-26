@@ -1,14 +1,24 @@
-import {injectable, scoped, Lifecycle, inject} from "tsyringe";
+import {injectable, inject} from "tsyringe";
 import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {AwsSchedulingModuleKeyname} from "../aws-scheduling.module.keyname";
-import {Event, EventListenerInterface, EventResponse} from "@pristine-ts/core";
+import {Event, EventListenerInterface} from "@pristine-ts/core";
 import {EventBridgePayload, EventBridgeEventTypeEnum} from "@pristine-ts/aws";
 import {SchedulerInterface} from "@pristine-ts/scheduling";
 
+/**
+ * The EventBridgeCronEventListener listens to Cron events coming from AWS event bridge and executes a task.
+ * It is tagged as an ServiceDefinitionTagEnum.EventListener so that it can be injected with all the other event listener.
+ * It is module scoped so that it gets injected only if the AwsSchedulingModule is imported.
+ */
 @moduleScoped(AwsSchedulingModuleKeyname)
 @tag(ServiceDefinitionTagEnum.EventListener)
 @injectable()
 export class EventBridgeCronEventListener implements EventListenerInterface {
+
+    /**
+     * The EventBridgeCronEventListener listens to Cron events coming from AWS event bridge and executes a task.
+     * @param scheduler The scheduler.
+     */
     constructor(@inject("SchedulerInterface") private readonly scheduler: SchedulerInterface) {
     }
 
