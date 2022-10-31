@@ -1,11 +1,9 @@
-const fs = require("fs");
-
-const controllerContent = fs.readFileSync("./token.controller.ts", "utf-8");
-const expressControllerContent = fs.readFileSync("./token.express-controller.ts", "utf-8");
-const nestjsControllerContent = fs.readFileSync("./token.nestjs-controller.ts", "utf-8");
-
+var fs = require("fs");
+var controllerContent = fs.readFileSync("./token.controller.ts", "utf-8");
+var expressControllerContent = fs.readFileSync("./token.express-controller.ts", "utf-8");
+var nestjsControllerContent = fs.readFileSync("./token.nestjs-controller.ts", "utf-8");
 // We will create a controller file for each animal in this list.
-const animals = [
+var animals = [
     "Aardvark",
     "Albatross",
     "Alligator",
@@ -231,38 +229,29 @@ const animals = [
     "Yak",
     "Zebra"
 ];
-
-
-animals.forEach((animal: string) => {
-    const capitalizedToken = animal;
-    const lowercaseToken = animal.toLowerCase();
-    const pluralToken = lowercaseToken + "s";
-
-    let interpolatedContent = controllerContent.replace(/__TOKEN_CAPITALIZED__/g, capitalizedToken);
+animals.forEach(function (animal) {
+    var capitalizedToken = animal;
+    var lowercaseToken = animal.toLowerCase();
+    var pluralToken = lowercaseToken + "s";
+    var interpolatedContent = controllerContent.replace(/__TOKEN_CAPITALIZED__/g, capitalizedToken);
     interpolatedContent = interpolatedContent.replace(/__TOKEN_PLURAL__/g, pluralToken);
-
     fs.writeFileSync("./output/" + lowercaseToken + ".controller.ts", interpolatedContent);
-})
-
-animals.forEach((animal: string) => {
-    const capitalizedToken = animal;
-    const lowercaseToken = animal.toLowerCase();
-    const pluralToken = lowercaseToken + "s";
-
-    let interpolatedContent = nestjsControllerContent.replace(/__TOKEN_CAPITALIZED__/g, capitalizedToken);
+});
+animals.forEach(function (animal) {
+    var capitalizedToken = animal;
+    var lowercaseToken = animal.toLowerCase();
+    var pluralToken = lowercaseToken + "s";
+    var interpolatedContent = nestjsControllerContent.replace(/__TOKEN_CAPITALIZED__/g, capitalizedToken);
     interpolatedContent = interpolatedContent.replace(/__TOKEN_PLURAL__/g, pluralToken);
-
     fs.writeFileSync("./output/nestjs/" + lowercaseToken + ".controller.ts", interpolatedContent);
-})
-
-let expressInterpolatedContent = "";
-animals.forEach((animal: string) => {
-    const capitalizedToken = animal;
-    const lowercaseToken = animal.toLowerCase();
-    const pluralToken = lowercaseToken + "s";
-
+});
+var expressInterpolatedContent = "";
+animals.forEach(function (animal) {
+    var capitalizedToken = animal;
+    var lowercaseToken = animal.toLowerCase();
+    var pluralToken = lowercaseToken + "s";
     expressInterpolatedContent += "\n\n\n" + expressControllerContent.replace(/__TOKEN_CAPITALIZED__/g, capitalizedToken);
     expressInterpolatedContent = expressInterpolatedContent.replace(/__TOKEN_PLURAL__/g, pluralToken);
-})
-console.log(1)
+});
+console.log(1);
 fs.writeFileSync("./output/express-controller.ts", expressInterpolatedContent);

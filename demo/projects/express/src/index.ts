@@ -1,6 +1,6 @@
 import "reflect-metadata"
-import {controller, HttpMethod, Kernel, route} from "@pristine-ts/core";
 import {ExpressModule, RequestMapper, ResponseMapper} from "@pristine-ts/express";
+import {ExecutionContextKeynameEnum, Kernel} from "@pristine-ts/core";
 import {DogsController} from "./controllers/dogs.controller";
 
 const express = require('express')
@@ -10,15 +10,12 @@ const kernel = new Kernel();
 
 function bootstrap () {
     app.all('*', async (req, res) => {
-        console.log(1);
-        const expressRequestMapper = kernel.container.resolve(RequestMapper);
-        const expressResponseMapper = kernel.container.resolve(ResponseMapper);
-
-        expressResponseMapper.reverseMap(await kernel.handleRequest(expressRequestMapper.map(req)), res);
+        await kernel.handle(req, {keyname: ExecutionContextKeynameEnum.Express, context: {req, res}});
     })
 
     app.listen(port, async () => {
-        await kernel.init({
+        await kernel.start({
+            keyname: "express-demo",
             importModules: [ExpressModule],
             importServices: [DogsController],
         });
