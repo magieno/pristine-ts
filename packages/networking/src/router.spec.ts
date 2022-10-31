@@ -17,6 +17,7 @@ import {HttpMethod, IdentityInterface, Request} from "@pristine-ts/common";
 import {Span, TracingManagerInterface} from "@pristine-ts/telemetry";
 import {DependencyContainer, container} from "tsyringe";
 import {LogHandlerInterface} from "@pristine-ts/logging";
+import {RouterCache} from "./cache/router.cache";
 
 describe("Router.spec", () => {
     let root: PathRouterNode;
@@ -135,7 +136,7 @@ describe("Router.spec", () => {
             authenticate(request: Request, routeContext: any, container): Promise<IdentityInterface | undefined> {
                 return Promise.resolve(undefined);
             }
-        });
+        }, new RouterCache(true));
 
         router["root"] = root;
 
@@ -160,7 +161,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", null, null, null, request.body);
     })
 
     it("PUT - https://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm", async () => {
@@ -168,7 +169,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
     it("PUT - https://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC", async () => {
@@ -176,7 +177,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
     it("PUT - https://ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink", async () => {
@@ -184,7 +185,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", null, null, null, request.body);
     })
 
     it("PUT - https://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink", async () => {
@@ -192,7 +193,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
     it("PUT - https://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink", async () => {
@@ -200,7 +201,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
     it("PUT - http://ima-tech.ca/api/1.0/dogs/caniche-royal", async () => {
@@ -208,7 +209,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", null, null, null, request.body);
     })
 
     it("PUT - http://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm", async () => {
@@ -216,7 +217,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
     it("PUT - http://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC", async () => {
@@ -224,7 +225,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
     it("PUT - http://ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink", async () => {
@@ -232,7 +233,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", null, null, null, request.body);
     })
 
     it("PUT - http://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink", async () => {
@@ -240,7 +241,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
     it("PUT - http://ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink", async () => {
@@ -248,7 +249,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
     it("PUT - https://www.ima-tech.ca/api/1.0/dogs/caniche-royal", async () => {
@@ -256,7 +257,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", null, null, null, request.body);
     })
 
     it("PUT - https://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm", async () => {
@@ -264,7 +265,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
     it("PUT - https://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC", async () => {
@@ -272,7 +273,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
     it("PUT - https://www.ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink", async () => {
@@ -280,7 +281,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", null, null, null, request.body);
     })
 
     it("PUT - https://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink", async () => {
@@ -288,7 +289,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
     it("PUT - https://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink", async () => {
@@ -296,7 +297,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
     it("PUT - http://www.ima-tech.ca/api/1.0/dogs/caniche-royal", async () => {
@@ -304,7 +305,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", null, null, null, request.body);
     })
 
     it("PUT - http://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm", async () => {
@@ -312,7 +313,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
     it("PUT - http://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC", async () => {
@@ -320,7 +321,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
     it("PUT - http://www.ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink", async () => {
@@ -328,7 +329,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", null, null, null, request.body);
     })
 
     it("PUT - http://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink", async () => {
@@ -336,7 +337,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
     it("PUT - http://www.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink", async () => {
@@ -344,7 +345,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
     it("PUT - https://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal", async () => {
@@ -352,7 +353,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", null, null, null, request.body);
     })
 
     it("PUT - https://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm", async () => {
@@ -360,7 +361,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
     it("PUT - https://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC", async () => {
@@ -368,7 +369,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
     it("PUT - https://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink", async () => {
@@ -376,7 +377,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", null, null, null, request.body);
     })
 
     it("PUT - https://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink", async () => {
@@ -384,7 +385,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
     it("PUT - https://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink", async () => {
@@ -392,7 +393,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
     it("PUT - http://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal", async () => {
@@ -400,7 +401,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", null, null, null, request.body);
     })
 
     it("PUT - http://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm", async () => {
@@ -408,7 +409,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
     it("PUT - http://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC", async () => {
@@ -416,7 +417,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
     it("PUT - http://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink", async () => {
@@ -424,7 +425,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", null, null, null, request.body);
     })
 
     it("PUT - http://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink", async () => {
@@ -432,7 +433,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
     it("PUT - http://subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink", async () => {
@@ -440,7 +441,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
     it("PUT - https://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal", async () => {
@@ -448,7 +449,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", null, null, null, request.body);
     })
 
     it("PUT - https://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm", async () => {
@@ -456,7 +457,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
     it("PUT - https://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC", async () => {
@@ -464,7 +465,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
     it("PUT - https://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink", async () => {
@@ -472,7 +473,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", null, null, null, request.body);
     })
 
     it("PUT - https://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink", async () => {
@@ -480,7 +481,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
     it("PUT - https://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink", async () => {
@@ -488,7 +489,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
     it("PUT - http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal", async () => {
@@ -496,7 +497,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", null, null, null, request.body);
     })
 
     it("PUT - http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm", async () => {
@@ -504,7 +505,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
     it("PUT - http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC", async () => {
@@ -512,7 +513,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
     it("PUT - http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal#anchorLink", async () => {
@@ -520,7 +521,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", null, null, {}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", null, null, null, request.body);
     })
 
     it("PUT - http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm#anchorLink", async () => {
@@ -528,7 +529,7 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", null, {"query": "searchTerm"}, request.body);
     })
 
     it("PUT - http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink", async () => {
@@ -536,7 +537,24 @@ describe("Router.spec", () => {
 
         const response = await router.execute(request, mockContainer);
 
-        expect(spyMethodController).toHaveBeenCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
+    })
+
+    it("Call twice (with caching) - PUT - http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink", async () => {
+        request.url = "http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink";
+
+        await router.execute(request, mockContainer);
+
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
+
+        // Tweak the request to ensure that the caching properly works
+        request.url = "http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink";
+        await router.execute(request, mockContainer);
+
+        request.url = "http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink";
+        await router.execute(request, mockContainer);
+
+        expect(spyMethodController).toHaveBeenLastCalledWith("caniche-royal", "searchTerm", "ASC", {"query": "searchTerm", "sort": "ASC"}, request.body);
     })
 
 });
