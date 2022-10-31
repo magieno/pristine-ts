@@ -182,7 +182,10 @@ export class Router implements RouterInterface {
 
         return new Promise<Response>(async (resolve, reject) => {
             // Start by decomposing the URL. Set second parameter to true since we want to parse the query strings
-            const url = new URL(request.url);
+            // Node's URL default package absolutely needs a base (or a host) if none is provided in the URL. Pristine doesn't
+            // care at all about the host. If one is provided in the url, the base provided will do nothing.
+            // If none is provided, then the default base will be used and all is well.
+            const url = new URL(request.url, "http://localhost");
 
             // Split the path name
             const splitPath = UrlUtil.splitPath(url.pathname);
