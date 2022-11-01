@@ -6,22 +6,13 @@ import {NetworkingModuleKeyname} from "../networking.module.keyname";
 
 @injectable()
 export class RouterCache {
-    public currentSize = 0;
-
-    public maximumSize = 100; // In Bytes
-
     public routes: {[methodAndPath: string] : CachedRouterRoute} = {};
 
     public constructor(@inject(`%${NetworkingModuleKeyname}.routerCache.isActive%`) private readonly isActive: boolean) {
     }
 
     private cleanIfNeeded() {
-        if(this.currentSize < this.maximumSize) {
-            return;
-        }
-
-        // For now, we will eliminate starting from the first key to the last, when the maximum size is achieved.
-        // We will eliminate 25% of the cache whenever we go over the threshold.
+        // todo: implement a proper LRU cache and also, remove the two layers of cache and flatten it to one.
     }
 
     public get(keyname: string): CachedRouterRoute | undefined {
@@ -41,7 +32,7 @@ export class RouterCache {
 
         // todo Calculate the size and add it to the current total
 
-        // Whenever we add a new elemen to the cache, we have to check if the cache needs to be cleaned
+        // Whenever we add a new element to the cache, we have to check if the cache needs to be cleaned
         this.cleanIfNeeded();
 
         this.routes[keyname] = cachedRouterRoute;
@@ -63,9 +54,7 @@ export class RouterCache {
         }
 
         this.routes[keyname]?.cacheControllerMethodArguments(request, methodArguments);
-
-        // todo Increase the size and add it to the current total;
-
+        
         return;
     }
 
