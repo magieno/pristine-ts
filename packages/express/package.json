@@ -25,8 +25,7 @@
     "@pristine-ts/networking": "file:../networking",
     "@types/express": "^4.17.9",
     "express": "^4.17.1",
-    "reflect-metadata": "^0.1.13",
-    "url-parse": "^1.4.7"
+    "reflect-metadata": "^0.1.13"
   },
   "jest": {
     "transform": {

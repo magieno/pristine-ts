@@ -4,7 +4,7 @@ import {HttpResponseInterface} from "../interfaces/http-response.interface";
 import * as http from "http";
 import {IncomingMessage, request as httpRequest, RequestOptions} from "http";
 import {request as httpsRequest} from "https";
-import Url from 'url-parse';
+import { URL } from 'url';
 import {tag} from "@pristine-ts/common";
 import {HttpClientRequestError} from "../errors/http-client-request.error";
 import {HttpWrapperInterface} from "../interfaces/http-wrapper.interface";
@@ -24,10 +24,10 @@ export class HttpWrapper implements HttpWrapperInterface {
     executeRequest(request: HttpRequestInterface): Promise<HttpResponseInterface> {
         return new Promise((resolve, reject) => {
             // Define the options required by the http and https modules.
-            const url = new Url(request.url, true);
+            const url = new URL(request.url);
             const options: RequestOptions = {
                 host: url.hostname,
-                path: url.pathname + ((url.query === {}) ? "" : "?" + Object.keys(url.query).map(key => key + "=" + querystring.escape(url.query[key] ?? "")).join("&")),
+                path: url.pathname + url.search,
                 method: request.httpMethod,
                 headers: request.headers,
                 port: url.port,

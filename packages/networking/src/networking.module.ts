@@ -4,6 +4,7 @@ import {SecurityModule} from "@pristine-ts/security";
 import {TelemetryModule} from "@pristine-ts/telemetry";
 import {BooleanResolver, EnvironmentVariableResolver} from "@pristine-ts/configuration";
 
+export * from "./cache/cache";
 export * from "./decorators/decorators";
 export * from "./errors/errors";
 export * from "./handlers/handlers";
@@ -57,6 +58,18 @@ export const NetworkingModule: ModuleInterface = {
             defaultValue: "application/json",
             defaultResolvers: [
                 new EnvironmentVariableResolver("PRISTINE_NETWORKING_DEFAULT_CONTENT_TYPE_RESPONSE_HEADER"),
+            ],
+        },
+
+        /**
+         * Activates or deactivates whether the Router Cache is on or off.
+         */
+        {
+            parameterName: NetworkingModuleKeyname + ".routerCache.isActive",
+            isRequired: false,
+            defaultValue: false,
+            defaultResolvers: [
+                new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_NETWORKING_ROUTER_CACHE_IS_ACTIVE")),
             ],
         }
     ],

@@ -8,7 +8,7 @@ import {Route} from "./models/route";
 import {MethodRouterNode} from "./nodes/method-router.node";
 import {ForbiddenHttpError} from "./errors/forbidden.http-error";
 import {ControllerMethodParameterDecoratorResolver} from "./resolvers/controller-method-parameter-decorator.resolver";
-import Url from 'url-parse';
+import { URL } from 'url';
 import {tag, HttpMethod, IdentityInterface, ServiceDefinitionTagEnum, Request, Response} from "@pristine-ts/common";
 import {AuthenticationManagerInterface, AuthorizerManagerInterface} from "@pristine-ts/security";
 import {LogHandlerInterface} from "@pristine-ts/logging";
@@ -19,6 +19,8 @@ import {RouteMethodDecorator} from "./interfaces/route-method-decorator.interfac
 import {mergeWith} from "lodash";
 import {RequestInterceptorInterface} from "./interfaces/request-interceptor.interface";
 import {HttpError} from "./errors/http.error";
+import {CachedRouterRoute} from "./cache/cached.router-route";
+import {RouterCache} from "./cache/router.cache";
 
 /**
  * The router service is the service that creates the routing tree from the controllers.
@@ -36,6 +38,7 @@ export class Router implements RouterInterface {
      * The router service is the service that creates the routing tree from the controllers.
      * It also executes a request properly by routing it to the intended controller and returns the response.
      * @param loghandler The log handler
+     * @param cache The cache that optimizes the response time by caching frequent requests.
      * @param controllerMethodParameterDecoratorResolver The controller method parameter decorator resolver used to resolve the values.
      * @param authorizerManager The authorizer manager to validate authorization.
      * @param authenticationManager The authentication manager to validate authentication.
@@ -43,7 +46,8 @@ export class Router implements RouterInterface {
     public constructor( @inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface,
                         private readonly controllerMethodParameterDecoratorResolver: ControllerMethodParameterDecoratorResolver,
                         @inject("AuthorizerManagerInterface") private readonly authorizerManager: AuthorizerManagerInterface,
-                        @inject("AuthenticationManagerInterface") private readonly authenticationManager: AuthenticationManagerInterface) {
+                        @inject("AuthenticationManagerInterface") private readonly authenticationManager: AuthenticationManagerInterface,
+                        private readonly cache: RouterCache) {
     }
 
     /**
@@ -178,15 +182,30 @@ export class Router implements RouterInterface {
 
         return new Promise<Response>(async (resolve, reject) => {
             // Start by decomposing the URL. Set second parameter to true since we want to parse the query strings
-            const url = new Url(request.url, false);
+            // Node's URL default package absolutely needs a base (or a host) if none is provided in the URL. Pristine doesn't
+            // care at all about the host. If one is provided in the url, the base provided will do nothing.
+            // If none is provided, then the default base will be used and all is well.
+            const url = new URL(request.url, "http://localhost");
 
             // Split the path name
             const splitPath = UrlUtil.splitPath(url.pathname);
 
-            const methodNodeSpan = tracingManager.startSpan(SpanKeynameEnum.RouterFindMethodRouterNode, SpanKeynameEnum.RouterRequestExecution);
-            // Retrieve the node to have information about the controller
-            const methodNode: MethodRouterNode = this.root.find(splitPath, request.httpMethod) as MethodRouterNode;
-            methodNodeSpan.end();
+            // We cache the method node
+            const cacheKeyname = request.httpMethod + "_" + url.pathname;
+
+            let cachedRouterRoute: CachedRouterRoute | undefined = this.cache.get(cacheKeyname);
+
+            let methodNode: MethodRouterNode | undefined = cachedRouterRoute?.methodNode;
+
+            if(methodNode === undefined) {
+                const methodNodeSpan = tracingManager.startSpan(SpanKeynameEnum.RouterFindMethodRouterNode, SpanKeynameEnum.RouterRequestExecution);
+                // Retrieve the node to have information about the controller
+                methodNode = this.root.find(splitPath, request.httpMethod) as MethodRouterNode;
+                methodNodeSpan.end();
+
+                // Cache the method node.
+                cachedRouterRoute = this.cache.set(cacheKeyname, methodNode);
+            }
 
             this.loghandler.debug("Router - Execute request", {
                 rootNode: this.root,
@@ -208,7 +227,11 @@ export class Router implements RouterInterface {
             }
 
             // Get the route parameters
-            const routeParameters = (methodNode.parent as PathRouterNode).getRouteParameters(splitPath.reverse());
+            const routeParameters = cachedRouterRoute?.routeParameters ?? (methodNode.parent as PathRouterNode).getRouteParameters(splitPath.reverse());
+
+            if(cachedRouterRoute !== undefined && cachedRouterRoute.routeParameters === undefined) {
+                cachedRouterRoute.routeParameters = routeParameters;
+            }
 
             // Instantiate the controller
             const routerControllerResolverSpan = tracingManager.startSpan(SpanKeynameEnum.RouterControllerResolver, SpanKeynameEnum.RouterRequestExecution);
@@ -275,15 +298,34 @@ export class Router implements RouterInterface {
                 }, NetworkingModuleKeyname)
 
                 // Resolve the value to inject in the method arguments that have a decorator resolver
-                const resolvedMethodArguments: any[] = [];
+                let resolvedMethodArguments: any[] | undefined = this.cache.getCachedControllerMethodArguments(cacheKeyname, interceptedRequest);
 
-                for (const methodArgument of methodNode.route.methodArguments) {
-                    resolvedMethodArguments.push(await this.controllerMethodParameterDecoratorResolver.resolve(methodArgument, interceptedRequest, routeParameters, identity));
+                // If the cache did not contain the cached controller method arguments
+                if(resolvedMethodArguments === undefined) {
+                    this.loghandler.debug("Resolved method arguments were not cached, currently resolving", {
+                        request,
+                        interceptedRequest,
+                    }, NetworkingModuleKeyname);
+                    resolvedMethodArguments = [];
+
+                    for (const methodArgument of methodNode.route.methodArguments) {
+                        resolvedMethodArguments.push(await this.controllerMethodParameterDecoratorResolver.resolve(methodArgument, interceptedRequest, routeParameters, identity));
+                    }
+
+                    this.cache.setControllerMethodArguments(cacheKeyname, interceptedRequest, resolvedMethodArguments);
+
+                    this.loghandler.debug("Resolved method arguments cached for next call.", {
+                        request,
+                        interceptedRequest,
+                        resolvedMethodArguments,
+                    }, NetworkingModuleKeyname);
+                } else {
+                    this.loghandler.debug("Method arguments were successfully cached and will be used.", {
+                        request,
+                        interceptedRequest,
+                        resolvedMethodArguments,
+                    }, NetworkingModuleKeyname);
                 }
-
-                this.loghandler.debug("Router - Controller argument resolved", {
-                    resolvedMethodArguments,
-                }, NetworkingModuleKeyname)
 
                 const controllerResponse = controller[methodNode.route.methodPropertyKey](...resolvedMethodArguments);
 

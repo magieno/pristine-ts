@@ -7,6 +7,7 @@ export * from "./errors/errors";
 export * from "./models/models";
 export * from "./interfaces/interfaces";
 export * from "./types/types";
+export * from "./utils/utils";
 export * from "./common.module.keyname";
 
 export const CommonModule: ModuleInterface =  {

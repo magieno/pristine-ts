@@ -3,7 +3,7 @@ import {ControllerMethodParameterDecoratorResolverInterface} from "../interfaces
 import {Request} from "@pristine-ts/common";
 import {IdentityInterface, moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {NetworkingModuleKeyname} from "../networking.module.keyname";
-import Url from 'url-parse';
+import { URL } from 'url';
 import {ParameterDecoratorInterface} from "../interfaces/parameter-decorator.interface";
 import {QueryParameterDecoratorInterface} from "../interfaces/query-parameter-decorator.interface";
 
@@ -30,9 +30,9 @@ export class QueryParameterDecoratorResolver implements ControllerMethodParamete
             request: Request,
             routeParameters: { [p: string]: string },
             identity?: IdentityInterface):  Promise<any> {
-        const url = new Url(request.url, true);
+        const url = new URL(request.url);
 
-        return Promise.resolve(url.query[methodArgument.queryParameterName] ?? null);
+        return Promise.resolve(url.searchParams.get(methodArgument.queryParameterName) ?? null);
     }
 
     /**

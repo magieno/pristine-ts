@@ -2,7 +2,7 @@ import {inject, injectable, injectAll} from "tsyringe";
 import {HttpClientInterface} from "../interfaces/http-client.interface";
 import {HttpRequestInterface} from "../interfaces/http-request.interface";
 import {HttpResponseInterface} from "../interfaces/http-response.interface";
-import Url from 'url-parse';
+import { URL } from 'url';
 import {ResponseTypeEnum} from "../enums/response-type.enum";
 import {HttpRequestOptions} from "../options/http-request.options.";
 import {assign} from "lodash";
@@ -185,8 +185,8 @@ export class HttpClient implements HttpClientInterface {
             const updatedRequest = request;
 
             // Updated the URL by using the 'location' header returned by the response.
-            const url = new Url(request.url, true);
-            url.set("pathname", response.headers.location);
+            const url = new URL(request.url);
+            url.pathname = response.headers.location;
 
             updatedRequest.url = url.toString()
 
