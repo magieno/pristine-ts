@@ -14,6 +14,9 @@ import {
 import InterceptorOptions from "tsyringe/dist/typings/types/interceptor-options";
 
 export class DependencyContainerMock implements DependencyContainer {
+    dispose(): void | Promise<void> {
+        
+    }
     register<T>(token: InjectionToken<T>, provider: ValueProvider<T>): DependencyContainer;
     register<T>(token: InjectionToken<T>, provider: FactoryProvider<T>): DependencyContainer;
     register<T>(token: InjectionToken<T>, provider: TokenProvider<T>, options?: RegistrationOptions): DependencyContainer;
