@@ -11,10 +11,10 @@
     "@pristine-ts/security": "file:../../packages/security",
     "class-transformer": "^0.4.0",
     "@pristine-ts/class-validator": "^1.0.5",
-    "uuid": "^8.3.2"
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "@types/uuid": "^8.3.3"
+    "@types/uuid": "^8.3.4"
   },
   "jest": {
     "transform": {
