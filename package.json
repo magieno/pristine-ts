@@ -12,7 +12,8 @@
     "bump-patch": "lerna version patch --yes",
     "publish-ci": "lerna publish from-git --yes --no-verify-access",
     "prune": "rm -rf `find . -type d -name node_modules` && rm -rf `find . -type d -name dist`",
-    "install-all": " for dir in */; do\n  (cd -- \"$dir\" && npm install)\ndone"
+    "install-all": " for dir in packages/*/; do\n  (cd -- \"$dir\" && echo \"$dir\" && npm install)\ndone",
+    "ci-all": " for dir in packages/*/; do\n  (cd -- \"$dir\" && echo \"$dir\" && npm ci)\ndone"
   },
   "repository": {
     "type": "git",
