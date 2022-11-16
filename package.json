@@ -11,7 +11,8 @@
     "perf": "cd tests/perf && jest && cd ..",
     "bump-patch": "lerna version patch --yes",
     "publish-ci": "lerna publish from-git --yes --no-verify-access",
-    "prune": "rm -rf `find . -type d -name node_modules` && rm -rf `find . -type d -name dist`"
+    "prune": "rm -rf `find . -type d -name node_modules` && rm -rf `find . -type d -name dist`",
+    "install-all": " for dir in */; do\n  (cd -- \"$dir\" && npm install)\ndone"
   },
   "repository": {
     "type": "git",
