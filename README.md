@@ -14,9 +14,9 @@
 
 Pristine is a [Typescript](https://www.typescriptlang.org) framework for [NodeJS](https://nodejs.org/en/) that is 
 extremely lightweight with a very low number of external dependencies. It is crucial for Pristine to have the lowest
-impact on Cold starts in other to be successful in a Serverless (or FaaS) environment. And you know what, we did it!
+impact on Cold starts in order to be successful in a Serverless (or FaaS) environment. And you know what? We did it!
 
-Pristine offers incredible performance and packs all the features you expect from a full-fledge framework:
+Pristine offers incredible performance and packs all the features you would expect from a full-fledge framework:
 
 * Authentication
 * Authorization
