@@ -3,25 +3,30 @@ import {Utils} from "./utils";
 import {LogModel} from "../models/log.model";
 import {SeverityEnum} from "../enums/severity.enum";
 import {OutputModeEnum} from "../enums/output-mode.enum";
-import * as Util from "util";
 
 describe("Utils", () => {
 
     it("should truncate if object deeper than max depth", async () => {
 
         const object = {
-            bonjour: {
-                allo: {
+            hi: {
+                hello: {
                     bye: "byebye",
                     date: new Date(1615830493000),
+                    array: [
+                        {
+                            first: "first"
+                        }
+                    ]
                 }
             }
         };
 
-        expect(Utils.truncate(object, 1)).toEqual({});
-        expect(Utils.truncate(object, 2)).toEqual({bonjour:{}});
-        expect(Utils.truncate(object, 3)).toEqual({bonjour:{allo:{bye:"byebye", date: new Date(1615830493000)}}});
-        expect(Utils.truncate(object, 4)).toEqual({bonjour:{allo:{bye:"byebye", date: new Date(1615830493000)}}});
+        expect(JSON.stringify(Utils.truncate(object, 1))).toEqual("{\"hi\":\"Max Depth Reached\"}");
+        expect(JSON.stringify(Utils.truncate(object, 2))).toEqual("{\"hi\":{\"hello\":\"Max Depth Reached\"}}");
+        expect(JSON.stringify(Utils.truncate(object, 3))).toEqual("{\"hi\":{\"hello\":{\"bye\":\"byebye\",\"date\":\"2021-03-15T17:48:13.000Z\",\"array\":\"Max Depth Reached\"}}}");
+        expect(JSON.stringify(Utils.truncate(object, 4))).toEqual("{\"hi\":{\"hello\":{\"bye\":\"byebye\",\"date\":\"2021-03-15T17:48:13.000Z\",\"array\":[\"Max Depth Reached\"]}}}");
+        expect(JSON.stringify(Utils.truncate(object, 5))).toEqual("{\"hi\":{\"hello\":{\"bye\":\"byebye\",\"date\":\"2021-03-15T17:48:13.000Z\",\"array\":[{\"first\":\"first\"}]}}}");
     });
 
     it("should properly output a log", async() => {
