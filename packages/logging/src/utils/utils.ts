@@ -95,7 +95,7 @@ export class Utils {
             }
         }
 
-        return;
+        return "Max Depth Reached";
     }
 
     /**
