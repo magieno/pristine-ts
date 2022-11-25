@@ -22,10 +22,10 @@ describe("Utils", () => {
             }
         };
 
-        expect(JSON.stringify(Utils.truncate(object, 1))).toEqual("{\"hi\":\"Max Depth Reached\"}");
-        expect(JSON.stringify(Utils.truncate(object, 2))).toEqual("{\"hi\":{\"hello\":\"Max Depth Reached\"}}");
-        expect(JSON.stringify(Utils.truncate(object, 3))).toEqual("{\"hi\":{\"hello\":{\"bye\":\"byebye\",\"date\":\"2021-03-15T17:48:13.000Z\",\"array\":\"Max Depth Reached\"}}}");
-        expect(JSON.stringify(Utils.truncate(object, 4))).toEqual("{\"hi\":{\"hello\":{\"bye\":\"byebye\",\"date\":\"2021-03-15T17:48:13.000Z\",\"array\":[\"Max Depth Reached\"]}}}");
+        expect(JSON.stringify(Utils.truncate(object, 1))).toEqual("{\"hi\":\"-- Truncated: Max Depth Reached --\"}");
+        expect(JSON.stringify(Utils.truncate(object, 2))).toEqual("{\"hi\":{\"hello\":\"-- Truncated: Max Depth Reached --\"}}");
+        expect(JSON.stringify(Utils.truncate(object, 3))).toEqual("{\"hi\":{\"hello\":{\"bye\":\"byebye\",\"date\":\"2021-03-15T17:48:13.000Z\",\"array\":\"-- Truncated: Max Depth Reached --\"}}}");
+        expect(JSON.stringify(Utils.truncate(object, 4))).toEqual("{\"hi\":{\"hello\":{\"bye\":\"byebye\",\"date\":\"2021-03-15T17:48:13.000Z\",\"array\":[\"-- Truncated: Max Depth Reached --\"]}}}");
         expect(JSON.stringify(Utils.truncate(object, 5))).toEqual("{\"hi\":{\"hello\":{\"bye\":\"byebye\",\"date\":\"2021-03-15T17:48:13.000Z\",\"array\":[{\"first\":\"first\"}]}}}");
     });
 
