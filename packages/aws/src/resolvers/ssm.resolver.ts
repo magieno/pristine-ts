@@ -21,7 +21,7 @@ export class SSMResolver implements ResolverInterface<string> {
     async resolve(): Promise<string> {
         const ssmParameterName = await this.resolveArgument(this.ssmParameterName);
         const region = await this.resolveArgument(this.region);
-        const ssm: SSM = new SSM({apiVersion: 'latest', region});
+        const ssm: SSM = new SSM({apiVersion: 'latest', region, });
         const params: GetParameterRequest = {
             Name: ssmParameterName,
             WithDecryption: this.isSecure,
