@@ -151,4 +151,60 @@ export class OpenSearchClient {
 
     }
 
+    async createIndex(name: string): Promise<void> {
+        const response = await this.getClient().indices.create({
+            index: name,
+        });
+
+        this.logHandler.debug("Index creation response", {name, response}, OpenSearchModuleKeyname)
+    }
+
+
+    async deleteIndex(name: string): Promise<void> {
+        const response = await this.getClient().indices.delete({
+            index: name,
+        });
+
+        this.logHandler.debug("Index deletion response", {name, response}, OpenSearchModuleKeyname)
+    }
+
+    async createDocument(indexName: string, id: string, document: any): Promise<void> {
+        const response = this.getClient().create({
+            index: indexName,
+            id,
+            body: document,
+        });
+
+        this.logHandler.debug("Create document response", {indexName, id, document, response}, OpenSearchModuleKeyname)
+    }
+
+    async indexDocument(indexName: string, id: string, document: any): Promise<void> {
+        const response = await this.getClient().index({
+            index: indexName,
+            id,
+            body: document,
+        })
+
+        this.logHandler.debug("Index document response", {indexName, id, document, response}, OpenSearchModuleKeyname)
+    }
+
+    async updateDocument(indexName: string, id: string, document: any): Promise<void> {
+        const response = await this.getClient().update({
+            index: indexName,
+            id,
+            body: document,
+        })
+
+        this.logHandler.debug("Update document response", {indexName, id, document, response}, OpenSearchModuleKeyname)
+    }
+
+    async deleteDocument(indexName: string, id: string): Promise<void>  {
+        const response = await this.getClient().delete({
+            index: indexName,
+            id,
+        })
+
+        this.logHandler.debug("Delete document response", {indexName, id, response}, OpenSearchModuleKeyname)
+    }
+
 }
