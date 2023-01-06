@@ -8,7 +8,6 @@ import {OpenSearchModuleKeyname} from "../open-search.module.keyname";
 import { defaultProvider } from "@aws-sdk/credential-provider-node"; // V3 SDK.
 import {ApiResponse, Client, RequestParams} from '@opensearch-project/opensearch';
 import { AwsSigv4Signer } from '@opensearch-project/opensearch/aws';
-import {ElasticSearchModuleKeyname} from "../../dist/types/elastic-search.module.keyname";
 import {SearchResultAggregation} from "../models/search-result-aggregation.model";
 
 @injectable()
