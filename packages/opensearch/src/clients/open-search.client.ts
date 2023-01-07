@@ -66,7 +66,7 @@ export class OpenSearchClient {
             try {
                 const client = this.getClient();
 
-                await this.logHandler.debug("ELASTICSEARCH CLIENT - Searching for query.", {elasticSearchQuery: query}, OpenSearchModuleKeyname);
+                await this.logHandler.debug("OpenSearch CLIENT - Searching for query.", {query}, OpenSearchModuleKeyname);
 
                 const startIndex = (query.page ? query.page - 1 : 0) * query.maximumNumberOfResultsPerPage;
 
@@ -136,15 +136,15 @@ export class OpenSearchClient {
                     });
                 }
 
-                await this.logHandler.debug("ELASTIC SEARCH CLIENT - Querying elasticsearch with params.", {params}, OpenSearchModuleKeyname);
+                await this.logHandler.debug("ELASTIC SEARCH CLIENT - Querying OpenSearch with params.", {params}, OpenSearchModuleKeyname);
 
                 const response = await client.search(params);
 
-                await this.logHandler.debug("ELASTIC SEARCH CLIENT - Received response", {response, indexName, resultClassObject, elasticSearchQuery: query}, OpenSearchModuleKeyname);
+                await this.logHandler.debug("ELASTIC SEARCH CLIENT - Received response", {response, indexName, resultClassObject, OpenSearchQuery: query}, OpenSearchModuleKeyname);
 
                 return await this.parseResponse(response, resultClassObject, query.page, query.maximumNumberOfResultsPerPage);
             } catch (e) {
-                await this.logHandler.error("ELASTIC SEARCH CLIENT", {error: e, indexName, resultClassObject, elasticSearchQuery: query}, OpenSearchModuleKeyname);
+                await this.logHandler.error("ELASTIC SEARCH CLIENT", {error: e, indexName, resultClassObject, OpenSearchQuery: query}, OpenSearchModuleKeyname);
 
                 throw e;
             }
