@@ -24,7 +24,7 @@ is to do to integrate with Express:
 
             // Either create a new module on the fly or put your own module.
             await kernel.init({
-                importModules: [OpenSearchModule],
+                importModules: [ExpressModule],
                 importServices: [DogsController],
             });
     
