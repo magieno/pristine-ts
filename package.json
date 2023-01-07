@@ -57,6 +57,7 @@
     "@pristine-ts/jwt": "file:packages/jwt",
     "@pristine-ts/logging": "file:packages/logging",
     "@pristine-ts/networking": "file:packages/networking",
+    "@pristine-ts/opensearch": "file:packages/opensearch",
     "@pristine-ts/redis": "file:packages/redis",
     "@pristine-ts/scheduling": "file:packages/scheduling",
     "@pristine-ts/security": "file:packages/security",
