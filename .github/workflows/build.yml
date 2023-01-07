@@ -28,6 +28,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
           registry-url: https://registry.npmjs.org
           scope: '@pristine'
+          token: ${{ secrets.MAGIENO_GITHUB_ACCESS_TOKEN }}
       - run: npm install -g npm@8.19.2
       - run: npm -v
       - run: npm ci
@@ -59,6 +60,7 @@ jobs:
           node-version: 16.x
           registry-url: https://registry.npmjs.org
           scope: '@pristine'
+          token: ${{ secrets.MAGIENO_GITHUB_ACCESS_TOKEN }}
       - run: npm install -g npm@latest
       - run: npm ci
         env:
