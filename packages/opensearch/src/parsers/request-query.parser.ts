@@ -9,7 +9,7 @@ import {injectable} from 'tsyringe'
 export class RequestQueryParser {
 
     parse(request: Request) {
-        const elasticSearchQuery = new Query();
+        const openSearchQuery = new Query();
 
         const url = new URL(request.url);
 
@@ -17,7 +17,7 @@ export class RequestQueryParser {
         const page = url.searchParams.get("page");
 
         if(page) {
-            elasticSearchQuery.page = isNaN(+page) ? undefined : +page;
+            openSearchQuery.page = isNaN(+page) ? undefined : +page;
         }
 
         // Query
@@ -26,29 +26,29 @@ export class RequestQueryParser {
         const searchOperator = url.searchParams.get("search_operator");
 
         if (query && query != "") {
-            elasticSearchQuery.query = query;
+            openSearchQuery.query = query;
             if (searchType && (searchType === "multi_match" || searchType === "query_string")) {
-                elasticSearchQuery.searchType = searchType;
-                elasticSearchQuery.searchOperator = searchOperator as "and" | "or" ?? "and";
+                openSearchQuery.searchType = searchType;
+                openSearchQuery.searchOperator = searchOperator as "and" | "or" ?? "and";
             }
         }
 
         // Fields
         const fields = url.searchParams.get("fields");
         if (fields) {
-            elasticSearchQuery.fields = (fields as string).split(",");
+            openSearchQuery.fields = (fields as string).split(",");
         }
 
         // Exclude fields from Response
         const excludeFieldsFromResponse = url.searchParams.get("exclude_fields_from_response");
         if (excludeFieldsFromResponse) {
-            elasticSearchQuery.excludeFieldsFromResponse = (excludeFieldsFromResponse as string).split(",");
+            openSearchQuery.excludeFieldsFromResponse = (excludeFieldsFromResponse as string).split(",");
         }
 
         // Maximum number of results per page
         const maximumNumberOfResultsPerPage = url.searchParams.get("maximum_number_of_results_per_page");
         if (maximumNumberOfResultsPerPage) {
-            elasticSearchQuery.maximumNumberOfResultsPerPage = isNaN(+maximumNumberOfResultsPerPage) ? elasticSearchQuery.maximumNumberOfResultsPerPage : +maximumNumberOfResultsPerPage;
+            openSearchQuery.maximumNumberOfResultsPerPage = isNaN(+maximumNumberOfResultsPerPage) ? openSearchQuery.maximumNumberOfResultsPerPage : +maximumNumberOfResultsPerPage;
         }
 
         // Aggregation
@@ -59,31 +59,31 @@ export class RequestQueryParser {
         const aggregationSortOrder = url.searchParams.get("aggregation_sort_order");
 
         if(aggregationName || aggregationTerm || aggregationSize) {
-            elasticSearchQuery.aggregation = new Aggregation();
-            elasticSearchQuery.aggregation.name = aggregationName ?? elasticSearchQuery.aggregation.name;
-            elasticSearchQuery.aggregation.term = aggregationTerm ?? elasticSearchQuery.aggregation.term;
+            openSearchQuery.aggregation = new Aggregation();
+            openSearchQuery.aggregation.name = aggregationName ?? openSearchQuery.aggregation.name;
+            openSearchQuery.aggregation.term = aggregationTerm ?? openSearchQuery.aggregation.term;
 
             if(aggregationSize) {
-                elasticSearchQuery.aggregation.size = isNaN(+aggregationSize) ? elasticSearchQuery.aggregation.size : +aggregationSize;
+                openSearchQuery.aggregation.size = isNaN(+aggregationSize) ? openSearchQuery.aggregation.size : +aggregationSize;
             }
 
             switch (aggregationSortOn) {
                 case 'term':
-                    elasticSearchQuery.aggregation.sortOn = '_term';
+                    openSearchQuery.aggregation.sortOn = '_term';
                     break;
                 case "count":
-                    elasticSearchQuery.aggregation.sortOn = "_count";
+                    openSearchQuery.aggregation.sortOn = "_count";
                     break;
             }
 
-            elasticSearchQuery.aggregation.sortOrder = aggregationSortOrder as "asc" | "desc" ?? elasticSearchQuery.aggregation.sortOrder;
+            openSearchQuery.aggregation.sortOrder = aggregationSortOrder as "asc" | "desc" ?? openSearchQuery.aggregation.sortOrder;
         }
 
         // Sort
         const sort = url.searchParams.get("sort");
 
         if (sort) {
-            elasticSearchQuery.sort = [];
+            openSearchQuery.sort = [];
 
             const sortingPairs = sort.split(',');
             for (const sortingPair of sortingPairs) {
@@ -95,7 +95,7 @@ export class RequestQueryParser {
                     order = pair[1];
                 }
 
-                elasticSearchQuery.sort.push({
+                openSearchQuery.sort.push({
                     [term]: {
                         order,
                     },
@@ -107,7 +107,7 @@ export class RequestQueryParser {
         const conditions = url.searchParams.get("conditions");
 
         if (conditions) {
-            elasticSearchQuery.conditions = [];
+            openSearchQuery.conditions = [];
 
             const parsedConditions = conditions.split(',');
             for (const condition of parsedConditions) {
@@ -115,7 +115,7 @@ export class RequestQueryParser {
                 const term = pair[0];
 
                 if (pair[1]) {
-                    elasticSearchQuery.conditions.push({
+                    openSearchQuery.conditions.push({
                         [term]: pair[1],
                     });
                 }
@@ -134,7 +134,7 @@ export class RequestQueryParser {
         const rangeConditions = url.searchParams.get("range_conditions");
         if (rangeKey && typeof rangeConditions === "string") {
 
-            elasticSearchQuery.range = {};
+            openSearchQuery.range = {};
             const range = new Range();
 
             const conditions = rangeConditions.split(",");
@@ -148,10 +148,10 @@ export class RequestQueryParser {
 
             }
 
-            elasticSearchQuery.range[rangeKey] = range;
+            openSearchQuery.range[rangeKey] = range;
         }
 
-        return elasticSearchQuery;
+        return openSearchQuery;
     }
 
 }
