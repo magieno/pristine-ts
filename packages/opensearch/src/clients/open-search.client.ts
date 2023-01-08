@@ -15,7 +15,7 @@ export class OpenSearchClient {
 
     constructor(
         @inject(`%${OpenSearchModuleKeyname}.domain-url%`) private readonly domainUrl: string,
-        @inject(`%${AwsModuleKeyname}.region`) private readonly region: string,
+        @inject(`%${AwsModuleKeyname}.region%`) private readonly region: string,
         @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface) { }
 
     getClient() {
