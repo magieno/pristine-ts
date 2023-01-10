@@ -3,6 +3,7 @@ import {NetworkingModuleKeyname} from "./networking.module.keyname";
 import {SecurityModule} from "@pristine-ts/security";
 import {TelemetryModule} from "@pristine-ts/telemetry";
 import {BooleanResolver, EnvironmentVariableResolver} from "@pristine-ts/configuration";
+import {LoggingModule} from "@pristine-ts/logging";
 
 export * from "./cache/cache";
 export * from "./decorators/decorators";
@@ -21,6 +22,7 @@ export * from "./router";
 export const NetworkingModule: ModuleInterface = {
     keyname: NetworkingModuleKeyname,
     importModules: [
+        LoggingModule,
         SecurityModule,
         TelemetryModule,
     ],

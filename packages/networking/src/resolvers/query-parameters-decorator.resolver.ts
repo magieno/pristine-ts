@@ -1,4 +1,4 @@
-import {injectable} from "tsyringe";
+import {injectable, inject} from "tsyringe";
 import {ControllerMethodParameterDecoratorResolverInterface} from "../interfaces/controller-method-parameter-decorator-resolver.interface";
 import {Request} from "@pristine-ts/common";
 import {IdentityInterface, moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
@@ -6,6 +6,7 @@ import {NetworkingModuleKeyname} from "../networking.module.keyname";
 import { URL } from 'url';
 import {ParameterDecoratorInterface} from "../interfaces/parameter-decorator.interface";
 import {QueryParametersDecoratorInterface} from "../interfaces/query-parameters-decorator.interface";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 
 /**
  * The QueryParametersDecoratorResolver resolves the value (a  map) of the query parameters of the request so that it can be injected it into the
@@ -17,6 +18,8 @@ import {QueryParametersDecoratorInterface} from "../interfaces/query-parameters-
 @injectable()
 export class QueryParametersDecoratorResolver implements ControllerMethodParameterDecoratorResolverInterface {
 
+    constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface) {
+    }
     /**
      * Resolves the value of all the query parameters of the request.
      * The router than injects that value into the parameter of the controller method.
@@ -29,18 +32,23 @@ export class QueryParametersDecoratorResolver implements ControllerMethodParamet
             request: Request,
             routeParameters: { [p: string]: string },
             identity?: IdentityInterface):  Promise<any> {
-        const url = new URL(request.url);
+        try {
+            const url = new URL(request.url);
 
-        let queryParameters: {[id: string]: string} | undefined = undefined;
+            let queryParameters: {[id: string]: string} | undefined = undefined;
 
-        for (const [key, value] of url.searchParams.entries()) {
-            if(queryParameters === undefined) {
-                queryParameters = {};
+            for (const [key, value] of url.searchParams.entries()) {
+                if(queryParameters === undefined) {
+                    queryParameters = {};
+                }
+
+                queryParameters[key] = value;
             }
-
-            queryParameters[key] = value;
+            return Promise.resolve(queryParameters ?? null);
+        } catch (e) {
+            this.logHandler.error("There was an error resolving the query parameters", {methodArgument, request, routeParameters, identity})
+            return Promise.resolve(null)
         }
-        return Promise.resolve(queryParameters ?? null);
     }
 
     /**
