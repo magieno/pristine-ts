@@ -31,7 +31,7 @@ export class OpenSearchClient {
         });
     }
 
-    async parseResponse<T>(response: ApiResponse, resultClassObject: T, currentPage?: number, maximumNumberOfResultsPerPage?: number): Promise<SearchResult<T>> {
+    async parseResponse<T>(response: ApiResponse, currentPage?: number, maximumNumberOfResultsPerPage?: number): Promise<SearchResult<T>> {
         const searchResult = new SearchResult<T>();
         searchResult.currentPage = currentPage ?? searchResult.currentPage;
         searchResult.maximumNumberOfResultsPerPage = maximumNumberOfResultsPerPage ?? searchResult.maximumNumberOfResultsPerPage;
@@ -62,7 +62,7 @@ export class OpenSearchClient {
         return searchResult;
     }
 
-    async search<T>(indexName: string, resultClassObject: T, query: Query): Promise <SearchResult<T>> {
+    async search<T>(indexName: string, query: Query): Promise <SearchResult<T>> {
             try {
                 const client = this.getClient();
 
@@ -140,11 +140,11 @@ export class OpenSearchClient {
 
                 const response = await client.search(params);
 
-                await this.logHandler.debug("ELASTIC SEARCH CLIENT - Received response", {response, indexName, resultClassObject, OpenSearchQuery: query}, OpenSearchModuleKeyname);
+                await this.logHandler.debug("ELASTIC SEARCH CLIENT - Received response", {response, indexName, OpenSearchQuery: query}, OpenSearchModuleKeyname);
 
-                return await this.parseResponse(response, resultClassObject, query.page, query.maximumNumberOfResultsPerPage);
+                return await this.parseResponse(response, query.page, query.maximumNumberOfResultsPerPage);
             } catch (e) {
-                await this.logHandler.error("ELASTIC SEARCH CLIENT", {error: e, indexName, resultClassObject, OpenSearchQuery: query}, OpenSearchModuleKeyname);
+                await this.logHandler.error("ELASTIC SEARCH CLIENT", {error: e, indexName, OpenSearchQuery: query}, OpenSearchModuleKeyname);
 
                 throw e;
             }
