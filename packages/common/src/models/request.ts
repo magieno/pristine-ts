@@ -30,6 +30,11 @@ export class Request {
      */
     rawBody?: any;
 
+    /**
+     * The host of the request
+     */
+    host?: string;
+
     constructor(httpMethod: HttpMethod | string, url: string) {
         this.httpMethod = httpMethod;
         this.url = url;

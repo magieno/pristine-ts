@@ -1,6 +1,8 @@
 /**
  * This class provides a bunch of utilities to deal with Urls.
  */
+import {Request} from "@pristine-ts/common";
+
 export class UrlUtil {
     /**
      * This method receives a path parameter (e.g. /api/2.0/dogs/id/puppies) and returns an array where each url segment is split:
@@ -66,5 +68,14 @@ export class UrlUtil {
      */
     public static isPathACatchAll(path: string) {
         return path.startsWith("/*");
+    }
+
+    public static getUrlFromRequestWithDefaultHost(request: Request): URL {
+        let host = request.host;
+        if(host === undefined) {
+           host = "https://default.com";
+        }
+
+        return new URL(request.url, host);
     }
 }

@@ -7,6 +7,7 @@ import { URL } from 'url';
 import {ParameterDecoratorInterface} from "../interfaces/parameter-decorator.interface";
 import {QueryParametersDecoratorInterface} from "../interfaces/query-parameters-decorator.interface";
 import {LogHandlerInterface} from "@pristine-ts/logging";
+import {UrlUtil} from "../utils/url.util";
 
 /**
  * The QueryParametersDecoratorResolver resolves the value (a  map) of the query parameters of the request so that it can be injected it into the
@@ -33,7 +34,7 @@ export class QueryParametersDecoratorResolver implements ControllerMethodParamet
             routeParameters: { [p: string]: string },
             identity?: IdentityInterface):  Promise<any> {
         try {
-            const url = new URL(request.url);
+            const url = UrlUtil.getUrlFromRequestWithDefaultHost(request);
 
             let queryParameters: {[id: string]: string} | undefined = undefined;
 
