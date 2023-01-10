@@ -6,6 +6,7 @@ import {NetworkingModuleKeyname} from "../networking.module.keyname";
 import { URL } from 'url';
 import {ParameterDecoratorInterface} from "../interfaces/parameter-decorator.interface";
 import {QueryParameterDecoratorInterface} from "../interfaces/query-parameter-decorator.interface";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 
 /**
  * The QueryParameterDecoratorResolver resolves the value of the query parameter with the name passed to the decorator
@@ -17,7 +18,9 @@ import {QueryParameterDecoratorInterface} from "../interfaces/query-parameter-de
 @tag(ServiceDefinitionTagEnum.MethodParameterDecoratorResolver)
 @injectable()
 export class QueryParameterDecoratorResolver implements ControllerMethodParameterDecoratorResolverInterface {
-
+    constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface) {
+    }
+    
     /**
      * Resolves the value of the query parameter with the specified name of the request.
      * The router than injects that value into the parameter of the controller method.
@@ -30,9 +33,14 @@ export class QueryParameterDecoratorResolver implements ControllerMethodParamete
             request: Request,
             routeParameters: { [p: string]: string },
             identity?: IdentityInterface):  Promise<any> {
+        try {
         const url = new URL(request.url);
 
         return Promise.resolve(url.searchParams.get(methodArgument.queryParameterName) ?? null);
+    } catch (e) {
+        this.logHandler.error("There was an error resolving the query parameter", {methodArgument, request, routeParameters, identity})
+        return Promise.resolve(null)
+    }
     }
 
     /**
