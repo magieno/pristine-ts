@@ -20,7 +20,7 @@ import {LogHandlerInterface} from "@pristine-ts/logging";
 export class QueryParameterDecoratorResolver implements ControllerMethodParameterDecoratorResolverInterface {
     constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface) {
     }
-    
+
     /**
      * Resolves the value of the query parameter with the specified name of the request.
      * The router than injects that value into the parameter of the controller method.
