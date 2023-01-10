@@ -31,7 +31,7 @@ export class Request {
     rawBody?: any;
 
     /**
-     * The host of the request
+     * The host of the request.
      */
     host?: string;
 

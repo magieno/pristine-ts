@@ -4,6 +4,7 @@ import {Range} from "../models/range.model";
 import {Request} from "@pristine-ts/common";
 import {URL} from "url";
 import {injectable} from 'tsyringe'
+import {UrlUtil} from "@pristine-ts/networking";
 
 @injectable()
 export class RequestQueryParser {
@@ -11,7 +12,7 @@ export class RequestQueryParser {
     parse(request: Request) {
         const openSearchQuery = new Query();
 
-        const url = new URL(request.url);
+        const url = UrlUtil.getUrlFromRequestWithDefaultHost(request);
 
         // Page
         const page = url.searchParams.get("page");
