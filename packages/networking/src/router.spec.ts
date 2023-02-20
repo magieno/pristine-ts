@@ -112,6 +112,17 @@ describe("Router.spec", () => {
         spyMethodController = jest.spyOn(mockController, "route");
     });
 
+    const loghandlerMock: LogHandlerInterface = {
+        critical(message: string, extra?: any, module?: string): void {
+        }, debug(message: string, extra?: any, module?: string): void {
+        }, error(message: string, extra?: any, module?: string): void {
+        }, info(message: string, extra?: any, module?: string): void {
+        }, terminate(): void {
+        }, warning(message: string, extra?: any, module?: string): void {
+        }
+
+    };
+
     // Force the node as the root node
     const getRouter = (activateCache: boolean) => {
         // Create the MockContainer
@@ -134,8 +145,8 @@ describe("Router.spec", () => {
             }
         }, new ControllerMethodParameterDecoratorResolver([
             new BodyParameterDecoratorResolver(),
-            new QueryParameterDecoratorResolver(),
-            new QueryParametersDecoratorResolver(),
+            new QueryParameterDecoratorResolver(loghandlerMock),
+            new QueryParametersDecoratorResolver(loghandlerMock),
             new RouteParameterDecoratorResolver(),
         ]), {
             isAuthorized(requestInterface: Request, routeContext: any, container, identity?: IdentityInterface): Promise<boolean> {
