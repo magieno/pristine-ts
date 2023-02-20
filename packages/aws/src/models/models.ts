@@ -1,6 +1,7 @@
 export * from "./dynamic-table-name.model";
 export * from "./dynamodb.model";
 export * from "./dynamodb-keys.model";
+export * from "./email.model";
 export * from "./event-bridge-message.model";
 export * from "./identity.model";
 export * from "./kafka-message.model";
