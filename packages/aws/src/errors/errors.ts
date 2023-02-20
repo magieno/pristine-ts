@@ -6,5 +6,6 @@ export * from "./dynamodb-table-not-found.error";
 export * from "./dynamodb-validation.error";
 export * from "./event-bridge-send-message.error";
 export * from "./ssm-resolver.error";
+export * from "./ses-send.error";
 export * from "./sqs-send-message.error";
 
