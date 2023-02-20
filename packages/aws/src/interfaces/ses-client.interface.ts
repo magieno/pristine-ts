@@ -19,4 +19,6 @@ export interface SesClientInterface {
      * @param endpoint
      */
     send(email: EmailModel, endpoint?: string): Promise<SesMessageSentConfirmationModel>
+
+    sendTemplate(email: EmailModel, templateName: string, templateData: {[key in string]: string}, endpoint?: string): Promise<SesMessageSentConfirmationModel>
 }

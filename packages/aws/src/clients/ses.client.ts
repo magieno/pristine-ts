@@ -3,7 +3,13 @@ import {moduleScoped, tag} from "@pristine-ts/common";
 import {inject, injectable} from "tsyringe";
 import {SesClientInterface} from "../interfaces/ses-client.interface";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import {SendEmailCommand, SESClient} from "@aws-sdk/client-ses";
+import {
+    SendBulkTemplatedEmailCommand,
+    SendEmailCommand,
+    SendRawEmailCommand,
+    SendTemplatedEmailCommand,
+    SESClient
+} from "@aws-sdk/client-ses";
 import {EmailModel} from "../models/email.model";
 import {SqsSendMessageError} from "../errors/sqs-send-message.error";
 import {SesMessageSentConfirmationModel} from "../models/ses-message-sent-confirmation.model";
@@ -29,6 +35,38 @@ export class SesClient implements SesClientInterface {
             region: this.region,
             endpoint: endpoint ?? undefined,
         });
+    }
+
+    async sendTemplate(email: EmailModel, templateName: string, templateData: {[key in string]: string}, endpoint?: string): Promise<SesMessageSentConfirmationModel> {
+        try {
+            const client = this.getClient(endpoint);
+
+            const sendEmailCommand = new SendTemplatedEmailCommand({
+                Source: email.from,
+                Destination: {
+                    ToAddresses: email.toAddresses,
+                    CcAddresses: email.ccAddresses,
+                    BccAddresses: email.bccAddresses,
+                },
+                Template: templateName,
+                TemplateData: JSON.stringify(templateData),
+            });
+
+            const response = await client.send(sendEmailCommand);
+
+            return {
+                messageId: response.MessageId,
+                metadata: response.$metadata,
+            };
+        } catch (error) {
+            this.logHandler.error("There was an error sending the email.", {
+                error,
+                email,
+                endpoint,
+            }, AwsModuleKeyname);
+
+            throw new SesSendError(error, email);
+        }
     }
 
     async send(email: EmailModel, endpoint?: string): Promise<SesMessageSentConfirmationModel> {

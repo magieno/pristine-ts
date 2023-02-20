@@ -30,7 +30,7 @@ export class SentryLogger implements LoggerInterface {
      * @param sentryActivated Whether or not logs should be captured and sent to Sentry.
      */
     constructor(@inject("%pristine.sentry.sentryDsn%") private readonly sentryDsn: string,
-                @inject("%pristine.sentry.tagRelease%") private readonly tagRelease?: string,
+                @inject("%pristine.sentry.tagRelease%") private readonly tagRelease: string,
                 @inject("%pristine.sentry.sentrySampleRate%") private readonly sentrySampleRate?: number,
                 @inject("%pristine.sentry.sentryActivated%") private readonly sentryActivated?: boolean) {
         this.initialize();
