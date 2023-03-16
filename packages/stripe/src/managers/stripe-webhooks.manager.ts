@@ -55,6 +55,21 @@ export class StripeWebhooksManager {
             case "customer.subscription.deleted":
                 type = StripeEventTypeEnum.StripeSubscriptionDeleted
                 break;
+            case "customer.subscription.resumed":
+                type = StripeEventTypeEnum.StripeSubscriptionResumed
+                break;
+            case "customer.subscription.paused":
+                type = StripeEventTypeEnum.StripeSubscriptionPaused
+                break;
+            case "customer.subscription.trial_will_end":
+                type = StripeEventTypeEnum.StripeSubscriptionTrialWillEnd
+                break;
+            case "customer.subscription.pending_update_applied":
+                type = StripeEventTypeEnum.StripeSubscriptionPendingUpdateApplied
+                break;
+            case "customer.subscription.pending_update_expired":
+                type = StripeEventTypeEnum.StripeSubscriptionPendingUpdateExpired
+                break;
             default:
                 await this.logHandler.debug("This event type is not supported", {event, className: StripeWebhooksManager.name}, StripeModuleKeyname);
                 return Promise.resolve();
