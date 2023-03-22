@@ -85,7 +85,7 @@ export class SesClient implements SesClientInterface {
                             Charset: "UTF-8",
                         },
                         Html: {
-                            Data: email.body.text,
+                            Data: email.body.html,
                             Charset: "UTF-8",
                         },
                     },
