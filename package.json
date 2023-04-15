@@ -53,6 +53,7 @@
     "@pristine-ts/core": "file:packages/core",
     "@pristine-ts/e2e": "file:tests/e2e",
     "@pristine-ts/express": "file:packages/express",
+    "@pristine-ts/file": "file:packages/file",
     "@pristine-ts/http": "file:packages/http",
     "@pristine-ts/jwt": "file:packages/jwt",
     "@pristine-ts/logging": "file:packages/logging",
