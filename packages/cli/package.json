@@ -1,22 +1,15 @@
 {
-  "name": "@pristine-ts/validation",
+  "name": "@pristine-ts/cli",
   "version": "0.0.228",
   "description": "",
-  "module": "dist/lib/esm/validation.module.js",
-  "main": "dist/lib/cjs/validation.module.js",
-  "types": "dist/types/validation.module.d.ts",
+  "module": "dist/lib/esm/cli.module.js",
+  "main": "dist/lib/cjs/cli.module.js",
+  "types": "dist/types/cli.module.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
     "prepublish": "npm run build",
     "test": "jest",
     "test:cov": "jest --coverage"
-  },
-  "dependencies": {
-    "@pristine-ts/class-validator": "^1.0.5",
-    "@pristine-ts/common": "file:../common",
-    "@pristine-ts/core": "file:../core",
-    "@pristine-ts/networking": "file:../networking",
-    "class-transformer": "^0.5.1"
   },
   "files": [
     "dist"
@@ -25,6 +18,14 @@
   "license": "ISC",
   "publishConfig": {
     "access": "public"
+  },
+  "dependencies": {
+    "@pristine-ts/common": "file:../common",
+    "@pristine-ts/core": "file:../core",
+    "@pristine-ts/validation": "file:../validation",
+    "class-transformer": "^0.5.1"
+  },
+  "devDependencies": {
   },
   "jest": {
     "transform": {

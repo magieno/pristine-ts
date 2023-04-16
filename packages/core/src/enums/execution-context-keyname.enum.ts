@@ -3,4 +3,5 @@ export enum ExecutionContextKeynameEnum {
     Cloudflare = "CLOUDFLARE",
     Express = "EXPRESS",
     Jest = "JEST",
+    Cli = "CLI",
 }
