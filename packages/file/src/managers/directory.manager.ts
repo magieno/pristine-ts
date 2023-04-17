@@ -60,7 +60,7 @@ export class DirectoryManager {
                 } else if (options.matchType === MatchTypeEnum.Filename) {
                     target = filename;
                 } else {
-                    throw new Error(`options.matchType contains invalid value "${options.matchType}", should be "MatchTypeEnum.Extension", "MatchTypeEnum.Base" or "MatchTypeEnum.Filename"`);
+                    throw new Error(`When trying to list the files, options.matchType contains invalid value "${options.matchType}", should be "MatchTypeEnum.Extension", "MatchTypeEnum.Base" or "MatchTypeEnum.Filename"`);
                 }
                 switch (typeof options.match) {
                     case "string":
@@ -79,7 +79,7 @@ export class DirectoryManager {
                         if (!(await options.match(obj))) continue;
                         break;
                     default:
-                        throw new TypeError(`options.match contains invalid value, should be a string, regex or function`);
+                        throw new TypeError(`When trying to list the files, options.match contains invalid value, should be a string, regex or function`);
                 }
             }
 
@@ -130,14 +130,14 @@ export class DirectoryManager {
             types: TypesEnum.File,
             resultType: DirectoryListResultEnum.FilePath,
             results: [],
-        };
+        };ù
 
         if(options !== undefined) {
             if (typeof options.match === "string") {
                 defaults.matchCaseInsensitive = true;
             } else {
                 if (options.matchCaseInsensitive) {
-                    throw new TypeError("options.matchCaseInsensitive can only be specified when options.match is a string");
+                    throw new TypeError("When trying to list the files, options.matchCaseInsensitive can only be specified when options.match is a string");
                 }
             }
         }

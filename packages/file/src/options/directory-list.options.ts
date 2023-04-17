@@ -4,6 +4,12 @@ import {FileInfoInterface} from "../interfaces/file-info.interface";
 import {DirectoryListResultEnum} from "../enums/directory-list-result.enum";
 
 export interface DirectoryListOptions {
+    /**
+     * The Match type specifies how matching is done.
+     *      "BASE": Means you're matching the base filename without the extension and without the path such as "results"
+     *      "EXT": Means you're matching file extensions (without leading ".")  such as "jpeg"
+     *      "FILE_NAME": Means you're matching the base filename and extension  such as "results.jpeg"
+     */
     matchType?: MatchTypeEnum;
 
     /**
@@ -38,6 +44,7 @@ export interface DirectoryListOptions {
     recurse?: true|false|( (file: FileInfoInterface) => boolean | Promise<boolean>);
 
     /**
+     * Types determines what is being returned or listed.
      *    types: "files"|"dirs"|"both"   (defaults to "files")
      *        files is return only files (skip directories)
      *        dirs is return only directories (skip files)
