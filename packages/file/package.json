@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/file",
-  "version": "0.0.228",
+  "version": "0.0.229",
   "description": "",
   "module": "dist/lib/esm/file.module.js",
   "main": "dist/lib/cjs/file.module.js",
@@ -21,8 +21,6 @@
   },
   "dependencies": {
     "@pristine-ts/common": "file:../common"
-  },
-  "devDependencies": {
   },
   "jest": {
     "transform": {
