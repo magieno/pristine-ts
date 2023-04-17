@@ -27,7 +27,7 @@ export class FileManager {
 
                 // If the search string is found, simply add its position
                 if(position !== -1) {
-                    fileCursors.push({line: lineIndex, position})
+                    fileCursors.push({line: lineIndex, position, lineText: line})
 
                     // Move the position by the length of the search term.
                     position += search.length;
