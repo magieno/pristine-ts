@@ -130,7 +130,7 @@ export class DirectoryManager {
             types: TypesEnum.File,
             resultType: DirectoryListResultEnum.FilePath,
             results: [],
-        };ù
+        };
 
         if(options !== undefined) {
             if (typeof options.match === "string") {
