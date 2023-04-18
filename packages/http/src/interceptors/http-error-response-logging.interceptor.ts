@@ -32,7 +32,7 @@ export class HttpErrorResponseLoggingInterceptor implements HttpErrorResponseInt
         if(this.loggingEnabled) {
             this.logHandler.error("Receiving http response that has an error", {response, options}, HttpModuleKeyname);
         }
-        
+
         return response;
     }
 
