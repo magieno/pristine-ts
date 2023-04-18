@@ -3,6 +3,7 @@ import {HttpModuleKeyname} from "./http.module.keyname";
 import {LoggingModule} from "@pristine-ts/logging";
 import {BooleanResolver, EnvironmentVariableResolver} from "@pristine-ts/configuration";
 
+export * from "./http.module.keyname";
 export * from "./clients/clients";
 export * from "./enums/enums";
 export * from "./errors/errors";
