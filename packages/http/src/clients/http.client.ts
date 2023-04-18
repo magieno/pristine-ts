@@ -13,6 +13,7 @@ import {MathUtils} from "../utils/math.utils";
 import {HttpClientResponseRedirectError} from "../errors/http-client-response-redirect.error";
 import {HttpWrapperInterface} from "../interfaces/http-wrapper.interface";
 import { HttpErrorResponseInterceptorInterface } from "../interfaces/http-error-response-interceptor.interface";
+import {UrlUtils} from "../utils/url.utils";
 
 /**
  * This service is an http client for any http request you need to make outside of Pristine.
@@ -185,10 +186,7 @@ export class HttpClient implements HttpClientInterface {
             const updatedRequest = request;
 
             // Updated the URL by using the 'location' header returned by the response.
-            const url = new URL(request.url);
-            url.pathname = response.headers.location;
-
-            updatedRequest.url = url.toString()
+            updatedRequest.url = UrlUtils.appendLocationHeaderToUrl(new URL(request.url), response.headers.location).toString();
 
             const updatedRedirectCount = ++currentRedirectCount;
 
