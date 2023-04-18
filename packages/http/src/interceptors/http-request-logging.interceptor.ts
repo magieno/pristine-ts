@@ -15,7 +15,10 @@ import {HttpModuleKeyname} from "../http.module.keyname";
 @moduleScoped(HttpModuleKeyname)
 @injectable()
 export class HttpRequestLoggingInterceptor implements HttpRequestInterceptorInterface {
-    constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface) {
+    constructor(
+        @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
+        @inject("%pristine.http.logging-enabled%") private readonly loggingEnabled: boolean,
+        ) {
     }
 
     /**
@@ -24,7 +27,10 @@ export class HttpRequestLoggingInterceptor implements HttpRequestInterceptorInte
      * @param options
      */
     async interceptRequest(request: HttpRequestInterface, options: HttpRequestOptions): Promise<HttpRequestInterface> {
-        this.logHandler.info("Outgoing http request", {request, options}, HttpModuleKeyname);
+        if(this.loggingEnabled) {
+            this.logHandler.info("Outgoing http request", {request, options}, HttpModuleKeyname);
+        }
+
         return request;
     }
 }

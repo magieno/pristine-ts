@@ -16,7 +16,10 @@ import { HttpErrorResponseInterceptorInterface } from "../interfaces/http-error-
 @moduleScoped(HttpModuleKeyname)
 @injectable()
 export class HttpErrorResponseLoggingInterceptor implements HttpErrorResponseInterceptorInterface {
-    constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface) {
+    constructor(
+        @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
+        @inject("%pristine.http.logging-enabled%") private readonly loggingEnabled: boolean,
+        ) {
     }
 
     /**
@@ -26,7 +29,10 @@ export class HttpErrorResponseLoggingInterceptor implements HttpErrorResponseInt
      * @param response
      */
     async interceptErrorResponse(request: HttpRequestInterface, options: HttpRequestOptions, response: HttpResponseInterface): Promise<HttpResponseInterface> {
-        this.logHandler.error("Receiving http response that has an error", {response, options}, HttpModuleKeyname);
+        if(this.loggingEnabled) {
+            this.logHandler.error("Receiving http response that has an error", {response, options}, HttpModuleKeyname);
+        }
+        
         return response;
     }
 
