@@ -1,27 +1,33 @@
 import {AppModuleInterface} from "@pristine-ts/common";
 import {ExecutionContextKeynameEnum, Kernel} from "@pristine-ts/core";
-import {CliModule} from "@pristine/cli";
+import {CliModule} from "@pristine-ts/cli";
 import {SampleCommand} from "./sample.command";
 
-const module: AppModuleInterface = {
-    keyname: "app.cli.test",
+console.log("Starting the CLI")
 
-    importModules: [
-        CliModule,
-    ],
-    providerRegistrations: [
-        SampleCommand,
-    ],
-    configurationDefinitions: [
-    ],
-    importServices: [],
-};
+export const bootstrap = async () => {
+    const module: AppModuleInterface = {
+        keyname: "app.cli.test",
 
-const bootstrap = async () => {
+        importModules: [
+            CliModule,
+        ],
+        providerRegistrations: [
+        ],
+        configurationDefinitions: [
+        ],
+        importServices: [
+            SampleCommand,
+        ],
+    };
+
+
     const kernel = new Kernel();
     await kernel.start(module);
 
     await kernel.handle(process.argv, {keyname: ExecutionContextKeynameEnum.Cli, context: null})
 }
 
-bootstrap();
+//bootstrap();
+
+//export const a = 0;

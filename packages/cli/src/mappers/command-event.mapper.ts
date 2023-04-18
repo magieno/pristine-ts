@@ -8,7 +8,11 @@ import {
 } from "@pristine-ts/core";
 import {injectable} from "tsyringe";
 import {CommandEventPayload} from "../event-payloads/command.event-payload";
+import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {CliModuleKeyname} from "../cli.module.keyname";
 
+@tag(ServiceDefinitionTagEnum.EventMapper)
+@moduleScoped(CliModuleKeyname)
 @injectable()
 export class CommandEventMapper implements EventMapperInterface<CommandEventPayload, number>{
     supportsMapping(rawEvent: any, executionContext: ExecutionContextInterface<any>): boolean {

@@ -4,14 +4,17 @@ import {CommandEventPayload} from "../event-payloads/command.event-payload";
 import {CommandEvent} from "../types/command-event.type";
 import {CommandEventResponse} from "../types/command-event-response.type";
 import {CommandInterface} from "../interfaces/command.interface";
-import {ServiceDefinitionTagEnum} from "@pristine-ts/common";
+import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {CommandNotFoundError} from "../errors/command-not-found.error";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {Validator} from "@pristine-ts/class-validator";
 import {plainToInstance} from "class-transformer";
 import {ConsoleManager} from "../managers/console.manager";
 import {ExitCodeEnum} from "../enums/exit-code.enum";
+import {CliModuleKeyname} from "../cli.module.keyname";
 
+@tag(ServiceDefinitionTagEnum.EventHandler)
+@moduleScoped(CliModuleKeyname)
 @injectable()
 export class CliEventHandler implements EventHandlerInterface<any, any>{
     constructor(
