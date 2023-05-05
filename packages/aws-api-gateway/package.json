@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/aws-api-gateway",
-  "version": "0.0.235",
+  "version": "0.0.236",
   "description": "",
   "module": "dist/lib/esm/aws-api-gateway.module.js",
   "main": "dist/lib/cjs/aws-api-gateway.module.js",
