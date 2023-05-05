@@ -117,10 +117,14 @@ export class PathRouterNode extends RouterNode {
 
         // Having all the found children, we can only return one, so let's return the most appropriate one.
         // If a the parent of the Method is not a catch-all, this is the one we should return.
-        const nonCatchAllNode = foundChildren.find(node => node.parent?.isCatchAll() === false);
+        const nonCatchAllNodes = foundChildren.filter(node => node.parent?.isCatchAll() === false);
 
-        if (nonCatchAllNode != undefined) {
-            return nonCatchAllNode;
+        if (nonCatchAllNodes != undefined && nonCatchAllNodes.length > 0) {
+            if(nonCatchAllNodes.length === 1){
+                return nonCatchAllNodes[0];
+            }
+            // If we have more than one nonCatchAllNode, we should return in priority the one that does not contain a parameter in its whole path.
+            return nonCatchAllNodes.find(node => node.containsRouteParameterInPath() === false) ?? nonCatchAllNodes[0];
         }
 
         // If there is more than one catch-all, we will return the one that is the furthest from the top (this is the most specific)
@@ -173,6 +177,19 @@ export class PathRouterNode extends RouterNode {
      */
     isRouteParameter(): boolean {
         return UrlUtil.isPathARouteParameter(this.path)
+    }
+
+    /**
+     * This method returns whether or not this pathRouterNode contains a route parameter in the whole path including all its parents.
+     */
+    containsRouteParameterInPath(): boolean {
+        if(UrlUtil.isPathARouteParameter(this.path)) {
+            return true;
+        }
+        if(this.parent === undefined) {
+            return false;
+        }
+        return this.parent.containsRouteParameterInPath();
     }
 
     /**

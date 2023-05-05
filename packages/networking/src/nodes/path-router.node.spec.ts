@@ -13,13 +13,13 @@ describe("Path Router Node tests", () => {
 
 
     it("should match if the path matches", () => {
-        const pathRouterNode = new PathRouterNode("/allo", undefined)
+        const pathRouterNode = new PathRouterNode("/hello", undefined)
 
-        expect(pathRouterNode.matches("/allo")).toBeTruthy()
+        expect(pathRouterNode.matches("/hello")).toBeTruthy()
     })
 
     it("should match if the path doesn't match", () => {
-        const pathRouterNode = new PathRouterNode("/allo", undefined)
+        const pathRouterNode = new PathRouterNode("/hello", undefined)
 
         expect(pathRouterNode.matches("hello")).toBeFalsy();
     })
@@ -40,21 +40,21 @@ describe("Path Router Node tests", () => {
         const pathRouterNode = new PathRouterNode("/*", undefined)
 
         expect(pathRouterNode.matches("24a12cf7-8bc7-447c-9cb0-d97f5eb23fbb")).toBeTruthy();
-        expect(pathRouterNode.matches("allo/fda/fdafs/fdasfsda")).toBeTruthy();
+        expect(pathRouterNode.matches("hello/fda/fdafs/fdasfsda")).toBeTruthy();
     })
 
     it("should match when there are nested catch-all", () => {
         // /api/*
-        // /api/*/patates
+        // /api/*/potatoes
         // /api/{versionId}/
-        // /api/2.0/celeris
+        // /api/2.0/celeries
         // /api/2.0/tomatoes
 
         const pathRouterNode = new PathRouterNode("/", undefined)
         pathRouterNode.add(["/", "/api", "/*"], HttpMethod.Get, new Route(undefined, ""), 0);
-        pathRouterNode.add(["/", "/api", "/*", "/patates"], HttpMethod.Get, new Route(undefined, ""), 0);
-        pathRouterNode.add(["/", "/api", "/{versionId}", "/celeris"], HttpMethod.Get, new Route(undefined, ""), 0);
-        pathRouterNode.add(["/", "/api", "/2.0", "/celeris"], HttpMethod.Get, new Route(undefined, ""), 0);
+        pathRouterNode.add(["/", "/api", "/*", "/potatoes"], HttpMethod.Get, new Route(undefined, ""), 0);
+        pathRouterNode.add(["/", "/api", "/{versionId}", "/celeries"], HttpMethod.Get, new Route(undefined, ""), 0);
+        pathRouterNode.add(["/", "/api", "/2.0", "/celeries"], HttpMethod.Get, new Route(undefined, ""), 0);
         pathRouterNode.add(["/", "/api", "/2.0", "/tomatoes"], HttpMethod.Get, new Route(undefined, ""), 0);
 
         const api20TomatoesNode = pathRouterNode.find(["/", "/api", "/2.0", "/tomatoes"], HttpMethod.Get);
@@ -62,39 +62,45 @@ describe("Path Router Node tests", () => {
         expect(api20TomatoesNode).toBeDefined();
         expect(api20TomatoesNode!.parent).toBeDefined();
         expect((api20TomatoesNode!.parent! as PathRouterNode).path).toBe("/tomatoes");
+        expect((api20TomatoesNode!.parent!.parent as PathRouterNode).path).toBe("/2.0");
+        expect((api20TomatoesNode!.parent!.parent!.parent as PathRouterNode).path).toBe("/api");
 
-        const api20CelerisNode = pathRouterNode.find(["/", "/api", "/2.0", "/celeris"], HttpMethod.Get);
+        const api20celeriesNode = pathRouterNode.find(["/", "/api", "/2.0", "/celeries"], HttpMethod.Get);
 
-        expect(api20CelerisNode).toBeDefined();
-        expect(api20CelerisNode!.parent).toBeDefined();
- expect((api20CelerisNode!.parent! as PathRouterNode).path).toBe("/celeris");
+        expect(api20celeriesNode).toBeDefined();
+        expect(api20celeriesNode!.parent).toBeDefined();
+        expect((api20celeriesNode!.parent! as PathRouterNode).path).toBe("/celeries");
+        expect((api20celeriesNode!.parent!.parent as PathRouterNode).path).toBe("/2.0");
+        expect((api20TomatoesNode!.parent!.parent!.parent as PathRouterNode).path).toBe("/api");
 
-        const api10CelerisNode = pathRouterNode.find(["/", "/api", "/1.0", "/celeris"], HttpMethod.Get);
+        const api10celeriesNode = pathRouterNode.find(["/", "/api", "/1.0", "/celeries"], HttpMethod.Get);
 
-        expect(api10CelerisNode).toBeDefined();
-        expect(api10CelerisNode!.parent).toBeDefined();
-        expect((api10CelerisNode!.parent! as PathRouterNode).path).toBe("/celeris");
-        expect((api10CelerisNode!.parent!.parent as PathRouterNode).path).toBe("/{versionId}");
-        expect((api10CelerisNode!.parent!.parent as PathRouterNode).isRouteParameter()).toBeTruthy();
+        expect(api10celeriesNode).toBeDefined();
+        expect(api10celeriesNode!.parent).toBeDefined();
+        expect((api10celeriesNode!.parent! as PathRouterNode).path).toBe("/celeries");
+        expect((api10celeriesNode!.parent!.parent as PathRouterNode).path).toBe("/{versionId}");
+        expect((api10celeriesNode!.parent!.parent as PathRouterNode).isRouteParameter()).toBeTruthy();
+        expect((api20TomatoesNode!.parent!.parent!.parent as PathRouterNode).path).toBe("/api");
 
-        const api10CatchAllPatates = pathRouterNode.find(["/", "/api", "/1.0", "/patates"], HttpMethod.Get);
+        const api10CatchAllpotatoes = pathRouterNode.find(["/", "/api", "/1.0", "/potatoes"], HttpMethod.Get);
 
-        expect(api10CatchAllPatates).toBeDefined();
-        expect(api10CatchAllPatates!.parent).toBeDefined();
-        expect((api10CatchAllPatates!.parent! as PathRouterNode).path).toBe("/patates");
-        expect((api10CatchAllPatates!.parent!.parent as PathRouterNode).path).toBe("/*");
-        expect((api10CatchAllPatates!.parent!.parent as PathRouterNode).isCatchAll()).toBeTruthy();
+        expect(api10CatchAllpotatoes).toBeDefined();
+        expect(api10CatchAllpotatoes!.parent).toBeDefined();
+        expect((api10CatchAllpotatoes!.parent! as PathRouterNode).path).toBe("/potatoes");
+        expect((api10CatchAllpotatoes!.parent!.parent as PathRouterNode).path).toBe("/*");
+        expect((api10CatchAllpotatoes!.parent!.parent as PathRouterNode).isCatchAll()).toBeTruthy();
+        expect((api20TomatoesNode!.parent!.parent!.parent as PathRouterNode).path).toBe("/api");
 
     })
 
     it("should return null if the split paths passed is less than 1", () => {
-        const pathRouterNode = new PathRouterNode("/allo", undefined)
+        const pathRouterNode = new PathRouterNode("/hello", undefined)
 
         expect(pathRouterNode.find([], HttpMethod.Get)).toBeNull();
     })
 
     it("should return null if the split paths[0] doesn't match", () => {
-        const pathRouterNode = new PathRouterNode("/allo", undefined)
+        const pathRouterNode = new PathRouterNode("/hello", undefined)
 
         expect(pathRouterNode.find(["/hello"], HttpMethod.Get)).toBeNull();
     })
@@ -132,10 +138,7 @@ describe("Path Router Node tests", () => {
         expect(root.find(["/", "/api", "/2.0", "/cats", "/137db2ad-e94f-4232-ba13-7910586fa43a", "/kittens", "/408ef3cf-f699-4179-a68a-2ea0071dc4fe"], HttpMethod.Put) instanceof MethodRouterNode).toBeTruthy()
         expect(root.find(["/", "/api", "/2.0", "/cats", "/2528779c-c7c0-493d-bfa9-c8437aede654", "/kittens", "/5cac58bf-9768-4b5b-8a5e-9a7c24a05f44"], HttpMethod.Patch) instanceof MethodRouterNode).toBeTruthy()
         expect(root.find(["/", "/api", "/2.0", "/cats", "/e41c7631-000e-4f5d-8ab5-ee706ff2034e", "/kittens", "/70adb9b5-b33b-4bfa-be38-8c30cb52768d"], HttpMethod.Delete) instanceof MethodRouterNode).toBeTruthy()
-
-
     })
-
 
     it("should retrieve the route parameters with the proper names and values", () => {
         const kittenSplitPaths = ["/", "/api", "/2.0", "/cats", "/137db2ad-e94f-4232-ba13-7910586fa43a", "/kittens", "/408ef3cf-f699-4179-a68a-2ea0071dc4fe"];
@@ -183,7 +186,7 @@ describe("Path Router Node tests", () => {
     })
 
     it("should properly return a catch-all even if the path is longer", () => {
-        expect(root.find(["/", "/api", "/2.0", "/frogs", "/allo", "/fdfsa"], HttpMethod.Options) instanceof MethodRouterNode).toBeTruthy()
+        expect(root.find(["/", "/api", "/2.0", "/frogs", "/hello", "/fdfsa"], HttpMethod.Options) instanceof MethodRouterNode).toBeTruthy()
     })
 
     it("should not return the catch-all if there's a more precise route", () => {
