@@ -46,5 +46,10 @@ export abstract class RouterNode {
      * This method will return true if the node is a catch-all path.
      */
     abstract isCatchAll(): boolean;
+
+    /**
+     * This method will return true if the node contains a route parameter in the whole path.
+     */
+    abstract containsRouteParameterInPath(): boolean;
 }
 

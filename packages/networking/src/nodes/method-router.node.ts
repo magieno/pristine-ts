@@ -38,6 +38,13 @@ export class MethodRouterNode extends RouterNode {
     }
 
     /**
+     * This method will return true if the node contains a route parameter in the whole path.
+     */
+    containsRouteParameterInPath(): boolean {
+        return this.parent?.containsRouteParameterInPath() ?? false;
+    }
+
+    /**
      * This method adds all the required nodes to match the splitPaths and the method.
      * Since a MethodRouterNode is a leaf node, you can't add anything after it, this method therefore doesn't do anything.
      * @param splitPaths
