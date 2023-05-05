@@ -4,7 +4,7 @@ import { Severity as SentrySeverity } from "@sentry/node";
 import { Readable } from "stream";
 import { LoggerInterface, LogModel, SeverityEnum } from "@pristine-ts/logging";
 import { moduleScoped, ServiceDefinitionTagEnum, tag } from "@pristine-ts/common";
-import { SentryModule } from "../sentry.module";
+import {SentryModuleKeyname} from "../sentry.module.keyname";
 
 /**
  * The SentryLogger captures the logs and sends it to Sentry.
@@ -12,7 +12,7 @@ import { SentryModule } from "../sentry.module";
  * It is module scoped to the Sentry module so that it is only registered if the Sentry module is imported in the app module.
  */
 @tag(ServiceDefinitionTagEnum.Logger)
-@moduleScoped(SentryModule.keyname)
+@moduleScoped(SentryModuleKeyname)
 @injectable()
 export class SentryLogger implements LoggerInterface {
 
