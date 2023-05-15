@@ -9,6 +9,7 @@ import { defaultProvider } from "@aws-sdk/credential-provider-node"; // V3 SDK.
 import {ApiResponse, Client, RequestParams} from '@opensearch-project/opensearch';
 import { AwsSigv4Signer } from '@opensearch-project/opensearch/aws';
 import {SearchResultAggregation} from "../models/search-result-aggregation.model";
+import {SearchResultHit} from "../models/search-result-hit.model";
 
 @injectable()
 export class OpenSearchClient {
@@ -37,7 +38,15 @@ export class OpenSearchClient {
         searchResult.maximumNumberOfResultsPerPage = maximumNumberOfResultsPerPage ?? searchResult.maximumNumberOfResultsPerPage;
         searchResult.numberOfReturnedResults = response?.body?.hits?.hits?.length ?? searchResult.numberOfReturnedResults;
         searchResult.total = response?.body?.hits?.total?.value ?? searchResult.total;
-        searchResult.results = response?.body?.hits?.hits ?? 0;
+        searchResult.hits = (response?.body?.hits?.hits ?? []).map( (result: any) => {
+            const searchResultHit = new SearchResultHit();
+            searchResultHit.id = result._id ?? searchResultHit.id;
+            searchResultHit.index = result._index ?? searchResultHit.index;
+            searchResultHit.score = result._score ?? searchResultHit.score;
+            searchResultHit.data = result._source ?? searchResultHit.data;
+
+            return searchResultHit;
+        });
 
         if (response?.body?.aggregations) {
 
