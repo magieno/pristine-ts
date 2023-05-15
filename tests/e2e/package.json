@@ -2,7 +2,7 @@
   "name": "@pristine-ts/e2e",
   "version": "1.0.0",
   "scripts": {
-    "run:cli": "ts-node --log-error -p tsconfig.e2e.json scenarios/modules/cli/cli.ts"
+    "run:cli": "ts-node -p ../../tsconfig.json scenarios/modules/cli/cli.ts"
   },
   "dependencies": {
     "@pristine-ts/auth0": "file:../../packages/auth0",
@@ -16,6 +16,7 @@
     "class-transformer": "^0.4.0",
     "@pristine-ts/class-validator": "^1.0.5",
     "ts-node": "^10.9.1",
+    "tsyringe": "^4.7.0",
     "uuid": "^8.3.2"
   },
   "devDependencies": {

@@ -24,7 +24,7 @@ const bootstrap = async () => {
     const kernel = new Kernel();
     await kernel.start(module);
 
-    await kernel.handle(process.argv, {keyname: ExecutionContextKeynameEnum.AwsLambda, context: null})
+    await kernel.handle(process.argv, {keyname: ExecutionContextKeynameEnum.Cli, context: null})
 }
 
 bootstrap();
