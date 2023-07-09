@@ -1,14 +1,14 @@
 import {injectable, scoped, Lifecycle, inject} from "tsyringe";
 import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {AwsSchedulingModuleKeyname} from "../aws-scheduling.module.keyname";
-import {Event, EventListenerInterface, EventResponse} from "@pristine-ts/core";
+import {Event, EventHandlerInterface, EventListenerInterface, EventResponse} from "@pristine-ts/core";
 import {EventBridgePayload, EventBridgeEventTypeEnum} from "@pristine-ts/aws";
 import {SchedulerInterface} from "@pristine-ts/scheduling";
 
 @moduleScoped(AwsSchedulingModuleKeyname)
-@tag(ServiceDefinitionTagEnum.EventListener)
+@tag(ServiceDefinitionTagEnum.EventHandler)
 @injectable()
-export class EventBridgeCronEventListener implements EventListenerInterface {
+export class EventBridgeCronEventHandler implements EventHandlerInterface<any, any> {
     constructor(@inject("SchedulerInterface") private readonly scheduler: SchedulerInterface) {
     }
 
@@ -17,10 +17,10 @@ export class EventBridgeCronEventListener implements EventListenerInterface {
      *
      * @param event
      */
-    async execute<EventPayload>(event: Event<EventPayload>): Promise<void> {
+    async handle(event: Event<any>): Promise<EventResponse<any, any>> {
         await this.scheduler.runTasks();
 
-        return Promise.resolve();
+        return new EventResponse<any, any>(event, {});
     }
 
     /**
@@ -30,5 +30,4 @@ export class EventBridgeCronEventListener implements EventListenerInterface {
     supports<T>(event: Event<T>): boolean {
         return event.payload instanceof EventBridgePayload && event.type === EventBridgeEventTypeEnum.ScheduledEvent;
     }
-
 }

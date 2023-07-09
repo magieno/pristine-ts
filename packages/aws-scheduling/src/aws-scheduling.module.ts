@@ -5,7 +5,7 @@ import {LoggingModule} from "@pristine-ts/logging";
 import {SchedulingModule} from "@pristine-ts/scheduling";
 import {AwsModule} from "@pristine-ts/aws";
 
-export * from "./event-listeners/event-listeners";
+export * from "./event-handlers/event-handlers";
 
 export const AwsSchedulingModule: ModuleInterface = {
     keyname: AwsSchedulingModuleKeyname,
