@@ -45,8 +45,9 @@ export class SqsClient implements SqsClientInterface {
      * @param messageGroupId The message group id for FIFO queues.
      * @param delaySeconds The length of time, in seconds, for which to delay a specific message.
      * @param endpoint The endpoint for SQS.
+     * @param messageDeduplicationId The unique id used by Amazon SQS in Fifo queues to avoid treating a message twice.
      */
-    async send(queueUrl: string, body: string, messageGroupId?: string, delaySeconds?: number, endpoint?: string): Promise<SqsMessageSentConfirmationModel> {
+    async send(queueUrl: string, body: string, messageGroupId?: string, delaySeconds?: number, endpoint?: string, messageDeduplicationId?: string): Promise<SqsMessageSentConfirmationModel> {
         try {
             const client = this.getClient(endpoint);
 
@@ -55,6 +56,7 @@ export class SqsClient implements SqsClientInterface {
                 MessageBody: body,
                 MessageGroupId: messageGroupId,
                 DelaySeconds: delaySeconds,
+                MessageDeduplicationId: messageDeduplicationId,
             });
 
             this.logHandler.debug("Sending a message to the queue", {
@@ -62,6 +64,7 @@ export class SqsClient implements SqsClientInterface {
                 body,
                 messageGroupId,
                 delaySeconds,
+                messageDeduplicationId,
             }, AwsModuleKeyname)
 
             const response = await client.send(command);
@@ -72,6 +75,7 @@ export class SqsClient implements SqsClientInterface {
                 messageGroupId,
                 delaySeconds,
                 response,
+                messageDeduplicationId
             }, AwsModuleKeyname)
 
             return {
@@ -85,6 +89,7 @@ export class SqsClient implements SqsClientInterface {
                 body,
                 messageGroupId,
                 delaySeconds,
+                messageDeduplicationId,
             }, AwsModuleKeyname);
 
             throw new SqsSendMessageError(error, queueUrl, body, messageGroupId, delaySeconds);
