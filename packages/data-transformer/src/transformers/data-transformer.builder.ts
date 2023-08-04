@@ -8,27 +8,24 @@ import {DataTransformerModuleKeyname} from "../data-transformer.module.keyname";
 @moduleScoped(DataTransformerModuleKeyname)
 @injectable()
 export class DataTransformerBuilder {
-    public normalizers: { [id in DataNormalizerUniqueKey]: { options: any}} = {};
-
-    public destination: any;
+    public normalizers: { key: DataNormalizerUniqueKey, options: any}[] = [];
 
     public properties: {[sourceProperty in string]: DataTransformerProperty} = {}
 
-    public addNormalizer(normalizerUniqueKey: string, options?: any): DataTransformerBuilder {
-        if(this.normalizers[normalizerUniqueKey] !== undefined) {
+    public addNormalizer(normalizerUniqueKey: DataNormalizerUniqueKey, options?: any): DataTransformerBuilder {
+        if(this.hasNormalizer(normalizerUniqueKey)) {
             throw new DataNormalizerAlreadyAdded("The data normalizer '" + normalizerUniqueKey + "' has already been added to this builder.", normalizerUniqueKey, options);
         }
 
-        this.normalizers[normalizerUniqueKey] = {
+        this.normalizers.push({
+            key: normalizerUniqueKey,
             options,
-        };
+        });
         return this;
     }
 
-    public setDestination(destination: any): DataTransformerBuilder {
-        this.destination = destination;
-
-        return this;
+    public hasNormalizer(normalizerUniqueKey: DataNormalizerUniqueKey): boolean {
+        return this.normalizers.find(element => element.key === normalizerUniqueKey) !== undefined;
     }
 
     public add() {

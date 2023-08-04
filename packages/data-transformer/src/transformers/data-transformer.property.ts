@@ -5,8 +5,9 @@ import {DataTransformerBuilder} from "./data-transformer.builder";
 export class DataTransformerProperty {
     public sourceProperty!: string;
     public destinationProperty!: string;
-    public normalizers: { [id in DataNormalizerUniqueKey]: { options: any}} = {};
+    public normalizers: { key: DataNormalizerUniqueKey, options: any}[] = [];
     public excludedNormalizers: Set<DataNormalizerUniqueKey> = new Set<DataNormalizerUniqueKey>();
+    public isOptional: boolean = false;
 
     public constructor(private readonly builder: DataTransformerBuilder) {
     }
@@ -21,19 +22,24 @@ export class DataTransformerProperty {
     }
 
     public addNormalizer(normalizerUniqueKey: DataNormalizerUniqueKey, options?: any): DataTransformerProperty {
-        if(this.normalizers[normalizerUniqueKey] !== undefined) {
+        if(this.hasNormalizer(normalizerUniqueKey)) {
             throw new DataNormalizerAlreadyAdded("The data normalizer '" + normalizerUniqueKey + "' has already been added to this source property: '" + this.sourceProperty + "'.", normalizerUniqueKey, options)
         }
 
-        if(this.builder.normalizers) {
+        if(this.builder.hasNormalizer(normalizerUniqueKey)) {
             throw new DataNormalizerAlreadyAdded("The data normalizer '" + normalizerUniqueKey + "' has already been added to the builder and cannot be also added to this source property: '" + this.sourceProperty + "'.", normalizerUniqueKey, options)
         }
 
-        this.normalizers[normalizerUniqueKey] = {
+        this.normalizers.push({
+            key: normalizerUniqueKey,
             options,
-        };
+        });
 
         return this;
+    }
+
+    public hasNormalizer(normalizerUniqueKey: DataNormalizerUniqueKey): boolean {
+        return this.normalizers.find(element => element.key === normalizerUniqueKey) !== undefined;
     }
 
     public addExcludedNormalizer(normalizerUniqueKey: DataNormalizerUniqueKey): DataTransformerProperty {
@@ -42,6 +48,12 @@ export class DataTransformerProperty {
         }
 
         this.excludedNormalizers.add(normalizerUniqueKey);
+
+        return this;
+    }
+
+    public setIsOptional(isOptional: boolean): DataTransformerProperty {
+        this.isOptional = isOptional;
 
         return this;
     }
