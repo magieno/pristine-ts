@@ -6,6 +6,7 @@ export class DataTransformerProperty {
     public sourceProperty!: string;
     public destinationProperty!: string;
     public normalizers: { [id in DataNormalizerUniqueKey]: { options: any}} = {};
+    public excludedNormalizers: Set<DataNormalizerUniqueKey> = new Set<DataNormalizerUniqueKey>();
 
     public constructor(private readonly builder: DataTransformerBuilder) {
     }
@@ -19,7 +20,7 @@ export class DataTransformerProperty {
         return this;
     }
 
-    public addNormalizer(normalizerUniqueKey: string, options?: any): DataTransformerProperty {
+    public addNormalizer(normalizerUniqueKey: DataNormalizerUniqueKey, options?: any): DataTransformerProperty {
         if(this.normalizers[normalizerUniqueKey] !== undefined) {
             throw new DataNormalizerAlreadyAdded("The data normalizer '" + normalizerUniqueKey + "' has already been added to this source property: '" + this.sourceProperty + "'.", normalizerUniqueKey, options)
         }
@@ -31,6 +32,16 @@ export class DataTransformerProperty {
         this.normalizers[normalizerUniqueKey] = {
             options,
         };
+
+        return this;
+    }
+
+    public addExcludedNormalizer(normalizerUniqueKey: DataNormalizerUniqueKey): DataTransformerProperty {
+        if(this.excludedNormalizers.has(normalizerUniqueKey)) {
+            throw new DataNormalizerAlreadyAdded("The EXCLUDED data normalizer '" + normalizerUniqueKey + "' has already been added to this source property: '" + this.sourceProperty + "'.", normalizerUniqueKey)
+        }
+
+        this.excludedNormalizers.add(normalizerUniqueKey);
 
         return this;
     }
