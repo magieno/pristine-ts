@@ -1,31 +1,3 @@
-enum Province {
-    Quebec = "Quebec"
-}
-
-
-
-class NumberNormalizerOptions {
-    public significantDigits = 2;
-
-    public test?: string;
-
-    public test2: string = "";
-
-    public constructor(options: NumberNormalizerOptions) {
-        // Do a smart override if the value isn't there, don't override the default value.
-    }
-}
-
-class NumberNormalizer implements DataNormalizer<number, NumberNormalizerOptions>{
-    getUniqueKey(): DataNormalizerUniqueKey {
-        return NumberNormalizer.name;
-    }
-
-    normalize(source: any): number {
-        // Transform source into a number;
-        return 0;
-    }
-}
 
 class LowerCaseNormalizer implements DataNormalizer<string, any> {
     getUniqueKey(): DataNormalizerUniqueKey {
@@ -37,108 +9,12 @@ class LowerCaseNormalizer implements DataNormalizer<string, any> {
     }
 }
 
-class ProvinceDataNormalizer implements DataNormalizer<Province, any> {
-    getUniqueKey(): DataNormalizerUniqueKey {
-        return ProvinceDataNormalizer.name;
-    }
-
-    normalize(value: any, options: any): Province {
-        switch (value) {
-            case "quebec":
-            case "pq":
-            case "qc":
-                return Province.Quebec;
-        }
-        return Province.Quebec;
-    }
-}
-
-class DataNormalizerAlreadyAdded extends Error {}
-
-class DataTransformerProperty {
-    public sourceProperty!: string;
-    public destinationProperty!: string;
-    public normalizers: { [id in DataNormalizerUniqueKey]: { options: any}} = {};
-
-    public constructor(private readonly builder: DataTransformerBuilder) {
-    }
-
-    public setSourceProperty(sourceProperty: string): DataTransformerProperty {
-        this.sourceProperty = sourceProperty;
-        return this;
-    }
-    public setDestinationProperty(destinationProperty: string): DataTransformerProperty {
-        this.destinationProperty = destinationProperty;
-        return this;
-    }
-
-    public addNormalizer(normalizerUniqueKey: string, options?: any): DataTransformerProperty {
-        if(this.normalizers[normalizerUniqueKey] !== undefined) {
-            throw new DataNormalizerAlreadyAdded("The data normalizer '" + normalizerUniqueKey + "' has already been added to this source property: '" + this.sourceProperty + "'.")
-        }
-
-        if(this.builder.normalizers) {
-            throw new DataNormalizerAlreadyAdded("The data normalizer '" + normalizerUniqueKey + "' has already been added to the builder and cannot be also added to this source property: '" + this.sourceProperty + "'.")
-        }
-
-        this.normalizers[normalizerUniqueKey] = {
-            options,
-        };
-
-        return this;
-    }
-
-    public end(): DataTransformerBuilder {
-        this.builder.addNewProperty(this);
-
-        return this.builder;
-    }
-}
-
-class DataTransformerBuilder {
-    public normalizers: { [id in DataNormalizerUniqueKey]: { options: any}} = {};
-
-    public destination: any;
-
-    public properties: {[sourceProperty in string]: DataTransformerProperty} = {}
-
-    public addNormalizer(normalizerUniqueKey: string, options?: any): DataTransformerBuilder {
-        if(this.normalizers[normalizerUniqueKey] !== undefined) {
-            throw new DataNormalizerAlreadyAdded("The data normalizer '" + normalizerUniqueKey + "' has already been added to this builder.")
-        }
-
-        this.normalizers[normalizerUniqueKey] = {
-            options,
-        };
-        return this;
-    }
-
-    public setDestination(destination: any): DataTransformerBuilder {
-        this.destination = destination;
-
-        return this;
-    }
-
-    public add() {
-        return new DataTransformerProperty(this);
-    }
-
-    public addNewProperty(property: DataTransformerProperty) {
-        this.properties[property.sourceProperty] = property;
-    }
-}
-
 class DataTransformer {
     public constructor(
         private readonly dataNormalizers: DataNormalizer<any, any>[]) {
     }
 }
 
-class TestDestination {
-    province: Province;
-
-    nonEligibleDividendNonConnected: number;
-}
 /*
 *   We want the ability to map a source value to a destination value.
 *   Doing so, we want to use TypeScript as much as possible.

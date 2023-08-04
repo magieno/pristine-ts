@@ -6,6 +6,7 @@
  */
 export enum ServiceDefinitionTagEnum {
     CurrentChildContainer = "CURRENT_CHILD_CONTAINER",
+    DataNormalizer = "DATA_NORMALIZER",
     EventHandler = "EventHandlerInterface",
     EventInterceptor = "EventInterceptorInterface",
     EventListener = "EventListenerInterface",
