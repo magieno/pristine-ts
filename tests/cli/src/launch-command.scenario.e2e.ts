@@ -3,10 +3,8 @@ import {exec} from "child_process";
 describe('CLI - Launch command',  () => {
     it("should properly launch a command", () => {
         // Launch the sample command
-        // todo: make sure the help and list commands can be successfully launched.
-
         return new Promise<void>((resolve, reject) => {
-            exec("npm run cli", (error, stdout, stderr) => {
+            exec("npm run sample", (error, stdout, stderr) => {
                 if (error) {
                     console.log(`error: ${error.message}`);
                     expect(false).toBeTruthy();

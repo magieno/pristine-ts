@@ -1,25 +1,31 @@
 # CLI module
 
+The CLI Module allows you to create your own Commands by simply implementing the `CommandInterface`.
 
-First thing, is map the raw nodejs command event to a Command Event.
+Then, you tag your class using the `@tag(ServiceDefinitionTagEnum.Command)` decorator.
 
-Create a CLI Event Handler that will handle the Command Event. Internally, it will have all the commands injected in its constructor.
+You specify the expected arguments using an Options Class that is validated automatically for you using the `class-validator` library.
 
-Each command will implement the CommandInterface.
+You will need to modify your project's `package.json` by adding this: 
+```
 
-The CliEventHandler will take the CommandEvent, determine to which Command it matches.
-
-Then, it will validate that the arguments passed are valid.
-
-If yes, then the `run` method of the Command with the proper arguments.
-
-
-#Latest to do
-Write a new regex that captures the parameters and their values in separate group
-
-# How to use
+...
+"pristine": {
+    "appModule": {
+        "cjsPath": "RELATIVE_PATH_TO_YOUR_MODULE_COMPILE_FOR_CJS"
+    }
+}
+...
 
 ```
-    
-    process.exit(await kernel.handle(process.argv, {keyname:ExecutionContextKeynameEnum.Cli}));
+
+Then, you add your command to the `package.json` such as:
+
+```
+  "scripts": {
+  ...
+    "cli": "pristine YOUR_COMMAND_HERE YOUR_ARGUMENTS_HERE"
+  ...
+  },
+
 ```

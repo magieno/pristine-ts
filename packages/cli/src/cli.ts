@@ -43,7 +43,6 @@ const bootstrap = async () => {
 
     const cjsPath = await getLocalAppModuleCJSPath();
 
-    // @ts-ignore
     const localAppModule = await import(cjsPath);
 
     const kernel = new Kernel();
