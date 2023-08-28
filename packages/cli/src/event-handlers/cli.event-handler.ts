@@ -57,7 +57,7 @@ export class CliEventHandler implements EventHandlerInterface<any, any>{
         );
 
         // Log the status and the command
-        this.logHandler.info("Command '" + event.payload.name + "' exited with code: '" + exitCode + "'");
+        this.consoleManager.writeLine("Command '" + event.payload.name + "' exited with code: '" + exitCode + "'");
 
         return new CommandEventResponse(event, exitCode);
     }

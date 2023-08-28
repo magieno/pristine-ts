@@ -6,18 +6,21 @@ describe('CLI - Launch command',  () => {
         // todo: make sure the help and list commands can be successfully launched.
 
         return new Promise<void>((resolve, reject) => {
-            exec("ts-node -p tsconfig.e2e.json scenarios/modules/cli/cli.ts help", (error, stdout, stderr) => {
+            exec("npm run cli", (error, stdout, stderr) => {
                 if (error) {
                     console.log(`error: ${error.message}`);
-                    return;
+                    expect(false).toBeTruthy();
+                    return reject();
                 }
                 if (stderr) {
                     console.log(`stderr: ${stderr}`);
-                    return;
+                    expect(false).toBeTruthy();
+                    return reject();
                 }
                 console.log(`stdout: ${stdout}`);
 
-                resolve();
+                expect(error).toBeNull();
+                return resolve();
             });
         })
     })

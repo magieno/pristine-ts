@@ -6,8 +6,7 @@
   "types": "dist/types/cli.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
-    "run:cli": "node dist/lib/cjs/cli.js sample",
-    "test": "pristine"
+    "cli": "pristine sample"
   },
   "dependencies": {
     "@pristine-ts/cli": "file:../../packages/cli",
@@ -22,5 +21,44 @@
   },
   "devDependencies": {
     "@types/uuid": "^8.3.4"
+  },
+  "pristine": {
+    "appModule": {
+      "cjsPath": "./dist/lib/cjs/app.module.js"
+    }
+  },
+  "jest": {
+    "transform": {
+      ".(ts|tsx)": "ts-jest"
+    },
+    "globals": {
+      "ts-jest": {
+        "tsconfig": {
+          "strictNullChecks": false
+        }
+      }
+    },
+    "testEnvironment": "node",
+    "testRegex": "(/__tests__/.*|\\.(test|spec|e2e))\\.(ts|tsx|js)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/test/"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 90,
+        "functions": 95,
+        "lines": 95,
+        "statements": 95
+      }
+    },
+    "collectCoverageFrom": [
+      "src/*.{js,ts}"
+    ]
   }
 }
