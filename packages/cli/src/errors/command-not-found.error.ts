@@ -5,7 +5,7 @@ import {LoggableError} from "@pristine-ts/common";
  */
 export class CommandNotFoundError extends LoggableError {
     /**
-     * This Error is the base class for DynamoDB errors.
+     * This Error is the base class for CommandNotFoundError errors.
      * @param commandName The name of the command that could not be found
      */
     public constructor(
