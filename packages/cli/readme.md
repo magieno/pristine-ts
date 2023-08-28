@@ -3,7 +3,7 @@
 
 First thing, is map the raw nodejs command event to a Command Event.
 
-Create a CLI Event Handler that will handle the Command Event. Internally, it will have al the commands injected in its constructor.
+Create a CLI Event Handler that will handle the Command Event. Internally, it will have all the commands injected in its constructor.
 
 Each command will implement the CommandInterface.
 
