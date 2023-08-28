@@ -2,6 +2,7 @@ import {ModuleInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {CliModuleKeyname} from "./cli.module.keyname";
 import {CoreModule} from "@pristine-ts/core";
 import {ValidationModule} from "@pristine-ts/validation";
+import {LoggingModule} from "@pristine-ts/logging";
 
 export * from "./commands/commands";
 export * from "./enums/enums";
@@ -19,6 +20,7 @@ export const CliModule: ModuleInterface = {
     ],
     importModules: [
         CoreModule,
+        LoggingModule,
         ValidationModule,
     ]
 }

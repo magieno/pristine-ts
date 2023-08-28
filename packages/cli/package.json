@@ -5,6 +5,9 @@
   "module": "dist/lib/esm/cli.module.js",
   "main": "dist/lib/cjs/cli.module.js",
   "types": "dist/types/cli.module.d.ts",
+  "bin": {
+    "pristine": "dist/lib/cjs/bin.js"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
     "prepublish": "npm run build",
@@ -22,6 +25,7 @@
   "dependencies": {
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/core": "file:../core",
+    "@pristine-ts/logging": "file:../logging",
     "@pristine-ts/validation": "file:../validation",
     "class-transformer": "^0.5.1"
   },

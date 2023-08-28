@@ -6,7 +6,8 @@
   "types": "dist/types/cli.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
-    "run:cli": "node dist/lib/cjs/cli.js sample"
+    "run:cli": "node dist/lib/cjs/cli.js sample",
+    "test": "pristine"
   },
   "dependencies": {
     "@pristine-ts/cli": "file:../../packages/cli",
