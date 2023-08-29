@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/cli",
-  "version": "0.0.228",
+  "version": "0.0.240",
   "description": "",
   "module": "dist/lib/esm/cli.module.js",
   "main": "dist/lib/cjs/cli.module.js",
@@ -28,8 +28,6 @@
     "@pristine-ts/logging": "file:../logging",
     "@pristine-ts/validation": "file:../validation",
     "class-transformer": "^0.5.1"
-  },
-  "devDependencies": {
   },
   "jest": {
     "transform": {
