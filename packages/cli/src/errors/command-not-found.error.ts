@@ -1,7 +1,7 @@
 import {LoggableError} from "@pristine-ts/common";
 
 /**
- * This Error is the base class for CommandNotFoundError errors.
+ * The CommandNotFoundError error when the command specified is not implemented.
  */
 export class CommandNotFoundError extends LoggableError {
     /**
