@@ -1,26 +1,32 @@
 {
-  "name": "@pristine-ts/e2e",
+  "name": "@pristine-ts/tests-cli",
   "version": "1.0.0",
+  "module": "dist/lib/esm/cli.js",
+  "main": "dist/lib/cjs/cli.js",
+  "types": "dist/types/cli.d.ts",
   "scripts": {
-    "run:cli": "ts-node -p ../../tsconfig.json scenarios/modules/cli/cli.ts"
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
+    "sample": "pristine sample",
+    "help": "pristine help"
   },
   "dependencies": {
-    "@pristine-ts/auth0": "file:../../packages/auth0",
     "@pristine-ts/cli": "file:../../packages/cli",
     "@pristine-ts/common": "file:../../packages/common",
     "@pristine-ts/core": "file:../../packages/core",
-    "@pristine-ts/express": "file:../../packages/express",
     "@pristine-ts/logging": "file:../../packages/logging",
     "@pristine-ts/networking": "file:../../packages/networking",
-    "@pristine-ts/security": "file:../../packages/security",
     "class-transformer": "^0.4.0",
     "@pristine-ts/class-validator": "^1.0.5",
-    "ts-node": "^10.9.1",
     "tsyringe": "^4.7.0",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@types/uuid": "^8.3.4"
+  },
+  "pristine": {
+    "appModule": {
+      "cjsPath": "./dist/lib/cjs/app.module.js"
+    }
   },
   "jest": {
     "transform": {
