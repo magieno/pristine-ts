@@ -1,15 +1,15 @@
 import {Query} from "../models/query.model";
-import { injectable, inject } from "tsyringe";
+import {inject, injectable} from "tsyringe";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {SearchResult} from "../models/search-result.model";
-import {Aggregation} from "../models/aggregation.model";
 import {AwsModuleKeyname} from "@pristine-ts/aws";
 import {OpenSearchModuleKeyname} from "../open-search.module.keyname";
-import { defaultProvider } from "@aws-sdk/credential-provider-node"; // V3 SDK.
+import {defaultProvider} from "@aws-sdk/credential-provider-node"; // V3 SDK.
 import {ApiResponse, Client, RequestParams} from '@opensearch-project/opensearch';
-import { AwsSigv4Signer } from '@opensearch-project/opensearch/aws';
+import {AwsSigv4Signer} from '@opensearch-project/opensearch/aws';
 import {SearchResultAggregation} from "../models/search-result-aggregation.model";
 import {SearchResultHit} from "../models/search-result-hit.model";
+import {MultiMatchQueryTypeEnum} from "../enums/multi-match-query-type.enum";
 
 @injectable()
 export class OpenSearchClient {
@@ -110,7 +110,7 @@ export class OpenSearchClient {
                             multi_match: {
                                 query: query.query,
                                 fields: query.fields,
-                                type: "cross_fields",
+                                type: query.multiMatchType ?? MultiMatchQueryTypeEnum.CrossFields,
                                 operator: query.searchOperator,
                             },
                         });

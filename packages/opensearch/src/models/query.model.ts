@@ -1,6 +1,7 @@
 import {SortQuery} from "./sort-query.model";
 import {Aggregation} from "./aggregation.model";
 import {Range} from "./range.model";
+import {MultiMatchQueryTypeEnum} from "../enums/multi-match-query-type.enum";
 
 export class Query {
     /**
@@ -22,6 +23,8 @@ export class Query {
     aggregation?: Aggregation;
     searchType?: "multi_match" | "query_string";
     searchOperator?: "and" | "or";
+    // The multi match query type from https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-multi-match-query.html#multi-match-types
+    multiMatchType?: MultiMatchQueryTypeEnum;
     /**
      * {
      *    range: {
