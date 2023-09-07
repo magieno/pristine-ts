@@ -5,6 +5,7 @@ import {NetworkingModuleKeyname} from "../networking.module.keyname";
 import {ParameterDecoratorInterface} from "../interfaces/parameter-decorator.interface";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import { HeaderParameterDecoratorInterface } from "../interfaces/header-parameter-decorator.interface";
+import {header} from "../decorators/header.decorator";
 
 /**
  * The HeaderParameterDecoratorResolver resolves the value of the header with the name passed to the decorator
@@ -34,7 +35,11 @@ export class HeaderParameterDecoratorResolver implements ControllerMethodParamet
         if(!request.headers) {
             return Promise.resolve(null);
         }
-        return Promise.resolve(request.headers[methodArgument.headerName] ?? null);
+        const header = Object.entries(request.headers).find((keyValue) => keyValue[0].toLowerCase() === methodArgument.headerName.toLowerCase());
+        if(!header || header.length < 2){
+            return Promise.resolve(null);
+        }
+        return Promise.resolve(header[1]);
     }
 
     /**
