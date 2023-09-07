@@ -1,5 +1,6 @@
 export * from "./body-parameter-decorator.interface";
 export * from "./controller-method-parameter-decorator-resolver.interface";
+export * from "./header-parameter-decorator.interface";
 export * from "./headers-parameter-decorator.interface";
 export * from "./identity-parameteter-decorator.interface";
 export * from "./parameter-decorator.interface";
