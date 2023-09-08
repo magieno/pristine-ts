@@ -49,6 +49,13 @@ export class CommandEventMapper implements EventMapperInterface<CommandEventPayl
 
             const argumentName = arg.slice(numberOfStartingDashes);
 
+            // If there's an equal sign in the name, that's the value. ex: --parameter=value
+            const indexOfEqualSign = argumentName.indexOf("=");
+            if(numberOfStartingDashes === 2 && indexOfEqualSign != -1) {
+                const actualArgumentName = argumentName.slice(0, indexOfEqualSign);
+                command.arguments[actualArgumentName] = argumentName.slice(indexOfEqualSign+1);
+                continue;
+            }
 
             // If there are no more passed arguments or the next one also starts with '-' or '--', then simply assign true.
             if( (i+1) >= passedArguments.length || passedArguments[i+1].startsWith('-')) {

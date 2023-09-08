@@ -32,7 +32,11 @@ export class CliEventHandler implements EventHandlerInterface<any, any>{
             throw new CommandNotFoundError(event.payload.name)
         }
 
-        const mappedArguments = plainToInstance(command.optionsType, event.payload.arguments);
+        let mappedArguments;
+
+        if(event.payload.arguments !== undefined) {
+             mappedArguments = plainToInstance(command.optionsType, event.payload.arguments);
+        }
 
         // Validates if all the conditions are respected in the expected type.
         const errors = await this.validator.validate(mappedArguments);

@@ -5,5 +5,5 @@ export interface CommandInterface<ArgumentsOptionsType> {
 
     optionsType: ArgumentsOptionsType;
 
-    run(args: {new(...args : any[]): ArgumentsOptionsType ;}): Promise<ExitCodeEnum | number>;
+    run(args: ArgumentsOptionsType ): Promise<ExitCodeEnum | number>;
 }
