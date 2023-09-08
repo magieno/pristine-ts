@@ -17,6 +17,7 @@ describe('Command Event Mapper', function () {
 
         const consoleArguments = [
             ["--parameter", "value"],
+            ["--parameter=value"],
             ["-parameter", "value"],
         ];
 
