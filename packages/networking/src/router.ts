@@ -410,7 +410,7 @@ export class Router implements RouterInterface {
                 // So, we have to verify that the method exists, and if it doesn't we throw
                 if (typeof interceptor.interceptRequest === "undefined") {
                     // Simply log a message for now that the interceptors doesn't implement the 'interceptRequest' method.
-                    this.loghandler.info("The Request Interceptor doesn't implement the interceptRequest method.", {name: interceptor.constructor.name, interceptor});
+                    this.loghandler.debug("The Request Interceptor doesn't implement the interceptRequest method.", {name: interceptor.constructor.name, interceptor});
                     continue;
                 }
 
@@ -462,7 +462,7 @@ export class Router implements RouterInterface {
                 // So, we have to verify that the method exists, and if it doesn't we throw
                 if (typeof interceptor.interceptResponse === "undefined") {
                     // Simply log a message for now that the interceptors doesn't implement the 'interceptResponse' method.
-                    this.loghandler.info("Router - The Request Interceptor doesn't implement the interceptResponse method.", {name: interceptor.constructor.name, interceptor}, NetworkingModuleKeyname);
+                    this.loghandler.debug("Router - The Request Interceptor doesn't implement the interceptResponse method.", {name: interceptor.constructor.name, interceptor}, NetworkingModuleKeyname);
                     continue;
                 }
 
