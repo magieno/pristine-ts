@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/configuration",
-  "version": "0.0.243",
+  "version": "0.0.244",
   "description": "",
   "module": "dist/lib/esm/configuration.module.js",
   "main": "dist/lib/cjs/configuration.module.js",
