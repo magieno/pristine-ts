@@ -29,7 +29,7 @@ export class S3Client implements S3ClientInterface {
      */
     constructor(
         @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-        @inject("%pristine.aws.region%") public readonly region: string,
+        @inject("%pristine.aws.region%") public region: string,
     ) {
     }
 
