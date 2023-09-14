@@ -112,7 +112,7 @@ export class S3Client implements S3ClientInterface {
      * @param contentType The content type of the data to upload.
      */
     async upload(bucketName: string, key: string, data: any, contentEncoding?: string, contentType?: string): Promise<void> {
-        this.logHandler.debug("S3 CLIENT - Uploading object", {bucketName, key, data, contentEncoding, contentType}, AwsModuleKeyname);
+        this.logHandler.debug("S3 CLIENT - Uploading object", {bucketName, key, contentEncoding, contentType}, AwsModuleKeyname);
 
         const command = new PutObjectCommand({
             Bucket: bucketName,
