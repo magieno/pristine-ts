@@ -3,7 +3,7 @@ import { LogHandlerInterface } from "@pristine-ts/logging";
 import { moduleScoped, tag } from "@pristine-ts/common";
 import { AwsModuleKeyname } from "../aws.module.keyname";
 import { S3ClientInterface } from "../interfaces/s3-client.interface";
-import { GetObjectCommand, GetObjectCommandOutput, ListObjectsCommand, ListObjectsCommandOutput, PutObjectCommand, S3Client as AWSS3Client } from "@aws-sdk/client-s3";
+import { GetObjectCommand, GetObjectCommandOutput, ListObjectsCommand, ListObjectsCommandOutput, PutObjectCommand, S3Client as AWSS3Client, S3ClientConfig } from "@aws-sdk/client-s3";
 import { S3PresignedOperationTypeEnum } from "../enums/s3-presigned-operation-type.enum";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -38,6 +38,14 @@ export class S3Client implements S3ClientInterface {
      */
     getClient(): AWSS3Client {
         return this.client = this.client ?? new AWSS3Client({region: this.region});
+    }
+
+    /**
+     * Allows you to manually set the config if needed.
+     * @param config
+     */
+    setClient(config: S3ClientConfig) {
+        this.client = new AWSS3Client(config);
     }
 
     /**
