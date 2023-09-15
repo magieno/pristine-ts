@@ -6,6 +6,7 @@ import {MatchTypeEnum} from "../enums/match-type.enum";
 import {TypesEnum} from "../enums/types.enum";
 import {DirectoryListResultEnum} from "../enums/directory-list-result.enum";
 import {promises as fsp} from "fs";
+import fs from "fs";
 import path from "path";
 
 @injectable()
@@ -159,5 +160,17 @@ export class DirectoryManager {
         }
 
         return this.listRecursively(src, options);
+    }
+
+    exists(filePath: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            fs.access(filePath, err => {
+                if(err) {
+                    return resolve(false);
+                }
+
+                return resolve(true);
+            })
+        })
     }
 }
