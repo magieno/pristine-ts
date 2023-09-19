@@ -1,5 +1,5 @@
-import { S3PresignedOperationTypeEnum } from "../enums/s3-presigned-operation-type.enum";
-import { GetObjectCommandOutput, S3Client as AWSS3Client  } from "@aws-sdk/client-s3";
+import {S3PresignedOperationTypeEnum} from "../enums/s3-presigned-operation-type.enum";
+import {S3Client as AWSS3Client, S3ClientConfig} from "@aws-sdk/client-s3";
 
 /**
  * The S3Client Interface defines the methods that an S3 client must implement.
@@ -12,11 +12,10 @@ export interface S3ClientInterface {
     getClient(): AWSS3Client;
 
     /**
-     * Gets an object and all its details from S3.
-     * @param bucketName The bucket name where to get the object.
-     * @param key The key of the object.
+     * Allows you to manually set the config if needed.
+     * @param config
      */
-    get(bucketName: string, key: string): Promise<GetObjectCommandOutput>;
+    setClient(config: S3ClientConfig);
 
     /**
      * Gets an object's body as an array buffer from S3.

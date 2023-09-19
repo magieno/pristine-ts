@@ -23,6 +23,7 @@
     "@aws-sdk/client-ses": "^3.211.0",
     "@aws-sdk/client-sqs": "^3.211.0",
     "@aws-sdk/client-ssm": "^3.211.0",
+    "@aws-sdk/client-cloudformation": "^3.211.0",
     "@aws-sdk/s3-request-presigner": "^3.211.0",
     "@awslabs-community-fork/dynamodb-data-mapper": "^0.7.9",
     "@awslabs-community-fork/dynamodb-data-marshaller": "^0.7.9",
