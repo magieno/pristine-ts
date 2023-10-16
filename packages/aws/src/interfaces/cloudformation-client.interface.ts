@@ -29,7 +29,12 @@ export interface CloudformationClientInterface {
      * Gets the description and all its details from a Cloudformation stack.
      * @param stackName The stack name to get the.
      */
-    getStackDescription(stackName: string): Promise<Stack>;
+    getStackDescription(stackName: string): Promise<Stack | undefined>;
+
+    /**
+     * Gets the description and all its details from all the CloudFormation stacks.
+     */
+    listStacks(): Promise<Stack[] | undefined>;
 
     /**
      * Creates a new stack in Cloudformation.
