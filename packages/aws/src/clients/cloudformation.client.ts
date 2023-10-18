@@ -60,7 +60,7 @@ export class CloudformationClient implements CloudformationClientInterface {
      * Gets the description and all its details from a Cloudformation stack.
      * @param stackName The stack name to get the.
      */
-    async getStackDescription(stackName: string): Promise<Stack> {
+    async getStackDescription(stackName: string): Promise<Stack | undefined> {
         this.logHandler.debug("CLOUDFORMATION CLIENT - Getting stack information", {stackName}, AwsModuleKeyname);
         const command = new DescribeStacksCommand({
             StackName: stackName,
@@ -68,12 +68,27 @@ export class CloudformationClient implements CloudformationClientInterface {
         try {
             const response: DescribeStacksCommandOutput = await this.getClient().send(command);
             if(!response.Stacks || response.Stacks.length < 1){
-                throw new Error("No stacks were returned from cloudformation");
+                return undefined;
             }
             if(response.Stacks.length > 1){
-                throw new Error("More than one stack was returned from cloudformation");
+               this.logHandler.warning("More than one stack was returned from cloudformation");
             }
             return response.Stacks[0];
+        } catch (e) {
+            this.logHandler.error("Error getting stack description from cloudformation", {error: e}, AwsModuleKeyname);
+            throw e;
+        }
+    }
+
+    /**
+     * Gets the description and all its details from all the CloudFormation stacks.
+     */
+    async listStacks(): Promise<Stack[]> {
+        this.logHandler.debug("CLOUDFORMATION CLIENT - Getting list of stacks", {}, AwsModuleKeyname);
+        const command = new DescribeStacksCommand({})
+        try {
+            const response: DescribeStacksCommandOutput = await this.getClient().send(command);
+            return response.Stacks ?? [];
         } catch (e) {
             this.logHandler.error("Error getting stack description from cloudformation", {error: e}, AwsModuleKeyname);
             throw e;
