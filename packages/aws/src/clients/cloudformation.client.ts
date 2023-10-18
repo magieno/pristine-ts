@@ -76,6 +76,11 @@ export class CloudformationClient implements CloudformationClientInterface {
             return response.Stacks[0];
         } catch (e) {
             this.logHandler.error("Error getting stack description from cloudformation", {error: e}, AwsModuleKeyname);
+            if (e.getMessage().matches("(.*)" + stackName + "(.*)does not exist(.*)")) {
+                return undefined;
+            } else {
+                throw e;
+            }
             throw e;
         }
     }
