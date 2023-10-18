@@ -83,12 +83,12 @@ export class CloudformationClient implements CloudformationClientInterface {
     /**
      * Gets the description and all its details from all the CloudFormation stacks.
      */
-    async listStacks(): Promise<Stack[] | undefined> {
+    async listStacks(): Promise<Stack[]> {
         this.logHandler.debug("CLOUDFORMATION CLIENT - Getting list of stacks", {}, AwsModuleKeyname);
         const command = new DescribeStacksCommand({})
         try {
             const response: DescribeStacksCommandOutput = await this.getClient().send(command);
-            return response.Stacks;
+            return response.Stacks ?? [];
         } catch (e) {
             this.logHandler.error("Error getting stack description from cloudformation", {error: e}, AwsModuleKeyname);
             throw e;
