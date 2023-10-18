@@ -108,7 +108,7 @@ export class CloudformationClient implements CloudformationClientInterface {
         this.logHandler.debug("CLOUDFORMATION CLIENT - Creating new stack", {input}, AwsModuleKeyname);
         const command = new CreateStackCommand(input)
         try {
-            return this.getClient().send(command);
+            return await this.getClient().send(command);
         } catch (e) {
             this.logHandler.error("Error creating stack in cloudformation", {error: e}, AwsModuleKeyname);
             throw e;
@@ -123,8 +123,15 @@ export class CloudformationClient implements CloudformationClientInterface {
         this.logHandler.debug("CLOUDFORMATION CLIENT - Updating stack", {input}, AwsModuleKeyname);
         const command = new UpdateStackCommand(input)
         try {
-            return this.getClient().send(command);
+            return await this.getClient().send(command);
         } catch (e) {
+            if(e.message == "No updates are to be performed.") {
+                return {
+                    $metadata: {
+                        httpStatusCode: 200,
+                    }
+                }
+            }
             this.logHandler.error("Error updating stack in cloudformation", {error: e}, AwsModuleKeyname);
             throw e;
         }
@@ -138,7 +145,7 @@ export class CloudformationClient implements CloudformationClientInterface {
         this.logHandler.debug("CLOUDFORMATION CLIENT - Deleting stack", {input}, AwsModuleKeyname);
         const command = new DeleteStackCommand(input)
         try {
-            return this.getClient().send(command);
+            return await this.getClient().send(command);
         } catch (e) {
             this.logHandler.error("Error deleting stack in cloudformation", {error: e}, AwsModuleKeyname);
             throw e;
