@@ -34,7 +34,7 @@ export interface CloudformationClientInterface {
     /**
      * Gets the description and all its details from all the CloudFormation stacks.
      */
-    listStacks(): Promise<Stack[] | undefined>;
+    listStacks(): Promise<Stack[]>;
 
     /**
      * Creates a new stack in Cloudformation.
