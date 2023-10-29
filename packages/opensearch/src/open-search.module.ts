@@ -5,6 +5,7 @@ import {AwsModule} from "@pristine-ts/aws";
 import {EnvironmentVariableResolver} from "@pristine-ts/configuration";
 
 export * from "./clients/clients";
+export * from "./enums/enums";
 export * from "./models/models";
 export * from "./parsers/parsers";
 

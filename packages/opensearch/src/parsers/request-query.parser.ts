@@ -2,9 +2,9 @@ import {Query} from "../models/query.model";
 import {Aggregation} from "../models/aggregation.model";
 import {Range} from "../models/range.model";
 import {Request} from "@pristine-ts/common";
-import {URL} from "url";
 import {injectable} from 'tsyringe'
 import {UrlUtil} from "@pristine-ts/networking";
+import {MultiMatchQueryTypeEnum} from "../enums/multi-match-query-type.enum";
 
 @injectable()
 export class RequestQueryParser {
@@ -24,12 +24,16 @@ export class RequestQueryParser {
         // Query
         const query = url.searchParams.get("query");
         const searchType = url.searchParams.get("search_type");
+        const multiMatchQueryType = url.searchParams.get("multi_match_query_type");
         const searchOperator = url.searchParams.get("search_operator");
 
         if (query && query != "") {
             openSearchQuery.query = query;
             if (searchType && (searchType === "multi_match" || searchType === "query_string")) {
                 openSearchQuery.searchType = searchType;
+                if(searchType === "multi_match" && multiMatchQueryType && Object.values<string>(MultiMatchQueryTypeEnum).includes(multiMatchQueryType)) {
+                    openSearchQuery.multiMatchType = multiMatchQueryType as MultiMatchQueryTypeEnum;
+                }
                 openSearchQuery.searchOperator = searchOperator as "and" | "or" ?? "and";
             }
         }

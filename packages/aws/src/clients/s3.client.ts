@@ -3,7 +3,7 @@ import { LogHandlerInterface } from "@pristine-ts/logging";
 import { moduleScoped, tag } from "@pristine-ts/common";
 import { AwsModuleKeyname } from "../aws.module.keyname";
 import { S3ClientInterface } from "../interfaces/s3-client.interface";
-import { GetObjectCommand, GetObjectCommandOutput, ListObjectsCommand, ListObjectsCommandOutput, PutObjectCommand, S3Client as AWSS3Client } from "@aws-sdk/client-s3";
+import { GetObjectCommand, GetObjectCommandOutput, ListObjectsCommand, ListObjectsCommandOutput, PutObjectCommand, S3Client as AWSS3Client, S3ClientConfig } from "@aws-sdk/client-s3";
 import { S3PresignedOperationTypeEnum } from "../enums/s3-presigned-operation-type.enum";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -29,7 +29,7 @@ export class S3Client implements S3ClientInterface {
      */
     constructor(
         @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-        @inject("%pristine.aws.region%") private readonly region: string,
+        @inject("%pristine.aws.region%") public region: string,
     ) {
     }
 
@@ -38,6 +38,14 @@ export class S3Client implements S3ClientInterface {
      */
     getClient(): AWSS3Client {
         return this.client = this.client ?? new AWSS3Client({region: this.region});
+    }
+
+    /**
+     * Allows you to manually set the config if needed.
+     * @param config
+     */
+    setClient(config: S3ClientConfig) {
+        this.client = new AWSS3Client(config);
     }
 
     /**
@@ -112,7 +120,7 @@ export class S3Client implements S3ClientInterface {
      * @param contentType The content type of the data to upload.
      */
     async upload(bucketName: string, key: string, data: any, contentEncoding?: string, contentType?: string): Promise<void> {
-        this.logHandler.debug("S3 CLIENT - Uploading object", {bucketName, key, data, contentEncoding, contentType}, AwsModuleKeyname);
+        this.logHandler.debug("S3 CLIENT - Uploading object", {bucketName, key, contentEncoding, contentType}, AwsModuleKeyname);
 
         const command = new PutObjectCommand({
             Bucket: bucketName,

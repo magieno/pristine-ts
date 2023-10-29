@@ -5,6 +5,7 @@
  * resolve all the voters by requesting the VOTER token and asking the container for a resolveAll.
  */
 export enum ServiceDefinitionTagEnum {
+    Command = "COMMAND",
     CurrentChildContainer = "CURRENT_CHILD_CONTAINER",
     DataNormalizer = "DATA_NORMALIZER",
     EventHandler = "EventHandlerInterface",

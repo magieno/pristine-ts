@@ -37,4 +37,28 @@ export class FileManager {
 
         return fileCursors;
     }
+
+    readFile(filePath: string): Promise<Buffer> {
+        return new Promise<Buffer>((resolve, reject) => {
+            fs.readFile(filePath, async (err, data) => {
+                if(err) {
+                    return reject(err);
+                }
+
+                return resolve(data);
+            })
+        })
+    }
+
+    exists(filePath: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            fs.access(filePath, err => {
+                if(err) {
+                    return resolve(false);
+                }
+
+                return resolve(true);
+            })
+        })
+    }
 }

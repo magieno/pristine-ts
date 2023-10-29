@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/aws",
-  "version": "0.0.239",
+  "version": "0.0.256",
   "description": "",
   "module": "dist/lib/esm/aws.module.js",
   "main": "dist/lib/cjs/aws.module.js",
@@ -17,6 +17,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-cloudformation": "^3.211.0",
+    "@aws-sdk/client-cloudfront": "^3.211.0",
     "@aws-sdk/client-dynamodb": "^3.211.0",
     "@aws-sdk/client-eventbridge": "^3.211.0",
     "@aws-sdk/client-s3": "^3.211.0",
