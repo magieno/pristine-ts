@@ -6,30 +6,46 @@ import {DataTransformerBuilder} from "./data-transformer.builder";
 import {DataTransformerProperty} from "./data-transformer.property";
 import {DataTransformerSourcePropertyNotFoundError} from "../errors/data-transformer-source-property-not-found.error";
 import {DataNormalizerUniqueKey} from "../types/data-normalizer-unique-key.type";
+import {DataTransformerRow} from "../types/data-transformer.row";
+import {DataTransformerInterceptorUniqueKeyType} from "../types/data-transformer-interceptor-unique-key.type";
+import {DataTransformerInterceptor} from "../interfaces/data-transformer-interceptor.interface";
 
 @moduleScoped(DataTransformerModuleKeyname)
 @injectable()
 export class DataTransformer {
     private readonly dataNormalizersMap: { [key in DataNormalizerUniqueKey]: DataNormalizer<any, any>} = {}
+    private readonly dataTransformerInterceptorsMap: { [key in DataTransformerInterceptorUniqueKeyType]: DataTransformerInterceptor} = {}
 
-    public constructor(@injectAll("DataNormalizerInterface") private readonly dataNormalizers: DataNormalizer<any, any>[]) {
+    public constructor(@injectAll("DataNormalizerInterface") private readonly dataNormalizers: DataNormalizer<any, any>[],
+                       @injectAll("DataTransformerInterceptor") private readonly dataTransformers: DataTransformerInterceptor[],) {
         dataNormalizers.forEach(dataNormalizer => {
             this.dataNormalizersMap[dataNormalizer.getUniqueKey()] = dataNormalizer;
         })
+
+        dataTransformers.forEach(dataTransformer => {
+           this.dataTransformerInterceptorsMap[dataTransformer.getUniqueKey()] = dataTransformer;
+        });
     }
 
-    public transform(builder: DataTransformerBuilder, source: ({[key in string]: any} | any)[]): {[key in string]: any}[] {
+    public async transform(builder: DataTransformerBuilder, source: (DataTransformerRow)[]): Promise<DataTransformerRow[]> {
         const globalNormalizers = builder.normalizers;
 
-        const destination: {[key in string]: any}[] = [];
+        const destination: DataTransformerRow[] = [];
 
-        const row: any = {};
+        const row: DataTransformerRow = {};
         for(const key in source) {
             if(source.hasOwnProperty(key) === false) {
                 continue;
             }
 
-            const inputRow = source[key];
+            let interceptedInputRow = source[key];
+
+            // Execute the before row interceptors.
+            for(const interceptorKey in builder.beforeRowTransformInterceptors) {
+                const interceptor: DataTransformerInterceptor  = this.dataTransformerInterceptorsMap[interceptorKey];
+                
+                interceptedInputRow = await interceptor.beforeRowTransform(interceptedInputRow);
+            }
 
             // Loop over the properties defined in the builder
             for (const key in builder.properties) {
@@ -38,7 +54,7 @@ export class DataTransformer {
                 }
 
                 const property: DataTransformerProperty = builder.properties[key];
-                if(inputRow.hasOwnProperty(property.sourceProperty) === false) {
+                if(interceptedInputRow.hasOwnProperty(property.sourceProperty) === false) {
                     if(property.isOptional) {
                         continue;
                     }
@@ -46,7 +62,7 @@ export class DataTransformer {
                     throw new DataTransformerSourcePropertyNotFoundError("The property '" + key + "' isn't found in the Source object and isn't marked as Optional. If you want to ignore this property, use the 'setIsOptional(true)' method in the builder.", key)
                 }
 
-                let value = inputRow[property.sourceProperty];
+                let value = interceptedInputRow[property.sourceProperty];
 
                 // Remove the normalizers part of the excludedNormalizers
                 const normalizers = globalNormalizers.filter(element => property.excludedNormalizers.has(element.key) === false);

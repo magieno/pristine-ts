@@ -5,6 +5,7 @@ import { EnvironmentVariableResolver, NumberResolver} from "@pristine-ts/configu
 import {DataTransformerBuilder} from "./transformers/data-transformer.builder";
 
 export * from "./errors/errors";
+export * from "./interceptors/interceptors";
 export * from "./interfaces/interfaces";
 export * from "./normalizers/normalizers";
 export * from "./transformers/transformers";
