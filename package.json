@@ -51,7 +51,7 @@
     "@pristine-ts/common": "file:packages/common",
     "@pristine-ts/configuration": "file:packages/configuration",
     "@pristine-ts/core": "file:packages/core",
-    "@pristine-ts/data-transformer": "file:tests/data-transformer",
+    "@pristine-ts/data-transformer": "file:packages/data-transformer",
     "@pristine-ts/e2e": "file:tests/e2e",
     "@pristine-ts/express": "file:packages/express",
     "@pristine-ts/file": "file:packages/file",

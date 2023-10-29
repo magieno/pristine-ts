@@ -49,7 +49,7 @@ describe('Data Transformer Property', () => {
             "optionA": true,
         };
 
-        dataTransformerProperty.addExcludedNormalizer("normalizer");
+        dataTransformerProperty.excludeNormalizer("normalizer");
 
         expect(dataTransformerProperty.excludedNormalizers.size).toBe(1);
         expect(dataTransformerProperty.excludedNormalizers.has("normalizer")).toBeTruthy()

@@ -13,5 +13,5 @@ export interface DataNormalizer<T, R> {
      * @param source
      * @param options
      */
-    normalize(source: any, options: R): T;
+    normalize(source: any, options?: R): T;
 }

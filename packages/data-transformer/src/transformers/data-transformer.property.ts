@@ -42,7 +42,7 @@ export class DataTransformerProperty {
         return this.normalizers.find(element => element.key === normalizerUniqueKey) !== undefined;
     }
 
-    public addExcludedNormalizer(normalizerUniqueKey: DataNormalizerUniqueKey): DataTransformerProperty {
+    public excludeNormalizer(normalizerUniqueKey: DataNormalizerUniqueKey): DataTransformerProperty {
         if(this.excludedNormalizers.has(normalizerUniqueKey)) {
             throw new DataNormalizerAlreadyAdded("The EXCLUDED data normalizer '" + normalizerUniqueKey + "' has already been added to this source property: '" + this.sourceProperty + "'.", normalizerUniqueKey)
         }

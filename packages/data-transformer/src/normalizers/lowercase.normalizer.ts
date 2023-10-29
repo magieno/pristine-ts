@@ -8,9 +8,9 @@ export class LowercaseNormalizer implements DataNormalizer<string, LowercaseNorm
         return LowercaseNormalizer.name;
     }
 
-    normalize(source: any, options: LowercaseNormalizerOptions): string {
+    normalize(source: any, options?: LowercaseNormalizerOptions): string {
         if(typeof source !== "string") {
-            if(options.shouldThrowIfTypeIsNotString) {
+            if(options && options.shouldThrowIfTypeIsNotString) {
                 throw new NormalizerInvalidSourceTypeError("The 'LowercaseNormalizer' expects the source value to be of type 'string'. Type '" + typeof source+ "' was received.", this.getUniqueKey(), options, source, typeof source)
             }
 
