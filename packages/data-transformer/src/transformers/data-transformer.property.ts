@@ -63,4 +63,5 @@ export class DataTransformerProperty {
 
         return this.builder;
     }
+
 }

@@ -56,7 +56,8 @@
     },
     "collectCoverageFrom": [
       "src/*.{js,ts}"
-    ]
+    ],
+    "setupFilesAfterEnv": ["jest-extended/all"]
   },
   "gitHead": "112f715bf4ac6467192d416aa6e419f772b77c58"
 }

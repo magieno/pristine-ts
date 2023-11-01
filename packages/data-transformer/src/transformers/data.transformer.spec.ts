@@ -2,10 +2,14 @@ import "reflect-metadata"
 import {DataTransformer} from "./data.transformer";
 import {LowercaseNormalizer} from "../normalizers/lowercase.normalizer";
 import {DataTransformerBuilder} from "./data-transformer.builder";
+import {DataTransformerInterceptor} from "../interfaces/data-transformer-interceptor.interface";
+import {DataTransformerInterceptorUniqueKeyType} from "../types/data-transformer-interceptor-unique-key.type";
+import {DataTransformerRow} from "../types/data-transformer.row";
+import 'jest-extended';
 
 describe('Data Transformer', () => {
-    it("should properly transform", () => {
-        const dataTransformer = new DataTransformer([new LowercaseNormalizer()]);
+    it("should properly transform", async () => {
+        const dataTransformer = new DataTransformer([new LowercaseNormalizer()], []);
 
         const source = [{
             NAME: "Etienne Noel",
@@ -29,7 +33,7 @@ describe('Data Transformer', () => {
                 .setDestinationProperty("total")
                 .end();
 
-        const destination = dataTransformer.transform(dataTransformerBuilder, source);
+        const destination = await dataTransformer.transform(dataTransformerBuilder, source);
 
         expect(destination.length).toBe(1)
 
@@ -38,8 +42,9 @@ describe('Data Transformer', () => {
         expect(destination[0].province).toBe("quebec");
         expect(destination[0].total).toBe(10);
     })
-    it("should properly transform an array with numerical indices", () => {
-        const dataTransformer = new DataTransformer([new LowercaseNormalizer()]);
+
+    it("should properly transform an array with numerical indices", async () => {
+        const dataTransformer = new DataTransformer([new LowercaseNormalizer()], []);
 
         const source = [
             ["Etienne Noel", "QUEBEC", 10],
@@ -61,7 +66,7 @@ describe('Data Transformer', () => {
                 .setDestinationProperty("total")
                 .end();
 
-        const destination = dataTransformer.transform(dataTransformerBuilder, source);
+        const destination = await dataTransformer.transform(dataTransformerBuilder, source);
 
         expect(destination.length).toBe(1)
 
@@ -69,5 +74,70 @@ describe('Data Transformer', () => {
         expect(destination[0].name).toBe("Etienne Noel");
         expect(destination[0].province).toBe("quebec");
         expect(destination[0].total).toBe(10);
+    })
+
+    it("should properly call the before row transformers and respect the order of calls", async () => {
+        const firstInterceptor: DataTransformerInterceptor = {
+            async beforeRowTransform(row: DataTransformerRow): Promise<DataTransformerRow> {
+                return row;
+            },
+            async afterRowTransform(row: DataTransformerRow): Promise<DataTransformerRow> {
+                return row;
+            },
+            getUniqueKey(): DataTransformerInterceptorUniqueKeyType {
+                return "first_interceptor";
+            },
+        }
+        const secondInterceptor: DataTransformerInterceptor = {
+            async beforeRowTransform(row: DataTransformerRow): Promise<DataTransformerRow> {
+                return row;
+            },
+            async afterRowTransform(row: DataTransformerRow): Promise<DataTransformerRow> {
+                return row;
+            },
+            getUniqueKey(): DataTransformerInterceptorUniqueKeyType {
+                return "second_interceptor";
+            },
+        }
+
+        const beforeRowFirstInterceptorSpy = jest.spyOn(firstInterceptor, "beforeRowTransform")
+        const afterRowFirstInterceptorSpy = jest.spyOn(firstInterceptor, "afterRowTransform")
+        const beforeRowSecondInterceptorSpy = jest.spyOn(secondInterceptor, "beforeRowTransform")
+        const afterRowSecondInterceptorSpy = jest.spyOn(secondInterceptor, "afterRowTransform")
+
+        const dataTransformer = new DataTransformer([new LowercaseNormalizer()], [
+            firstInterceptor,
+            secondInterceptor,
+        ]);
+
+        const source = [
+            ["Etienne Noel", "QUEBEC", 10],
+        ];
+
+        const dataTransformerBuilder = new DataTransformerBuilder();
+        dataTransformerBuilder
+            .addBeforeRowTransformInterceptor("first_interceptor")
+            .addBeforeRowTransformInterceptor("second_interceptor")
+            .addAfterRowTransformInterceptor("first_interceptor")
+            .addAfterRowTransformInterceptor("second_interceptor")
+            .add()
+                .setSourceProperty("0")
+                .setDestinationProperty("name")
+                .end()
+            .add()
+                .setSourceProperty("1")
+                .addNormalizer(LowercaseNormalizer.name)
+                .setDestinationProperty("province")
+                .end()
+            .add()
+                .setSourceProperty("2")
+                .setDestinationProperty("total")
+                .end();
+
+        await dataTransformer.transform(dataTransformerBuilder, source);
+
+        expect(beforeRowFirstInterceptorSpy).toHaveBeenCalledBefore(beforeRowSecondInterceptorSpy);
+        expect(beforeRowSecondInterceptorSpy).toHaveBeenCalledBefore(afterRowFirstInterceptorSpy)
+        expect(afterRowFirstInterceptorSpy).toHaveBeenCalledBefore(afterRowSecondInterceptorSpy);
     })
 });

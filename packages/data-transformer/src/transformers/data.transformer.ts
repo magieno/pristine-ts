@@ -9,6 +9,7 @@ import {DataNormalizerUniqueKey} from "../types/data-normalizer-unique-key.type"
 import {DataTransformerRow} from "../types/data-transformer.row";
 import {DataTransformerInterceptorUniqueKeyType} from "../types/data-transformer-interceptor-unique-key.type";
 import {DataTransformerInterceptor} from "../interfaces/data-transformer-interceptor.interface";
+import {DataTransformerInterceptorNotFoundError} from "../errors/data-transformer-interceptor-not-found.error";
 
 @moduleScoped(DataTransformerModuleKeyname)
 @injectable()
@@ -17,13 +18,13 @@ export class DataTransformer {
     private readonly dataTransformerInterceptorsMap: { [key in DataTransformerInterceptorUniqueKeyType]: DataTransformerInterceptor} = {}
 
     public constructor(@injectAll("DataNormalizerInterface") private readonly dataNormalizers: DataNormalizer<any, any>[],
-                       @injectAll("DataTransformerInterceptor") private readonly dataTransformers: DataTransformerInterceptor[],) {
+                       @injectAll("DataTransformerInterceptor") private readonly dataTransformerInterceptors: DataTransformerInterceptor[],) {
         dataNormalizers.forEach(dataNormalizer => {
             this.dataNormalizersMap[dataNormalizer.getUniqueKey()] = dataNormalizer;
         })
 
-        dataTransformers.forEach(dataTransformer => {
-           this.dataTransformerInterceptorsMap[dataTransformer.getUniqueKey()] = dataTransformer;
+        dataTransformerInterceptors.forEach(interceptor => {
+           this.dataTransformerInterceptorsMap[interceptor.getUniqueKey()] = interceptor;
         });
     }
 
@@ -32,7 +33,7 @@ export class DataTransformer {
 
         const destination: DataTransformerRow[] = [];
 
-        const row: DataTransformerRow = {};
+        let row: DataTransformerRow = {};
         for(const key in source) {
             if(source.hasOwnProperty(key) === false) {
                 continue;
@@ -41,9 +42,14 @@ export class DataTransformer {
             let interceptedInputRow = source[key];
 
             // Execute the before row interceptors.
-            for(const interceptorKey in builder.beforeRowTransformInterceptors) {
-                const interceptor: DataTransformerInterceptor  = this.dataTransformerInterceptorsMap[interceptorKey];
-                
+            for(const element of builder.beforeRowTransformInterceptors) {
+                const interceptor = this.dataTransformerInterceptorsMap[element.key];
+
+                if(interceptor === undefined) {
+                    throw new DataTransformerInterceptorNotFoundError("The interceptor wasn't found and cannot be loaded.", element.key);
+                }
+
+                // todo: Pass the options when we start using them.
                 interceptedInputRow = await interceptor.beforeRowTransform(interceptedInputRow);
             }
 
@@ -75,6 +81,18 @@ export class DataTransformer {
 
                 // Assign the resulting value in the destination
                 row[property.destinationProperty] = value;
+            }
+
+            // Execute the before row interceptors.
+            for(const element of builder.afterRowTransformInterceptors) {
+                const interceptor: DataTransformerInterceptor  = this.dataTransformerInterceptorsMap[element.key];
+
+                if(interceptor === undefined) {
+                    throw new DataTransformerInterceptorNotFoundError("The interceptor wasn't found and cannot be loaded.", element.key);
+                }
+
+                // todo pass the options when we start using it.
+                row = await interceptor.afterRowTransform(row);
             }
 
             destination.push(row);

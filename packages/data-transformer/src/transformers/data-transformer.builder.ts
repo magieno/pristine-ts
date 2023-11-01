@@ -78,4 +78,79 @@ export class DataTransformerBuilder {
     public addNewProperty(property: DataTransformerProperty) {
         this.properties[property.sourceProperty] = property;
     }
+
+    public import(jsonString: string) {
+        const object = JSON.parse(jsonString);
+
+        if(object.hasOwnProperty("normalizers") && Array.isArray(object.normalizers)) {
+            this.normalizers = object.normalizers;
+        }
+
+        if(object.hasOwnProperty("beforeRowTransformInterceptors") && Array.isArray(object.beforeRowTransformInterceptors)) {
+            this.beforeRowTransformInterceptors = object.beforeRowTransformInterceptors;
+        }
+
+        if(object.hasOwnProperty("afterRowTransformInterceptors") && Array.isArray(object.afterRowTransformInterceptors)) {
+            this.afterRowTransformInterceptors = object.afterRowTransformInterceptors;
+        }
+
+        if(object.hasOwnProperty("properties") && typeof object.properties === "object") {
+            for(const key in object.properties) {
+                if(object.properties.hasOwnProperty(key) === false) {
+                    continue;
+                }
+
+                const property = object.properties[key];
+                const newProperty = this.add();
+
+                newProperty.normalizers = property.normalizers;
+                if(property.hasOwnProperty("excludedNormalizers")) {
+                    for(const item in property.excludedNormalizers) {
+                        newProperty.excludeNormalizer(item);
+                    }
+                }
+
+                newProperty.isOptional = property.isOptional;
+                newProperty.sourceProperty = property.sourceProperty;
+                newProperty.destinationProperty = property.destinationProperty;
+
+                newProperty.end();
+            }
+        }
+
+        return this;
+    }
+
+    public export(): string {
+        const properties: any = {};
+
+        for (const key in this.properties) {
+            if(this.properties.hasOwnProperty(key) === false) {
+                continue;
+            }
+
+            const property = this.properties[key];
+
+            const excludedNormalizers: any = {}
+
+            for(const element of property.excludedNormalizers.values()) {
+                excludedNormalizers[element] = true;
+            }
+
+            properties[key] = {
+                "sourceProperty": property.sourceProperty,
+                "destinationProperty": property.destinationProperty,
+                "isOptional": property.isOptional,
+                "normalizers": property.normalizers,
+                "excludedNormalizers": excludedNormalizers,
+            };
+        }
+
+        return JSON.stringify({
+            "normalizers": this.normalizers,
+            "beforeRowTransformInterceptors": this.beforeRowTransformInterceptors,
+            "afterRowTransformInterceptors": this.afterRowTransformInterceptors,
+            "properties": properties,
+        });
+    }
 }
