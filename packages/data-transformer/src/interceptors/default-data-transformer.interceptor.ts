@@ -1,4 +1,4 @@
-import {DataTransformerInterceptor} from "../interfaces/data-transformer-interceptor.interface";
+import {DataTransformerInterceptorInterface} from "../interfaces/data-transformer-interceptor.interface";
 import {moduleScoped, tag} from "@pristine-ts/common";
 import {DataTransformerModuleKeyname} from "../data-transformer.module.keyname";
 import {injectable} from "tsyringe";
@@ -8,7 +8,7 @@ import {DataTransformerInterceptorUniqueKeyType} from "../types/data-transformer
 @tag("DataTransformerInterceptor")
 @moduleScoped(DataTransformerModuleKeyname)
 @injectable()
-export class DefaultDataTransformerInterceptor implements DataTransformerInterceptor {
+export class DefaultDataTransformerInterceptor implements DataTransformerInterceptorInterface {
     async afterRowTransform(row: DataTransformerRow): Promise<DataTransformerRow> {
         return row;
     }

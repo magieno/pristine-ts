@@ -1,24 +1,24 @@
 import {injectable, injectAll} from "tsyringe";
 import {moduleScoped, tag} from "@pristine-ts/common";
 import {DataTransformerModuleKeyname} from "../data-transformer.module.keyname";
-import {DataNormalizer} from "../interfaces/data-normalizer.interface";
+import {DataNormalizerInterface} from "../interfaces/data-normalizer.interface";
 import {DataTransformerBuilder} from "./data-transformer.builder";
 import {DataTransformerProperty} from "./data-transformer.property";
 import {DataTransformerSourcePropertyNotFoundError} from "../errors/data-transformer-source-property-not-found.error";
 import {DataNormalizerUniqueKey} from "../types/data-normalizer-unique-key.type";
 import {DataTransformerRow} from "../types/data-transformer.row";
 import {DataTransformerInterceptorUniqueKeyType} from "../types/data-transformer-interceptor-unique-key.type";
-import {DataTransformerInterceptor} from "../interfaces/data-transformer-interceptor.interface";
+import {DataTransformerInterceptorInterface} from "../interfaces/data-transformer-interceptor.interface";
 import {DataTransformerInterceptorNotFoundError} from "../errors/data-transformer-interceptor-not-found.error";
 
 @moduleScoped(DataTransformerModuleKeyname)
 @injectable()
 export class DataTransformer {
-    private readonly dataNormalizersMap: { [key in DataNormalizerUniqueKey]: DataNormalizer<any, any>} = {}
-    private readonly dataTransformerInterceptorsMap: { [key in DataTransformerInterceptorUniqueKeyType]: DataTransformerInterceptor} = {}
+    private readonly dataNormalizersMap: { [key in DataNormalizerUniqueKey]: DataNormalizerInterface<any, any>} = {}
+    private readonly dataTransformerInterceptorsMap: { [key in DataTransformerInterceptorUniqueKeyType]: DataTransformerInterceptorInterface} = {}
 
-    public constructor(@injectAll("DataNormalizerInterface") private readonly dataNormalizers: DataNormalizer<any, any>[],
-                       @injectAll("DataTransformerInterceptor") private readonly dataTransformerInterceptors: DataTransformerInterceptor[],) {
+    public constructor(@injectAll("DataNormalizerInterface") private readonly dataNormalizers: DataNormalizerInterface<any, any>[],
+                       @injectAll("DataTransformerInterceptor") private readonly dataTransformerInterceptors: DataTransformerInterceptorInterface[],) {
         dataNormalizers.forEach(dataNormalizer => {
             this.dataNormalizersMap[dataNormalizer.getUniqueKey()] = dataNormalizer;
         })
@@ -85,7 +85,7 @@ export class DataTransformer {
 
             // Execute the before row interceptors.
             for(const element of builder.afterRowTransformInterceptors) {
-                const interceptor: DataTransformerInterceptor  = this.dataTransformerInterceptorsMap[element.key];
+                const interceptor: DataTransformerInterceptorInterface  = this.dataTransformerInterceptorsMap[element.key];
 
                 if(interceptor === undefined) {
                     throw new DataTransformerInterceptorNotFoundError("The interceptor wasn't found and cannot be loaded.", element.key);

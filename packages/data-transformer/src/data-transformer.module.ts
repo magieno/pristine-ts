@@ -7,6 +7,7 @@ import {DataTransformerBuilder} from "./transformers/data-transformer.builder";
 export * from "./errors/errors";
 export * from "./interceptors/interceptors";
 export * from "./interfaces/interfaces";
+export * from "./normalizer-options/normalizer-options";
 export * from "./normalizers/normalizers";
 export * from "./transformers/transformers";
 export * from "./types/types";

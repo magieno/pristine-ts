@@ -2,7 +2,7 @@ import {DataTransformerRow} from "../types/data-transformer.row";
 import {DataNormalizerUniqueKey} from "../types/data-normalizer-unique-key.type";
 import {DataTransformerInterceptorUniqueKeyType} from "../types/data-transformer-interceptor-unique-key.type";
 
-export interface DataTransformerInterceptor {
+export interface DataTransformerInterceptorInterface {
     /**
      * Every data transformer interceptor must define a unique key. Then, during the transformation, the schema can specify which
      * interceptors must be called.

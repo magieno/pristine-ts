@@ -3,7 +3,7 @@ import {Request} from "@pristine-ts/common";
 import {DataTransformerInterceptorUniqueKeyType} from "../types/data-transformer-interceptor-unique-key.type";
 
 /**
- * This Error is thrown when a normalizer is added more than once.
+ * This Error is thrown when the after row interceptor is added more than once to the builder.
  */
 export class DataBeforeRowTransformerInterceptorAlreadyAddedError extends LoggableError {
 
@@ -16,5 +16,6 @@ export class DataBeforeRowTransformerInterceptorAlreadyAddedError extends Loggab
         // Set the prototype explicitly.
         // As specified in the documentation in TypeScript
         // https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
-        Object.setPrototypeOf(this, DataBeforeRowTransformerInterceptorAlreadyAddedError.prototype);    }
+        Object.setPrototypeOf(this, DataBeforeRowTransformerInterceptorAlreadyAddedError.prototype);
+    }
 }

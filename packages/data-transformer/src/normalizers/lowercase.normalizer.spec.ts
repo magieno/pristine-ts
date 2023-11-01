@@ -1,5 +1,5 @@
 import {LowercaseNormalizer} from "./lowercase.normalizer";
-import {LowercaseNormalizerOptions} from "./lowercase-normalizer.options";
+import {LowercaseNormalizerOptions} from "../normalizer-options/lowercase-normalizer.options";
 
 describe('Lowercase Normalizer', () => {
     it("should properly lowercase a string", () => {

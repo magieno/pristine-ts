@@ -1,6 +1,6 @@
 import {DataNormalizerUniqueKey} from "../types/data-normalizer-unique-key.type";
 
-export interface DataNormalizer<T, R> {
+export interface DataNormalizerInterface<T, R> {
     /**
      * Every data normalizer must define a unique key. Then, during the transformation, the schema can specify which
      * normalizer it must use. Using the unique key, we can quickly (in O(1)) retrieve the normalizer.
