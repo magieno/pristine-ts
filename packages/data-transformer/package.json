@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/data-transformer",
-  "version": "0.0.239",
+  "version": "0.0.257",
   "description": "",
   "module": "dist/lib/esm/data-transformer.module.js",
   "main": "dist/lib/cjs/data-transformer.module.js",
@@ -57,7 +57,9 @@
     "collectCoverageFrom": [
       "src/*.{js,ts}"
     ],
-    "setupFilesAfterEnv": ["jest-extended/all"]
+    "setupFilesAfterEnv": [
+      "jest-extended/all"
+    ]
   },
   "gitHead": "112f715bf4ac6467192d416aa6e419f772b77c58"
 }
