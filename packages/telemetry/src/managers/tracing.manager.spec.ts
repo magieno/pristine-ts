@@ -296,7 +296,7 @@ describe("Tracing Manager", () => {
         expect(grandChildSpan.inProgress).toBeFalsy();
     })
 
-    it("should keep the hierarchy intact when sending it to the tracers and send the spans starting with the children first and send each span to the tracers only once per tracer", async(done) => {
+    it("should keep the hierarchy intact when sending it to the tracers and send the spans starting with the children first and send each span to the tracers only once per tracer", (done) => {
         const tracer: TracerMock = new TracerMock();
 
         const spanStartedSpy = jest.spyOn(tracer, "spanStarted")
@@ -351,7 +351,7 @@ describe("Tracing Manager", () => {
         expect.assertions(10);
     })
 
-    it("should only execute endSpan once per span even if endSpan is called multiple times", async (done) => {
+    it("should only execute endSpan once per span even if endSpan is called multiple times", (done) => {
         const tracer: TracerMock = new TracerMock();
 
         const spanStartedSpy = jest.spyOn(tracer, "spanStarted")
