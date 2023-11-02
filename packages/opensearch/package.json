@@ -20,7 +20,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@opensearch-project/opensearch": "^2.1.0",
+    "@opensearch-project/opensearch": "^2.4.0",
     "@pristine-ts/aws": "file:../aws",
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/core": "file:../core"

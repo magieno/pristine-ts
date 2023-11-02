@@ -34,11 +34,11 @@ export class StripeClient implements StripeClientInterface{
     }
 
     /**
-     * Returns the Stripe client of the Stripe library with the api version '2020-08-27'
+     * Returns the Stripe client of the Stripe library with the api version '2023-10-16'
      */
     getStripeClient(): Stripe {
         return this.client = this.client ?? new Stripe(this.stripeApiKey, {
-            apiVersion: '2020-08-27',
+            apiVersion: '2023-10-16',
         });
     }
 

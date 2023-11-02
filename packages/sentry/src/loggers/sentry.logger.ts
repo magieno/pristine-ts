@@ -1,6 +1,5 @@
 import { inject, injectable } from "tsyringe";
 import * as Sentry from "@sentry/node";
-import { Severity as SentrySeverity } from "@sentry/node";
 import { Readable } from "stream";
 import { LoggerInterface, LogModel, SeverityEnum } from "@pristine-ts/logging";
 import { moduleScoped, ServiceDefinitionTagEnum, tag } from "@pristine-ts/common";
@@ -117,7 +116,7 @@ export class SentryLogger implements LoggerInterface {
                     Sentry.captureMessage(log.message, {
                         // user: log.extra.identity,
                         extra: log.extra,
-                        level: SentrySeverity.Error,
+                        level: 'error',
                     });
                     break;
 
@@ -126,7 +125,7 @@ export class SentryLogger implements LoggerInterface {
                     Sentry.captureMessage(log.message, {
                         // user: log.extra.identity,
                         extra: log.extra,
-                        level: SentrySeverity.Critical,
+                        level: 'fatal',
                     });
                     break;
             }

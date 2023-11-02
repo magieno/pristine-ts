@@ -13,14 +13,15 @@
     "@pristine-ts/logging": "file:../../packages/logging",
     "@pristine-ts/networking": "file:../../packages/networking",
     "@pristine-ts/security": "file:../../packages/security",
-    "class-transformer": "^0.4.0",
-    "@pristine-ts/class-validator": "^1.0.5",
+    "class-transformer": "^0.5.1",
+    "@pristine-ts/class-validator": "^1.0.20",
     "ts-node": "^10.9.1",
-    "tsyringe": "^4.7.0",
-    "uuid": "^8.3.2"
+    "tsyringe": "^4.8.0",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "@types/uuid": "^8.3.4"
+    "@types/uuid": "^9.0.6",
+    "@types/jsonwebtoken": "^9.0.4"
   },
   "jest": {
     "transform": {

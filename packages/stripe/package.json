@@ -16,7 +16,7 @@
     "@pristine-ts/core": "file:../core",
     "@pristine-ts/logging": "file:../logging",
     "@pristine-ts/networking": "file:../networking",
-    "stripe": "^8.161.0"
+    "stripe": "^14.2.0"
   },
   "files": [
     "dist"

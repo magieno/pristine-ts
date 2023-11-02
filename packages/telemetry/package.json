@@ -14,10 +14,10 @@
   "dependencies": {
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/logging": "file:../logging",
-    "uuid": "^8.3.2"
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "@types/uuid": "^8.3.4"
+    "@types/uuid": "^9.0.6"
   },
   "files": [
     "dist"

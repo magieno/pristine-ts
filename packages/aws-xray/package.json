@@ -23,7 +23,7 @@
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/logging": "file:../logging",
     "@pristine-ts/telemetry": "file:../telemetry",
-    "aws-xray-sdk": "^3.3.3"
+    "aws-xray-sdk": "^3.5.3"
   },
   "jest": {
     "transform": {

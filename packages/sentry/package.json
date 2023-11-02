@@ -14,7 +14,7 @@
   "dependencies": {
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/logging": "file:../logging",
-    "@sentry/node": "^6.2.1"
+    "@sentry/node": "^7.77.0"
   },
   "files": [
     "dist"
