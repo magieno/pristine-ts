@@ -2,9 +2,9 @@
   "name": "@pristine-ts/perf",
   "version": "1.0.0",
   "dependencies": {
-    "@pristine-ts/core": "0.0.22",
-    "@pristine-ts/express": "0.0.22",
-    "@pristine-ts/networking": "0.0.22"
+    "@pristine-ts/core": "file:../core",
+    "@pristine-ts/express": "file:../express",
+    "@pristine-ts/networking": "file:../networking"
   },
   "jest": {
     "transform": {

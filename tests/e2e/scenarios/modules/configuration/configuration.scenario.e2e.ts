@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {AppModuleInterface, ModuleInterface} from "@pristine-ts/common";
 import {CoreModule, Kernel} from "@pristine-ts/core";
 import {container, DependencyContainer, inject, injectable, injectAll, InjectionToken} from "tsyringe";

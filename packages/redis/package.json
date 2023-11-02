@@ -20,7 +20,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@camaro/redis": "^2.2.5",
+    "@camaro/redis": "^2.4.1",
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/logging": "file:../logging"
   },

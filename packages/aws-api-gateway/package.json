@@ -20,7 +20,7 @@
     "access": "public"
   },
   "devDependencies": {
-    "@types/jwk-to-pem": "^2.0.0"
+    "@types/jwk-to-pem": "^2.0.2"
   },
   "dependencies": {
     "@pristine-ts/aws": "file:../common",

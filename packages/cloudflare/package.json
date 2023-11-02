@@ -17,8 +17,8 @@
     "@pristine-ts/networking": "file:../networking"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^3.0.0",
-    "@types/service-worker-mock": "^2.0.1",
+    "@cloudflare/workers-types": "^4.20231025.0",
+    "@types/service-worker-mock": "^2.0.3",
     "service-worker-mock": "^2.0.5"
   },
   "files": [

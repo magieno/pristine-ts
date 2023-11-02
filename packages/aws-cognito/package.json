@@ -20,7 +20,8 @@
     "access": "public"
   },
   "devDependencies": {
-    "@types/jwk-to-pem": "^2.0.0"
+    "@types/jwk-to-pem": "^2.0.2",
+    "@types/jsonwebtoken": "^8.5.1"
   },
   "dependencies": {
     "@pristine-ts/common": "file:../common",

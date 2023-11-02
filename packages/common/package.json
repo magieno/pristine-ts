@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "reflect-metadata": "^0.1.13",
-    "tsyringe": "^4.4.0"
+    "tsyringe": "^4.8.0"
   },
   "jest": {
     "transform": {
