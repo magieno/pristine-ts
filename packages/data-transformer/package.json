@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/data-transformer",
-  "version": "0.0.259",
+  "version": "0.0.260",
   "description": "",
   "module": "dist/lib/esm/data-transformer.module.js",
   "main": "dist/lib/cjs/data-transformer.module.js",
