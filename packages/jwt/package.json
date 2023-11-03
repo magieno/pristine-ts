@@ -23,7 +23,7 @@
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/networking": "file:../networking",
     "@pristine-ts/security": "file:../security",
-    "jsonwebtoken": "^8.5.1"
+    "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^8.5.1"
