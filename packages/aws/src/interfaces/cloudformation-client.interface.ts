@@ -1,13 +1,34 @@
-import { S3PresignedOperationTypeEnum } from "../enums/s3-presigned-operation-type.enum";
+import {S3PresignedOperationTypeEnum} from "../enums/s3-presigned-operation-type.enum";
 import {GetObjectCommandOutput, S3Client as AWSS3Client, S3ClientConfig} from "@aws-sdk/client-s3";
-import {CloudFormationClient as AWSCloudformationClient} from "@aws-sdk/client-cloudformation/dist-types/CloudFormationClient";
+import {
+    CloudFormationClient as AWSCloudformationClient
+} from "@aws-sdk/client-cloudformation/dist-types/CloudFormationClient";
 import {
     CreateStackCommandInput,
     CreateStackCommandOutput,
     DeleteStackCommandInput, DeleteStackCommandOutput,
-    Stack, UpdateStackCommandInput, UpdateStackCommandOutput
+    Stack, UpdateStackCommandInput, UpdateStackCommandOutput,
+    CreateChangeSetCommand,
+    CreateChangeSetCommandInput,
+    CreateChangeSetCommandOutput,
+    DeleteChangeSetCommand,
+    DeleteChangeSetCommandInput,
+    DeleteChangeSetCommandOutput,
+    DescribeChangeSetCommand,
+    DescribeChangeSetCommandInput,
+    DescribeChangeSetCommandOutput,
+    ExecuteChangeSetCommand,
+    ExecuteChangeSetCommandInput,
+    ExecuteChangeSetCommandOutput,
+    ListChangeSetsCommand,
+    ListChangeSetsCommandInput,
+    ListChangeSetsCommandOutput,
+    DescribeStacksCommand,
+    DescribeStacksCommandOutput,
+    StackStatus, Capability, ChangeSetStatus,
 } from "@aws-sdk/client-cloudformation";
 import {CloudFormationClientConfig} from "@aws-sdk/client-cloudformation/dist-types/ts3.4";
+import {AwsModuleKeyname} from "../aws.module.keyname";
 
 /**
  * The CloudformationClient Interface defines the methods that a Cloudformation client must implement.
@@ -53,4 +74,45 @@ export interface CloudformationClientInterface {
      * @param input The input to delete the new stack.
      */
     deleteStack(input: DeleteStackCommandInput): Promise<DeleteStackCommandOutput>;
+
+    /**
+     * Creates a Change Set.
+     * @param input The input to create a change set.
+     */
+    createChangeSet(input: CreateChangeSetCommandInput): Promise<CreateChangeSetCommandOutput>;
+
+    /**
+     * Deletes a Change Set.
+     * @param input The input to delete a change set.
+     */
+    deleteChangeSet(input: DeleteChangeSetCommandInput): Promise<DeleteChangeSetCommandOutput>;
+
+    /**
+     * Describes a Change Set.
+     * @param input The input to describe a change set.
+     */
+    describeChangeSet(input: DescribeChangeSetCommandInput): Promise<DescribeChangeSetCommandOutput>;
+
+    /**
+     * Executes a Change Set.
+     * @param input The input to execute a change set.
+     */
+    executeChangeSet(input: ExecuteChangeSetCommandInput): Promise<ExecuteChangeSetCommandOutput>;
+
+    /**
+     * Lists a Change Set.
+     * @param input The input to list a change set.
+     */
+    listChangeSets(input: ListChangeSetsCommandInput): Promise<ListChangeSetsCommandOutput>;
+
+    /**
+     * This method encapsulates the deployment of a Stack, whether the Stack already exists or not. It uses ChangeSets to do so.
+     * It monitors the status of the stack and returns the status when the status is a final state.
+     * @param stackName
+     * @param cloudformationTemplateS3Url
+     * @param stackParameters
+     * @param capabilities
+     * @param statusCallback
+     */
+    deployStack(stackName: string, cloudformationTemplateS3Url: string, stackParameters: {[key in string]:string}, capabilities: Capability[], statusCallback?: (status: ChangeSetStatus, changeSetName: string) => void): Promise<ChangeSetStatus | "NO_CHANGES_TO_PERFORM">;
 }
