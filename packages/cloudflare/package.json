@@ -19,6 +19,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20231025.0",
     "@types/service-worker-mock": "^2.0.3",
+    "@types/jest": "^29.5.10",
     "service-worker-mock": "^2.0.5"
   },
   "files": [
