@@ -6,6 +6,7 @@
   "compilerOptions": {
     "declarationDir": "dist/types",
     "types": [
+      "jest",
     ],
     "outDir": "dist/lib/esm"
   },
