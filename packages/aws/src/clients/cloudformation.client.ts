@@ -3,35 +3,42 @@ import {LogHandlerInterface} from "@pristine-ts/logging";
 import {moduleScoped, tag} from "@pristine-ts/common";
 import {AwsModuleKeyname} from "../aws.module.keyname";
 import {
+    Capability,
     CloudFormationClient as AWSCloudformationClient,
     CloudFormationClientConfig,
-    CreateStackCommand,
-    CreateStackCommandInput,
-    CreateStackCommandOutput, DeleteStackCommand, DeleteStackCommandInput, DeleteStackCommandOutput,
     CreateChangeSetCommand,
     CreateChangeSetCommandInput,
     CreateChangeSetCommandOutput,
+    CreateStackCommand,
+    CreateStackCommandInput,
+    CreateStackCommandOutput,
     DeleteChangeSetCommand,
     DeleteChangeSetCommandInput,
     DeleteChangeSetCommandOutput,
+    DeleteStackCommand,
+    DeleteStackCommandInput,
+    DeleteStackCommandOutput,
     DescribeChangeSetCommand,
     DescribeChangeSetCommandInput,
     DescribeChangeSetCommandOutput,
+    DescribeStacksCommand,
+    DescribeStacksCommandOutput,
     ExecuteChangeSetCommand,
     ExecuteChangeSetCommandInput,
     ExecuteChangeSetCommandOutput,
     ListChangeSetsCommand,
     ListChangeSetsCommandInput,
     ListChangeSetsCommandOutput,
-    DescribeStacksCommand,
-    DescribeStacksCommandOutput,
-    StackStatus, ChangeSetStatus,
     Parameter,
-    Capability,
-    Stack, UpdateStackCommand, UpdateStackCommandInput, UpdateStackCommandOutput
+    Stack,
+    UpdateStackCommand,
+    UpdateStackCommandInput,
+    UpdateStackCommandOutput,
+    ChangeSetType
 } from "@aws-sdk/client-cloudformation";
 import {CloudformationClientInterface} from "../interfaces/cloudformation-client.interface";
 import {v4 as uuid} from "uuid";
+import {CloudformationDeploymentStatusEnum} from "../enums/cloudformation-deployment-status.enum";
 
 /**
  * The client to use to interact with AWS Cloudformation. It is a wrapper around the CloudformationClient of @aws-sdk/client-cloudformation.
@@ -255,7 +262,7 @@ export class CloudformationClient implements CloudformationClientInterface {
      * @param capabilities
      * @param statusCallback
      */
-    async deployStack(stackName: string, cloudformationTemplateS3Url: string, stackParameters: {[key in string]:string}, capabilities: Capability[], statusCallback?: (status: ChangeSetStatus, changeSetName: string) => void): Promise<ChangeSetStatus | "NO_CHANGES_TO_PERFORM"> {
+    async deployStack(stackName: string, cloudformationTemplateS3Url: string, stackParameters: {[key in string]:string}, capabilities: Capability[], statusCallback?: (status: CloudformationDeploymentStatusEnum, changeSetName: string) => void): Promise<CloudformationDeploymentStatusEnum> {
         const parameters: Parameter[] = [];
 
         for(const key in stackParameters) {
@@ -270,6 +277,15 @@ export class CloudformationClient implements CloudformationClientInterface {
 
         const changeSetName = `p-${uuid()}`;
 
+        // Check if the stack exists or not first.
+        let changeSetType: ChangeSetType = ChangeSetType.UPDATE;
+
+        const stack = await this.getStackDescription(stackName);
+
+        if(stack === undefined) {
+            changeSetType = ChangeSetType.CREATE;
+        }
+
         await this.createChangeSet(
             {
                 StackName: stackName,
@@ -277,17 +293,26 @@ export class CloudformationClient implements CloudformationClientInterface {
                 Parameters: parameters,
                 Capabilities: capabilities,
                 ChangeSetName: changeSetName,
+                ChangeSetType: changeSetType,
             }
         );
 
         // Check if there are actual changes in the ChangeSet.
-        const describeChangeSetCommandOutput = await this.describeChangeSet({
+        await this.describeChangeSet({
             StackName: stackName,
             ChangeSetName: changeSetName,
         })
 
-        if(describeChangeSetCommandOutput?.Changes?.length === 0) {
-            return "NO_CHANGES_TO_PERFORM";
+        const status = await this.monitorStack(stackName, changeSetName);
+
+        switch (status) {
+            case CloudformationDeploymentStatusEnum.Failed:
+            case CloudformationDeploymentStatusEnum.NoChangesToPerform:
+                return status;
+            case CloudformationDeploymentStatusEnum.InProgress:
+                this.logHandler.error("The returned status of 'monitorStack' should never be 'InProgress'.", {}, AwsModuleKeyname)
+            default:
+                break;
         }
 
         // Execute the changes and start monitoring
@@ -296,6 +321,10 @@ export class CloudformationClient implements CloudformationClientInterface {
             ChangeSetName: changeSetName,
         })
 
+        return this.monitorStack(stackName, changeSetName, statusCallback);
+    }
+
+    private async monitorStack(stackName: string, changeSetName: string, statusCallback?: (status: CloudformationDeploymentStatusEnum, changeSetName: string) => void): Promise<CloudformationDeploymentStatusEnum> {
         while(true) {
             const response = await this.describeChangeSet({
                 StackName: stackName,
@@ -315,15 +344,16 @@ export class CloudformationClient implements CloudformationClientInterface {
                 case "DELETE_IN_PROGRESS":
                 case "DELETE_PENDING":
                     if(statusCallback) {
-                        statusCallback(status, changeSetName);
-                    }
+                        statusCallback(CloudformationDeploymentStatusEnum.InProgress, changeSetName);
+                    } response.ExecutionStatus
                     continue;
 
                 case "CREATE_COMPLETE":
                 case "DELETE_COMPLETE":
+                    return CloudformationDeploymentStatusEnum.Completed;
                 case "DELETE_FAILED":
                 case "FAILED":
-                    return response.Status;
+                    return CloudformationDeploymentStatusEnum.Failed;
             }
 
             await new Promise(resolve => setTimeout(resolve, 5000));
