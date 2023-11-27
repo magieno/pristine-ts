@@ -1,3 +1,4 @@
+export * from "./cloudformation-deployment-status.enum";
 export * from "./dynamodb-event-type.enum";
 export * from "./dynamodb-sort-order.enum";
 export * from "./event-bridge-event-type.enum";

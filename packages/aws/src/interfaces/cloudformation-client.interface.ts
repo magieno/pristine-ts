@@ -29,6 +29,7 @@ import {
 } from "@aws-sdk/client-cloudformation";
 import {CloudFormationClientConfig} from "@aws-sdk/client-cloudformation/dist-types/ts3.4";
 import {AwsModuleKeyname} from "../aws.module.keyname";
+import {CloudformationDeploymentStatusEnum} from "../enums/cloudformation-deployment-status.enum";
 
 /**
  * The CloudformationClient Interface defines the methods that a Cloudformation client must implement.
@@ -114,5 +115,5 @@ export interface CloudformationClientInterface {
      * @param capabilities
      * @param statusCallback
      */
-    deployStack(stackName: string, cloudformationTemplateS3Url: string, stackParameters: {[key in string]:string}, capabilities: Capability[], statusCallback?: (status: ChangeSetStatus, changeSetName: string) => void): Promise<ChangeSetStatus | "NO_CHANGES_TO_PERFORM">;
+    deployStack(stackName: string, cloudformationTemplateS3Url: string, stackParameters: {[key in string]:string}, capabilities: Capability[], statusCallback?: (status: CloudformationDeploymentStatusEnum, changeSetName: string) => void): Promise<CloudformationDeploymentStatusEnum>;
 }
