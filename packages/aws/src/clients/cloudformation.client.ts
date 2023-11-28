@@ -104,7 +104,7 @@ export class CloudformationClient implements CloudformationClientInterface {
             }
             return response.Stacks[0];
         } catch (e) {
-            this.logHandler.error("Error getting stack description from cloudformation", {error: e, input}, AwsModuleKeyname);
+            this.logHandler.error("Error getting stack description from cloudformation", {error: e, stackName}, AwsModuleKeyname);
             if (e.message.match("(.*)" + stackName + "(.*)does not exist(.*)")) {
                 return undefined;
             } else {
@@ -124,7 +124,7 @@ export class CloudformationClient implements CloudformationClientInterface {
             const response: DescribeStacksCommandOutput = await this.getClient().send(command);
             return response.Stacks ?? [];
         } catch (e) {
-            this.logHandler.error("Error getting stack description from cloudformation", {error: e, input}, AwsModuleKeyname);
+            this.logHandler.error("Error getting stack description from cloudformation", {error: e}, AwsModuleKeyname);
             throw e;
         }
     }
@@ -268,7 +268,7 @@ export class CloudformationClient implements CloudformationClientInterface {
         this.logHandler.debug("CLOUDFORMATION CLIENT - List Change Sets", {input}, AwsModuleKeyname);
         const command = new ListChangeSetsCommand(input)
         try {
-            const response = await this.getClient().send(command);
+            const response = await this.getClient().send(input);
 
             this.logHandler.debug("CLOUDFORMATION CLIENT - List Change set Response", {input, response}, AwsModuleKeyname)
 
