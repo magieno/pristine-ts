@@ -268,7 +268,7 @@ export class CloudformationClient implements CloudformationClientInterface {
         this.logHandler.debug("CLOUDFORMATION CLIENT - List Change Sets", {input}, AwsModuleKeyname);
         const command = new ListChangeSetsCommand(input)
         try {
-            const response = await this.getClient().send(input);
+            const response = await this.getClient().send(command);
 
             this.logHandler.debug("CLOUDFORMATION CLIENT - List Change set Response", {input, response}, AwsModuleKeyname)
 
