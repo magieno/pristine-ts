@@ -115,5 +115,5 @@ export interface CloudformationClientInterface {
      * @param capabilities
      * @param statusCallback
      */
-    deployStack(stackName: string, cloudformationTemplateS3Url: string, stackParameters: {[key in string]:string}, capabilities: Capability[], statusCallback?: (status: CloudformationDeploymentStatusEnum, changeSetName: string) => void): Promise<CloudformationDeploymentStatusEnum>;
+    deployStack(stackName: string, cloudformationTemplateS3Url: string, stackParameters: {[key in string]:string}, capabilities: Capability[], statusCallback?: (status: CloudformationDeploymentStatusEnum, changeSetName?: string) => void): Promise<CloudformationDeploymentStatusEnum>;
 }

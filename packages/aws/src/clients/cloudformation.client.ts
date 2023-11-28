@@ -28,20 +28,21 @@ import {
     ExecuteChangeSetCommand,
     ExecuteChangeSetCommandInput,
     ExecuteChangeSetCommandOutput,
-    ExecutionStatus,
     ListChangeSetsCommand,
     ListChangeSetsCommandInput,
     ListChangeSetsCommandOutput,
+    OnStackFailure,
     Parameter,
     Stack,
+    StackStatus,
     UpdateStackCommand,
     UpdateStackCommandInput,
     UpdateStackCommandOutput,
-    OnStackFailure,
 } from "@aws-sdk/client-cloudformation";
 import {CloudformationClientInterface} from "../interfaces/cloudformation-client.interface";
 import {v4 as uuid} from "uuid";
 import {CloudformationDeploymentStatusEnum} from "../enums/cloudformation-deployment-status.enum";
+import {NotFoundHttpError} from "@pristine-ts/networking";
 
 /**
  * The client to use to interact with AWS Cloudformation. It is a wrapper around the CloudformationClient of @aws-sdk/client-cloudformation.
@@ -288,7 +289,7 @@ export class CloudformationClient implements CloudformationClientInterface {
      * @param capabilities
      * @param statusCallback
      */
-    async deployStack(stackName: string, cloudformationTemplateS3Url: string, stackParameters: { [key in string]: string }, capabilities: Capability[], statusCallback?: (status: CloudformationDeploymentStatusEnum, changeSetName: string) => void): Promise<CloudformationDeploymentStatusEnum> {
+    async deployStack(stackName: string, cloudformationTemplateS3Url: string, stackParameters: { [key in string]: string }, capabilities: Capability[], statusCallback?: (status: CloudformationDeploymentStatusEnum, changeSetName?: string) => void): Promise<CloudformationDeploymentStatusEnum> {
         const parameters: Parameter[] = [];
 
         for (const key in stackParameters) {
@@ -326,7 +327,7 @@ export class CloudformationClient implements CloudformationClientInterface {
 
         this.logHandler.debug("After calling createChangeSet", {stack, response, changeSetName, stackName}, AwsModuleKeyname)
 
-        const status = await this.monitorChangeSet(stackName, changeSetName, "changeSet");
+        const status = await this.monitorChangeSet(stackName, changeSetName);
 
         switch (status) {
             case CloudformationDeploymentStatusEnum.Failed:
@@ -344,10 +345,10 @@ export class CloudformationClient implements CloudformationClientInterface {
             ChangeSetName: changeSetName,
         })
 
-        return this.monitorChangeSet(stackName, changeSetName, "execution", statusCallback);
+        return this.monitorStack(stackName, statusCallback);
     }
 
-    private async monitorChangeSet(stackName: string, changeSetName: string, monitoringType: "changeSet" | "execution", statusCallback?: (status: CloudformationDeploymentStatusEnum, changeSetName: string) => void): Promise<CloudformationDeploymentStatusEnum> {
+    private async monitorChangeSet(stackName: string, changeSetName: string, statusCallback?: (status: CloudformationDeploymentStatusEnum, changeSetName: string) => void): Promise<CloudformationDeploymentStatusEnum> {
         while (true) {
             const response = await this.describeChangeSet({
                 StackName: stackName,
@@ -356,7 +357,7 @@ export class CloudformationClient implements CloudformationClientInterface {
 
             this.logHandler.debug("Describe ChangeSet result.", {response}, AwsModuleKeyname)
 
-            const status = monitoringType == "changeSet" ? response.Status : response.ExecutionStatus;
+            const status = response.Status;
 
             if (status === undefined) {
                 await new Promise(resolve => setTimeout(resolve, 5000));
@@ -364,8 +365,6 @@ export class CloudformationClient implements CloudformationClientInterface {
             }
 
             switch (status) {
-                case ExecutionStatus.AVAILABLE:
-                case ExecutionStatus.EXECUTE_IN_PROGRESS:
                 case ChangeSetStatus.CREATE_IN_PROGRESS:
                 case ChangeSetStatus.CREATE_PENDING:
                 case ChangeSetStatus.DELETE_IN_PROGRESS:
@@ -375,7 +374,6 @@ export class CloudformationClient implements CloudformationClientInterface {
                     }
                     break;
 
-                case ExecutionStatus.EXECUTE_COMPLETE:
                 case ChangeSetStatus.CREATE_COMPLETE:
                 case ChangeSetStatus.DELETE_COMPLETE:
                     return CloudformationDeploymentStatusEnum.Completed;
@@ -384,12 +382,71 @@ export class CloudformationClient implements CloudformationClientInterface {
                     if(response.StatusReason == "The submitted information didn't contain changes. Submit different information to create a change set.") {
                         return CloudformationDeploymentStatusEnum.NoChangesToPerform;
                     }
-                case ExecutionStatus.EXECUTE_FAILED:
-                case ExecutionStatus.OBSOLETE:
-                case ExecutionStatus.UNAVAILABLE:
                 case ChangeSetStatus.DELETE_FAILED:
                     this.logHandler.error("Error with the ChangeSet.", {response}, AwsModuleKeyname)
                     return CloudformationDeploymentStatusEnum.Failed;
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 5000));
+        }
+    }
+    private async monitorStack(stackName: string, statusCallback?: (status: CloudformationDeploymentStatusEnum) => void): Promise<CloudformationDeploymentStatusEnum> {
+        while (true) {
+            const response = await this.getStackDescription(stackName);
+
+            this.logHandler.debug("Stack Description result.", {response}, AwsModuleKeyname)
+
+            if(response === undefined) {
+                const message = `Stack '${stackName}' wasn't found.`;
+
+                this.logHandler.error(message, {stackName, response})
+                throw new NotFoundHttpError(message);
+            }
+
+            const status = response.StackStatus;
+
+            if (status === undefined) {
+                await new Promise(resolve => setTimeout(resolve, 5000));
+                continue;
+            }
+
+            switch (status) {
+                // In progress states
+                case StackStatus.CREATE_IN_PROGRESS:
+                case StackStatus.DELETE_IN_PROGRESS:
+                case StackStatus.IMPORT_IN_PROGRESS:
+                case StackStatus.UPDATE_COMPLETE_CLEANUP_IN_PROGRESS:
+                case StackStatus.UPDATE_IN_PROGRESS:
+                case StackStatus.REVIEW_IN_PROGRESS:
+                    if (statusCallback) {
+                        statusCallback(CloudformationDeploymentStatusEnum.InProgress);
+                    }
+                    break
+
+                // Failure states
+                case StackStatus.IMPORT_ROLLBACK_IN_PROGRESS: // A rollback means that it will eventually fail. Let's fail now instead.
+                case StackStatus.UPDATE_ROLLBACK_IN_PROGRESS: // A rollback means that it will eventually fail. Let's fail now instead.
+                case StackStatus.ROLLBACK_IN_PROGRESS: // A rollback means that it will eventually fail. Let's fail now instead.
+                case StackStatus.CREATE_FAILED:
+                case StackStatus.DELETE_COMPLETE:
+                case StackStatus.DELETE_FAILED:
+                case StackStatus.IMPORT_ROLLBACK_COMPLETE:
+                case StackStatus.IMPORT_ROLLBACK_FAILED:
+                case StackStatus.ROLLBACK_COMPLETE:
+                case StackStatus.ROLLBACK_FAILED:
+                case StackStatus.UPDATE_FAILED:
+
+                case StackStatus.UPDATE_ROLLBACK_COMPLETE:
+                case StackStatus.UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS:
+                case StackStatus.UPDATE_ROLLBACK_FAILED:
+                    this.logHandler.error(`Invalid status '${status}' for stack '${stackName}'.`, {response, stackName});
+                    return CloudformationDeploymentStatusEnum.Failed;
+
+                // Success states
+                case StackStatus.CREATE_COMPLETE:
+                case StackStatus.IMPORT_COMPLETE:
+                case StackStatus.UPDATE_COMPLETE:
+                    return CloudformationDeploymentStatusEnum.Completed;
             }
 
             await new Promise(resolve => setTimeout(resolve, 5000));
