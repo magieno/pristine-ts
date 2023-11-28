@@ -4,6 +4,8 @@ import {moduleScoped, tag} from "@pristine-ts/common";
 import {AwsModuleKeyname} from "../aws.module.keyname";
 import {
     Capability,
+    ChangeSetStatus,
+    ChangeSetType,
     CloudFormationClient as AWSCloudformationClient,
     CloudFormationClientConfig,
     CreateChangeSetCommand,
@@ -26,6 +28,7 @@ import {
     ExecuteChangeSetCommand,
     ExecuteChangeSetCommandInput,
     ExecuteChangeSetCommandOutput,
+    ExecutionStatus,
     ListChangeSetsCommand,
     ListChangeSetsCommandInput,
     ListChangeSetsCommandOutput,
@@ -34,9 +37,6 @@ import {
     UpdateStackCommand,
     UpdateStackCommandInput,
     UpdateStackCommandOutput,
-    ChangeSetType,
-    ExecutionStatus,
-    ChangeSetStatus,
 } from "@aws-sdk/client-cloudformation";
 import {CloudformationClientInterface} from "../interfaces/cloudformation-client.interface";
 import {v4 as uuid} from "uuid";
@@ -359,11 +359,14 @@ export class CloudformationClient implements CloudformationClientInterface {
                 case ChangeSetStatus.DELETE_COMPLETE:
                     return CloudformationDeploymentStatusEnum.Completed;
 
-                    case ExecutionStatus.EXECUTE_FAILED:
+                case ChangeSetStatus.FAILED:
+                    if(response.StatusReason == "The submitted information didn't contain changes. Submit different information to create a change set.") {
+                        return CloudformationDeploymentStatusEnum.NoChangesToPerform;
+                    }
+                case ExecutionStatus.EXECUTE_FAILED:
                 case ExecutionStatus.OBSOLETE:
                 case ExecutionStatus.UNAVAILABLE:
                 case ChangeSetStatus.DELETE_FAILED:
-                case ChangeSetStatus.FAILED:
                     this.logHandler.error("Error with the ChangeSet.", {response}, AwsModuleKeyname)
                     return CloudformationDeploymentStatusEnum.Failed;
             }
