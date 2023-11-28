@@ -213,13 +213,19 @@ export class CloudformationClient implements CloudformationClientInterface {
     /**
      * Describes a Change Set.
      * @param input The input to describe a change set.
+     * @param retryNumber
      */
-    async describeChangeSet(input: DescribeChangeSetCommandInput): Promise<DescribeChangeSetCommandOutput> {
+    async describeChangeSet(input: DescribeChangeSetCommandInput, retryNumber = 0): Promise<DescribeChangeSetCommandOutput> {
         this.logHandler.debug("CLOUDFORMATION CLIENT - Describe Change Set", {input}, AwsModuleKeyname);
         const command = new DescribeChangeSetCommand(input)
         try {
             return await this.getClient().send(command);
         } catch (e) {
+            if(e.code === "Throttling" && retryNumber < 3) {
+                await new Promise(resolve => setTimeout(resolve, (retryNumber + 1) * 1000);
+
+                return this.describeChangeSet(input, retryNumber++);
+            }
             this.logHandler.error("Error describing change set in cloudformation", {error: e}, AwsModuleKeyname);
             throw e;
         }
@@ -228,13 +234,19 @@ export class CloudformationClient implements CloudformationClientInterface {
     /**
      * Executes a Change Set.
      * @param input The input to execute a change set.
+     * @param retryNumber
      */
-    async executeChangeSet(input: ExecuteChangeSetCommandInput): Promise<ExecuteChangeSetCommandOutput> {
+    async executeChangeSet(input: ExecuteChangeSetCommandInput, retryNumber = 0): Promise<ExecuteChangeSetCommandOutput> {
         this.logHandler.debug("CLOUDFORMATION CLIENT - Execute Change Set", {input}, AwsModuleKeyname);
         const command = new ExecuteChangeSetCommand(input)
         try {
             return await this.getClient().send(command);
         } catch (e) {
+            if(e.code === "Throttling" && retryNumber < 3) {
+                await new Promise(resolve => setTimeout(resolve, (retryNumber + 1) * 1000);
+
+                return this.executeChangeSet(input, retryNumber++);
+            }
             this.logHandler.error("Error executing change set in cloudformation", {error: e}, AwsModuleKeyname);
             throw e;
         }
