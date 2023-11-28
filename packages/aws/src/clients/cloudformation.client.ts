@@ -222,7 +222,7 @@ export class CloudformationClient implements CloudformationClientInterface {
             return await this.getClient().send(command);
         } catch (e) {
             if(e.code === "Throttling" && retryNumber < 3) {
-                await new Promise(resolve => setTimeout(resolve, (retryNumber + 1) * 1000);
+                await new Promise(resolve => setTimeout(resolve, (retryNumber + 1) * 1000));
 
                 return this.describeChangeSet(input, retryNumber++);
             }
@@ -243,7 +243,7 @@ export class CloudformationClient implements CloudformationClientInterface {
             return await this.getClient().send(command);
         } catch (e) {
             if(e.code === "Throttling" && retryNumber < 3) {
-                await new Promise(resolve => setTimeout(resolve, (retryNumber + 1) * 1000);
+                await new Promise(resolve => setTimeout(resolve, (retryNumber + 1) * 1000));
 
                 return this.executeChangeSet(input, retryNumber++);
             }
