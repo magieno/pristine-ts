@@ -1,6 +1,7 @@
 import {ModuleInterface} from "@pristine-ts/common";
 import {StripeModuleKeyname} from "./stripe.module.keyname";
 import {NetworkingModule} from "@pristine-ts/networking";
+import {DefaultCredentialsProviderUniqueName} from "./providers/default-credentials.provider";
 
 export * from './clients/clients';
 export * from './enums/enums';
@@ -17,7 +18,16 @@ export const StripeModule: ModuleInterface = {
          */
         {
             parameterName: StripeModuleKeyname + ".stripeApiKey",
-            isRequired: true,
+            isRequired: false,
+            defaultValue: ""
+        },
+        /**
+         * The name of the credential provider to use.
+         */
+        {
+            parameterName: StripeModuleKeyname + ".credential_provider.name",
+            isRequired: false,
+            defaultValue: DefaultCredentialsProviderUniqueName
         }
     ],
     importModules: [

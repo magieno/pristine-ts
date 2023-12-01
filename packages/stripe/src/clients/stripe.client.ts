@@ -1,4 +1,4 @@
-import {inject, injectable} from "tsyringe";
+import {inject, injectable, injectAll} from "tsyringe";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {tag} from "@pristine-ts/common";
 import {StripeClientInterface} from "../interfaces/stripe-client.interface";
@@ -29,7 +29,9 @@ export class StripeClient implements StripeClientInterface{
      */
     constructor(
         @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-        @inject(`%${StripeModuleKeyname}.stripeApiKey%`) private readonly stripeApiKey: string,
+
+        @inject(`%${StripeModuleKeyname}.credential_provider.name%`) private readonly credentialProviderUniqueName: string,
+        @injectAll("CredentialsProviderInterface") private readonly credentialProviders: string,
     ) {
     }
 
@@ -37,6 +39,8 @@ export class StripeClient implements StripeClientInterface{
      * Returns the Stripe client of the Stripe library with the api version '2023-10-16'
      */
     getStripeClient(): Stripe {
+        // Find the credential provider to use and then get the StripeApi Key
+
         return this.client = this.client ?? new Stripe(this.stripeApiKey, {
             apiVersion: '2023-10-16',
         });
