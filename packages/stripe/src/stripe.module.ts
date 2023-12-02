@@ -2,6 +2,7 @@ import {ModuleInterface} from "@pristine-ts/common";
 import {StripeModuleKeyname} from "./stripe.module.keyname";
 import {NetworkingModule} from "@pristine-ts/networking";
 import {DefaultCredentialsProviderUniqueName} from "./providers/default-credentials.provider";
+import {EnvironmentVariableResolver} from "@pristine-ts/configuration";
 
 export * from './clients/clients';
 export * from './enums/enums';
@@ -27,7 +28,8 @@ export const StripeModule: ModuleInterface = {
         {
             parameterName: StripeModuleKeyname + ".credential_provider.name",
             isRequired: false,
-            defaultValue: DefaultCredentialsProviderUniqueName
+            defaultValue: DefaultCredentialsProviderUniqueName,
+            defaultResolvers: [new EnvironmentVariableResolver("PRISTINE_STRIPE_CREDENTIAL_PROVIDER_NAME")]
         }
     ],
     importModules: [
