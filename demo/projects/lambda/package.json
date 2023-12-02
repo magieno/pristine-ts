@@ -15,7 +15,7 @@
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@pristine-ts/core": "^0.0.257",
     "@pristine-ts/aws": "^0.0.257",
-    "@pristine-ts/aws-cognito": "^0.0.257",
+    "@pristine-ts/aws-cognito": "^0.0.274",
     "@pristine-ts/validation": "^0.0.257",
     "@pristine-ts/logging": "^0.0.257",
     "@pristine-ts/networking": "^0.0.257",
