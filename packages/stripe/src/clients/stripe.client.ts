@@ -37,6 +37,11 @@ export class StripeClient implements StripeClientInterface{
     ) {
     }
 
+    /**
+     * This method filters the Credentials Provider base on the provided this.credentialProviderUniqueName attribute. It
+     * checks that there's actually a credential provider that matches the provided unique name.
+     * @private
+     */
     private getCredentialProvider(): CredentialsProviderInterface {
         if(!this.credentialProviderUniqueName) {
             this.logHandler.error(`The configuration '${StripeModuleKeyname}.credential_provider.name' contains an invalid unique name: '${this.credentialProviderUniqueName}'}`)
