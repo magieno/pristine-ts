@@ -2,6 +2,7 @@ import {CredentialsProviderInterface} from "../interfaces/credentials-provider.i
 import {moduleScoped, tag} from "@pristine-ts/common";
 import {StripeModuleKeyname} from "../stripe.module.keyname";
 import {injectable, inject} from "tsyringe";
+import {InvalidStripeApiKeyError} from "../errors/invalid-stripe-api-key.error";
 
 export const DefaultCredentialsProviderUniqueName = "default_credentials_provider";
 
@@ -15,11 +16,14 @@ export class DefaultCredentialsProvider implements CredentialsProviderInterface 
 
     getStripeApiKey(): string {
         // Check that stripeApiKey isn't equal to empty string ""
+        if(!this.stripeApiKey) {
+            throw new InvalidStripeApiKeyError(this.stripeApiKey);
+        }
 
-        return "";
+        return this.stripeApiKey;
     }
 
     getUniqueName(): string {
-        return DefaultCredentialsProvider;
+        return DefaultCredentialsProviderUniqueName;
     }
 }

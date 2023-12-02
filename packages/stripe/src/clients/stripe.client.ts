@@ -6,6 +6,9 @@ import {StripeAuthenticationError} from "../errors/stripe-authentication.error";
 import {StripeModuleKeyname} from "../stripe.module.keyname";
 import Stripe from "stripe";
 import {Request} from "@pristine-ts/common";
+import {CredentialsProviderInterface} from "../interfaces/credentials-provider.interface";
+import {InvalidCredentialProviderUniqueNameError} from "../errors/invalid-credential-provider-unique-name.error";
+import {CredentialProviderNotFoundError} from "../errors/credential-provider-not-found.error";
 
 /**
  * The client to use to interact with Stripe. It is a wrapper around the Stripe library.
@@ -29,10 +32,29 @@ export class StripeClient implements StripeClientInterface{
      */
     constructor(
         @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-
         @inject(`%${StripeModuleKeyname}.credential_provider.name%`) private readonly credentialProviderUniqueName: string,
-        @injectAll("CredentialsProviderInterface") private readonly credentialProviders: string,
+        @injectAll("CredentialsProviderInterface") private readonly credentialProviders: CredentialsProviderInterface[],
     ) {
+    }
+
+    private getCredentialProvider(): CredentialsProviderInterface {
+        if(!this.credentialProviderUniqueName) {
+            this.logHandler.error(`The configuration '${StripeModuleKeyname}.credential_provider.name' contains an invalid unique name: '${this.credentialProviderUniqueName}'}`)
+            throw new InvalidCredentialProviderUniqueNameError(this.credentialProviderUniqueName);
+        }
+
+        const filteredProviders = this.credentialProviders.filter(credentialProvider => credentialProvider.getUniqueName() === this.credentialProviderUniqueName);
+
+        if(filteredProviders.length === 0) {
+            this.logHandler.error(`There is no credential provier registered with the configuration name '${StripeModuleKeyname}.credential_provider.name' with unique name: '${this.credentialProviderUniqueName}'.`)
+            throw new CredentialProviderNotFoundError(this.credentialProviderUniqueName);
+        }
+
+        if(filteredProviders.length > 1) {
+            this.logHandler.warning(`There is more than on credential provider with the configuration name '${StripeModuleKeyname}.credential_provider.name' with unique name: '${this.credentialProviderUniqueName}'. The first one will be selected.`);
+        }
+
+        return filteredProviders[0];
     }
 
     /**
@@ -40,8 +62,9 @@ export class StripeClient implements StripeClientInterface{
      */
     getStripeClient(): Stripe {
         // Find the credential provider to use and then get the StripeApi Key
+        const credentialProvider = this.getCredentialProvider();
 
-        return this.client = this.client ?? new Stripe(this.stripeApiKey, {
+        return this.client = this.client ?? new Stripe(credentialProvider.getStripeApiKey(), {
             apiVersion: '2023-10-16',
         });
     }
