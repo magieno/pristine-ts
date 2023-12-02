@@ -60,7 +60,7 @@ export class S3Client implements S3ClientInterface {
             Key: key,
         })
         try {
-            return this.getClient().send(command);
+            return await this.getClient().send(command);
         } catch (e) {
             this.logHandler.error("Error getting object from S3", {error: e}, AwsModuleKeyname);
             throw e;
