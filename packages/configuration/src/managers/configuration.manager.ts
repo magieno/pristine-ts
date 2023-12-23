@@ -85,6 +85,7 @@ export class ConfigurationManager {
                         break;
                     } catch (e) {
                         // Simply ignore and continue
+                        console.warn("A default resolver has thrown: " + e);
                     }
                 }
 
