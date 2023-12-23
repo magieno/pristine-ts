@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/aws",
-  "version": "0.0.275",
+  "version": "0.0.276",
   "description": "",
   "module": "dist/lib/esm/aws.module.js",
   "main": "dist/lib/cjs/aws.module.js",
@@ -21,8 +21,8 @@
     "@aws-sdk/client-cloudfront": "^3.441.0",
     "@aws-sdk/client-dynamodb": "^3.441.0",
     "@aws-sdk/client-eventbridge": "^3.441.0",
-    "@aws-sdk/client-secrets-manager": "^3.441.0",
     "@aws-sdk/client-s3": "^3.441.0",
+    "@aws-sdk/client-secrets-manager": "^3.441.0",
     "@aws-sdk/client-ses": "^3.441.0",
     "@aws-sdk/client-sqs": "^3.441.0",
     "@aws-sdk/client-ssm": "^3.441.0",
