@@ -6,6 +6,7 @@ import {ValidationModuleKeyname} from "../validation.module.keyname";
 import {injectable, inject} from "tsyringe";
 import { plainToInstance } from 'class-transformer';
 import {LogHandlerInterface} from "@pristine-ts/logging";
+import {bodyValidationMetadataKeyname} from "../decorators/body-validation.decorator";
 
 /**
  * This class is an interceptor to validate the body of an incoming request.
@@ -35,7 +36,9 @@ export class BodyValidationRequestInterceptor implements RequestInterceptorInter
      * @param methodNode The method node.
      */
     async interceptRequest(request: Request, methodNode: MethodRouterNode): Promise<Request> {
-        if(methodNode.route.context.bodyValidator === undefined || methodNode.route.context.bodyValidator.classType === undefined) {
+        const bodyValidator = methodNode.route.context[bodyValidationMetadataKeyname];
+
+        if(bodyValidator === undefined || bodyValidator.classType === undefined) {
             return request;
         }
 
@@ -46,7 +49,7 @@ export class BodyValidationRequestInterceptor implements RequestInterceptorInter
         }, ValidationModuleKeyname)
 
         // Validates that the body can be mapped to the expected type
-        const mappedBody = plainToInstance(methodNode.route.context.bodyValidator.classType, request.body);
+        const mappedBody = plainToInstance(bodyValidator.classType, request.body);
 
         // Validates if all the conditions are respected in the expected type.
         const errors = await this.validator.validate(mappedBody);

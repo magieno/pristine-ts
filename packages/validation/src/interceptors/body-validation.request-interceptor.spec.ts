@@ -4,6 +4,7 @@ import {MethodRouterNode, PathRouterNode, Route} from "@pristine-ts/networking";
 import {HttpMethod, Request} from "@pristine-ts/common";
 import {IsDate, IsInt, Max, Min, Validator} from "@pristine-ts/class-validator";
 import {LogHandlerInterface} from "@pristine-ts/logging";
+import {bodyValidationMetadataKeyname} from "../decorators/body-validation.decorator";
 
 describe("Body Validation Request Enricher", () => {
     const logHandlerMock: LogHandlerInterface = {
@@ -32,7 +33,7 @@ describe("Body Validation Request Enricher", () => {
 
         const route: Route = new Route(null, "method");
         route.context = {}
-        route.context.bodyValidator = undefined;
+        route.context[bodyValidationMetadataKeyname] = undefined;
 
         const methodRouterNode: MethodRouterNode = new MethodRouterNode(new PathRouterNode("/"), HttpMethod.Get, route, 1)
 
@@ -48,8 +49,8 @@ describe("Body Validation Request Enricher", () => {
 
         const route: Route = new Route(null, "method");
         route.context = {};
-        route.context.bodyValidator = {};
-        route.context.bodyValidator.classType = undefined;
+        route.context[bodyValidationMetadataKeyname] = {};
+        route.context[bodyValidationMetadataKeyname].classType = undefined;
 
         const methodRouterNode: MethodRouterNode = new MethodRouterNode(new PathRouterNode("/"), HttpMethod.Get, route, 1)
 
@@ -70,8 +71,8 @@ describe("Body Validation Request Enricher", () => {
 
         const route: Route = new Route(null, "method");
         route.context = {};
-        route.context.bodyValidator = {};
-        route.context.bodyValidator.classType = BodyPayload;
+        route.context[bodyValidationMetadataKeyname] = {};
+        route.context[bodyValidationMetadataKeyname].classType = BodyPayload;
 
         const methodRouterNode: MethodRouterNode = new MethodRouterNode(new PathRouterNode("/"), HttpMethod.Get, route, 1)
 
@@ -91,8 +92,8 @@ describe("Body Validation Request Enricher", () => {
 
         const route: Route = new Route(null, "method");
         route.context = {};
-        route.context.bodyValidator = {};
-        route.context.bodyValidator.classType = BodyPayload;
+        route.context[bodyValidationMetadataKeyname] = {};
+        route.context[bodyValidationMetadataKeyname].classType = BodyPayload;
 
         const methodRouterNode: MethodRouterNode = new MethodRouterNode(new PathRouterNode("/"), HttpMethod.Get, route, 1)
 

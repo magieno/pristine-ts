@@ -8,6 +8,7 @@ import {AuthenticatorFactory} from "../factories/authenticator.factory";
 import {SecurityModuleKeyname} from "../security.module.keyname";
 import {IdentityProviderInterface} from "../interfaces/identity-provider.interface";
 import {Request} from "@pristine-ts/common";
+import {authenticatorMetadataKeyname} from "../decorators/authenticator.decorator";
 
 /**
  * The authentication manager provides authentication by returning the identity executing the action.
@@ -37,13 +38,14 @@ export class AuthenticationManager implements AuthenticationManagerInterface {
      * @param container The dependency container from which to resolve the authenticator.
      */
     public async authenticate(request: Request, routeContext: any, container: DependencyContainer): Promise<IdentityInterface | undefined> {
-        if(!routeContext || routeContext.authenticator === undefined) {
+        const authenticator = routeContext[authenticatorMetadataKeyname];
+        if(!routeContext || authenticator === undefined) {
             return undefined;
         }
 
         let identity: IdentityInterface | undefined;
 
-        const authenticatorContext: AuthenticatorContextInterface = routeContext.authenticator;
+        const authenticatorContext: AuthenticatorContextInterface = authenticator;
 
         try {
             const instantiatedAuthenticator: AuthenticatorInterface = this.authenticatorFactory.fromContext(authenticatorContext, container);

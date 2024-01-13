@@ -1,3 +1,4 @@
+import {MetadataUtil} from "@pristine-ts/common";
 
 export const bodyValidationMetadataKeyname = "@bodyValidation";
 
@@ -22,7 +23,7 @@ export const bodyValidation = (classType: Function) => {
          */
         descriptor: PropertyDescriptor
     ) => {
-        Reflect.defineMetadata(bodyValidationMetadataKeyname, {
+        MetadataUtil.setToRouteContext(bodyValidationMetadataKeyname, {
             classType,
         }, target, propertyKey);
     }

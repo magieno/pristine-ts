@@ -5,6 +5,7 @@ import {AuthorizerManagerInterface} from "../interfaces/authorizer-manager.inter
 import {GuardFactory} from "../factories/guard.factory";
 import {SecurityModuleKeyname} from "../security.module.keyname";
 import {Request} from "@pristine-ts/common";
+import {guardMetadataKeyname} from "../decorators/guard.decorator";
 
 /**
  * The authorizer manager provides authorization by authorizing the action.
@@ -33,13 +34,14 @@ export class AuthorizerManager implements AuthorizerManagerInterface {
      */
     public async isAuthorized(request: Request, routeContext: any, container: DependencyContainer, identity?: IdentityInterface): Promise<boolean> {
         // If there are no guards defined, we simply return that it is authorized.
-        if(!routeContext || routeContext.guards === undefined || Array.isArray(routeContext.guards) === false) {
+        const guards = routeContext[guardMetadataKeyname];
+        if(!routeContext || guards === undefined || Array.isArray(guards) === false) {
             return true;
         }
 
         let isAuthorized = true;
 
-        for (const guardContext of routeContext.guards) {
+        for (const guardContext of guards) {
             try {
                 const instantiatedGuard = this.guardFactory.fromContext(guardContext, container);
 

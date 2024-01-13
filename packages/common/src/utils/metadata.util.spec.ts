@@ -53,13 +53,13 @@ describe("Metadata Util", () =>{
         expect(routeContextAtTargetLevel["keyname"]).toBe("value")
 
 
-        MetadataUtil.setToRouteContext("keyname", "value", ClassWithEmptyMethod, "emptyMethod");
+        MetadataUtil.setToRouteContext("keyname1", "value1", ClassWithEmptyMethod, "emptyMethod");
 
         const routeContextAtPropertyLevel = MetadataUtil.getRouteContext(ClassWithEmptyMethod, "emptyMethod");
 
         expect(typeof routeContextAtPropertyLevel).toBe("object");
         expect(Object.keys(routeContextAtPropertyLevel).length).toBe(1)
-        expect(routeContextAtPropertyLevel["keyname"]).toBe("value")
+        expect(routeContextAtPropertyLevel["keyname1"]).toBe("value1")
     })
 
     it("should append to the Target metadata", () => {

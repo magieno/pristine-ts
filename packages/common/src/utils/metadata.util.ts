@@ -45,7 +45,7 @@ export class MetadataUtil {
         let routeContext;
 
         if(propertyKey === undefined) {
-            routeContext = Reflect.getMetadata(routeContextMetadataKeynameConstant, target);
+            routeContext = Reflect.getMetadata(routeContextMetadataKeynameConstant, target.prototype);
         } else {
             routeContext = Reflect.getMetadata(routeContextMetadataKeynameConstant, target, propertyKey);
         }
@@ -72,7 +72,8 @@ export class MetadataUtil {
         routeContext[metadataKeyname] = metadata;
 
         if(propertyKey === undefined) {
-            Reflect.defineMetadata(routeContextMetadataKeynameConstant, routeContext, target)
+            // When there are no properties, the metadata is defined on the prototype.
+            Reflect.defineMetadata(routeContextMetadataKeynameConstant, routeContext, target.prototype)
         } else {
             Reflect.defineMetadata(routeContextMetadataKeynameConstant, routeContext, target, propertyKey);
         }

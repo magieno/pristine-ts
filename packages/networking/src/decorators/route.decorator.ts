@@ -36,6 +36,10 @@ export const route = (httpMethod: HttpMethod | string, path: string) => {
         }
 
         Reflect.defineMetadata(routeMetadataKeyname, route, target, propertyKey);
+        const a = Reflect.hasMetadata(routeMetadataKeyname, target, propertyKey);
+        const b = routeMetadataKeyname;
+        const c = target;
+        const d = propertyKey;
 
         MetadataUtil.appendToTargetMetadata(target, routesControllerMetadataKeyname, propertyKey);
     };

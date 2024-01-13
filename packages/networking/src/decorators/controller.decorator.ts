@@ -15,7 +15,7 @@ export const controller = (basePath: string) => {
          */
         constructor: Function
     ) => {
-        Reflect.defineMetadata(basePathMetadataKeyname, basePath, constructor);
+        Reflect.defineMetadata(basePathMetadataKeyname, basePath, constructor.prototype);
 
         // Push the class prototype in the controllerRegistry that is used to instantiate all the controllers for the router.
         controllerRegistry.push(constructor.prototype)
