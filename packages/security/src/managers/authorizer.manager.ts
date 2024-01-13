@@ -34,10 +34,12 @@ export class AuthorizerManager implements AuthorizerManagerInterface {
      */
     public async isAuthorized(request: Request, routeContext: any, container: DependencyContainer, identity?: IdentityInterface): Promise<boolean> {
         // If there are no guards defined, we simply return that it is authorized.
-        const guards = routeContext[guardMetadataKeyname];
-        if(!routeContext || guards === undefined || Array.isArray(guards) === false) {
+
+        if(!routeContext || routeContext[guardMetadataKeyname] === undefined || Array.isArray(routeContext[guardMetadataKeyname]) === false) {
             return true;
         }
+
+        const guards = routeContext[guardMetadataKeyname];
 
         let isAuthorized = true;
 

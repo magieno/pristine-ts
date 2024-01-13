@@ -6,6 +6,7 @@ import {AuthenticatorInterface} from "../interfaces/authenticator.interface";
 import {IdentityInterface, Request} from "@pristine-ts/common";
 import {container} from "tsyringe";
 import {IdentityProviderInterface} from "../interfaces/identity-provider.interface";
+import {authenticatorMetadataKeyname} from "../decorators/authenticator.decorator";
 
 describe("AuthenticationManager", () => {
     const logHandlerMock: LogHandlerInterface = {
@@ -39,7 +40,7 @@ describe("AuthenticationManager", () => {
 
         expect(await authenticationManager.authenticate(requestMock, undefined, container)).toBeUndefined()
         expect(await authenticationManager.authenticate(requestMock, {
-            authenticator: undefined,
+            [authenticatorMetadataKeyname]: undefined,
         }, container)).toBeUndefined()
     })
 
@@ -63,7 +64,7 @@ describe("AuthenticationManager", () => {
         })
 
         expect(await authenticationManager.authenticate(requestMock, {
-            authenticator: {}
+            [authenticatorMetadataKeyname]: {}
         }, container)).toBe(identity)
     })
 
@@ -93,7 +94,7 @@ describe("AuthenticationManager", () => {
         })
 
         await authenticationManager.authenticate(requestMock, {
-            authenticator: {}
+            [authenticatorMetadataKeyname]: {}
         }, container);
 
         expect.assertions(2);
@@ -127,7 +128,7 @@ describe("AuthenticationManager", () => {
         })
 
         await authenticationManager.authenticate(requestMock, {
-            authenticator: {}
+            [authenticatorMetadataKeyname]: {}
         }, container);
 
         expect(spy).toHaveBeenCalled()

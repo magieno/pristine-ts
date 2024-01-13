@@ -38,10 +38,11 @@ export class AuthenticationManager implements AuthenticationManagerInterface {
      * @param container The dependency container from which to resolve the authenticator.
      */
     public async authenticate(request: Request, routeContext: any, container: DependencyContainer): Promise<IdentityInterface | undefined> {
-        const authenticator = routeContext[authenticatorMetadataKeyname];
-        if(!routeContext || authenticator === undefined) {
+        if(!routeContext || routeContext[authenticatorMetadataKeyname] === undefined) {
             return undefined;
         }
+
+        const authenticator = routeContext[authenticatorMetadataKeyname];
 
         let identity: IdentityInterface | undefined;
 
