@@ -1,0 +1,1 @@
+export const methodArgumentsMetadataKeynameConstant = "design:method:arguments";

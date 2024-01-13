@@ -2,6 +2,8 @@ import {AuthenticatorInterface} from "../interfaces/authenticator.interface";
 import {AuthenticatorContextInterface} from "../interfaces/authenticator-context.interface";
 import {AuthenticatorDecoratorError} from "../errors/authenticator-decorator.error";
 
+export const authenticatorMetadataKeyname = "@controller:authenticator";
+
 /**
  * This decorator specifies the authenticator that should be used to authenticate a request.
  * It should be used either on a controller class or directly on a method.
@@ -31,37 +33,9 @@ export const authenticator = (authenticator: AuthenticatorInterface | Function, 
 
         // If there's a descriptor, then it's not a controller authenticator, but a method authenticator
         if(descriptor && propertyKey) {
-            if(target.constructor.prototype.hasOwnProperty("__metadata__") === false) {
-                target.constructor.prototype["__metadata__"] = {}
-            }
-
-            if(target.constructor.prototype["__metadata__"].hasOwnProperty("methods") === false) {
-                target.constructor.prototype["__metadata__"]["methods"] = {}
-            }
-
-            if(target.constructor.prototype["__metadata__"]["methods"].hasOwnProperty(propertyKey) === false) {
-                target.constructor.prototype["__metadata__"]["methods"][propertyKey] = {}
-            }
-
-            if(target.constructor.prototype["__metadata__"]["methods"][propertyKey].hasOwnProperty("__routeContext__") === false) {
-                target.constructor.prototype["__metadata__"]["methods"][propertyKey]["__routeContext__"] = {}
-            }
-
-            target.constructor.prototype["__metadata__"]["methods"][propertyKey]["__routeContext__"]["authenticator"] = authenticatorContext;
+            Reflect.defineMetadata(authenticatorMetadataKeyname, authenticatorContext, target, propertyKey);
         } else {
-            if (target.prototype.hasOwnProperty("__metadata__") === false) {
-                target.prototype["__metadata__"] = {}
-            }
-
-            if (target.prototype["__metadata__"].hasOwnProperty("controller") === false) {
-                target.prototype["__metadata__"]["controller"] = {}
-            }
-
-            if (target.prototype["__metadata__"]["controller"].hasOwnProperty("__routeContext__") === false) {
-                target.prototype["__metadata__"]["controller"]["__routeContext__"] = {}
-            }
-
-            target.prototype["__metadata__"]["controller"]["__routeContext__"]["authenticator"] = authenticatorContext;
+            Reflect.defineMetadata(authenticatorMetadataKeyname, authenticatorContext, target);
         }
     }
 }

@@ -1,3 +1,4 @@
+import "reflect-metadata"
 import {DependencyContainer, inject, singleton} from "tsyringe";
 import {UrlUtil} from "./utils/url.util";
 import {NotFoundHttpError} from "./errors/not-found.http-error";
@@ -14,7 +15,7 @@ import {AuthenticationManagerInterface, AuthorizerManagerInterface} from "@prist
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {NetworkingModuleKeyname} from "./networking.module.keyname";
 import {Span, SpanKeynameEnum, TracingManagerInterface} from "@pristine-ts/telemetry";
-import {controllerRegistry} from "./decorators/controller.decorator";
+import {basePathMetadataKeyname, controllerRegistry} from "./decorators/controller.decorator";
 import {RouteMethodDecorator} from "./interfaces/route-method-decorator.interface";
 import {mergeWith} from "lodash";
 import {RequestInterceptorInterface} from "./interfaces/request-interceptor.interface";
@@ -108,16 +109,18 @@ export class Router implements RouterInterface {
 
         // Loop over all the controllers and control the Route Tree
         controllerRegistry.forEach(controller => {
-            if (controller.hasOwnProperty("__metadata__") === false) {
+            if(Reflect.hasMetadata(basePathMetadataKeyname, controller) === false) {
                 return;
             }
 
-            let basePath: string = controller.__metadata__?.controller?.basePath;
+            let basePath: string = Reflect.getMetadata(basePathMetadataKeyname, controller);
 
             // Clean the base path by removing trailing slashes.
             if (basePath.endsWith("/")) {
                 basePath = basePath.slice(0, basePath.length - 1);
             }
+
+            Reflect.getMetadata(method)
 
             for (const methodPropertyKey in controller.__metadata__?.methods) {
                 if (controller.__metadata__?.methods?.hasOwnProperty(methodPropertyKey) === false) {

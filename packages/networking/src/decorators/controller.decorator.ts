@@ -1,4 +1,8 @@
+import "reflect-metadata";
+
 export const controllerRegistry: any[] = [];
+
+export const basePathMetadataKeyname = "@controller:basePath";
 
 /**
  * The controller decorator can be used on a class to register this class as a controller in the router.
@@ -11,19 +15,7 @@ export const controller = (basePath: string) => {
          */
         constructor: Function
     ) => {
-        // Verify that the object constructor.prototype["__metadata__"]["controller"][basePath] exists or we create it.
-        // This object is a convention defined by Pristine on where to save controller decorator information and is used in the router to retrieve that information.
-        if(constructor.prototype.hasOwnProperty("__metadata__") === false) {
-            constructor.prototype["__metadata__"] = {}
-        }
-
-
-        if(constructor.prototype["__metadata__"].hasOwnProperty("controller") === false) {
-            constructor.prototype["__metadata__"]["controller"] = {}
-        }
-
-        // Save the base path.
-        constructor.prototype["__metadata__"]["controller"]["basePath"] = basePath;
+        Reflect.defineMetadata(basePathMetadataKeyname, basePath, constructor);
 
         // Push the class prototype in the controllerRegistry that is used to instantiate all the controllers for the router.
         controllerRegistry.push(constructor.prototype)

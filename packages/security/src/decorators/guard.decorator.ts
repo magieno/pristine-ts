@@ -2,6 +2,8 @@ import {GuardInterface} from "../interfaces/guard.interface";
 import {GuardDecoratorError} from "../errors/guard-decorator.error";
 import {GuardContextInterface} from "../interfaces/guard-context.interface";
 
+export const guardsMetadataKeyname = "@controller:guards";
+
 /**
  * This decorator specifies the guard that should be used to authorize a request.
  * It should be used either on a controller class or directly on a method.
@@ -30,45 +32,18 @@ export const guard = (guard: GuardInterface | Function, options?: any) => {
 
         // If there's a descriptor, then it's not a controller guard, but a method guard
         if(descriptor && propertyKey) {
-            if(target.constructor.prototype.hasOwnProperty("__metadata__") === false) {
-                target.constructor.prototype["__metadata__"] = {}
-            }
+            const guards = Reflect.getMetadata(guardsMetadataKeyname, target, propertyKey) ?? [];
 
-            if(target.constructor.prototype["__metadata__"].hasOwnProperty("methods") === false) {
-                target.constructor.prototype["__metadata__"]["methods"] = {}
-            }
+            guards.push(guardContext);
 
-            if(target.constructor.prototype["__metadata__"]["methods"].hasOwnProperty(propertyKey) === false) {
-                target.constructor.prototype["__metadata__"]["methods"][propertyKey] = {}
-            }
-
-            if(target.constructor.prototype["__metadata__"]["methods"][propertyKey].hasOwnProperty("__routeContext__") === false) {
-                target.constructor.prototype["__metadata__"]["methods"][propertyKey]["__routeContext__"] = {}
-            }
-
-            if(target.constructor.prototype["__metadata__"]["methods"][propertyKey]["__routeContext__"].hasOwnProperty("guards") === false) {
-                target.constructor.prototype["__metadata__"]["methods"][propertyKey]["__routeContext__"]["guards"] = []
-            }
-
-            target.constructor.prototype["__metadata__"]["methods"][propertyKey]["__routeContext__"]["guards"].push(guardContext);
+            Reflect.defineMetadata(guardsMetadataKeyname, guards, target, propertyKey);
         }
         else {
-            if(target.prototype.hasOwnProperty("__metadata__") === false) {
-                target.prototype["__metadata__"] = {}
-            }
+            const guards = Reflect.getMetadata(guardsMetadataKeyname, target) ?? [];
 
-            if(target.prototype["__metadata__"].hasOwnProperty("controller") === false) {
-                target.prototype["__metadata__"]["controller"] = {}
-            }
-            if (target.prototype["__metadata__"]["controller"].hasOwnProperty("__routeContext__") === false) {
-                target.prototype["__metadata__"]["controller"]["__routeContext__"] = {}
-            }
+            guards.push(guardContext);
 
-            if(target.prototype["__metadata__"]["controller"]["__routeContext__"].hasOwnProperty("guards") === false) {
-                target.prototype["__metadata__"]["controller"]["__routeContext__"]["guards"] = []
-            }
-
-            target.prototype["__metadata__"]["controller"]["__routeContext__"]["guards"].push(guardContext);
+            Reflect.defineMetadata(guardsMetadataKeyname, guards, target);
         }
     }
 }
