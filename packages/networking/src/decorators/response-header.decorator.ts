@@ -1,6 +1,7 @@
 import "reflect-metadata";
+import {MetadataUtil} from "@pristine-ts/common";
 
-export const responseHeaderMetadataKeyname = "@controller:responseHeader";
+export const responseHeaderMetadataKeyname = "@responseHeader";
 
 /**
  * The responseHeader decorator can be used to specify a header that needs to be added to the response before sending it back.
@@ -26,22 +27,13 @@ export const responseHeader = (key: string, value: string) => {
          */
         descriptor?: PropertyDescriptor
     ) => {
+        const routeContext = MetadataUtil.getRouteContext(target, propertyKey);
 
-        // If there's a descriptor and a property key, then it's not a controller decorator, but a method decorator
-        if(descriptor && propertyKey) {
-            const headers = Reflect.getMetadata(responseHeaderMetadataKeyname, target, propertyKey) ?? {};
+        const headers = routeContext[responseHeaderMetadataKeyname] ?? {};
 
-            headers[key] = value;
+        headers[key] = value;
 
-            Reflect.defineMetadata(responseHeaderMetadataKeyname, headers, target, propertyKey);
-        }
-        else {
-            const headers = Reflect.getMetadata(responseHeaderMetadataKeyname, target) ?? {};
-
-            headers[key] = value;
-
-            Reflect.defineMetadata(responseHeaderMetadataKeyname, headers, target);
-        }
+        MetadataUtil.setToRouteContext(responseHeaderMetadataKeyname, headers, target, propertyKey);
     }
 }
 

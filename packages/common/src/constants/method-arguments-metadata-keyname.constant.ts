@@ -1,1 +1,1 @@
-export const methodArgumentsMetadataKeynameConstant = "design:method:arguments";
+export const methodArgumentsMetadataKeynameConstant = "route:method:arguments";

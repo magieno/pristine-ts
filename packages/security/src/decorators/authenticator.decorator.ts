@@ -1,8 +1,9 @@
 import {AuthenticatorInterface} from "../interfaces/authenticator.interface";
 import {AuthenticatorContextInterface} from "../interfaces/authenticator-context.interface";
 import {AuthenticatorDecoratorError} from "../errors/authenticator-decorator.error";
+import {MetadataUtil} from "@pristine-ts/common";
 
-export const authenticatorMetadataKeyname = "@controller:authenticator";
+export const authenticatorMetadataKeyname = "@authenticator";
 
 /**
  * This decorator specifies the authenticator that should be used to authenticate a request.
@@ -31,11 +32,6 @@ export const authenticator = (authenticator: AuthenticatorInterface | Function, 
             options,
         };
 
-        // If there's a descriptor, then it's not a controller authenticator, but a method authenticator
-        if(descriptor && propertyKey) {
-            Reflect.defineMetadata(authenticatorMetadataKeyname, authenticatorContext, target, propertyKey);
-        } else {
-            Reflect.defineMetadata(authenticatorMetadataKeyname, authenticatorContext, target);
-        }
+        MetadataUtil.setToRouteContext(authenticatorMetadataKeyname, authenticatorContext, target, propertyKey);
     }
 }

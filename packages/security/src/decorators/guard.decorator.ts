@@ -1,8 +1,9 @@
 import {GuardInterface} from "../interfaces/guard.interface";
 import {GuardDecoratorError} from "../errors/guard-decorator.error";
 import {GuardContextInterface} from "../interfaces/guard-context.interface";
+import {MetadataUtil} from "@pristine-ts/common";
 
-export const guardsMetadataKeyname = "@controller:guards";
+export const guardMetadataKeyname = "@guard";
 
 /**
  * This decorator specifies the guard that should be used to authorize a request.
@@ -30,20 +31,13 @@ export const guard = (guard: GuardInterface | Function, options?: any) => {
             options,
         };
 
-        // If there's a descriptor, then it's not a controller guard, but a method guard
-        if(descriptor && propertyKey) {
-            const guards = Reflect.getMetadata(guardsMetadataKeyname, target, propertyKey) ?? [];
 
-            guards.push(guardContext);
+        const routeContext = MetadataUtil.getRouteContext(target, propertyKey);
 
-            Reflect.defineMetadata(guardsMetadataKeyname, guards, target, propertyKey);
-        }
-        else {
-            const guards = Reflect.getMetadata(guardsMetadataKeyname, target) ?? [];
+        const guards = routeContext[guardMetadataKeyname] ?? [];
 
-            guards.push(guardContext);
+        guards.push(guardContext);
 
-            Reflect.defineMetadata(guardsMetadataKeyname, guards, target);
-        }
+        MetadataUtil.setToRouteContext(guardMetadataKeyname, guards, target, propertyKey);
     }
 }

@@ -10,7 +10,15 @@ import {MethodRouterNode} from "./nodes/method-router.node";
 import {ForbiddenHttpError} from "./errors/forbidden.http-error";
 import {ControllerMethodParameterDecoratorResolver} from "./resolvers/controller-method-parameter-decorator.resolver";
 import { URL } from 'url';
-import {tag, HttpMethod, IdentityInterface, ServiceDefinitionTagEnum, Request, Response} from "@pristine-ts/common";
+import {
+    tag,
+    HttpMethod,
+    IdentityInterface,
+    ServiceDefinitionTagEnum,
+    Request,
+    Response,
+    MetadataUtil
+} from "@pristine-ts/common";
 import {AuthenticationManagerInterface, AuthorizerManagerInterface} from "@pristine-ts/security";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {NetworkingModuleKeyname} from "./networking.module.keyname";
@@ -22,6 +30,7 @@ import {RequestInterceptorInterface} from "./interfaces/request-interceptor.inte
 import {HttpError} from "./errors/http.error";
 import {CachedRouterRoute} from "./cache/cached.router-route";
 import {RouterCache} from "./cache/router.cache";
+import {routeMetadataKeyname, routesControllerMetadataKeyname} from "./decorators/route.decorator";
 
 /**
  * The router service is the service that creates the routing tree from the controllers.
@@ -120,27 +129,22 @@ export class Router implements RouterInterface {
                 basePath = basePath.slice(0, basePath.length - 1);
             }
 
-            Reflect.getMetadata(method)
+            const routePropertyKeys = Reflect.getMetadata(routesControllerMetadataKeyname, controller);
 
-            for (const methodPropertyKey in controller.__metadata__?.methods) {
-                if (controller.__metadata__?.methods?.hasOwnProperty(methodPropertyKey) === false) {
+            for (const methodPropertyKey in routePropertyKeys) {
+                if(Reflect.hasMetadata(routeMetadataKeyname, controller, methodPropertyKey) === false) {
                     continue;
                 }
 
-                const method = controller.__metadata__?.methods[methodPropertyKey];
-
-                if (method.hasOwnProperty("route") === false) {
-                    continue;
-                }
 
                 // Retrieve the "RouteMethodDecorator" object assigned by the @route decorator at .route
-                const routeMethodDecorator: RouteMethodDecorator = method.route;
+                const routeMethodDecorator: RouteMethodDecorator = Reflect.getMetadata(routeMetadataKeyname, controller, methodPropertyKey);
 
-                // Build the Route object that will be used the the router to dispatch a request to
+                // Build the Route object that will be used by the router to dispatch a request to
                 // the appropriate controller method
                 const route = new Route(controller.constructor, routeMethodDecorator.methodKeyname);
-                route.methodArguments = method.arguments ?? [];
-                route.context = mergeWith({}, controller.__metadata__?.controller?.__routeContext__, method.__routeContext__);
+                route.methodArguments = MetadataUtil.getMethodParametersMetadata(controller, methodPropertyKey);
+                route.context = mergeWith({}, MetadataUtil.getRouteContext(controller), MetadataUtil.getRouteContext(controller, methodPropertyKey));
 
                 // Build the proper path
                 let path = routeMethodDecorator.path;
