@@ -63,10 +63,21 @@ describe("Metadata Util", () =>{
     })
 
     it("should append to the Target metadata", () => {
-        MetadataUtil.appendToTargetMetadata(ClassWithEmptyMethod, "keyname", "firstValue")
-        MetadataUtil.appendToTargetMetadata(ClassWithEmptyMethod, "keyname", "secondValue")
+        MetadataUtil.appendToMetadata("keyname", "firstValue", ClassWithEmptyMethod)
+        MetadataUtil.appendToMetadata("keyname", "secondValue", ClassWithEmptyMethod)
 
         const array = Reflect.getMetadata("keyname", ClassWithEmptyMethod);
+        expect(Array.isArray(array)).toBeTruthy()
+        expect(array.length).toBe(2)
+        expect(array[0]).toBe("firstValue")
+        expect(array[1]).toBe("secondValue")
+    })
+
+    it("should append to the Target metadata and property key", () => {
+        MetadataUtil.appendToMetadata("keyname", "firstValue", ClassWithEmptyMethod, "emptyMethod")
+        MetadataUtil.appendToMetadata("keyname", "secondValue", ClassWithEmptyMethod, "emptyMethod")
+
+        const array = Reflect.getMetadata("keyname", ClassWithEmptyMethod, "emptyMethod");
         expect(Array.isArray(array)).toBeTruthy()
         expect(array.length).toBe(2)
         expect(array[0]).toBe("firstValue")

@@ -82,15 +82,25 @@ export class MetadataUtil {
 
     /**
      * This method assumes that the `metadataKeyname` represents an `array` and simply appends the `metadata` to it.
-     * @param target
+     *
      * @param metadataKeyname
      * @param metadata
+     * @param target
+     * @param propertyKey
      */
-    static appendToTargetMetadata(target: any, metadataKeyname: string, metadata: any) {
-        const targetElements = Reflect.getMetadata(metadataKeyname, target) ?? [];
+    static appendToMetadata(metadataKeyname: string, metadata: any, target: any, propertyKey?: string | symbol) {
+        if(propertyKey === undefined) {
+            const targetElements = Reflect.getMetadata(metadataKeyname, target) ?? [];
 
-        targetElements.push(metadata);
+            targetElements.push(metadata);
 
-        Reflect.defineMetadata(metadataKeyname, targetElements, target);
+            Reflect.defineMetadata(metadataKeyname, targetElements, target);
+        } else {
+            const targetElements = Reflect.getMetadata(metadataKeyname, target, propertyKey) ?? [];
+
+            targetElements.push(metadata);
+
+            Reflect.defineMetadata(metadataKeyname, targetElements, target, propertyKey);
+        }
     }
 }
