@@ -1,6 +1,7 @@
 import "reflect-metadata"
 import {methodArgumentsMetadataKeynameConstant} from "../constants/method-arguments-metadata-keyname.constant";
 import {routeContextMetadataKeynameConstant} from "../constants/route-context-metadata-keyname.constant";
+import {ClassMetadata, MethodMetadata} from "@pristine-ts/metadata";
 
 export class MetadataUtil {
     /**
@@ -11,7 +12,7 @@ export class MetadataUtil {
      * @param propertyKey
      */
     static getMethodParametersMetadata(target: any, propertyKey: string | symbol): any[] {
-        const methodParameters = Reflect.getMetadata(methodArgumentsMetadataKeynameConstant, target, propertyKey);
+        const methodParameters = MethodMetadata.getMetadata(target, propertyKey, methodArgumentsMetadataKeynameConstant);
 
         if(methodParameters === undefined || Array.isArray(methodParameters) === false) {
             return [];
@@ -33,7 +34,7 @@ export class MetadataUtil {
 
         methodArguments[parameterIndex] = metadata;
 
-        Reflect.defineMetadata(methodArgumentsMetadataKeynameConstant, methodArguments, target, propertyKey);
+        MethodMetadata.defineMetadata(target, propertyKey, methodArgumentsMetadataKeynameConstant, methodArguments);
     }
 
     /**
@@ -45,9 +46,9 @@ export class MetadataUtil {
         let routeContext;
 
         if(propertyKey === undefined) {
-            routeContext = Reflect.getMetadata(routeContextMetadataKeynameConstant, target.prototype);
+            routeContext = ClassMetadata.getMetadata(target.prototype, routeContextMetadataKeynameConstant);
         } else {
-            routeContext = Reflect.getMetadata(routeContextMetadataKeynameConstant, target, propertyKey);
+            routeContext = MethodMetadata.getMetadata(target, propertyKey, routeContextMetadataKeynameConstant);
         }
 
         if(routeContext === undefined || typeof routeContext !== "object") {
@@ -73,24 +74,10 @@ export class MetadataUtil {
 
         if(propertyKey === undefined) {
             // When there are no properties, the metadata is defined on the prototype.
-            Reflect.defineMetadata(routeContextMetadataKeynameConstant, routeContext, target.prototype)
+            ClassMetadata.defineMetadata(target.prototype, routeContextMetadataKeynameConstant, routeContext);
         } else {
-            Reflect.defineMetadata(routeContextMetadataKeynameConstant, routeContext, target, propertyKey);
+            MethodMetadata.defineMetadata(target, propertyKey, routeContextMetadataKeynameConstant, routeContext);
         }
 
-    }
-
-    /**
-     * This method assumes that the `metadataKeyname` represents an `array` and simply appends the `metadata` to it.
-     * @param target
-     * @param metadataKeyname
-     * @param metadata
-     */
-    static appendToTargetMetadata(target: any, metadataKeyname: string, metadata: any) {
-        const targetElements = Reflect.getMetadata(metadataKeyname, target) ?? [];
-
-        targetElements.push(metadata);
-
-        Reflect.defineMetadata(metadataKeyname, targetElements, target);
     }
 }

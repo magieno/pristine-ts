@@ -31,6 +31,7 @@ import {HttpError} from "./errors/http.error";
 import {CachedRouterRoute} from "./cache/cached.router-route";
 import {RouterCache} from "./cache/router.cache";
 import {routeMetadataKeyname, routesControllerMetadataKeyname} from "./decorators/route.decorator";
+import {ClassMetadata, MethodMetadata} from "@pristine-ts/metadata";
 
 /**
  * The router service is the service that creates the routing tree from the controllers.
@@ -118,22 +119,22 @@ export class Router implements RouterInterface {
 
         // Loop over all the controllers and control the Route Tree
         controllerRegistry.forEach(controller => {
-            let basePath: string = Reflect.getOwnMetadata(basePathMetadataKeyname, controller) ?? "";
+            let basePath: string = ClassMetadata.getMetadata(controller, basePathMetadataKeyname) ?? "";
 
             // Clean the base path by removing trailing slashes.
             if (basePath.endsWith("/")) {
                 basePath = basePath.slice(0, basePath.length - 1);
             }
 
-            const routePropertyKeys: string[] = Reflect.getMetadata(routesControllerMetadataKeyname, controller);
+            const routePropertyKeys: string[] = ClassMetadata.getMetadata(controller, routesControllerMetadataKeyname);
 
             routePropertyKeys.forEach(methodPropertyKey => {
-                if (Reflect.hasMetadata(routeMetadataKeyname, controller, methodPropertyKey) === false) {
+                if (MethodMetadata.hasMetadata(routeMetadataKeyname, controller, methodPropertyKey) === false) {
                     return;
                 }
 
                 // Retrieve the "RouteMethodDecorator" object assigned by the @route decorator at .route
-                const routeMethodDecorator: RouteMethodDecorator = Reflect.getMetadata(routeMetadataKeyname, controller, methodPropertyKey);
+                const routeMethodDecorator: RouteMethodDecorator = MethodMetadata.getMetadata(controller, methodPropertyKey, routeMetadataKeyname);
 
                 // Build the Route object that will be used by the router to dispatch a request to
                 // the appropriate controller method

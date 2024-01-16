@@ -1,4 +1,5 @@
 import "reflect-metadata";
+import {ClassMetadata} from "@pristine-ts/metadata";
 
 export const controllerRegistry: any[] = [];
 
@@ -15,7 +16,7 @@ export const controller = (basePath: string) => {
          */
         constructor: Function
     ) => {
-        Reflect.defineMetadata(basePathMetadataKeyname, basePath, constructor.prototype);
+        ClassMetadata.defineMetadata(constructor, basePathMetadataKeyname, basePath)
 
         // Push the class prototype in the controllerRegistry that is used to instantiate all the controllers for the router.
         controllerRegistry.push(constructor.prototype)

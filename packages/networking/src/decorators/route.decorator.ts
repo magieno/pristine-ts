@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import {HttpMethod, MetadataUtil} from "@pristine-ts/common";
 import {RouteMethodDecorator} from "../interfaces/route-method-decorator.interface";
+import {ClassMetadata, MethodMetadata} from "@pristine-ts/metadata";
 
 export const routesControllerMetadataKeyname = "controller:routes";
 
@@ -35,12 +36,8 @@ export const route = (httpMethod: HttpMethod | string, path: string) => {
             path
         }
 
-        Reflect.defineMetadata(routeMetadataKeyname, route, target, propertyKey);
-        const a = Reflect.hasMetadata(routeMetadataKeyname, target, propertyKey);
-        const b = routeMetadataKeyname;
-        const c = target;
-        const d = propertyKey;
+        MethodMetadata.defineMetadata(target, propertyKey, routeMetadataKeyname, route);
 
-        MetadataUtil.appendToTargetMetadata(target, routesControllerMetadataKeyname, propertyKey);
+        ClassMetadata.appendToMetadata(target, routesControllerMetadataKeyname, propertyKey);
     };
 }

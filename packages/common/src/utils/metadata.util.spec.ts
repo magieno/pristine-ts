@@ -61,15 +61,4 @@ describe("Metadata Util", () =>{
         expect(Object.keys(routeContextAtPropertyLevel).length).toBe(1)
         expect(routeContextAtPropertyLevel["keyname1"]).toBe("value1")
     })
-
-    it("should append to the Target metadata", () => {
-        MetadataUtil.appendToTargetMetadata(ClassWithEmptyMethod, "keyname", "firstValue")
-        MetadataUtil.appendToTargetMetadata(ClassWithEmptyMethod, "keyname", "secondValue")
-
-        const array = Reflect.getMetadata("keyname", ClassWithEmptyMethod);
-        expect(Array.isArray(array)).toBeTruthy()
-        expect(array.length).toBe(2)
-        expect(array[0]).toBe("firstValue")
-        expect(array[1]).toBe("secondValue")
-    })
 })
