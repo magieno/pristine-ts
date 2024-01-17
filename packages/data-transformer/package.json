@@ -21,7 +21,9 @@
   },
   "dependencies": {
     "@pristine-ts/common": "file:../common",
-    "@pristine-ts/logging": "file:../logging"
+    "@pristine-ts/logging": "file:../logging",
+    "@pristine-ts/metadata": "~1.0.2",
+    "class-transformer": "^0.5.1"
   },
   "jest": {
     "transform": {

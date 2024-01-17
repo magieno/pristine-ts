@@ -8,6 +8,7 @@ import {DataTransformerRow} from "../types/data-transformer.row";
 import 'jest-extended';
 import {DataTransformerInterceptorNotFoundError} from "../errors/data-transformer-interceptor-not-found.error";
 import {DataTransformerSourcePropertyNotFoundError} from "../errors/data-transformer-source-property-not-found.error";
+import {property} from "@pristine-ts/metadata";
 
 describe('Data Transformer', () => {
     it("should properly transform", async () => {
@@ -190,5 +191,34 @@ describe('Data Transformer', () => {
             .end()
 
        await expect(dataTransformer.transform(dataTransformerBuilder, [{"a": "a"}])).rejects.toThrowError(DataTransformerSourcePropertyNotFoundError);
+    })
+
+    it("should properly type the return object when a destinationType is passed", async () => {
+        class Source {
+            @property()
+            title: string;
+        }
+
+        class Destination {
+            @property()
+            name: string;
+        }
+
+        const source = new Source();
+        source.title = "TITLE";
+
+        const dataTransformer = new DataTransformer([new LowercaseNormalizer()], []);
+
+        const dataTransformerBuilder = new DataTransformerBuilder();
+        dataTransformerBuilder
+            .add()
+            .setSourceProperty("title")
+            .setDestinationProperty("name")
+            .addNormalizer(LowercaseNormalizer.name)
+            .end()
+
+        const destination = await dataTransformer.transform(dataTransformerBuilder, source, Destination);
+
+        expect(destination.name).toBe("title");
     })
 });
