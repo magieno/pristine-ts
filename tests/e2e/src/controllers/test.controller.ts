@@ -1,3 +1,4 @@
+import "reflect-metadata"
 import {singleton} from "tsyringe";
 import {PermissionManager} from "../managers/permission.manager";
 import {controller, route, body, routeParameter} from "@pristine-ts/networking";

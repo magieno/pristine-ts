@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {ResolvedClassModel} from "./models/resolved-class.model";
 import {CoreModule} from "../../../packages/core/src/core.module";
 import {ModuleInterface} from "../../../packages/common/src/interfaces/module.interface";

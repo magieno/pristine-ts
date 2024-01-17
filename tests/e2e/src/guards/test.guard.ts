@@ -1,7 +1,9 @@
+import "reflect-metadata";
 import {injectable} from "tsyringe";
 import {GuardContextInterface, GuardInterface} from "@pristine-ts/security";
 import {Request} from "@pristine-ts/common";
 
+@injectable()
 export class TestGuard implements GuardInterface {
     public keyname = "testGuard"
 
