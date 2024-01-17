@@ -85,7 +85,8 @@ export class ConfigurationManager {
                         break;
                     } catch (e) {
                         // Simply ignore and continue
-                        console.warn("A default resolver has thrown: " + e);
+                        // We don't need to be logging a warning for a default resolver.
+                        //console.warn("A default resolver has thrown: " + e);
                     }
                 }
 

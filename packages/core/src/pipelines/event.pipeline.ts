@@ -154,7 +154,7 @@ export class EventPipeline {
                 error,
                 interceptedEvent,
             })
-            throw new EventDispatchingError("There was an error while dispatching the event", error as Error, interceptedEvent);
+            throw new EventDispatchingError(`There was an error while dispatching the event: '${error}'`, error as Error, interceptedEvent);
         }
     }
 

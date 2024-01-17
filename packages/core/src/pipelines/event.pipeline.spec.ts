@@ -907,7 +907,7 @@ describe("Event Pipeline", () => {
             context: {},
         };
 
-        return expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow(new EventDispatchingError("There was an error while dispatching the event", thrownError, mappedEvent1));
+        return expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow(new EventDispatchingError("There was an error while dispatching the event: 'Error: Very bad error'", thrownError, mappedEvent1));
     })
 
     it("should return a proper error an EventParser throws", async () => {

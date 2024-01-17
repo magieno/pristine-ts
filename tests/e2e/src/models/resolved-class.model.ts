@@ -1,3 +1,4 @@
+import "reflect-metadata"
 import {InjectedClass} from "./injected-class.model";
 import {injectable} from "tsyringe";
 

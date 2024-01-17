@@ -14,7 +14,7 @@
     "@pristine-ts/networking": "file:../../packages/networking",
     "@pristine-ts/security": "file:../../packages/security",
     "class-transformer": "^0.5.1",
-    "@pristine-ts/class-validator": "^1.0.20",
+    "@pristine-ts/class-validator": "^1.0.22",
     "ts-node": "^10.9.1",
     "tsyringe": "^4.8.0",
     "uuid": "^9.0.1"

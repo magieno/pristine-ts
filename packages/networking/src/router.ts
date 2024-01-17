@@ -129,18 +129,18 @@ export class Router implements RouterInterface {
             const routePropertyKeys: string[] = ClassMetadata.getMetadata(controller, routesControllerMetadataKeyname);
 
             routePropertyKeys.forEach(methodPropertyKey => {
-                if (MethodMetadata.hasMetadata(routeMetadataKeyname, controller, methodPropertyKey) === false) {
+                if (MethodMetadata.hasMetadata(controller.prototype, methodPropertyKey, routeMetadataKeyname) === false) {
                     return;
                 }
 
                 // Retrieve the "RouteMethodDecorator" object assigned by the @route decorator at .route
-                const routeMethodDecorator: RouteMethodDecorator = MethodMetadata.getMetadata(controller, methodPropertyKey, routeMetadataKeyname);
+                const routeMethodDecorator: RouteMethodDecorator = MethodMetadata.getMetadata(controller.prototype, methodPropertyKey, routeMetadataKeyname);
 
                 // Build the Route object that will be used by the router to dispatch a request to
                 // the appropriate controller method
-                const route = new Route(controller.constructor, routeMethodDecorator.methodKeyname);
-                route.methodArguments = MetadataUtil.getMethodParametersMetadata(controller, methodPropertyKey);
-                const context = mergeWith({}, MetadataUtil.getRouteContext(controller.constructor), MetadataUtil.getRouteContext(controller, methodPropertyKey));
+                const route = new Route(controller.prototype.constructor, routeMethodDecorator.methodKeyname);
+                route.methodArguments = MetadataUtil.getMethodParametersMetadata(controller.prototype, methodPropertyKey);
+                const context = mergeWith({}, MetadataUtil.getRouteContext(controller.prototype.constructor), MetadataUtil.getRouteContext(controller.prototype, methodPropertyKey));
                 route.context = context;
 
                 // Build the proper path

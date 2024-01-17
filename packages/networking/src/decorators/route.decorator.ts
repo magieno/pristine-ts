@@ -38,6 +38,6 @@ export const route = (httpMethod: HttpMethod | string, path: string) => {
 
         MethodMetadata.defineMetadata(target, propertyKey, routeMetadataKeyname, route);
 
-        ClassMetadata.appendToMetadata(target, routesControllerMetadataKeyname, propertyKey);
+        ClassMetadata.appendToMetadata(target.constructor, routesControllerMetadataKeyname, propertyKey);
     };
 }
