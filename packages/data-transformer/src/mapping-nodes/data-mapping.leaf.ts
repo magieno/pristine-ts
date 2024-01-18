@@ -6,8 +6,6 @@ import {DataMappingBuilder} from "../builders/data-mapping.builder";
 import {DataMappingNode} from "./data-mapping.node";
 
 export class DataMappingLeaf {
-    public type: DataMappingNodeTypeEnum = DataMappingNodeTypeEnum.Leaf;
-
     public sourceProperty!: string;
 
     public destinationProperty!: string;
@@ -20,7 +18,8 @@ export class DataMappingLeaf {
 
     public constructor(
         private readonly root: DataMappingBuilder,
-        private readonly parent: DataMappingNode | DataMappingBuilder,
+        public readonly parent: DataMappingNode | DataMappingBuilder,
+        public readonly type: DataMappingNodeTypeEnum = DataMappingNodeTypeEnum.Leaf,
         ) {
     }
 

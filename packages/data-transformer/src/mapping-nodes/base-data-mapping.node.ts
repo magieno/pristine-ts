@@ -1,11 +1,9 @@
 import {DataMappingNode} from "./data-mapping.node";
 import {DataMappingLeaf} from "./data-mapping.leaf";
 import {UndefinedSourcePropertyError} from "../errors/undefined-source-property.error";
-import {ArrayDataMappingNode} from "./array-data-mapping.node";
 
 export abstract class BaseDataMappingNode {
     public nodes: {[sourceProperty in string]: DataMappingNode | DataMappingLeaf} = {};
-
 
     /**
      * This method is called by the node itself to tell its parent that it has been build and is ready to be added.

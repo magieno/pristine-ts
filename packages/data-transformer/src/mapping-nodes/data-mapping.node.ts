@@ -1,10 +1,7 @@
 import {DataMappingNodeTypeEnum} from "../enums/data-mapping-node-type.enum";
 import {DataMappingLeaf} from "./data-mapping.leaf";
 import {DataMappingBuilder} from "../builders/data-mapping.builder";
-import {DataTransformerProperty} from "../transformers/data-transformer.property";
-import {UndefinedSourcePropertyError} from "../errors/undefined-source-property.error";
 import {BaseDataMappingNode} from "./base-data-mapping.node";
-import {ArrayDataMappingNode} from "./array-data-mapping.node";
 
 export class DataMappingNode extends BaseDataMappingNode {
     public sourceProperty!: string;
@@ -34,7 +31,11 @@ export class DataMappingNode extends BaseDataMappingNode {
         return new DataMappingNode(this.root, this);
     }
 
-    public addArray(): DataMappingNode {
+    public addArrayOfScalar(): DataMappingLeaf {
+        return new DataMappingLeaf(this.root, this, DataMappingNodeTypeEnum.Array);
+    }
+
+    public addArrayOfObjects(): DataMappingNode {
         return new DataMappingNode(this.root, this, DataMappingNodeTypeEnum.Array);
     }
 
