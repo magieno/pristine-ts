@@ -5,6 +5,9 @@ import {DataMappingBuilder} from "../builders/data-mapping.builder";
 import {DataMappingNode} from "./data-mapping.node";
 import {DataTransformerSourcePropertyNotFoundError} from "../errors/data-transformer-source-property-not-found.error";
 import {DataNormalizerInterface} from "../interfaces/data-normalizer.interface";
+import {
+    ArrayDataMappingNodeInvalidSourcePropertyTypeError
+} from "../errors/array-data-mapping-node-invalid-source-property-type.error";
 
 export class DataMappingLeaf {
     /**
@@ -126,6 +129,7 @@ export class DataMappingLeaf {
     /**
      * This method maps the `sourceProperty` from the `source` object and maps it to the `destinationProperty` of the
      * `destination` object while applying the normalizers.
+     *
      * @param source
      * @param destination
      * @param normalizersMap
@@ -139,10 +143,32 @@ export class DataMappingLeaf {
             throw new DataTransformerSourcePropertyNotFoundError("The property '" + this.sourceProperty + "' isn't found in the Source object and isn't marked as Optional. If you want to ignore this property, use the 'setIsOptional(true)' method in the builder.", this.sourceProperty)
         }
 
-        let value = source[this.sourceProperty];
         const normalizers = this.root.normalizers.filter(element => this.excludedNormalizers.has(element.key) === false);
         normalizers.push(...this.normalizers);
 
+        if(this.type === DataMappingNodeTypeEnum.ScalarArray) {
+            // This means that the source[propertyKey] contains an array of objects and each object should be mapped
+            const array = source[this.sourceProperty];
+
+            if(Array.isArray(array) === false) {
+                throw new ArrayDataMappingNodeInvalidSourcePropertyTypeError(`According to your schema, the property '${this.sourceProperty}' in the source object must contain an Array of Scalar. Instead, it contains: '${typeof array}'.`, this.sourceProperty);
+            }
+
+            destination[this.destinationProperty] = [];
+
+            for (let value of array) {
+                normalizers.forEach(element => {
+                    const normalizer = normalizersMap[element.key];
+                    value = normalizer.normalize(value, element.options);
+                })
+
+                destination[this.destinationProperty].push(value);
+            }
+
+            return;
+        }
+
+        let value = source[this.sourceProperty];
         normalizers.forEach(element => {
             const normalizer = normalizersMap[element.key];
             value = normalizer.normalize(value, element.options);

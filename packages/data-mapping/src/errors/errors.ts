@@ -1,3 +1,4 @@
+export * from "./array-data-mapping-node-invalid-source-property-type.error";
 export * from "./data-after-row-transformer-interceptor-already-added.error";
 export * from "./data-before-row-transformer-interceptor-already-added.error";
 export * from "./data-normalizer-already-added.error";

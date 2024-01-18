@@ -19,4 +19,6 @@ export abstract class BaseDataMappingNode {
 
         this.nodes[node.sourceProperty] = node;
     }
+
+
 }
