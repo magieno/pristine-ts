@@ -79,6 +79,8 @@ describe("Data Mapping Builder", () => {
             nested: NestedSource;
 
             array: ArraySource[] = [];
+
+            children: string[] = [];
         }
 
         class ArrayDestination {
@@ -95,6 +97,8 @@ describe("Data Mapping Builder", () => {
             child: NestedDestination;
 
             list: ArrayDestination[];
+
+            infants: string[] = []
         }
 
         const dataMappingBuilder = new DataMappingBuilder();
@@ -113,13 +117,17 @@ describe("Data Mapping Builder", () => {
                     .setDestinationProperty("nestedName")
                 .end()
             .end()
-            .addArray()
+            .addArrayOfObjects()
                 .setSourceProperty("array")
                 .setDestinationProperty("list")
                 .add()
                     .setSourceProperty("rank")
                     .setDestinationProperty("position")
                 .end()
+            .end()
+            .addArrayOfScalar()
+                .setSourceProperty("children")
+                .setDestinationProperty("infants")
             .end()
         .end();
 
@@ -129,6 +137,73 @@ describe("Data Mapping Builder", () => {
         expect((dataMappingBuilder.nodes.title as DataMappingLeaf).excludedNormalizers.size).toBe(1)
         expect((dataMappingBuilder.nodes.title as DataMappingLeaf).excludedNormalizers.has(LowercaseNormalizer.name)).toBeTruthy()
 
+        expect(dataMappingBuilder.nodes.nested).toBeDefined()
+        expect(dataMappingBuilder.nodes.nested.type).toBe(DataMappingNodeTypeEnum.Node)
+        expect(dataMappingBuilder.nodes.nested.destinationProperty).toBe("child")
+        expect((dataMappingBuilder.nodes.nested as DataMappingNode).nodes.nestedTitle.sourceProperty).toBe("nestedTitle")
+        expect((dataMappingBuilder.nodes.nested as DataMappingNode).nodes.nestedTitle.destinationProperty).toBe("nestedName")
+
+        expect(dataMappingBuilder.nodes.array).toBeDefined()
+        expect(dataMappingBuilder.nodes.array.type).toBe(DataMappingNodeTypeEnum.Array)
+        expect(dataMappingBuilder.nodes.array.destinationProperty).toBe("list")
+        expect((dataMappingBuilder.nodes.array as DataMappingNode).nodes.rank.sourceProperty).toBe("rank")
+        expect((dataMappingBuilder.nodes.array as DataMappingNode).nodes.rank.destinationProperty).toBe("position")
+
+        expect(dataMappingBuilder.nodes.children).toBeDefined()
+        expect(dataMappingBuilder.nodes.children.type).toBe(DataMappingNodeTypeEnum.Array)
+        expect(dataMappingBuilder.nodes.children.destinationProperty).toBe("infants")
+        expect((dataMappingBuilder.nodes.children as DataMappingLeaf).sourceProperty).toBe("children")
+        expect((dataMappingBuilder.nodes.children as DataMappingLeaf).destinationProperty).toBe("infants")
+
+    })
+
+    it("should properly set the parents", () => {
+        class NestedSource2 {
+            nestedTitle2: string;
+        }
+
+        class NestedSource {
+            nested2: NestedSource2;
+        }
+
+        class Source {
+            nested: NestedSource;
+        }
+
+        class NestedDestination2 {
+            nestedTitle2: string;
+        }
+        class NestedDestination {
+            nested2: NestedDestination2;
+        }
+
+        class Destination {
+            nested: NestedDestination;
+        }
+
+        const dataMappingBuilder = new DataMappingBuilder();
+
+        dataMappingBuilder
+            .addNestingLevel()
+                .setSourceProperty("nested")
+                .setDestinationProperty("nested")
+                .addNestingLevel()
+                    .setSourceProperty("nested2")
+                    .setDestinationProperty("nested2")
+                    .add()
+                        .setSourceProperty("nestedTitle2")
+                        .setDestinationProperty("nestedTitle2")
+                    .end()
+                .end()
+            .end()
+        .end();
+
+        expect((dataMappingBuilder.nodes.nested as DataMappingNode).nodes.nested2.sourceProperty).toBe("nested2");
+        expect(((dataMappingBuilder.nodes.nested as DataMappingNode).nodes.nested2 as DataMappingNode).nodes.nestedTitle2.sourceProperty).toBe("nestedTitle2");
+
+        expect((((dataMappingBuilder.nodes.nested as DataMappingNode).nodes.nested2 as DataMappingNode).parent as DataMappingNode).sourceProperty).toBe("nested");
+
+        expect(((((dataMappingBuilder.nodes.nested as DataMappingNode).nodes.nested2 as DataMappingNode).nodes.nestedTitle2 as DataMappingLeaf).parent as DataMappingNode).sourceProperty).toBe("nested2");
 
     })
 })

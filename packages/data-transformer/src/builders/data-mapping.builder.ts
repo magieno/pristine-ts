@@ -8,11 +8,8 @@ import {
 import {
     DataAfterRowTransformerInterceptorAlreadyAddedError
 } from "../errors/data-after-row-transformer-interceptor-already-added.error";
-import {DataTransformerProperty} from "../transformers/data-transformer.property";
 import {DataMappingLeaf} from "../mapping-nodes/data-mapping.leaf";
-import {UndefinedSourcePropertyError} from "../errors/undefined-source-property.error";
 import {BaseDataMappingNode} from "../mapping-nodes/base-data-mapping.node";
-import {ArrayDataMappingNode} from "../mapping-nodes/array-data-mapping.node";
 import {DataMappingNodeTypeEnum} from "../enums/data-mapping-node-type.enum";
 
 export class DataMappingBuilder extends BaseDataMappingNode{
@@ -80,9 +77,14 @@ export class DataMappingBuilder extends BaseDataMappingNode{
         return new DataMappingNode(this, this);
     }
 
-    public addArray() {
+    public addArrayOfScalar(): DataMappingLeaf {
+        return new DataMappingLeaf(this, this, DataMappingNodeTypeEnum.Array);
+    }
+
+    public addArrayOfObjects(): DataMappingNode {
         return new DataMappingNode(this, this, DataMappingNodeTypeEnum.Array);
     }
+
     /**
      * This method is called at the end just to make it nice since all the nodes will have one, it's nice
      * that the builder has one too.
