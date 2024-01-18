@@ -140,4 +140,66 @@ export class DataMappingBuilder extends BaseDataMappingNode{
     public end(): DataMappingBuilder {
         return this;
     }
+
+    /**
+     * This method imports a schema.
+     *
+     * @param schema
+     */
+    public import(schema: any) {
+        this.normalizers = schema.normalizers;
+        this.beforeMappingInterceptors = schema.beforeMappingInterceptors;
+        this.afterMappingInterceptors = schema.afterMappingInterceptors;
+
+        const nodes = schema.nodes;
+
+        for(let key in nodes) {
+            if(nodes.hasOwnProperty(key) === false) {
+                continue;
+            }
+
+            const nodeInfo = nodes[key];
+
+            const type: DataMappingNodeTypeEnum = nodeInfo["_type"];
+
+            switch (type) {
+                case DataMappingNodeTypeEnum.ScalarArray:
+                case DataMappingNodeTypeEnum.Leaf:
+                    const leaf = new DataMappingLeaf(this, this, type);
+                    leaf.import(nodeInfo);
+                    this.nodes[leaf.sourceProperty] = leaf;
+                    continue;
+
+                case DataMappingNodeTypeEnum.Node:
+                case DataMappingNodeTypeEnum.ObjectArray:
+                    const node = new DataMappingNode(this, this, type);
+                    node.import(nodeInfo);
+                    this.nodes[node.sourceProperty] = node;
+                    continue;
+            }
+        }
+    }
+
+    /**
+     * This method exports this node.
+     */
+    public export() {
+        const nodes = this.nodes;
+
+        for (let key in nodes) {
+            if(nodes.hasOwnProperty(key) === false) {
+                continue;
+            }
+
+            nodes[key] = nodes[key].export();
+        }
+
+        return {
+            "nodes": nodes,
+            "normalizers":this.normalizers,
+            "beforeMappingInterceptors": this.beforeMappingInterceptors,
+            "afterMappingInterceptors": this.afterMappingInterceptors,
+
+        }
+    }
 }

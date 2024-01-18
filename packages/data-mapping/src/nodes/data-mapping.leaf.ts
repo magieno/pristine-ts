@@ -203,13 +203,19 @@ export class DataMappingLeaf {
      * This method exports this node.
      */
     public export(): any {
+        const excludedNormalizers: any = {}
+
+        for(const element of this.excludedNormalizers.values()) {
+            excludedNormalizers[element] = true;
+        }
+
         return {
             "_type": this.type,
             "sourceProperty": this.sourceProperty,
             "destinationProperty": this.destinationProperty,
             "isOptional": this.isOptional,
             "normalizers": this.normalizers,
-            "excludedNormalizers": this.excludedNormalizers,
+            "excludedNormalizers": excludedNormalizers,
         }
     }
 }

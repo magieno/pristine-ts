@@ -197,6 +197,7 @@ export class DataMappingNode extends BaseDataMappingNode {
             const type: DataMappingNodeTypeEnum = nodeInfo["_type"];
 
             switch (type) {
+                case DataMappingNodeTypeEnum.ScalarArray:
                 case DataMappingNodeTypeEnum.Leaf:
                     const leaf = new DataMappingLeaf(this.root, this, type);
                     leaf.import(nodeInfo);
@@ -204,7 +205,6 @@ export class DataMappingNode extends BaseDataMappingNode {
                     continue;
 
                 case DataMappingNodeTypeEnum.Node:
-                case DataMappingNodeTypeEnum.ScalarArray:
                 case DataMappingNodeTypeEnum.ObjectArray:
                     const node = new DataMappingNode(this.root, this, type);
                     node.import(nodeInfo);
