@@ -1,0 +1,67 @@
+{
+  "name": "@pristine-ts/data-mapper",
+  "version": "0.0.276",
+  "description": "",
+  "module": "dist/lib/esm/data-mapper.module.js",
+  "main": "dist/lib/cjs/data-mapper.module.js",
+  "types": "dist/types/data-mapper.module.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
+    "prepublish": "npm run build",
+    "test": "jest",
+    "test:cov": "jest --coverage"
+  },
+  "files": [
+    "dist"
+  ],
+  "author": "",
+  "license": "ISC",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@pristine-ts/common": "file:../common",
+    "@pristine-ts/logging": "file:../logging",
+    "@pristine-ts/metadata": "~1.0.2",
+    "class-transformer": "^0.5.1",
+    "tsyringe": "^4.8.0"
+  },
+  "jest": {
+    "transform": {
+      ".(ts|tsx)": "ts-jest"
+    },
+    "globals": {
+      "ts-jest": {
+        "tsconfig": {
+          "strictNullChecks": false
+        }
+      }
+    },
+    "testEnvironment": "node",
+    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/test/"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 90,
+        "functions": 95,
+        "lines": 95,
+        "statements": 95
+      }
+    },
+    "collectCoverageFrom": [
+      "src/*.{js,ts}"
+    ],
+    "setupFilesAfterEnv": [
+      "jest-extended/all"
+    ]
+  },
+  "gitHead": "112f715bf4ac6467192d416aa6e419f772b77c58"
+}
