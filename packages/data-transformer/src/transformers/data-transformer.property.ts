@@ -9,6 +9,8 @@ export class DataTransformerProperty {
     public excludedNormalizers: Set<DataNormalizerUniqueKey> = new Set<DataNormalizerUniqueKey>();
     public isOptional: boolean = false;
 
+    public children: {[key in (string|number)]: DataTransformerProperty} = {};
+
     public constructor(private readonly builder: DataTransformerBuilder) {
     }
 
@@ -20,6 +22,8 @@ export class DataTransformerProperty {
         this.destinationProperty = destinationProperty;
         return this;
     }
+
+    public setChildProperty(key:)
 
     public addNormalizer(normalizerUniqueKey: DataNormalizerUniqueKey, options?: any): DataTransformerProperty {
         if(this.hasNormalizer(normalizerUniqueKey)) {
