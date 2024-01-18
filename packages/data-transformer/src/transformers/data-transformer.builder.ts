@@ -21,7 +21,6 @@ export class DataTransformerBuilder {
 
     public properties: {[sourceProperty in string]: DataTransformerProperty} = {}
 
-
     public addNormalizer(normalizerUniqueKey: DataNormalizerUniqueKey, options?: any): DataTransformerBuilder {
         if(this.hasNormalizer(normalizerUniqueKey)) {
             throw new DataNormalizerAlreadyAdded("The data normalizer '" + normalizerUniqueKey + "' has already been added to this builder.", normalizerUniqueKey, options);

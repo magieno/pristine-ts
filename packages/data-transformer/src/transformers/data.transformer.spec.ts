@@ -221,4 +221,34 @@ describe('Data Transformer', () => {
 
         expect(destination.name).toBe("title");
     })
+
+
+    it("should properly type the nested objects", async () => {
+        class Source {
+            @property()
+            title: string;
+        }
+
+        class Destination {
+            @property()
+            name: string;
+        }
+
+        const source = new Source();
+        source.title = "TITLE";
+
+        const dataTransformer = new DataTransformer([new LowercaseNormalizer()], []);
+
+        const dataTransformerBuilder = new DataTransformerBuilder();
+        dataTransformerBuilder
+            .add()
+            .setSourceProperty("title")
+            .setDestinationProperty("name")
+            .addNormalizer(LowercaseNormalizer.name)
+            .end()
+
+        const destination = await dataTransformer.transform(dataTransformerBuilder, source, Destination);
+
+        expect(destination.name).toBe("title");
+    })
 });

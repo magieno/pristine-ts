@@ -64,4 +64,6 @@ describe('Data Transformer Property', () => {
     it("should properly return the builder when calling end()", () => {
         expect(dataTransformerProperty.end()).toBe(dataTransformerBuilder);
     })
+
+    it("should properly accept a list of sourceProperties", () => {})
 });
