@@ -5,6 +5,9 @@ import {BaseDataMappingNode} from "./base-data-mapping.node";
 import {DataTransformerSourcePropertyNotFoundError} from "../errors/data-transformer-source-property-not-found.error";
 import {DataNormalizerUniqueKey} from "../types/data-normalizer-unique-key.type";
 import {DataNormalizerInterface} from "../interfaces/data-normalizer.interface";
+import {
+    ArrayDataMappingNodeInvalidSourcePropertyTypeError
+} from "../errors/array-data-mapping-node-invalid-source-property-type.error";
 
 export class DataMappingNode extends BaseDataMappingNode {
     /**
@@ -80,7 +83,7 @@ export class DataMappingNode extends BaseDataMappingNode {
      *
      */
     public addArrayOfScalar(): DataMappingLeaf {
-        return new DataMappingLeaf(this.root, this, DataMappingNodeTypeEnum.Array);
+        return new DataMappingLeaf(this.root, this, DataMappingNodeTypeEnum.ScalarArray);
     }
 
     /**
@@ -88,7 +91,7 @@ export class DataMappingNode extends BaseDataMappingNode {
      * the array will be treated as being the same.
      */
     public addArrayOfObjects(): DataMappingNode {
-        return new DataMappingNode(this.root, this, DataMappingNodeTypeEnum.Array);
+        return new DataMappingNode(this.root, this, DataMappingNodeTypeEnum.ObjectArray);
     }
 
     /**
@@ -101,6 +104,14 @@ export class DataMappingNode extends BaseDataMappingNode {
         return this.parent;
     }
 
+    /**
+     * This method maps the `sourceProperty` from the `source` object and maps it to the `destinationProperty` of the
+     * `destination` object while applying the normalizers.
+     *
+     * @param source
+     * @param destination
+     * @param normalizersMap
+     */
     public async map(source: any, destination: any, normalizersMap: { [key in DataNormalizerUniqueKey]: DataNormalizerInterface<any, any> }) {
         if(source.hasOwnProperty(this.sourceProperty) === false) {
             if(this.isOptional) {
@@ -113,12 +124,45 @@ export class DataMappingNode extends BaseDataMappingNode {
         let sourceElement = source[this.sourceProperty];
 
         if(destination[this.destinationProperty] === undefined) {
-            // todo: we need to get the expected Type of the `destination[this.destinationProperty]` and actually instantiate it.
-            destination[this.destinationProperty] = {};
+            if(this.type === DataMappingNodeTypeEnum.ObjectArray) {
+                destination[this.destinationProperty] = [];
+            } else {
+                // todo: we need to get the expected Type of the `destination[this.destinationProperty]` and actually instantiate it.
+                destination[this.destinationProperty] = {};
+            }
         }
 
         let destinationElement = destination[this.destinationProperty];
 
+        if(this.type === DataMappingNodeTypeEnum.ObjectArray) {
+            // This means that the source[propertyKey] contains an array of objects and each object should be mapped
+            const array = source[this.sourceProperty];
+
+            if(Array.isArray(array) === false) {
+                throw new ArrayDataMappingNodeInvalidSourcePropertyTypeError(`According to your schema, the property '${this.sourceProperty}' in the source object must contain an Array of objects. Instead, it contains: '${typeof array}'.`, this.sourceProperty);
+            }
+
+            for (let element of array) {
+                // todo: we need to get the expected Type of the object in the array in the Destination object
+                let dest = {};
+
+                for (let key in this.nodes) {
+                    if(this.nodes.hasOwnProperty(key) === false) {
+                        continue;
+                    }
+
+                    const node = this.nodes[key];
+
+                    await node.map(element, dest, normalizersMap);
+                }
+
+                destinationElement.push(dest);
+            }
+
+            return;
+        }
+
+        // When the current node is not an array, we simply iterate
         for (let key in this.nodes) {
             if(this.nodes.hasOwnProperty(key) === false) {
                 continue;
@@ -127,6 +171,69 @@ export class DataMappingNode extends BaseDataMappingNode {
             const node = this.nodes[key];
 
             await node.map(sourceElement, destinationElement, normalizersMap);
+        }
+    }
+
+    /**
+     * This method imports a schema.
+     *
+     * @param schema
+     */
+    public import(schema: any) {
+        this.sourceProperty = schema.sourceProperty;
+        this.destinationProperty = schema.destinationProperty;
+        this.isOptional = schema.isOptional;
+        this.nodes = {};
+
+        const nodes = schema.nodes;
+
+        for(let key in nodes) {
+            if(nodes.hasOwnProperty(key) === false) {
+                continue;
+            }
+
+            const nodeInfo = nodes[key];
+
+            const type: DataMappingNodeTypeEnum = nodeInfo["_type"];
+
+            switch (type) {
+                case DataMappingNodeTypeEnum.Leaf:
+                    const leaf = new DataMappingLeaf(this.root, this, type);
+                    leaf.import(nodeInfo);
+                    this.nodes[leaf.sourceProperty] = leaf;
+                    continue;
+
+                case DataMappingNodeTypeEnum.Node:
+                case DataMappingNodeTypeEnum.ScalarArray:
+                case DataMappingNodeTypeEnum.ObjectArray:
+                    const node = new DataMappingNode(this.root, this, type);
+                    node.import(nodeInfo);
+                    this.nodes[node.sourceProperty] = node;
+                    continue;
+            }
+        }
+    }
+
+    /**
+     * This method exports this node.
+     */
+    public export() {
+        const nodes = this.nodes;
+
+        for (let key in nodes) {
+            if(nodes.hasOwnProperty(key) === false) {
+                continue;
+            }
+
+            nodes[key] = nodes[key].export();
+        }
+
+        return {
+            "_type": this.type,
+            "sourceProperty": this.sourceProperty,
+            "destinationProperty": this.destinationProperty,
+            "isOptional": this.isOptional,
+            "nodes": nodes,
         }
     }
 }

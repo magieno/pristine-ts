@@ -122,7 +122,7 @@ export class DataMappingBuilder extends BaseDataMappingNode{
      *
      */
     public addArrayOfScalar(): DataMappingLeaf {
-        return new DataMappingLeaf(this, this, DataMappingNodeTypeEnum.Array);
+        return new DataMappingLeaf(this, this, DataMappingNodeTypeEnum.ScalarArray);
     }
 
     /**
@@ -130,7 +130,7 @@ export class DataMappingBuilder extends BaseDataMappingNode{
      * the array will be treated as being the same.
      */
     public addArrayOfObjects(): DataMappingNode {
-        return new DataMappingNode(this, this, DataMappingNodeTypeEnum.Array);
+        return new DataMappingNode(this, this, DataMappingNodeTypeEnum.ObjectArray);
     }
 
     /**
