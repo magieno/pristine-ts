@@ -4,25 +4,34 @@ import {DataNormalizerAlreadyAdded} from "../errors/data-normalizer-already-adde
 import {DataTransformerBuilder} from "../transformers/data-transformer.builder";
 import {DataMappingBuilder} from "../builders/data-mapping.builder";
 import {DataMappingNode} from "./data-mapping.node";
-import {DataMappingTree} from "./data-mapping.tree";
 
 export class DataMappingLeaf {
     public type: DataMappingNodeTypeEnum = DataMappingNodeTypeEnum.Leaf;
 
-    public sourceProperties: string[] = [];
+    public sourceProperty!: string;
 
-    public destinationProperty: string;
+    public destinationProperty!: string;
 
     public normalizers: { key: DataNormalizerUniqueKey, options: any}[] = [];
 
     public excludedNormalizers: Set<DataNormalizerUniqueKey> = new Set<DataNormalizerUniqueKey>();
 
-    public isOptional: boolean;
+    public isOptional: boolean = false;
 
     public constructor(
-        private readonly parent: DataMappingNode,
-        private readonly root: DataMappingTree,
+        private readonly root: DataMappingBuilder,
+        private readonly parent: DataMappingNode | DataMappingBuilder,
         ) {
+    }
+
+    public setSourceProperty(sourceProperty: string): DataMappingLeaf {
+        this.sourceProperty = sourceProperty;
+        return this;
+    }
+
+    public setDestinationProperty(destinationProperty: string): DataMappingLeaf {
+        this.destinationProperty = destinationProperty;
+        return this;
     }
 
     public addNormalizer(normalizerUniqueKey: DataNormalizerUniqueKey, options?: any): DataMappingLeaf {
@@ -56,6 +65,19 @@ export class DataMappingLeaf {
         return this;
     }
 
+    public setIsOptional(isOptional: boolean): DataMappingLeaf {
+        this.isOptional = isOptional;
+
+        return this;
+    }
+
+    public end(): DataMappingNode | DataMappingBuilder {
+        // todo: Validate that we actually have all the properties needed (sourceProperty and destinationProperty) for example.
+        this.parent.addNode(this)
+
+        return this.parent;
+    }
+
     public import(schema: any) {
         this.normalizers = schema.normalizers;
 
@@ -67,13 +89,14 @@ export class DataMappingLeaf {
         }
 
         this.isOptional = schema.isOptional;
-        this.sourceProperties = schema.sourceProperties;
+        this.sourceProperty = schema.sourceProperty;
         this.destinationProperty = schema.destinationProperty;
     }
 
     public export(): any {
         return {
-            "sourceProperties": this.sourceProperties,
+            "_type": this.type,
+            "sourceProperty": this.sourceProperty,
             "destinationProperty": this.destinationProperty,
             "isOptional": this.isOptional,
             "normalizers": this.normalizers,

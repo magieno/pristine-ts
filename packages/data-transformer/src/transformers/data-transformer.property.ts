@@ -23,8 +23,6 @@ export class DataTransformerProperty {
         return this;
     }
 
-    public setChildProperty(key:)
-
     public addNormalizer(normalizerUniqueKey: DataNormalizerUniqueKey, options?: any): DataTransformerProperty {
         if(this.hasNormalizer(normalizerUniqueKey)) {
             throw new DataNormalizerAlreadyAdded("The data normalizer '" + normalizerUniqueKey + "' has already been added to this source property: '" + this.sourceProperty + "'.", normalizerUniqueKey, options)
