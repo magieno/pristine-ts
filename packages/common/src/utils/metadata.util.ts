@@ -1,7 +1,6 @@
 import "reflect-metadata"
-import {methodArgumentsMetadataKeynameConstant} from "../constants/method-arguments-metadata-keyname.constant";
-import {routeContextMetadataKeynameConstant} from "../constants/route-context-metadata-keyname.constant";
 import {ClassMetadata, MethodMetadata} from "@pristine-ts/metadata";
+import {MetadataEnum} from "../enums/metadata.enum";
 
 export class MetadataUtil {
     /**
@@ -12,7 +11,7 @@ export class MetadataUtil {
      * @param propertyKey
      */
     static getMethodParametersMetadata(target: any, propertyKey: string | symbol): any[] {
-        const methodParameters = MethodMetadata.getMetadata(target, propertyKey, methodArgumentsMetadataKeynameConstant);
+        const methodParameters = MethodMetadata.getMetadata(target, propertyKey, MetadataEnum.RouteMethodArguments);
 
         if(methodParameters === undefined || Array.isArray(methodParameters) === false) {
             return [];
@@ -34,7 +33,7 @@ export class MetadataUtil {
 
         methodArguments[parameterIndex] = metadata;
 
-        MethodMetadata.defineMetadata(target, propertyKey, methodArgumentsMetadataKeynameConstant, methodArguments);
+        MethodMetadata.defineMetadata(target, propertyKey, MetadataEnum.RouteMethodArguments, methodArguments);
     }
 
     /**
@@ -46,9 +45,9 @@ export class MetadataUtil {
         let routeContext;
 
         if(propertyKey === undefined) {
-            routeContext = ClassMetadata.getMetadata(target.prototype, routeContextMetadataKeynameConstant);
+            routeContext = ClassMetadata.getMetadata(target.prototype, MetadataEnum.RouteContext);
         } else {
-            routeContext = MethodMetadata.getMetadata(target, propertyKey, routeContextMetadataKeynameConstant);
+            routeContext = MethodMetadata.getMetadata(target, propertyKey, MetadataEnum.RouteContext);
         }
 
         if(routeContext === undefined || typeof routeContext !== "object") {
@@ -74,9 +73,9 @@ export class MetadataUtil {
 
         if(propertyKey === undefined) {
             // When there are no properties, the metadata is defined on the prototype.
-            ClassMetadata.defineMetadata(target.prototype, routeContextMetadataKeynameConstant, routeContext);
+            ClassMetadata.defineMetadata(target.prototype, MetadataEnum.RouteContext, routeContext);
         } else {
-            MethodMetadata.defineMetadata(target, propertyKey, routeContextMetadataKeynameConstant, routeContext);
+            MethodMetadata.defineMetadata(target, propertyKey, MetadataEnum.RouteContext, routeContext);
         }
 
     }

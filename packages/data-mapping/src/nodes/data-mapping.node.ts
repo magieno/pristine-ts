@@ -2,7 +2,7 @@ import {DataMappingNodeTypeEnum} from "../enums/data-mapping-node-type.enum";
 import {DataMappingLeaf} from "./data-mapping.leaf";
 import {DataMappingBuilder} from "../builders/data-mapping.builder";
 import {BaseDataMappingNode} from "./base-data-mapping.node";
-import {DataTransformerSourcePropertyNotFoundError} from "../errors/data-transformer-source-property-not-found.error";
+import {DataMappingSourcePropertyNotFoundError} from "../errors/data-mapping-source-property-not-found.error";
 import {DataNormalizerUniqueKey} from "../types/data-normalizer-unique-key.type";
 import {DataNormalizerInterface} from "../interfaces/data-normalizer.interface";
 import {
@@ -118,10 +118,10 @@ export class DataMappingNode extends BaseDataMappingNode {
                 return
             }
 
-            throw new DataTransformerSourcePropertyNotFoundError("The property '" + this.sourceProperty + "' isn't found in the Source object and isn't marked as Optional. If you want to ignore this property, use the 'setIsOptional(true)' method in the builder.", this.sourceProperty)
+            throw new DataMappingSourcePropertyNotFoundError("The property '" + this.sourceProperty + "' isn't found in the Source object and isn't marked as Optional. If you want to ignore this property, use the 'setIsOptional(true)' method in the builder.", this.sourceProperty)
         }
 
-        let sourceElement = source[this.sourceProperty];
+        const sourceElement = source[this.sourceProperty];
 
         if(destination[this.destinationProperty] === undefined) {
             if(this.type === DataMappingNodeTypeEnum.ObjectArray) {
@@ -132,7 +132,7 @@ export class DataMappingNode extends BaseDataMappingNode {
             }
         }
 
-        let destinationElement = destination[this.destinationProperty];
+        const destinationElement = destination[this.destinationProperty];
 
         if(this.type === DataMappingNodeTypeEnum.ObjectArray) {
             // This means that the source[propertyKey] contains an array of objects and each object should be mapped
@@ -142,11 +142,11 @@ export class DataMappingNode extends BaseDataMappingNode {
                 throw new ArrayDataMappingNodeInvalidSourcePropertyTypeError(`According to your schema, the property '${this.sourceProperty}' in the source object must contain an Array of objects. Instead, it contains: '${typeof array}'.`, this.sourceProperty);
             }
 
-            for (let element of array) {
+            for (const element of array) {
                 // todo: we need to get the expected Type of the object in the array in the Destination object
-                let dest = {};
+                const dest = {};
 
-                for (let key in this.nodes) {
+                for (const key in this.nodes) {
                     if(this.nodes.hasOwnProperty(key) === false) {
                         continue;
                     }
@@ -163,7 +163,7 @@ export class DataMappingNode extends BaseDataMappingNode {
         }
 
         // When the current node is not an array, we simply iterate
-        for (let key in this.nodes) {
+        for (const key in this.nodes) {
             if(this.nodes.hasOwnProperty(key) === false) {
                 continue;
             }
@@ -187,7 +187,7 @@ export class DataMappingNode extends BaseDataMappingNode {
 
         const nodes = schema.nodes;
 
-        for(let key in nodes) {
+        for(const key in nodes) {
             if(nodes.hasOwnProperty(key) === false) {
                 continue;
             }
@@ -220,7 +220,7 @@ export class DataMappingNode extends BaseDataMappingNode {
     public export() {
         const nodes = this.nodes;
 
-        for (let key in nodes) {
+        for (const key in nodes) {
             if(nodes.hasOwnProperty(key) === false) {
                 continue;
             }

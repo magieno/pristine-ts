@@ -17,20 +17,20 @@ import {
     ServiceDefinitionTagEnum,
     Request,
     Response,
-    MetadataUtil, routeContextMetadataKeynameConstant
+    MetadataUtil,
+    MetadataEnum,
 } from "@pristine-ts/common";
 import {AuthenticationManagerInterface, AuthorizerManagerInterface} from "@pristine-ts/security";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {NetworkingModuleKeyname} from "./networking.module.keyname";
 import {Span, SpanKeynameEnum, TracingManagerInterface} from "@pristine-ts/telemetry";
-import {basePathMetadataKeyname, controllerRegistry} from "./decorators/controller.decorator";
+import {controllerRegistry} from "./decorators/controller.decorator";
 import {RouteMethodDecorator} from "./interfaces/route-method-decorator.interface";
 import {mergeWith} from "lodash";
 import {RequestInterceptorInterface} from "./interfaces/request-interceptor.interface";
 import {HttpError} from "./errors/http.error";
 import {CachedRouterRoute} from "./cache/cached.router-route";
 import {RouterCache} from "./cache/router.cache";
-import {routeMetadataKeyname, routesControllerMetadataKeyname} from "./decorators/route.decorator";
 import {ClassMetadata, MethodMetadata} from "@pristine-ts/metadata";
 
 /**
@@ -119,22 +119,22 @@ export class Router implements RouterInterface {
 
         // Loop over all the controllers and control the Route Tree
         controllerRegistry.forEach(controller => {
-            let basePath: string = ClassMetadata.getMetadata(controller, basePathMetadataKeyname) ?? "";
+            let basePath: string = ClassMetadata.getMetadata(controller, MetadataEnum.ControllerBasePath) ?? "";
 
             // Clean the base path by removing trailing slashes.
             if (basePath.endsWith("/")) {
                 basePath = basePath.slice(0, basePath.length - 1);
             }
 
-            const routePropertyKeys: string[] = ClassMetadata.getMetadata(controller, routesControllerMetadataKeyname);
+            const routePropertyKeys: string[] = ClassMetadata.getMetadata(controller, MetadataEnum.ControllerRoutes);
 
             routePropertyKeys.forEach(methodPropertyKey => {
-                if (MethodMetadata.hasMetadata(controller.prototype, methodPropertyKey, routeMetadataKeyname) === false) {
+                if (MethodMetadata.hasMetadata(controller.prototype, methodPropertyKey, MetadataEnum.Route) === false) {
                     return;
                 }
 
                 // Retrieve the "RouteMethodDecorator" object assigned by the @route decorator at .route
-                const routeMethodDecorator: RouteMethodDecorator = MethodMetadata.getMetadata(controller.prototype, methodPropertyKey, routeMetadataKeyname);
+                const routeMethodDecorator: RouteMethodDecorator = MethodMetadata.getMetadata(controller.prototype, methodPropertyKey, MetadataEnum.Route);
 
                 // Build the Route object that will be used by the router to dispatch a request to
                 // the appropriate controller method

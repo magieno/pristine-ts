@@ -1,11 +1,7 @@
 import "reflect-metadata";
-import {HttpMethod, MetadataUtil} from "@pristine-ts/common";
+import {HttpMethod, MetadataUtil, MetadataEnum} from "@pristine-ts/common";
 import {RouteMethodDecorator} from "../interfaces/route-method-decorator.interface";
 import {ClassMetadata, MethodMetadata} from "@pristine-ts/metadata";
-
-export const routesControllerMetadataKeyname = "controller:routes";
-
-export const routeMetadataKeyname = "@route";
 
 /**
  * The route decorator can be used on a method to register this method as a route of the controller in the router.
@@ -36,8 +32,8 @@ export const route = (httpMethod: HttpMethod | string, path: string) => {
             path
         }
 
-        MethodMetadata.defineMetadata(target, propertyKey, routeMetadataKeyname, route);
+        MethodMetadata.defineMetadata(target, propertyKey, MetadataEnum.Route, route);
 
-        ClassMetadata.appendToMetadata(target.constructor, routesControllerMetadataKeyname, propertyKey);
+        ClassMetadata.appendToMetadata(target.constructor, MetadataEnum.ControllerRoutes, propertyKey);
     };
 }

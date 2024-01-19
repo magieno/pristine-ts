@@ -7,7 +7,7 @@ import {DataMappingModuleKeyname} from "../data-mapping.module.keyname";
 import {injectable, injectAll} from "tsyringe";
 import {DataMappingBuilder} from "../builders/data-mapping.builder";
 import {ClassConstructor, plainToInstance} from "class-transformer";
-import {DataTransformerInterceptorNotFoundError} from "../errors/data-transformer-interceptor-not-found.error";
+import {DataMappingInterceptorNotFoundError} from "../errors/data-mapping-interceptor-not-found.error";
 
 @moduleScoped(DataMappingModuleKeyname)
 @injectable()
@@ -34,7 +34,13 @@ export class DataMapper {
      * @param destinationType
      */
     public async mapAll(builder: DataMappingBuilder, source: any[], destinationType?: ClassConstructor<any>): Promise<any[]> {
-        return source.map(element => this.map(builder, element, destinationType));
+        const destination = [];
+
+        for(const element of source) {
+            destination.push(await this.map(builder, element, destinationType));
+        }
+
+        return destination;
     }
 
     /**
@@ -46,13 +52,7 @@ export class DataMapper {
      * @param destinationType
      */
     public async map(builder: DataMappingBuilder, source: any, destinationType?: ClassConstructor<any>): Promise<any> {
-        const globalNormalizers = builder.normalizers;
-
         let destination = {};
-
-        if(destinationType) {
-            destination = plainToInstance(destinationType, {});
-        }
 
         let interceptedSource = source;
 
@@ -61,7 +61,7 @@ export class DataMapper {
             const interceptor = this.dataTransformerInterceptorsMap[element.key];
 
             if (interceptor === undefined) {
-                throw new DataTransformerInterceptorNotFoundError("The interceptor wasn't found and cannot be loaded.", element.key);
+                throw new DataMappingInterceptorNotFoundError("The interceptor wasn't found and cannot be loaded.", element.key);
             }
 
             // todo: Pass the options when we start using them.
@@ -83,11 +83,15 @@ export class DataMapper {
             const interceptor: DataMappingInterceptorInterface = this.dataTransformerInterceptorsMap[element.key];
 
             if (interceptor === undefined) {
-                throw new DataTransformerInterceptorNotFoundError("The interceptor wasn't found and cannot be loaded.", element.key);
+                throw new DataMappingInterceptorNotFoundError("The interceptor wasn't found and cannot be loaded.", element.key);
             }
 
             // todo pass the options when we start using it.
             destination = await interceptor.afterMapping(destination);
+        }
+
+        if(destinationType) {
+            destination = plainToInstance(destinationType, destination);
         }
 
         return destination;

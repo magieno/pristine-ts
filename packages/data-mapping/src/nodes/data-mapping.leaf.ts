@@ -3,7 +3,7 @@ import {DataNormalizerUniqueKey} from "../types/data-normalizer-unique-key.type"
 import {DataNormalizerAlreadyAdded} from "../errors/data-normalizer-already-added.error";
 import {DataMappingBuilder} from "../builders/data-mapping.builder";
 import {DataMappingNode} from "./data-mapping.node";
-import {DataTransformerSourcePropertyNotFoundError} from "../errors/data-transformer-source-property-not-found.error";
+import {DataMappingSourcePropertyNotFoundError} from "../errors/data-mapping-source-property-not-found.error";
 import {DataNormalizerInterface} from "../interfaces/data-normalizer.interface";
 import {
     ArrayDataMappingNodeInvalidSourcePropertyTypeError
@@ -140,7 +140,7 @@ export class DataMappingLeaf {
                 return
             }
 
-            throw new DataTransformerSourcePropertyNotFoundError("The property '" + this.sourceProperty + "' isn't found in the Source object and isn't marked as Optional. If you want to ignore this property, use the 'setIsOptional(true)' method in the builder.", this.sourceProperty)
+            throw new DataMappingSourcePropertyNotFoundError("The property '" + this.sourceProperty + "' isn't found in the Source object and isn't marked as Optional. If you want to ignore this property, use the 'setIsOptional(true)' method in the builder.", this.sourceProperty)
         }
 
         const normalizers = this.root.normalizers.filter(element => this.excludedNormalizers.has(element.key) === false);
