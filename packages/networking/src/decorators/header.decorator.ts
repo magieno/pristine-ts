@@ -1,5 +1,7 @@
+import "reflect-metadata";
 import {QueryParameterDecoratorInterface} from "../interfaces/query-parameter-decorator.interface";
 import {HeaderParameterDecoratorInterface} from "../interfaces/header-parameter-decorator.interface";
+import {MetadataUtil} from "@pristine-ts/common";
 
 /**
  * The headerParameter decorator can be used to inject a specific header of a request in a parameter of a method in a controller.
@@ -22,24 +24,6 @@ export const header = (name: string) => {
          */
         parameterIndex: number
     ) => {
-        // Verify that the object target.constructor.prototype["__metadata__"]["methods"][propertyKey]["arguments"] exists or we create it.
-        // This object is a convention defined by Pristine on where to save controller method parameter decorator information and is used in the router to retrieve that information.
-        if(target.constructor.prototype.hasOwnProperty("__metadata__") === false) {
-            target.constructor.prototype["__metadata__"] = {}
-        }
-
-        if(target.constructor.prototype["__metadata__"].hasOwnProperty("methods") === false) {
-            target.constructor.prototype["__metadata__"]["methods"] = {}
-        }
-
-        if(target.constructor.prototype["__metadata__"]["methods"].hasOwnProperty(propertyKey) === false) {
-            target.constructor.prototype["__metadata__"]["methods"][propertyKey] = {}
-        }
-
-        if(target.constructor.prototype["__metadata__"]["methods"][propertyKey].hasOwnProperty("arguments") === false) {
-            target.constructor.prototype["__metadata__"]["methods"][propertyKey]["arguments"] = [];
-        }
-
         // Set the type of method parameter. Each parameter decorator has it's own type.
         // Set also the name of the header to resolve.
         const methodParameter: HeaderParameterDecoratorInterface = {
@@ -47,7 +31,6 @@ export const header = (name: string) => {
             headerName: name,
         };
 
-        // Save the method parameter with the proper parameter index (index of the parameter in the list of parameters of a method).
-        target.constructor.prototype["__metadata__"]["methods"][propertyKey]["arguments"][parameterIndex] = methodParameter;
+        MetadataUtil.setMethodParameterArgumentMetadata(target, propertyKey, parameterIndex, methodParameter);
     }
 }

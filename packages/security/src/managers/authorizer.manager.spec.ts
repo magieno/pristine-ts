@@ -6,6 +6,7 @@ import {IdentityInterface, Request} from "@pristine-ts/common";
 import {GuardFactory} from "../factories/guard.factory";
 import {GuardInterface} from "../interfaces/guard.interface";
 import {GuardContextInterface} from "../interfaces/guard-context.interface";
+import {guardMetadataKeyname} from "../decorators/guard.decorator";
 
 describe("AuthorizerManager", () => {
     const logHandlerMock: LogHandlerInterface = {
@@ -88,7 +89,7 @@ describe("AuthorizerManager", () => {
         }
 
         await authorizerManager.isAuthorized(requestMock, {
-            guards: [guardContext1, guardContext2],
+            [guardMetadataKeyname]: [guardContext1, guardContext2],
         }, container);
 
         expect(spy1).toHaveBeenCalled()
@@ -130,7 +131,7 @@ describe("AuthorizerManager", () => {
         }
 
        expect(await authorizerManager.isAuthorized(requestMock, {
-            guards: [guardContext1, guardContext2],
+           [guardMetadataKeyname]: [guardContext1, guardContext2],
         }, container)).toBeFalsy();
 
     })
@@ -170,7 +171,7 @@ describe("AuthorizerManager", () => {
         }
 
         expect(await authorizerManager.isAuthorized(requestMock, {
-            guards: [guardContext1, guardContext2],
+            [guardMetadataKeyname]: [guardContext1, guardContext2],
         }, container)).toBeFalsy();
     })
 
@@ -201,7 +202,7 @@ describe("AuthorizerManager", () => {
         });
 
         await authorizerManager.isAuthorized(requestMock, {
-            guards: [{}],
+            [guardMetadataKeyname]: [{}],
         }, container);
 
         expect.assertions(2);

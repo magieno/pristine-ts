@@ -24,6 +24,7 @@
     "@pristine-ts/core": "file:../core",
     "@pristine-ts/security": "file:../security",
     "@pristine-ts/telemetry": "file:../telemetry",
+    "@pristine-ts/metadata": "^1.0.2",
     "lodash": "^4.17.21"
   },
   "jest": {

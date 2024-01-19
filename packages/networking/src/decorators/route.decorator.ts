@@ -1,5 +1,7 @@
-import {HttpMethod} from "@pristine-ts/common";
+import "reflect-metadata";
+import {HttpMethod, MetadataUtil, MetadataEnum} from "@pristine-ts/common";
 import {RouteMethodDecorator} from "../interfaces/route-method-decorator.interface";
+import {ClassMetadata, MethodMetadata} from "@pristine-ts/metadata";
 
 /**
  * The route decorator can be used on a method to register this method as a route of the controller in the router.
@@ -23,20 +25,6 @@ export const route = (httpMethod: HttpMethod | string, path: string) => {
          */
         descriptor: PropertyDescriptor
     ) => {
-        // Verify that the object target.constructor.prototype["__metadata__"]["methods"][propertyKey]["route"] exists or we create it.
-        // This object is a convention defined by Pristine on where to save the route decorator information and is used in the router to retrieve that information.
-        if(target.constructor.prototype.hasOwnProperty("__metadata__") === false) {
-            target.constructor.prototype["__metadata__"] = {}
-        }
-
-        if(target.constructor.prototype["__metadata__"].hasOwnProperty("methods") === false) {
-            target.constructor.prototype["__metadata__"]["methods"] = {}
-        }
-
-        if(target.constructor.prototype["__metadata__"]["methods"].hasOwnProperty(propertyKey) === false) {
-            target.constructor.prototype["__metadata__"]["methods"][propertyKey] = {}
-        }
-
         // Set the route.
         const route: RouteMethodDecorator = {
             httpMethod,
@@ -44,6 +32,8 @@ export const route = (httpMethod: HttpMethod | string, path: string) => {
             path
         }
 
-        target.constructor.prototype["__metadata__"]["methods"][propertyKey]["route"] = route;
+        MethodMetadata.defineMetadata(target, propertyKey, MetadataEnum.Route, route);
+
+        ClassMetadata.appendToMetadata(target.constructor, MetadataEnum.ControllerRoutes, propertyKey);
     };
 }

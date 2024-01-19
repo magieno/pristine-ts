@@ -1,3 +1,4 @@
+import "reflect-metadata"
 import {DependencyContainer, inject, singleton} from "tsyringe";
 import {UrlUtil} from "./utils/url.util";
 import {NotFoundHttpError} from "./errors/not-found.http-error";
@@ -8,8 +9,17 @@ import {Route} from "./models/route";
 import {MethodRouterNode} from "./nodes/method-router.node";
 import {ForbiddenHttpError} from "./errors/forbidden.http-error";
 import {ControllerMethodParameterDecoratorResolver} from "./resolvers/controller-method-parameter-decorator.resolver";
-import { URL } from 'url';
-import {tag, HttpMethod, IdentityInterface, ServiceDefinitionTagEnum, Request, Response} from "@pristine-ts/common";
+import {URL} from 'url';
+import {
+    tag,
+    HttpMethod,
+    IdentityInterface,
+    ServiceDefinitionTagEnum,
+    Request,
+    Response,
+    MetadataUtil,
+    MetadataEnum,
+} from "@pristine-ts/common";
 import {AuthenticationManagerInterface, AuthorizerManagerInterface} from "@pristine-ts/security";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {NetworkingModuleKeyname} from "./networking.module.keyname";
@@ -21,6 +31,7 @@ import {RequestInterceptorInterface} from "./interfaces/request-interceptor.inte
 import {HttpError} from "./errors/http.error";
 import {CachedRouterRoute} from "./cache/cached.router-route";
 import {RouterCache} from "./cache/router.cache";
+import {ClassMetadata, MethodMetadata} from "@pristine-ts/metadata";
 
 /**
  * The router service is the service that creates the routing tree from the controllers.
@@ -43,11 +54,11 @@ export class Router implements RouterInterface {
      * @param authorizerManager The authorizer manager to validate authorization.
      * @param authenticationManager The authentication manager to validate authentication.
      */
-    public constructor( @inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface,
-                        private readonly controllerMethodParameterDecoratorResolver: ControllerMethodParameterDecoratorResolver,
-                        @inject("AuthorizerManagerInterface") private readonly authorizerManager: AuthorizerManagerInterface,
-                        @inject("AuthenticationManagerInterface") private readonly authenticationManager: AuthenticationManagerInterface,
-                        private readonly cache: RouterCache) {
+    public constructor(@inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface,
+                       private readonly controllerMethodParameterDecoratorResolver: ControllerMethodParameterDecoratorResolver,
+                       @inject("AuthorizerManagerInterface") private readonly authorizerManager: AuthorizerManagerInterface,
+                       @inject("AuthenticationManagerInterface") private readonly authenticationManager: AuthenticationManagerInterface,
+                       private readonly cache: RouterCache) {
     }
 
     /**
@@ -67,17 +78,17 @@ export class Router implements RouterInterface {
      * @param level The level at which we are at.
      */
     private getRouteTreeLevel(node: RouterNode, message: string, level: number): string {
-        for(const child of node.children) {
-            for(let i = 0; i < level; i++){
-                message+="\t";
+        for (const child of node.children) {
+            for (let i = 0; i < level; i++) {
+                message += "\t";
             }
-            if(child instanceof PathRouterNode){
-                message+="--" + child.path + "\n";
+            if (child instanceof PathRouterNode) {
+                message += "--" + child.path + "\n";
             }
-            if(child instanceof MethodRouterNode){
-                message+="--" + child.method + "\n";
+            if (child instanceof MethodRouterNode) {
+                message += "--" + child.method + "\n";
             }
-            message = this.getRouteTreeLevel(child, message, level+1);
+            message = this.getRouteTreeLevel(child, message, level + 1);
         }
         return message;
     }
@@ -102,42 +113,35 @@ export class Router implements RouterInterface {
     //  * @private
     //  */
     public setup() {
-        if(this.setupCompleted) {
+        if (this.setupCompleted) {
             return;
         }
 
         // Loop over all the controllers and control the Route Tree
         controllerRegistry.forEach(controller => {
-            if (controller.hasOwnProperty("__metadata__") === false) {
-                return;
-            }
-
-            let basePath: string = controller.__metadata__?.controller?.basePath;
+            let basePath: string = ClassMetadata.getMetadata(controller, MetadataEnum.ControllerBasePath) ?? "";
 
             // Clean the base path by removing trailing slashes.
             if (basePath.endsWith("/")) {
                 basePath = basePath.slice(0, basePath.length - 1);
             }
 
-            for (const methodPropertyKey in controller.__metadata__?.methods) {
-                if (controller.__metadata__?.methods?.hasOwnProperty(methodPropertyKey) === false) {
-                    continue;
-                }
+            const routePropertyKeys: string[] = ClassMetadata.getMetadata(controller, MetadataEnum.ControllerRoutes);
 
-                const method = controller.__metadata__?.methods[methodPropertyKey];
-
-                if (method.hasOwnProperty("route") === false) {
-                    continue;
+            routePropertyKeys.forEach(methodPropertyKey => {
+                if (MethodMetadata.hasMetadata(controller.prototype, methodPropertyKey, MetadataEnum.Route) === false) {
+                    return;
                 }
 
                 // Retrieve the "RouteMethodDecorator" object assigned by the @route decorator at .route
-                const routeMethodDecorator: RouteMethodDecorator = method.route;
+                const routeMethodDecorator: RouteMethodDecorator = MethodMetadata.getMetadata(controller.prototype, methodPropertyKey, MetadataEnum.Route);
 
-                // Build the Route object that will be used the the router to dispatch a request to
+                // Build the Route object that will be used by the router to dispatch a request to
                 // the appropriate controller method
-                const route = new Route(controller.constructor, routeMethodDecorator.methodKeyname);
-                route.methodArguments = method.arguments ?? [];
-                route.context = mergeWith({}, controller.__metadata__?.controller?.__routeContext__, method.__routeContext__);
+                const route = new Route(controller.prototype.constructor, routeMethodDecorator.methodKeyname);
+                route.methodArguments = MetadataUtil.getMethodParametersMetadata(controller.prototype, methodPropertyKey);
+                const context = mergeWith({}, MetadataUtil.getRouteContext(controller.prototype.constructor), MetadataUtil.getRouteContext(controller.prototype, methodPropertyKey));
+                route.context = context;
 
                 // Build the proper path
                 let path = routeMethodDecorator.path;
@@ -156,7 +160,9 @@ export class Router implements RouterInterface {
 
                 // Register the route
                 this.register(routePath, routeMethodDecorator.httpMethod, route);
-            }
+
+            })
+
         })
 
         this.setupCompleted = true;
@@ -197,7 +203,7 @@ export class Router implements RouterInterface {
 
             let methodNode: MethodRouterNode | undefined = cachedRouterRoute?.methodNode;
 
-            if(methodNode === undefined) {
+            if (methodNode === undefined) {
                 const methodNodeSpan = tracingManager.startSpan(SpanKeynameEnum.RouterFindMethodRouterNode, SpanKeynameEnum.RouterRequestExecution);
                 // Retrieve the node to have information about the controller
                 methodNode = this.root.find(splitPath, request.httpMethod) as MethodRouterNode;
@@ -215,7 +221,7 @@ export class Router implements RouterInterface {
             }, NetworkingModuleKeyname);
 
             // If node doesn't exist, throw a 404 error
-            if(methodNode === null) {
+            if (methodNode === null) {
                 this.loghandler.error("Cannot find the path", {
                     rootNode: this.root,
                     request,
@@ -229,7 +235,7 @@ export class Router implements RouterInterface {
             // Get the route parameters
             const routeParameters = cachedRouterRoute?.routeParameters ?? (methodNode.parent as PathRouterNode).getRouteParameters(splitPath.reverse());
 
-            if(cachedRouterRoute !== undefined && cachedRouterRoute.routeParameters === undefined) {
+            if (cachedRouterRoute !== undefined && cachedRouterRoute.routeParameters === undefined) {
                 cachedRouterRoute.routeParameters = routeParameters;
             }
 
@@ -263,7 +269,7 @@ export class Router implements RouterInterface {
                 }, NetworkingModuleKeyname);
 
                 // Todo: check if the error is an UnauthorizedHttpError, else create one.
-                if(error instanceof ForbiddenHttpError === false){
+                if (error instanceof ForbiddenHttpError === false) {
                     error = new ForbiddenHttpError("You are not allowed to access this.");
                 }
 
@@ -275,7 +281,7 @@ export class Router implements RouterInterface {
             try {
 
                 // Verify that the identity making the request is authorized to make such a request
-                if(await this.authorizerManager.isAuthorized(request, methodNode.route.context, container, identity) === false) {
+                if (await this.authorizerManager.isAuthorized(request, methodNode.route.context, container, identity) === false) {
                     this.loghandler.error("User not authorized to access this url.", {
                         request,
                         context: methodNode.route.context,
@@ -301,7 +307,7 @@ export class Router implements RouterInterface {
                 let resolvedMethodArguments: any[] | undefined = this.cache.getCachedControllerMethodArguments(cacheKeyname, interceptedRequest);
 
                 // If the cache did not contain the cached controller method arguments
-                if(resolvedMethodArguments === undefined) {
+                if (resolvedMethodArguments === undefined) {
                     this.loghandler.debug("Resolved method arguments were not cached, currently resolving", {
                         request,
                         interceptedRequest,
@@ -339,7 +345,7 @@ export class Router implements RouterInterface {
 
                 let returnedResponse: Response;
                 // If the response is already a Response object, return the response
-                if(response instanceof Response) {
+                if (response instanceof Response) {
                     this.loghandler.debug("Router - Response returned by the controller is a Response object", {
                         response,
                     }, NetworkingModuleKeyname)
@@ -368,8 +374,7 @@ export class Router implements RouterInterface {
 
                 routerRequestExecutionSpan.end();
                 return resolve(interceptedResponse);
-            }
-            catch (error) {
+            } catch (error) {
                 this.loghandler.error("Router - There was an error trying to execute the request in the router", {
                     error,
                 }, NetworkingModuleKeyname)
@@ -392,7 +397,7 @@ export class Router implements RouterInterface {
      * @param methodNode
      * @private
      */
-    private async executeRequestInterceptors( request: Request, container: DependencyContainer, methodNode: MethodRouterNode): Promise<Request> {
+    private async executeRequestInterceptors(request: Request, container: DependencyContainer, methodNode: MethodRouterNode): Promise<Request> {
         this.loghandler.debug("Router - Request Interceptors - Start", {
             request,
             methodNode,
@@ -410,7 +415,10 @@ export class Router implements RouterInterface {
                 // So, we have to verify that the method exists, and if it doesn't we throw
                 if (typeof interceptor.interceptRequest === "undefined") {
                     // Simply log a message for now that the interceptors doesn't implement the 'interceptRequest' method.
-                    this.loghandler.debug("The Request Interceptor doesn't implement the interceptRequest method.", {name: interceptor.constructor.name, interceptor});
+                    this.loghandler.debug("The Request Interceptor doesn't implement the interceptRequest method.", {
+                        name: interceptor.constructor.name,
+                        interceptor
+                    });
                     continue;
                 }
 
@@ -462,7 +470,10 @@ export class Router implements RouterInterface {
                 // So, we have to verify that the method exists, and if it doesn't we throw
                 if (typeof interceptor.interceptResponse === "undefined") {
                     // Simply log a message for now that the interceptors doesn't implement the 'interceptResponse' method.
-                    this.loghandler.debug("Router - The Request Interceptor doesn't implement the interceptResponse method.", {name: interceptor.constructor.name, interceptor}, NetworkingModuleKeyname);
+                    this.loghandler.debug("Router - The Request Interceptor doesn't implement the interceptResponse method.", {
+                        name: interceptor.constructor.name,
+                        interceptor
+                    }, NetworkingModuleKeyname);
                     continue;
                 }
 
@@ -504,7 +515,7 @@ export class Router implements RouterInterface {
 
         // Execute all the request interceptors
         let interceptedResponse = new Response();
-        if(error instanceof HttpError) {
+        if (error instanceof HttpError) {
             interceptedResponse.status = error.httpStatus;
             interceptedResponse.body = {
                 name: error.name,
@@ -513,8 +524,7 @@ export class Router implements RouterInterface {
                 errors: error.errors,
                 extra: error.extra,
             }
-        }
-        else {
+        } else {
             interceptedResponse.status = 500;
             interceptedResponse.body = {name: error.name, message: error.message, stack: error.stack};
         }
@@ -530,7 +540,10 @@ export class Router implements RouterInterface {
                 // So, we have to verify that the method exists, and if it doesn't we throw
                 if (typeof interceptor.interceptError === "undefined") {
                     // Simply log a message for now that the interceptors doesn't implement the 'interceptError' method.
-                    this.loghandler.info("The Request Interceptor doesn't implement the interceptError method.", {name: interceptor.constructor.name, interceptor});
+                    this.loghandler.info("The Request Interceptor doesn't implement the interceptError method.", {
+                        name: interceptor.constructor.name,
+                        interceptor
+                    });
                     continue;
                 }
 
