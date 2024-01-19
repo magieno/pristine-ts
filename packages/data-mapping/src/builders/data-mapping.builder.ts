@@ -186,7 +186,7 @@ export class DataMappingBuilder extends BaseDataMappingNode{
     public export() {
         const nodes = this.nodes;
 
-        for (let key in nodes) {
+        for (const key in nodes) {
             if(nodes.hasOwnProperty(key) === false) {
                 continue;
             }
