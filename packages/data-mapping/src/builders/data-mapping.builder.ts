@@ -3,11 +3,11 @@ import {DataNormalizerUniqueKey} from "../types/data-normalizer-unique-key.type"
 import {DataNormalizerAlreadyAdded} from "../errors/data-normalizer-already-added.error";
 import {DataMappingInterceptorUniqueKeyType} from "../types/data-mapping-interceptor-unique-key.type";
 import {
-    DataBeforeRowTransformerInterceptorAlreadyAddedError
-} from "../errors/data-before-row-transformer-interceptor-already-added.error";
+    DataBeforeMappingInterceptorAlreadyAddedError
+} from "../errors/data-before-mapping-interceptor-already-added.error";
 import {
-    DataAfterRowTransformerInterceptorAlreadyAddedError
-} from "../errors/data-after-row-transformer-interceptor-already-added.error";
+    DataAfterMappingInterceptorAlreadyAddedError
+} from "../errors/data-after-mapping-interceptor-already-added.error";
 import {DataMappingLeaf} from "../nodes/data-mapping.leaf";
 import {BaseDataMappingNode} from "../nodes/base-data-mapping.node";
 import {DataMappingNodeTypeEnum} from "../enums/data-mapping-node-type.enum";
@@ -53,7 +53,7 @@ export class DataMappingBuilder extends BaseDataMappingNode{
      */
     public addBeforeMappingInterceptor(key: DataMappingInterceptorUniqueKeyType, options?: any): DataMappingBuilder {
         if(this.hasBeforeMappingInterceptor(key)) {
-            throw new DataBeforeRowTransformerInterceptorAlreadyAddedError("The before row transform interceptor has already been added to this Tree.", key, options)
+            throw new DataBeforeMappingInterceptorAlreadyAddedError("The before row transform interceptor has already been added to this Tree.", key, options)
         }
 
         this.beforeMappingInterceptors.push({
@@ -80,7 +80,7 @@ export class DataMappingBuilder extends BaseDataMappingNode{
      */
     public addAfterMappingInterceptor(key: DataMappingInterceptorUniqueKeyType, options?: any): DataMappingBuilder {
         if(this.hasAfterMappingInterceptor(key)) {
-            throw new DataAfterRowTransformerInterceptorAlreadyAddedError("The after row transform interceptor has already been added to this Tree.", key, options)
+            throw new DataAfterMappingInterceptorAlreadyAddedError("The after row transform interceptor has already been added to this Tree.", key, options)
         }
 
         this.afterMappingInterceptors.push({
@@ -153,7 +153,7 @@ export class DataMappingBuilder extends BaseDataMappingNode{
 
         const nodes = schema.nodes;
 
-        for(let key in nodes) {
+        for(const key in nodes) {
             if(nodes.hasOwnProperty(key) === false) {
                 continue;
             }

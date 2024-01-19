@@ -1,8 +1,8 @@
 import {LowercaseNormalizer} from "../normalizers/lowercase.normalizer";
 import {DataMappingInterceptorInterface} from "../interfaces/data-mapping-interceptor.interface";
 import {DataMappingInterceptorUniqueKeyType} from "../types/data-mapping-interceptor-unique-key.type";
-import {DataTransformerInterceptorNotFoundError} from "../errors/data-transformer-interceptor-not-found.error";
-import {DataTransformerSourcePropertyNotFoundError} from "../errors/data-transformer-source-property-not-found.error";
+import {DataMappingInterceptorNotFoundError} from "../errors/data-mapping-interceptor-not-found.error";
+import {DataMappingSourcePropertyNotFoundError} from "../errors/data-mapping-source-property-not-found.error";
 import {property} from "@pristine-ts/metadata";
 import "jest-extended"
 import {DataMappingBuilder} from "../builders/data-mapping.builder";
@@ -295,7 +295,7 @@ describe("Data Mapper", () =>{
                 .setDestinationProperty("name")
             .end()
 
-        await expect(dataMapper.mapAll(dataMappingBuilder, [{"a": "a"}])).rejects.toThrowError(DataTransformerInterceptorNotFoundError);
+        await expect(dataMapper.mapAll(dataMappingBuilder, [{"a": "a"}])).rejects.toThrowError(DataMappingInterceptorNotFoundError);
     })
 
     it("should throw properly when after row transformer cannot be found", async () => {
@@ -309,7 +309,7 @@ describe("Data Mapper", () =>{
             .setDestinationProperty("name")
             .end()
 
-        await expect(dataMapper.mapAll(dataMappingBuilder, [{"0": "a"}])).rejects.toThrowError(DataTransformerInterceptorNotFoundError);
+        await expect(dataMapper.mapAll(dataMappingBuilder, [{"0": "a"}])).rejects.toThrowError(DataMappingInterceptorNotFoundError);
     })
 
     it("should throw properly when an element is not optional and not found in the source", async () => {
@@ -322,7 +322,7 @@ describe("Data Mapper", () =>{
              .setDestinationProperty("name")
              .end()
 
-         await expect(dataMapper.mapAll(dataMappingBuilder, [{"a": "a"}])).rejects.toThrowError(DataTransformerSourcePropertyNotFoundError);
+         await expect(dataMapper.mapAll(dataMappingBuilder, [{"a": "a"}])).rejects.toThrowError(DataMappingSourcePropertyNotFoundError);
      })
 
     it("should properly type the return object when a destinationType is passed", async () => {

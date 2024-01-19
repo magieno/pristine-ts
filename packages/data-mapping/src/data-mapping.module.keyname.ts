@@ -1,1 +1,1 @@
-export const DataMappingModuleKeyname: string = "pristine.data-transformer";
+export const DataMappingModuleKeyname: string = "pristine.data-mapping";
