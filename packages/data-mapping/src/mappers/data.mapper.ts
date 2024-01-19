@@ -34,7 +34,13 @@ export class DataMapper {
      * @param destinationType
      */
     public async mapAll(builder: DataMappingBuilder, source: any[], destinationType?: ClassConstructor<any>): Promise<any[]> {
-        return source.map(element => this.map(builder, element, destinationType));
+        const destination = [];
+
+        for(const element of source) {
+            destination.push(await this.map(builder, element, destinationType));
+        }
+
+        return destination;
     }
 
     /**
@@ -46,13 +52,7 @@ export class DataMapper {
      * @param destinationType
      */
     public async map(builder: DataMappingBuilder, source: any, destinationType?: ClassConstructor<any>): Promise<any> {
-        const globalNormalizers = builder.normalizers;
-
         let destination = {};
-
-        if(destinationType) {
-            destination = plainToInstance(destinationType, {});
-        }
 
         let interceptedSource = source;
 
@@ -88,6 +88,10 @@ export class DataMapper {
 
             // todo pass the options when we start using it.
             destination = await interceptor.afterMapping(destination);
+        }
+
+        if(destinationType) {
+            destination = plainToInstance(destinationType, destination);
         }
 
         return destination;

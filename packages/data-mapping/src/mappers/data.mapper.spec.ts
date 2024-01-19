@@ -105,13 +105,13 @@ describe("Data Mapper", () =>{
         expect(destination.infants[1]).toBe("antoine")
         expect(destination.infants[2]).toBe("olivier")
         expect(destination.child).toBeDefined()
-        //expect(destination.child instanceof NestedDestination).toBeTruthy();
+        expect(destination.child instanceof NestedDestination).toBeTruthy();
         expect(destination.child.nestedName).toBe("nested_title")
         expect(destination.list).toBeDefined()
         expect(destination.list.length).toBe(2)
-        //expect(destination.list[0] instanceof ArrayDestination).toBeTruthy()
+        expect(destination.list[0] instanceof ArrayDestination).toBeTruthy()
         expect(destination.list[0].position).toBe(1)
-        //expect(destination.list[1] instanceof ArrayDestination).toBeTruthy()
+        expect(destination.list[1] instanceof ArrayDestination).toBeTruthy()
         expect(destination.list[1].position).toBe(2)
 
         // Make sure that the import and export work and still map properly
@@ -132,18 +132,18 @@ describe("Data Mapper", () =>{
         expect(destinationAfterExportAndReimport.infants[1]).toBe("antoine")
         expect(destinationAfterExportAndReimport.infants[2]).toBe("olivier")
         expect(destinationAfterExportAndReimport.child).toBeDefined()
-        //expect(destinationAfterExportAndReimport.child instanceof NestedDestination).toBeTruthy();
+        expect(destinationAfterExportAndReimport.child instanceof NestedDestination).toBeTruthy();
         expect(destinationAfterExportAndReimport.child.nestedName).toBe("nested_title")
         expect(destinationAfterExportAndReimport.list).toBeDefined()
         expect(destinationAfterExportAndReimport.list.length).toBe(2)
-        //expect(destinationAfterExportAndReimport.list[0] instanceof ArrayDestination).toBeTruthy()
+        expect(destinationAfterExportAndReimport.list[0] instanceof ArrayDestination).toBeTruthy()
         expect(destinationAfterExportAndReimport.list[0].position).toBe(1)
-        //expect(destinationAfterExportAndReimport.list[1] instanceof ArrayDestination).toBeTruthy()
+        expect(destinationAfterExportAndReimport.list[1] instanceof ArrayDestination).toBeTruthy()
         expect(destinationAfterExportAndReimport.list[1].position).toBe(2)
     })
 
-    /*it("should properly transform", async () => {
-        const dataTransformer = new DataTransformer([new LowercaseNormalizer()], []);
+    it("should properly transform", async () => {
+        const dataMapper = new DataMapper([new LowercaseNormalizer()], []);
 
         const source = [{
             NAME: "Etienne Noel",
@@ -151,23 +151,23 @@ describe("Data Mapper", () =>{
             TOTAL: 10,
         }];
 
-        const dataTransformerBuilder = new DataTransformerBuilder();
-        dataTransformerBuilder
+        const dataMappingBuilder = new DataMappingBuilder();
+        dataMappingBuilder
             .add()
-            .setSourceProperty("NAME")
-            .setDestinationProperty("name")
+                .setSourceProperty("NAME")
+                .setDestinationProperty("name")
             .end()
             .add()
-            .setSourceProperty("province")
-            .addNormalizer(LowercaseNormalizer.name)
-            .setDestinationProperty("province")
+                .setSourceProperty("province")
+                .addNormalizer(LowercaseNormalizer.name)
+                .setDestinationProperty("province")
             .end()
             .add()
-            .setSourceProperty("TOTAL")
-            .setDestinationProperty("total")
+                .setSourceProperty("TOTAL")
+                .setDestinationProperty("total")
             .end();
 
-        const destination = await dataTransformer.transform(dataTransformerBuilder, source);
+        const destination = await dataMapper.mapAll(dataMappingBuilder, source);
 
         expect(destination.length).toBe(1)
 
@@ -178,29 +178,29 @@ describe("Data Mapper", () =>{
     })
 
     it("should properly transform an array with numerical indices", async () => {
-        const dataTransformer = new DataTransformer([new LowercaseNormalizer()], []);
+        const dataMapper = new DataMapper([new LowercaseNormalizer()], []);
 
         const source = [
             ["Etienne Noel", "QUEBEC", 10],
         ];
 
-        const dataTransformerBuilder = new DataTransformerBuilder();
-        dataTransformerBuilder
+        const dataMappingBuilder = new DataMappingBuilder();
+        dataMappingBuilder
             .add()
-            .setSourceProperty("0")
-            .setDestinationProperty("name")
+                .setSourceProperty("0")
+                .setDestinationProperty("name")
             .end()
             .add()
-            .setSourceProperty("1")
-            .addNormalizer(LowercaseNormalizer.name)
-            .setDestinationProperty("province")
+                .setSourceProperty("1")
+                .addNormalizer(LowercaseNormalizer.name)
+                .setDestinationProperty("province")
             .end()
             .add()
-            .setSourceProperty("2")
-            .setDestinationProperty("total")
+                .setSourceProperty("2")
+                .setDestinationProperty("total")
             .end();
 
-        const destination = await dataTransformer.transform(dataTransformerBuilder, source);
+        const destination = await dataMapper.mapAll(dataMappingBuilder, source);
 
         expect(destination.length).toBe(1)
 
@@ -212,10 +212,10 @@ describe("Data Mapper", () =>{
 
     it("should properly call the before row transformers and respect the order of calls", async () => {
         const firstInterceptor: DataMappingInterceptorInterface = {
-            async beforeMapping(row: DataTransformerRow): Promise<DataTransformerRow> {
+            async beforeMapping(row: any): Promise<any> {
                 return row;
             },
-            async afterMapping(row: DataTransformerRow): Promise<DataTransformerRow> {
+            async afterMapping(row: any): Promise<any> {
                 return {
                     "after": row["name"] + row["province"] + row["total"] + row["added_property"],
                 };
@@ -225,11 +225,11 @@ describe("Data Mapper", () =>{
             },
         }
         const secondInterceptor: DataMappingInterceptorInterface = {
-            async beforeMapping(row: DataTransformerRow): Promise<DataTransformerRow> {
+            async beforeMapping(row: any): Promise<any> {
                 row[3] = "Property added in the beforeRowTransform";
                 return row;
             },
-            async afterMapping(row: DataTransformerRow): Promise<DataTransformerRow> {
+            async afterMapping(row: any): Promise<any> {
                 return row;
             },
             getUniqueKey(): DataMappingInterceptorUniqueKeyType {
@@ -242,7 +242,7 @@ describe("Data Mapper", () =>{
         const beforeRowSecondInterceptorSpy = jest.spyOn(secondInterceptor, "beforeMapping")
         const afterRowSecondInterceptorSpy = jest.spyOn(secondInterceptor, "afterMapping")
 
-        const dataTransformer = new DataTransformer([new LowercaseNormalizer()], [
+        const dataTransformer = new DataMapper([new LowercaseNormalizer()], [
             firstInterceptor,
             secondInterceptor,
         ]);
@@ -251,78 +251,79 @@ describe("Data Mapper", () =>{
             ["Etienne Noel", "QUEBEC", 10],
         ];
 
-        const dataTransformerBuilder = new DataTransformerBuilder();
-        dataTransformerBuilder
-            .addBeforeRowTransformInterceptor("first_interceptor")
-            .addBeforeRowTransformInterceptor("second_interceptor")
-            .addAfterRowTransformInterceptor("first_interceptor")
-            .addAfterRowTransformInterceptor("second_interceptor")
+        const dataMappingBuilder = new DataMappingBuilder();
+        dataMappingBuilder
+            .addBeforeMappingInterceptor("first_interceptor")
+            .addBeforeMappingInterceptor("second_interceptor")
+            .addAfterMappingInterceptor("first_interceptor")
+            .addAfterMappingInterceptor("second_interceptor")
             .add()
-            .setSourceProperty("0")
-            .setDestinationProperty("name")
+                .setSourceProperty("0")
+                .setDestinationProperty("name")
             .end()
             .add()
-            .setSourceProperty("1")
-            .addNormalizer(LowercaseNormalizer.name)
-            .setDestinationProperty("province")
+                .setSourceProperty("1")
+                .addNormalizer(LowercaseNormalizer.name)
+                .setDestinationProperty("province")
             .end()
             .add()
-            .setSourceProperty("2")
-            .setDestinationProperty("total")
+                .setSourceProperty("2")
+                .setDestinationProperty("total")
             .end()
             .add()
-            .setSourceProperty("3")
-            .setDestinationProperty("added_property")
+                .setSourceProperty("3")
+                .setDestinationProperty("added_property")
             .end();
 
-        const transformedData: any[] = await dataTransformer.transform(dataTransformerBuilder, source);
+        const mappedData: any[] = await dataTransformer.mapAll(dataMappingBuilder, source);
 
         expect(beforeRowFirstInterceptorSpy).toHaveBeenCalledBefore(beforeRowSecondInterceptorSpy);
         expect(beforeRowSecondInterceptorSpy).toHaveBeenCalledBefore(afterRowFirstInterceptorSpy)
         expect(afterRowFirstInterceptorSpy).toHaveBeenCalledBefore(afterRowSecondInterceptorSpy);
 
-        expect(transformedData[0]["after"]).toBe("Etienne Noelquebec10Property added in the beforeRowTransform")
+        expect(mappedData[0]["after"]).toBe("Etienne Noelquebec10Property added in the beforeRowTransform")
     })
 
     it("should throw properly when before row transformer cannot be found", async () => {
-        const dataTransformer = new DataTransformer([new LowercaseNormalizer()], []);
+        const dataMapper = new DataMapper([new LowercaseNormalizer()], []);
 
-        const dataTransformerBuilder = new DataTransformerBuilder();
-        dataTransformerBuilder
-            .addBeforeRowTransformInterceptor("first_interceptor")
+        const dataMappingBuilder = new DataMappingBuilder();
+        dataMappingBuilder
+            .addBeforeMappingInterceptor("first_interceptor")
             .add()
-            .setSourceProperty("0")
-            .setDestinationProperty("name")
+                .setSourceProperty("0")
+                .setDestinationProperty("name")
             .end()
 
-        await expect(dataTransformer.transform(dataTransformerBuilder, [{"a": "a"}])).rejects.toThrowError(DataTransformerInterceptorNotFoundError);
+        await expect(dataMapper.mapAll(dataMappingBuilder, [{"a": "a"}])).rejects.toThrowError(DataTransformerInterceptorNotFoundError);
     })
 
     it("should throw properly when after row transformer cannot be found", async () => {
-        const dataTransformer = new DataTransformer([new LowercaseNormalizer()], []);
+        const dataMapper = new DataMapper([new LowercaseNormalizer()], []);
 
-        const dataTransformerBuilder = new DataTransformerBuilder();
-        dataTransformerBuilder
-            .addAfterRowTransformInterceptor("first_interceptor")
+        const dataMappingBuilder = new DataMappingBuilder();
+        dataMappingBuilder
+            .addAfterMappingInterceptor("first_interceptor")
             .add()
             .setSourceProperty("0")
             .setDestinationProperty("name")
             .end()
 
-        await expect(dataTransformer.transform(dataTransformerBuilder, [{"0": "a"}])).rejects.toThrowError(DataTransformerInterceptorNotFoundError);
+        await expect(dataMapper.mapAll(dataMappingBuilder, [{"0": "a"}])).rejects.toThrowError(DataTransformerInterceptorNotFoundError);
     })
+
     it("should throw properly when an element is not optional and not found in the source", async () => {
-        const dataTransformer = new DataTransformer([new LowercaseNormalizer()], []);
+         const dataMapper = new DataMapper([new LowercaseNormalizer()], []);
 
-        const dataTransformerBuilder = new DataTransformerBuilder();
-        dataTransformerBuilder
-            .add()
-            .setSourceProperty("0")
-            .setDestinationProperty("name")
-            .end()
+         const dataMappingBuilder = new DataMappingBuilder();
+         dataMappingBuilder
+             .add()
+             .setSourceProperty("0")
+             .setDestinationProperty("name")
+             .end()
 
-        await expect(dataTransformer.transform(dataTransformerBuilder, [{"a": "a"}])).rejects.toThrowError(DataTransformerSourcePropertyNotFoundError);
-    })
+         await expect(dataMapper.mapAll(dataMappingBuilder, [{"a": "a"}])).rejects.toThrowError(DataTransformerSourcePropertyNotFoundError);
+     })
 
     it("should properly type the return object when a destinationType is passed", async () => {
         class Source {
@@ -338,21 +339,20 @@ describe("Data Mapper", () =>{
         const source = new Source();
         source.title = "TITLE";
 
-        const dataTransformer = new DataTransformer([new LowercaseNormalizer()], []);
+        const dataMapper = new DataMapper([new LowercaseNormalizer()], []);
 
-        const dataTransformerBuilder = new DataTransformerBuilder();
-        dataTransformerBuilder
+        const dataMappingBuilder = new DataMappingBuilder();
+        dataMappingBuilder
             .add()
-            .setSourceProperty("title")
-            .setDestinationProperty("name")
-            .addNormalizer(LowercaseNormalizer.name)
+                .setSourceProperty("title")
+                .setDestinationProperty("name")
+                .addNormalizer(LowercaseNormalizer.name)
             .end()
 
-        const destination = await dataTransformer.transform(dataTransformerBuilder, source, Destination);
+        const destination = await dataMapper.map(dataMappingBuilder, source, Destination);
 
         expect(destination.name).toBe("title");
     })
-
 
     it("should properly type the nested objects", async () => {
         class Source {
@@ -368,18 +368,18 @@ describe("Data Mapper", () =>{
         const source = new Source();
         source.title = "TITLE";
 
-        const dataTransformer = new DataTransformer([new LowercaseNormalizer()], []);
+        const dataMapper = new DataMapper([new LowercaseNormalizer()], []);
 
-        const dataTransformerBuilder = new DataTransformerBuilder();
-        dataTransformerBuilder
+        const dataMappingBuilder = new DataMappingBuilder();
+        dataMappingBuilder
             .add()
-            .setSourceProperty("title")
-            .setDestinationProperty("name")
-            .addNormalizer(LowercaseNormalizer.name)
+                .setSourceProperty("title")
+                .setDestinationProperty("name")
+                .addNormalizer(LowercaseNormalizer.name)
             .end()
 
-        const destination = await dataTransformer.transform(dataTransformerBuilder, source, Destination);
+        const destination = await dataMapper.map(dataMappingBuilder, source, Destination);
 
         expect(destination.name).toBe("title");
-    })*/
+    })
 })
