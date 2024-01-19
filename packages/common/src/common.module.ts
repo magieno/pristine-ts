@@ -1,6 +1,5 @@
 import {CommonModuleKeyname} from "./common.module.keyname";
 import {ModuleInterface} from "./interfaces/module.interface";
-export * from "./constants/constants";
 export * from "./contexts/contexts";
 export * from "./decorators/decorators";
 export * from "./enums/enums";
