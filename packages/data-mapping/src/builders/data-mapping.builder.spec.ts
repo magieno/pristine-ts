@@ -144,13 +144,13 @@ describe("Data Mapping Builder", () => {
         expect((dataMappingBuilder.nodes.nested as DataMappingNode).nodes.nestedTitle.destinationProperty).toBe("nestedName")
 
         expect(dataMappingBuilder.nodes.array).toBeDefined()
-        expect(dataMappingBuilder.nodes.array.type).toBe(DataMappingNodeTypeEnum.Array)
+        expect(dataMappingBuilder.nodes.array.type).toBe(DataMappingNodeTypeEnum.ObjectArray)
         expect(dataMappingBuilder.nodes.array.destinationProperty).toBe("list")
         expect((dataMappingBuilder.nodes.array as DataMappingNode).nodes.rank.sourceProperty).toBe("rank")
         expect((dataMappingBuilder.nodes.array as DataMappingNode).nodes.rank.destinationProperty).toBe("position")
 
         expect(dataMappingBuilder.nodes.children).toBeDefined()
-        expect(dataMappingBuilder.nodes.children.type).toBe(DataMappingNodeTypeEnum.Array)
+        expect(dataMappingBuilder.nodes.children.type).toBe(DataMappingNodeTypeEnum.ScalarArray)
         expect(dataMappingBuilder.nodes.children.destinationProperty).toBe("infants")
         expect((dataMappingBuilder.nodes.children as DataMappingLeaf).sourceProperty).toBe("children")
         expect((dataMappingBuilder.nodes.children as DataMappingLeaf).destinationProperty).toBe("infants")
