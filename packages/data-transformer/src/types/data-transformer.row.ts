@@ -1,1 +1,0 @@
-export type DataTransformerRow = {[key in string]: any} | any;
