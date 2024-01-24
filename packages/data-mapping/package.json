@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/data-mapping",
-  "version": "0.0.277",
+  "version": "0.0.278",
   "description": "",
   "module": "dist/lib/esm/data-mapping.module.js",
   "main": "dist/lib/cjs/data-mapping.module.js",
@@ -25,7 +25,6 @@
     "@pristine-ts/logging": "file:../logging",
     "@pristine-ts/metadata": "~1.0.2",
     "@pristine-ts/networking": "file:../networking",
-    "@pristine-ts/class-validator": "^1.0.22",
     "class-transformer": "^0.5.1",
     "tsyringe": "^4.8.0"
   },
