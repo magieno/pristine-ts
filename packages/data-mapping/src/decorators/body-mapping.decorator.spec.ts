@@ -57,7 +57,7 @@ describe("Body Mapping Decorator", () =>{
         .end()
 
         class Test3 {
-            @bodyMapping(dataMappingBuilder)
+            @bodyMapping({builder: dataMappingBuilder})
             route() {}
         }
 
