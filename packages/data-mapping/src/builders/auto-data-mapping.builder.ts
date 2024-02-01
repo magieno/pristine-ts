@@ -90,7 +90,7 @@ export class AutoDataMappingBuilder {
                 return this.internalBuild(source[propertyKey][0], propertyInformation.arrayMemberObject, root, dataMappingNode);
             }
 
-            let normalizers: string[] = [];
+            const normalizers: string[] = [];
 
             // todo: Allow for options to be specified per attribute. We should probably add a decorator to can customize the normalizer.
             switch (propertyInformation.typeEnum) {
