@@ -1,5 +1,6 @@
 import "reflect-metadata"
 import {StringNormalizer} from "./string.normalizer";
+import {StringNormalizerOptions} from "../normalizer-options/string-normalizer.options";
 
 describe('StringNormalizer', () => {
 
@@ -33,7 +34,7 @@ describe('StringNormalizer', () => {
     it('should format dates using the dateFormat option', () => {
         const normalizer = new StringNormalizer();
         const date = new Date(2024, 0, 31);
-        expect(normalizer.normalize(date, {dateFormat: 'yyyy-MM-dd'})).toBe('2024-01-31');
+        expect(normalizer.normalize(date, new StringNormalizerOptions({dateFormat: 'yyyy-MM-dd'}))).toBe('2024-01-31');
     });
 
     it('should format dates using toJSON() if no dateFormat is provided', () => {

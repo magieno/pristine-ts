@@ -17,9 +17,9 @@ describe('Lowercase Normalizer', () => {
 
     it('should throw an error for non-string types if shouldThrowIfTypeIsNotString is true', () => {
         const normalizer = new LowercaseNormalizer();
-        expect(() => normalizer.normalize(null, { shouldThrowIfTypeIsNotString: true })).toThrowError();
-        expect(() => normalizer.normalize({}, { shouldThrowIfTypeIsNotString: true })).toThrowError();
-        expect(() => normalizer.normalize(123, { shouldThrowIfTypeIsNotString: true })).toThrowError();
+        expect(() => normalizer.normalize(null, new LowercaseNormalizerOptions({ shouldThrowIfTypeIsNotString: true }))).toThrowError();
+        expect(() => normalizer.normalize({}, new LowercaseNormalizerOptions({ shouldThrowIfTypeIsNotString: true }))).toThrowError();
+        expect(() => normalizer.normalize(123, new LowercaseNormalizerOptions({ shouldThrowIfTypeIsNotString: true }))).toThrowError();
     });
 
     it('should lowercase strings', () => {
