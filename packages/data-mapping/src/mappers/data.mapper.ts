@@ -8,6 +8,9 @@ import {injectable, injectAll} from "tsyringe";
 import {DataMappingBuilder} from "../builders/data-mapping.builder";
 import {ClassConstructor, plainToInstance} from "class-transformer";
 import {DataMappingInterceptorNotFoundError} from "../errors/data-mapping-interceptor-not-found.error";
+import {ClassMetadata} from "@pristine-ts/metadata";
+import {AutoDataMappingBuilder} from "../builders/auto-data-mapping.builder";
+import {AutoDataMappingBuilderOptions} from "../options/auto-data-mapping-builder.options";
 
 @moduleScoped(DataMappingModuleKeyname)
 @injectable()
@@ -15,7 +18,9 @@ export class DataMapper {
     private readonly dataNormalizersMap: { [key in DataNormalizerUniqueKey]: DataNormalizerInterface<any, any> } = {}
     private readonly dataTransformerInterceptorsMap: { [key in DataMappingInterceptorUniqueKeyType]: DataMappingInterceptorInterface } = {}
 
-    public constructor(@injectAll("DataNormalizerInterface") private readonly dataNormalizers: DataNormalizerInterface<any, any>[],
+    public constructor(
+        private readonly autoDataMappingBuilder: AutoDataMappingBuilder,
+        @injectAll("DataNormalizerInterface") private readonly dataNormalizers: DataNormalizerInterface<any, any>[],
                        @injectAll("DataTransformerInterceptor") private readonly dataTransformerInterceptors: DataMappingInterceptorInterface[],) {
         dataNormalizers.forEach(dataNormalizer => {
             this.dataNormalizersMap[dataNormalizer.getUniqueKey()] = dataNormalizer;
@@ -41,6 +46,18 @@ export class DataMapper {
         }
 
         return destination;
+    }
+
+    /**
+     * This method automatically maps a source object into the DestinationType.
+     * @param source
+     * @param destinationType
+     * @param options
+     */
+    public async autoMap(source: any, destinationType: ClassConstructor<any>, options?: AutoDataMappingBuilderOptions): Promise<any> {
+        const dataMappingBuilder = this.autoDataMappingBuilder.build(source, destinationType, options);
+
+        return this.map(dataMappingBuilder, source, destinationType);
     }
 
     /**

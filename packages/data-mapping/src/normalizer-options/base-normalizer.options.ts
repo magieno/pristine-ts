@@ -1,7 +1,7 @@
 export abstract class BaseNormalizerOptions {
-    public shouldThrowIfTypeIsNotString?: boolean;
+    public shouldThrowIfTypeIsNotString: boolean = false;
 
-    public constructor(options?: BaseNormalizerOptions) {
-        this.shouldThrowIfTypeIsNotString = options?.shouldThrowIfTypeIsNotString ?? false;
+    public constructor(options?: Partial<BaseNormalizerOptions>) {
+        this.shouldThrowIfTypeIsNotString = options?.shouldThrowIfTypeIsNotString ?? this.shouldThrowIfTypeIsNotString;
     }
 }

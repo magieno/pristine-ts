@@ -44,7 +44,7 @@ export class BodyMappingRequestInterceptor implements RequestInterceptorInterfac
 
         switch (bodyMapping.type) {
             case "classType":
-                request.body = plainToInstance(bodyMapping.classType, request.body);
+                request.body = await this.dataMapper.autoMap(request.body, bodyMapping.classType);
                 break;
 
             case "DataMappingBuilder":

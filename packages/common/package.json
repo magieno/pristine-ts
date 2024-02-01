@@ -20,7 +20,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@pristine-ts/metadata": "^1.0.2",
+    "@pristine-ts/metadata": "^1.0.3",
     "reflect-metadata": "^0.1.13",
     "tsyringe": "^4.8.0"
   },

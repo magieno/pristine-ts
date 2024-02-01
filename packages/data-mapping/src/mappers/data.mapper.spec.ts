@@ -8,6 +8,7 @@ import "jest-extended"
 import {DataMappingBuilder} from "../builders/data-mapping.builder";
 import {DataMapper} from "./data.mapper";
 import {Type} from "class-transformer";
+import {AutoDataMappingBuilder} from "../builders/auto-data-mapping.builder";
 
 describe("Data Mapper", () =>{
     it("should map a very complex object into another complex object. Then, it should export the builder, import the builder and make sure it still maps everything properly.", async () => {
@@ -92,7 +93,7 @@ describe("Data Mapper", () =>{
         source.array[1].rank = 2
 
 
-        let dataMapper = new DataMapper([new LowercaseNormalizer()], []);
+        let dataMapper = new DataMapper(new AutoDataMappingBuilder(), [new LowercaseNormalizer()], []);
 
         const destination: Destination = await dataMapper.map(dataMappingBuilder, source, Destination);
 
@@ -117,7 +118,7 @@ describe("Data Mapper", () =>{
         // Make sure that the import and export work and still map properly
         const schema = dataMappingBuilder.export();
 
-        dataMapper = new DataMapper([new LowercaseNormalizer()], []);
+        dataMapper = new DataMapper(new AutoDataMappingBuilder(), [new LowercaseNormalizer()], []);
         dataMappingBuilder = new DataMappingBuilder();
         dataMappingBuilder.import(schema);
 
@@ -143,7 +144,7 @@ describe("Data Mapper", () =>{
     })
 
     it("should properly transform", async () => {
-        const dataMapper = new DataMapper([new LowercaseNormalizer()], []);
+        const dataMapper = new DataMapper(new AutoDataMappingBuilder(), [new LowercaseNormalizer()], []);
 
         const source = [{
             NAME: "Etienne Noel",
@@ -178,7 +179,7 @@ describe("Data Mapper", () =>{
     })
 
     it("should properly transform an array with numerical indices", async () => {
-        const dataMapper = new DataMapper([new LowercaseNormalizer()], []);
+        const dataMapper = new DataMapper(new AutoDataMappingBuilder(), [new LowercaseNormalizer()], []);
 
         const source = [
             ["Etienne Noel", "QUEBEC", 10],
@@ -242,7 +243,7 @@ describe("Data Mapper", () =>{
         const beforeRowSecondInterceptorSpy = jest.spyOn(secondInterceptor, "beforeMapping")
         const afterRowSecondInterceptorSpy = jest.spyOn(secondInterceptor, "afterMapping")
 
-        const dataTransformer = new DataMapper([new LowercaseNormalizer()], [
+        const dataTransformer = new DataMapper(new AutoDataMappingBuilder(), [new LowercaseNormalizer()], [
             firstInterceptor,
             secondInterceptor,
         ]);
@@ -285,7 +286,7 @@ describe("Data Mapper", () =>{
     })
 
     it("should throw properly when before row transformer cannot be found", async () => {
-        const dataMapper = new DataMapper([new LowercaseNormalizer()], []);
+        const dataMapper = new DataMapper(new AutoDataMappingBuilder(), [new LowercaseNormalizer()], []);
 
         const dataMappingBuilder = new DataMappingBuilder();
         dataMappingBuilder
@@ -299,7 +300,7 @@ describe("Data Mapper", () =>{
     })
 
     it("should throw properly when after row transformer cannot be found", async () => {
-        const dataMapper = new DataMapper([new LowercaseNormalizer()], []);
+        const dataMapper = new DataMapper(new AutoDataMappingBuilder(), [new LowercaseNormalizer()], []);
 
         const dataMappingBuilder = new DataMappingBuilder();
         dataMappingBuilder
@@ -313,7 +314,7 @@ describe("Data Mapper", () =>{
     })
 
     it("should throw properly when an element is not optional and not found in the source", async () => {
-         const dataMapper = new DataMapper([new LowercaseNormalizer()], []);
+         const dataMapper = new DataMapper(new AutoDataMappingBuilder(), [new LowercaseNormalizer()], []);
 
          const dataMappingBuilder = new DataMappingBuilder();
          dataMappingBuilder
@@ -339,7 +340,7 @@ describe("Data Mapper", () =>{
         const source = new Source();
         source.title = "TITLE";
 
-        const dataMapper = new DataMapper([new LowercaseNormalizer()], []);
+        const dataMapper = new DataMapper(new AutoDataMappingBuilder(), [new LowercaseNormalizer()], []);
 
         const dataMappingBuilder = new DataMappingBuilder();
         dataMappingBuilder
@@ -368,7 +369,7 @@ describe("Data Mapper", () =>{
         const source = new Source();
         source.title = "TITLE";
 
-        const dataMapper = new DataMapper([new LowercaseNormalizer()], []);
+        const dataMapper = new DataMapper(new AutoDataMappingBuilder(), [new LowercaseNormalizer()], []);
 
         const dataMappingBuilder = new DataMappingBuilder();
         dataMappingBuilder
@@ -382,4 +383,5 @@ describe("Data Mapper", () =>{
 
         expect(destination.name).toBe("title");
     })
+
 })
