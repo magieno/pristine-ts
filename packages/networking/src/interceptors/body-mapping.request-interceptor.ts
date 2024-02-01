@@ -1,6 +1,5 @@
 import {moduleScoped, Request, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {inject, injectable} from "tsyringe";
-import {MethodRouterNode, RequestInterceptorInterface} from "@pristine-ts/networking";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {NetworkingModuleKeyname} from "../networking.module.keyname";
 import {DataMapper} from "@pristine-ts/data-mapping";
@@ -9,6 +8,8 @@ import {
     FunctionBodyMappingContextInterface
 } from "../interfaces/body-mapping-context.interface";
 import {bodyMappingDecoratorMetadataKeyname} from "../decorators/body-mapping.decorator";
+import {RequestInterceptorInterface} from "../interfaces/request-interceptor.interface";
+import {MethodRouterNode} from "../nodes/method-router.node";
 
 /**
  * This class is an interceptor that maps the body of an incoming request.
