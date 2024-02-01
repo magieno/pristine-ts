@@ -22,7 +22,8 @@
   "dependencies": {
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/core": "file:../core",
-    "@pristine-ts/metadata": "^1.0.2",
+    "@pristine-ts/data-mapping": "file:../data-mapping",
+    "@pristine-ts/metadata": "^1.0.6",
     "@pristine-ts/security": "file:../security",
     "@pristine-ts/telemetry": "file:../telemetry",
     "lodash": "^4.17.21"

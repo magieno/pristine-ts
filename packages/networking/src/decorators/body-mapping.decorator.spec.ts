@@ -4,8 +4,8 @@ import {
     ClassTransformerBodyMappingContextInterface, DataMappingBuilderBodyMappingContextInterface,
     FunctionBodyMappingContextInterface
 } from "../interfaces/body-mapping-context.interface";
-import {DataMappingBuilder} from "../builders/data-mapping.builder";
-import {LowercaseNormalizer} from "../normalizers/lowercase.normalizer";
+import {DataMappingBuilder} from "../../../data-mapping/src/builders/data-mapping.builder";
+import {LowercaseNormalizer} from "../../../data-mapping/src/normalizers/lowercase.normalizer";
 
 class Class {}
 

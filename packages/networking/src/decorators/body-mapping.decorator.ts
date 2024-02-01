@@ -1,5 +1,5 @@
 import {MetadataUtil} from "@pristine-ts/common";
-import {DataMappingBuilder} from "../builders/data-mapping.builder";
+import {DataMappingBuilder} from "../../../data-mapping/src/builders/data-mapping.builder";
 import {
     ClassTransformerBodyMappingContextInterface, DataMappingBuilderBodyMappingContextInterface,
     FunctionBodyMappingContextInterface
