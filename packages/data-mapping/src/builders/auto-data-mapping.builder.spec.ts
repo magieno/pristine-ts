@@ -6,6 +6,9 @@ import {StringNormalizer} from "../normalizers/string.normalizer";
 import {NumberNormalizer} from "../normalizers/number.normalizer";
 import {DateNormalizer} from "../normalizers/date.normalizer";
 import {typeFactory} from "../decorators/type-factory.decorator";
+import {DataMappingNode} from "../nodes/data-mapping.node";
+import {DataMappingLeaf} from "../nodes/data-mapping.leaf";
+import {DataMappingBuilder} from "./data-mapping.builder";
 
 describe("Auto DataMappingBuilder", () => {
     it("should automatically map a multi level nested object", async () => {
@@ -98,9 +101,30 @@ describe("Auto DataMappingBuilder", () => {
 
         const dataMappingBuilder = autoDataMappingBuilder.build(source, Source);
 
-        const dataMapper = new DataMapper(new AutoDataMappingBuilder(), [new StringNormalizer(), new NumberNormalizer(), new DateNormalizer()], []);
+        // Verify the `dataMappingBuilder`
+        expect(dataMappingBuilder).toBeInstanceOf(DataMappingBuilder);
+        expect(Object.keys(dataMappingBuilder.nodes)).toHaveLength(5)
+        expect(dataMappingBuilder.nodes["title"]).toBeInstanceOf(DataMappingLeaf);
+        expect((dataMappingBuilder.nodes["title"] as DataMappingLeaf).normalizers).toHaveLength(1)
+        expect((dataMappingBuilder.nodes["title"] as DataMappingLeaf).normalizers[0].key).toBe(StringNormalizer.name)
 
-        const mapped = await dataMapper.map(dataMappingBuilder, source, Source);
+        expect(dataMappingBuilder.nodes["nested"]).toBeInstanceOf(DataMappingNode);
+        expect(Object.keys((dataMappingBuilder.nodes["nested"] as DataMappingNode).nodes)).toHaveLength(2)
+        expect((dataMappingBuilder.nodes["nested"] as DataMappingNode).nodes["nestedTitle"]).toBeInstanceOf(DataMappingLeaf);
+        expect((dataMappingBuilder.nodes["nested"] as DataMappingNode).nodes["animal"]).toBeInstanceOf(DataMappingNode);
+        expect(Object.keys(((dataMappingBuilder.nodes["nested"] as DataMappingNode).nodes["animal"] as DataMappingNode).nodes)).toHaveLength(2);
+        expect(((dataMappingBuilder.nodes["nested"] as DataMappingNode).nodes["animal"] as DataMappingNode).nodes["friendly"]).toBeInstanceOf(DataMappingLeaf);
+        expect(((dataMappingBuilder.nodes["nested"] as DataMappingNode).nodes["animal"] as DataMappingNode).nodes["head"]).toBeInstanceOf(DataMappingNode);
+        expect(Object.keys((((dataMappingBuilder.nodes["nested"] as DataMappingNode).nodes["animal"] as DataMappingNode).nodes["head"] as DataMappingNode).nodes)).toHaveLength(1)
+        expect((((dataMappingBuilder.nodes["nested"] as DataMappingNode).nodes["animal"] as DataMappingNode).nodes["head"] as DataMappingNode).nodes["name"]).toBeInstanceOf(DataMappingLeaf);
+        expect(((((dataMappingBuilder.nodes["nested"] as DataMappingNode).nodes["animal"] as DataMappingNode).nodes["head"] as DataMappingNode).nodes["name"] as DataMappingLeaf).normalizers).toHaveLength(1)
+        expect(((((dataMappingBuilder.nodes["nested"] as DataMappingNode).nodes["animal"] as DataMappingNode).nodes["head"] as DataMappingNode).nodes["name"] as DataMappingLeaf).normalizers[0].key).toBe(StringNormalizer.name)
+
+        // todo COMPLETE THE VERIFICATION
+
+        expect(dataMappingBuilder.nodes["date"]).toBeInstanceOf(DataMappingLeaf);
+        expect(dataMappingBuilder.nodes["array"]).toBeInstanceOf(DataMappingNode);
+        expect(dataMappingBuilder.nodes["children"]).toBeInstanceOf(DataMappingLeaf);
 
         const a = 0;
     })

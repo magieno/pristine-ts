@@ -10,6 +10,7 @@ import {ClassConstructor, plainToInstance} from "class-transformer";
 import {DataMappingInterceptorNotFoundError} from "../errors/data-mapping-interceptor-not-found.error";
 import {ClassMetadata} from "@pristine-ts/metadata";
 import {AutoDataMappingBuilder} from "../builders/auto-data-mapping.builder";
+import {AutoDataMappingBuilderOptions} from "../options/auto-data-mapping-builder.options";
 
 @moduleScoped(DataMappingModuleKeyname)
 @injectable()
@@ -51,9 +52,10 @@ export class DataMapper {
      * This method automatically maps a source object into the DestinationType.
      * @param source
      * @param destinationType
+     * @param options
      */
-    public async autoMap(source: any, destinationType: ClassConstructor<any>): Promise<any> {
-        const dataMappingBuilder = this.autoDataMappingBuilder.build(source, destinationType);
+    public async autoMap(source: any, destinationType: ClassConstructor<any>, options?: AutoDataMappingBuilderOptions): Promise<any> {
+        const dataMappingBuilder = this.autoDataMappingBuilder.build(source, destinationType, options);
 
         return this.map(dataMappingBuilder, source, destinationType);
     }
