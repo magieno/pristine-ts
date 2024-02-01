@@ -2,7 +2,6 @@ import {BodyMappingRequestInterceptor} from "./body-mapping.request-interceptor"
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {HttpMethod, Request} from "@pristine-ts/common";
 import {Type} from "class-transformer";
-import {MethodRouterNode, Route} from "@pristine-ts/networking";
 import {bodyMappingDecoratorMetadataKeyname} from "../decorators/body-mapping.decorator";
 import {
     ClassTransformerBodyMappingContextInterface, DataMappingBuilderBodyMappingContextInterface,
@@ -15,6 +14,7 @@ import {
     LowercaseNormalizer, NumberNormalizer,
     StringNormalizer
 } from "@pristine-ts/data-mapping";
+import {Route} from "../models/route";
 
 const mockLogHandler: LogHandlerInterface = {
     critical(message: string, extra?: any, module?: string): void {
