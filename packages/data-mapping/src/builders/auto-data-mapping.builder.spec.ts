@@ -5,7 +5,7 @@ import {DataMapper} from "../mappers/data.mapper";
 import {StringNormalizer} from "../normalizers/string.normalizer";
 import {NumberNormalizer} from "../normalizers/number.normalizer";
 import {DateNormalizer} from "../normalizers/date.normalizer";
-import {typeFactory} from "../decorators/type-factory.decorator";
+import {type} from "../decorators/type.decorator";
 import {DataMappingNode} from "../nodes/data-mapping.node";
 import {DataMappingLeaf} from "../nodes/data-mapping.leaf";
 import {DataMappingBuilder} from "./data-mapping.builder";
@@ -47,7 +47,7 @@ describe("Auto DataMappingBuilder", () => {
             @property()
             nestedTitle: string;
 
-            @typeFactory((target: any, propertyKey: string) => {
+            @type((target: any, propertyKey: string) => {
                 if(target.nestedTitle === "cat") {
                     return new Cat();
                 }

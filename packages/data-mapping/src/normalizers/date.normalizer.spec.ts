@@ -12,7 +12,11 @@ describe('DateNormalizer', () => {
     it('should return the current date for undefined input when returnUndefinedOnInvalidDate is false', () => {
         const normalizer = new DateNormalizer();
         const expectedDate = new Date();
-        expect(normalizer.normalize(undefined, new DateNormalizerOptions({returnUndefinedOnInvalidDate: false}))).toEqual(expectedDate);
+        expect(normalizer.normalize(undefined, new DateNormalizerOptions({returnUndefinedOnInvalidDate: false}))!.getMinutes()).toEqual(expectedDate.getMinutes());
+        expect(normalizer.normalize(undefined, new DateNormalizerOptions({returnUndefinedOnInvalidDate: false}))!.getHours()).toEqual(expectedDate.getHours());
+        expect(normalizer.normalize(undefined, new DateNormalizerOptions({returnUndefinedOnInvalidDate: false}))!.getDate()).toEqual(expectedDate.getDate());
+        expect(normalizer.normalize(undefined, new DateNormalizerOptions({returnUndefinedOnInvalidDate: false}))!.getMonth()).toEqual(expectedDate.getMonth());
+        expect(normalizer.normalize(undefined, new DateNormalizerOptions({returnUndefinedOnInvalidDate: false}))!.getFullYear()).toEqual(expectedDate.getFullYear());
     });
 
     it('should return a Date object for a valid date string', () => {

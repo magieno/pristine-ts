@@ -13,7 +13,7 @@ import {DataMappingBuilder} from "../builders/data-mapping.builder";
 import {LowercaseNormalizer} from "../normalizers/lowercase.normalizer";
 import {AutoDataMappingBuilder} from "../builders/auto-data-mapping.builder";
 import {classMetadata, property} from "@pristine-ts/metadata";
-import {typeFactory} from "../decorators/type-factory.decorator";
+import {type} from "../decorators/type.decorator";
 import {StringNormalizer} from "../normalizers/string.normalizer";
 import {NumberNormalizer} from "../normalizers/number.normalizer";
 import {DateNormalizer} from "../normalizers/date.normalizer";
