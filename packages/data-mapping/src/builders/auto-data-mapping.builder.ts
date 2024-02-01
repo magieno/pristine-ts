@@ -43,7 +43,7 @@ export class AutoDataMappingBuilder {
      */
     private internalBuild(source: any, destinationType: ClassConstructor<any>, root: DataMappingBuilder,
                           parent: DataMappingNode | DataMappingBuilder, options: AutoDataMappingBuilderOptions) {
-        if (source === undefined) {
+        if (!source) {
             return;
         }
 
