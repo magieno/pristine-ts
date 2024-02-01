@@ -4,7 +4,7 @@ import {
     FunctionBodyMappingContextInterface
 } from "../interfaces/body-mapping-context.interface";
 import {ClassConstructor} from "class-transformer";
-import {DataMappingBuilder} from "@pristine-ts/data-mapping/src/builders/data-mapping.builder";
+import {DataMappingBuilder} from "@pristine-ts/data-mapping";
 
 export const bodyMappingDecoratorMetadataKeyname = "@bodyMappingDecorator";
 
