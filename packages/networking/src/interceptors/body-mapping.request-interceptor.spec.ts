@@ -15,6 +15,7 @@ import {
     StringNormalizer
 } from "@pristine-ts/data-mapping";
 import {Route} from "../models/route";
+import {MethodRouterNode} from "../nodes/method-router.node";
 
 const mockLogHandler: LogHandlerInterface = {
     critical(message: string, extra?: any, module?: string): void {
