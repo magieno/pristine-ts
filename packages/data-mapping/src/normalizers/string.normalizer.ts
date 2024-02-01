@@ -13,7 +13,7 @@ export class StringNormalizer implements DataNormalizerInterface<string | undefi
     normalize(source: any, options?: StringNormalizerOptions): string | undefined {
         const typeEnum = TypeUtils.getTypeOfValue(source);
 
-        if (typeEnum === undefined) {
+        if (typeEnum === undefined || typeEnum === TypeEnum.Null) {
             if (options?.ignoreUndefined === false) {
                 return "";
             }
@@ -42,8 +42,9 @@ export class StringNormalizer implements DataNormalizerInterface<string | undefi
             case TypeEnum.Array:
                 return source.map( (item: any) => this.normalize(item, options));
 
+            case TypeEnum.Symbol:
             case TypeEnum.Object:
-                if(source.hasOwnProperty("toString")) {
+                if(typeof source.toString === "function") {
                     return source.toString();
                 }
 

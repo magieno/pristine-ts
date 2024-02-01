@@ -25,7 +25,7 @@ export class NumberNormalizer implements DataNormalizerInterface<number | undefi
                 return source;
         }
 
-        if (typeEnum === undefined) {
+        if (typeEnum === undefined || typeEnum === TypeEnum.Null) {
             if (options?.ignoreUndefined === false) {
                 return 0;
             }
