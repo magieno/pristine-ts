@@ -12,6 +12,11 @@ import {
 import {DataMappingBuilder} from "../builders/data-mapping.builder";
 import {LowercaseNormalizer} from "../normalizers/lowercase.normalizer";
 import {AutoDataMappingBuilder} from "../builders/auto-data-mapping.builder";
+import {classMetadata, property} from "@pristine-ts/metadata";
+import {typeFactory} from "../decorators/type-factory.decorator";
+import {StringNormalizer} from "../normalizers/string.normalizer";
+import {NumberNormalizer} from "../normalizers/number.normalizer";
+import {DateNormalizer} from "../normalizers/date.normalizer";
 
 const mockLogHandler: LogHandlerInterface = {
     critical(message: string, extra?: any, module?: string): void {
@@ -26,15 +31,18 @@ const mockLogHandler: LogHandlerInterface = {
 
 describe("Body Mapping Request Interceptor", () => {
     it("should map a body when a class is passed", async () => {
+        @classMetadata()
         class Nested {
+            @property()
             nestedProperty: string;
         }
 
+        @classMetadata()
         class Test {
-            @Type(() => Nested)
+            @property()
             nested: Nested;
 
-            @Type(() => Date)
+            @property()
             date: Date;
         }
 
@@ -46,7 +54,7 @@ describe("Body Mapping Request Interceptor", () => {
             "date": "2023-12-01",
         }
 
-        const bodyMappingRequestInterceptor = new BodyMappingRequestInterceptor(mockLogHandler, new DataMapper(new AutoDataMappingBuilder(), [], []));
+        const bodyMappingRequestInterceptor = new BodyMappingRequestInterceptor(mockLogHandler, new DataMapper(new AutoDataMappingBuilder(), [new StringNormalizer(), new NumberNormalizer(), new DateNormalizer()], []));
         const route = new Route(null, "");
         route.context = {};
         route.context[bodyMappingDecoratorMetadataKeyname] = {
