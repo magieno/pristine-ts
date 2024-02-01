@@ -4,8 +4,7 @@ import {
     ClassTransformerBodyMappingContextInterface, DataMappingBuilderBodyMappingContextInterface,
     FunctionBodyMappingContextInterface
 } from "../interfaces/body-mapping-context.interface";
-import {DataMappingBuilder} from "../../../data-mapping/src/builders/data-mapping.builder";
-import {LowercaseNormalizer} from "../../../data-mapping/src/normalizers/lowercase.normalizer";
+import {DataMappingBuilder, LowercaseNormalizer} from "@pristine-ts/data-mapping";
 
 class Class {}
 
