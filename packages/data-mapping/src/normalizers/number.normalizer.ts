@@ -6,7 +6,7 @@ import {TypeEnum, TypeUtils} from "@pristine-ts/metadata";
 @injectable()
 export class NumberNormalizer implements DataNormalizerInterface<number | undefined, NumberNormalizerOptions> {
     getUniqueKey(): string {
-        return NumberNormalizerOptions.name;
+        return NumberNormalizer.name;
     }
 
     normalize(source: any, options?: NumberNormalizerOptions): number | undefined {

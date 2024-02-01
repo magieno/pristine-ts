@@ -11,6 +11,7 @@ import {
 } from "../interfaces/body-mapping-context.interface";
 import {DataMappingBuilder} from "../builders/data-mapping.builder";
 import {LowercaseNormalizer} from "../normalizers/lowercase.normalizer";
+import {AutoDataMappingBuilder} from "../builders/auto-data-mapping.builder";
 
 const mockLogHandler: LogHandlerInterface = {
     critical(message: string, extra?: any, module?: string): void {
@@ -45,7 +46,7 @@ describe("Body Mapping Request Interceptor", () => {
             "date": "2023-12-01",
         }
 
-        const bodyMappingRequestInterceptor = new BodyMappingRequestInterceptor(mockLogHandler, new DataMapper([], []));
+        const bodyMappingRequestInterceptor = new BodyMappingRequestInterceptor(mockLogHandler, new DataMapper(new AutoDataMappingBuilder(), [], []));
         const route = new Route(null, "");
         route.context = {};
         route.context[bodyMappingDecoratorMetadataKeyname] = {
@@ -77,7 +78,7 @@ describe("Body Mapping Request Interceptor", () => {
             "date": "2023-12-01",
         }
 
-        const bodyMappingRequestInterceptor = new BodyMappingRequestInterceptor(mockLogHandler, new DataMapper([], []));
+        const bodyMappingRequestInterceptor = new BodyMappingRequestInterceptor(mockLogHandler, new DataMapper(new AutoDataMappingBuilder(), [], []));
         const route = new Route(null, "");
         route.context = {};
         route.context[bodyMappingDecoratorMetadataKeyname] = {
@@ -120,7 +121,7 @@ describe("Body Mapping Request Interceptor", () => {
             .end()
         .end()
 
-        const bodyMappingRequestInterceptor = new BodyMappingRequestInterceptor(mockLogHandler, new DataMapper([new LowercaseNormalizer()], []));
+        const bodyMappingRequestInterceptor = new BodyMappingRequestInterceptor(mockLogHandler, new DataMapper(new AutoDataMappingBuilder(), [new LowercaseNormalizer()], []));
         const route = new Route(null, "");
         route.context = {};
         route.context[bodyMappingDecoratorMetadataKeyname] = {

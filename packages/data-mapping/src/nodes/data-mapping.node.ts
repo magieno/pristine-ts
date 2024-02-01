@@ -8,6 +8,7 @@ import {DataNormalizerInterface} from "../interfaces/data-normalizer.interface";
 import {
     ArrayDataMappingNodeInvalidSourcePropertyTypeError
 } from "../errors/array-data-mapping-node-invalid-source-property-type.error";
+import {ClassConstructor, plainToInstance} from "class-transformer";
 
 export class DataMappingNode extends BaseDataMappingNode {
     /**
@@ -24,6 +25,11 @@ export class DataMappingNode extends BaseDataMappingNode {
      * This method specified whether it's possible that this element not be present in the `source` object.
      */
     public isOptional: boolean = false;
+
+    /**
+     * IMPORTANT: This property is not serializable. It will be lost during the export.
+     */
+    public destinationType?: ClassConstructor<any>;
 
     constructor(public readonly root: DataMappingBuilder,
                 public readonly parent: DataMappingNode | DataMappingBuilder,
@@ -47,6 +53,15 @@ export class DataMappingNode extends BaseDataMappingNode {
      */
     public setDestinationProperty(destinationProperty: string): DataMappingNode {
         this.destinationProperty = destinationProperty;
+        return this;
+    }
+
+    /**
+     * This is a setter for `destinationType`.
+     * @param destinationType
+     */
+    public setDestinationType(destinationType: ClassConstructor<any>): DataMappingNode {
+        this.destinationType = destinationType;
         return this;
     }
 
@@ -127,8 +142,11 @@ export class DataMappingNode extends BaseDataMappingNode {
             if(this.type === DataMappingNodeTypeEnum.ObjectArray) {
                 destination[this.destinationProperty] = [];
             } else {
-                // todo: we need to get the expected Type of the `destination[this.destinationProperty]` and actually instantiate it.
-                destination[this.destinationProperty] = {};
+                if(this.destinationType) {
+                    destination[this.destinationProperty] = plainToInstance(this.destinationType, {});
+                } else {
+                    destination[this.destinationProperty] = {};
+                }
             }
         }
 
@@ -143,8 +161,11 @@ export class DataMappingNode extends BaseDataMappingNode {
             }
 
             for (const element of array) {
-                // todo: we need to get the expected Type of the object in the array in the Destination object
-                const dest = {};
+                let dest = {};
+
+                if(this.destinationType) {
+                    dest = plainToInstance(this.destinationType, {})
+                }
 
                 for (const key in this.nodes) {
                     if(this.nodes.hasOwnProperty(key) === false) {
