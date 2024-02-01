@@ -33,6 +33,7 @@ describe("Auto DataMappingBuilder", () => {
 
         @classMetadata()
         class Cat extends Animal {
+            @property()
             isSmall: boolean;
         }
 
