@@ -121,7 +121,7 @@ describe("Auto DataMappingBuilder", () => {
 
         const animalNode = nestedNode.nodes["animal"] as DataMappingNode;
         expect(animalNode).toBeInstanceOf(DataMappingNode);
-        expect(Object.keys(animalNode.nodes)).toHaveLength(2);
+        expect(Object.keys(animalNode.nodes)).toHaveLength(3);
 
         const friendLeaf = animalNode.nodes["friendly"] as DataMappingLeaf;
         expect(friendLeaf).toBeInstanceOf(DataMappingLeaf);
