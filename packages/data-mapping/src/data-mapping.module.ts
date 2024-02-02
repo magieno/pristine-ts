@@ -21,6 +21,7 @@ export const DataMappingModule: ModuleInterface = {
         LoggingModule,
     ],
     providerRegistrations: [
+
     ],
     configurationDefinitions: [
     ]

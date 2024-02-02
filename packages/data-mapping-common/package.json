@@ -1,10 +1,10 @@
 {
-  "name": "@pristine-ts/data-mapping",
+  "name": "@pristine-ts/data-mapping-common",
   "version": "0.0.278",
   "description": "",
-  "module": "dist/lib/esm/data-mapping.module.js",
-  "main": "dist/lib/cjs/data-mapping.module.js",
-  "types": "dist/types/data-mapping.module.d.ts",
+  "module": "dist/lib/esm/data-mapping-common.module.js",
+  "main": "dist/lib/cjs/data-mapping-common.module.js",
+  "types": "dist/types/data-mapping-common.module.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
     "prepublish": "npm run build",
@@ -21,11 +21,7 @@
   },
   "dependencies": {
     "@pristine-ts/class-validator": "^1.0.23",
-    "@pristine-ts/common": "file:../common",
-    "@pristine-ts/data-mapping-common": "file:../data-mapping-common",
-    "@pristine-ts/logging": "file:../logging",
     "@pristine-ts/metadata": "~1.0.6",
-    "@pristine-ts/networking": "file:../networking",
     "class-transformer": "^0.5.1",
     "date-fns": "^3.3.1",
     "tsyringe": "^4.8.0"
