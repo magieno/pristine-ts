@@ -52,7 +52,7 @@ export class BodyMappingRequestInterceptor implements RequestInterceptorInterfac
                 break;
 
             case "function":
-                request.body = bodyMapping.function(request.body, this.dataMapper);
+                request.body = await bodyMapping.function(request.body, this.dataMapper);
                 break;
         }
 
