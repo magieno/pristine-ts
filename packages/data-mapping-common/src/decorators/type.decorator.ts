@@ -1,5 +1,5 @@
 import {PropertyMetadata} from "@pristine-ts/metadata";
-import {MetadataEnum} from "@pristine-ts/data-mapping-common";
+import {MetadataEnum} from "../enums/metadata.enum";
 
 export type TypeFactoryCallback = (target: any, propertyKey: string) => any;
 

@@ -1,24 +1,42 @@
-import {ModuleInterface} from "@pristine-ts/common";
+import {ModuleInterface, taggedProviderRegistrationsRegistry} from "@pristine-ts/common";
 import {DataMappingModuleKeyname} from "./data-mapping.module.keyname";
+import {AutoDataMappingBuilder, DataMapper, StringNormalizer, NumberNormalizer, DateNormalizer} from "@pristine-ts/data-mapping-common"
+import {DependencyContainer} from "tsyringe";
 
-export * from "./builders/builders";
 export * from "./decorators/decorators";
-export * from "./enums/enums";
-export * from "./errors/errors";
 export * from "./interceptors/interceptors";
-export * from "./interfaces/interfaces";
-export * from "./mappers/mappers";
-export * from "./nodes/nodes";
-export * from "./normalizer-options/normalizer-options";
-export * from "./normalizers/normalizers";
-export * from "./types/types";
+
+const normalizers = [
+    StringNormalizer,
+    NumberNormalizer,
+    DateNormalizer,
+]
+
+normalizers.forEach( (normalizer: any) => {
+    taggedProviderRegistrationsRegistry.push({
+        constructor: normalizer,
+        providerRegistration: {
+            token: "DataNormalizerInterface",
+            useToken: normalizer,
+        },
+    })
+})
 
 export const DataMappingModule: ModuleInterface = {
     keyname: DataMappingModuleKeyname,
     importModules: [
     ],
     providerRegistrations: [
-
+        {
+            token: AutoDataMappingBuilder,
+            useClass: AutoDataMappingBuilder,
+        },
+        {
+            token: DataMapper,
+            useFactory: (container: DependencyContainer) => {
+                return new DataMapper(container.resolve(AutoDataMappingBuilder), container.resolveAll("DataNormalizerInterface"), container.resolveAll("DataMappingInterceptorInterface"));
+            }
+        },
     ],
     configurationDefinitions: [
     ]

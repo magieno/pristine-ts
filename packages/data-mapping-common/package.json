@@ -2,9 +2,9 @@
   "name": "@pristine-ts/data-mapping-common",
   "version": "0.0.278",
   "description": "",
-  "module": "dist/lib/esm/data-mapping-common.module.js",
-  "main": "dist/lib/cjs/data-mapping-common.module.js",
-  "types": "dist/types/data-mapping-common.module.d.ts",
+  "module": "dist/lib/esm/data-mapping-common.js",
+  "main": "dist/lib/cjs/data-mapping-common.js",
+  "types": "dist/types/data-mapping-common.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
     "prepublish": "npm run build",

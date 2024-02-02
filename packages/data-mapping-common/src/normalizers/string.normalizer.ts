@@ -1,10 +1,8 @@
 import {DataNormalizerInterface} from "../interfaces/data-normalizer.interface";
-import {injectable} from "tsyringe";
 import {TypeEnum, TypeUtils} from "@pristine-ts/metadata";
 import {StringNormalizerOptions} from "../normalizer-options/string-normalizer.options";
 import {format} from "date-fns";
 
-@injectable()
 export class StringNormalizer implements DataNormalizerInterface<string | undefined, StringNormalizerOptions> {
     getUniqueKey(): string {
         return StringNormalizer.name;

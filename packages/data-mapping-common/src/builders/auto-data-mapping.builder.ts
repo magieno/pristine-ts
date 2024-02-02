@@ -6,13 +6,11 @@ import {DataMappingLeaf} from "../nodes/data-mapping.leaf";
 import {NumberNormalizer} from "../normalizers/number.normalizer";
 import {StringNormalizer} from "../normalizers/string.normalizer";
 import {DateNormalizer} from "../normalizers/date.normalizer";
-import {MetadataEnum} from "@pristine-ts/common";
 import {TypeFactoryCallback} from "../decorators/type.decorator";
 import {DataMappingNodeTypeEnum} from "../enums/data-mapping-node-type.enum";
-import {injectable} from "tsyringe";
 import {AutoDataMappingBuilderOptions} from "../options/auto-data-mapping-builder.options";
+import {MetadataEnum} from "../enums/metadata.enum";
 
-@injectable()
 export class AutoDataMappingBuilder {
     /**
      * This method receives a source object and a destinationType that corresponds to the type of the class
