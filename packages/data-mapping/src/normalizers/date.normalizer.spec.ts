@@ -36,7 +36,15 @@ describe('DateNormalizer', () => {
         const normalizer = new DateNormalizer();
         const invalidDateString = 'invalid-date';
         const expectedDate = new Date();
-        expect(normalizer.normalize(invalidDateString, new DateNormalizerOptions({returnUndefinedOnInvalidDate: false}))).toEqual(expectedDate);
+
+        const normalizedDate = normalizer.normalize(invalidDateString, new DateNormalizerOptions({returnUndefinedOnInvalidDate: false}));
+        expect(normalizedDate).toBeDefined()
+        expect(normalizedDate!.getSeconds()).toEqual(expectedDate.getSeconds());
+        expect(normalizedDate!.getMinutes()).toEqual(expectedDate.getMinutes());
+        expect(normalizedDate!.getHours()).toEqual(expectedDate.getHours());
+        expect(normalizedDate!.getDate()).toEqual(expectedDate.getDate());
+        expect(normalizedDate!.getMonth()).toEqual(expectedDate.getMonth());
+        expect(normalizedDate!.getFullYear()).toEqual(expectedDate.getFullYear());
     });
 
     it('should return a Date object for a number representing milliseconds', () => {

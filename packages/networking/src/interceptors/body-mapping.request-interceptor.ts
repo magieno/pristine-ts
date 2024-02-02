@@ -1,22 +1,22 @@
 import {moduleScoped, Request, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {inject, injectable} from "tsyringe";
-import {MethodRouterNode, RequestInterceptorInterface} from "@pristine-ts/networking";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import {DataMapper} from "../mappers/data.mapper";
-import {bodyMappingDecoratorMetadataKeyname} from "../decorators/body-mapping.decorator";
+import {NetworkingModuleKeyname} from "../networking.module.keyname";
+import {DataMapper} from "@pristine-ts/data-mapping";
 import {
     ClassTransformerBodyMappingContextInterface, DataMappingBuilderBodyMappingContextInterface,
     FunctionBodyMappingContextInterface
 } from "../interfaces/body-mapping-context.interface";
-import {plainToInstance} from "class-transformer";
-import {DataMappingModuleKeyname} from "../data-mapping.module.keyname";
+import {bodyMappingDecoratorMetadataKeyname} from "../decorators/body-mapping.decorator";
+import {RequestInterceptorInterface} from "../interfaces/request-interceptor.interface";
+import {MethodRouterNode} from "../nodes/method-router.node";
 
 /**
  * This class is an interceptor that maps the body of an incoming request.
  * It is tagged as an RequestInterceptor so it can be automatically injected with the all the other RequestInterceptors.
  * It is module scoped to the Validation module so that it is only registered if the validation module is imported.
  */
-@moduleScoped(DataMappingModuleKeyname)
+@moduleScoped(NetworkingModuleKeyname)
 @tag(ServiceDefinitionTagEnum.RequestInterceptor)
 @injectable()
 export class BodyMappingRequestInterceptor implements RequestInterceptorInterface {
@@ -40,7 +40,7 @@ export class BodyMappingRequestInterceptor implements RequestInterceptorInterfac
             request,
             methodNode,
             routeContext: methodNode.route.context,
-        }, DataMappingModuleKeyname)
+        }, NetworkingModuleKeyname)
 
         switch (bodyMapping.type) {
             case "classType":
@@ -52,7 +52,7 @@ export class BodyMappingRequestInterceptor implements RequestInterceptorInterfac
                 break;
 
             case "function":
-                request.body = bodyMapping.function(request.body);
+                request.body = bodyMapping.function(request.body, this.dataMapper);
                 break;
         }
 

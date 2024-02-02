@@ -1,10 +1,10 @@
 import {MetadataUtil} from "@pristine-ts/common";
-import {DataMappingBuilder} from "../builders/data-mapping.builder";
 import {
     ClassTransformerBodyMappingContextInterface, DataMappingBuilderBodyMappingContextInterface,
     FunctionBodyMappingContextInterface
 } from "../interfaces/body-mapping-context.interface";
 import {ClassConstructor} from "class-transformer";
+import {DataMappingBuilder} from "@pristine-ts/data-mapping";
 
 export const bodyMappingDecoratorMetadataKeyname = "@bodyMappingDecorator";
 

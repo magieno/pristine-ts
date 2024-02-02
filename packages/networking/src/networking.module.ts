@@ -4,6 +4,7 @@ import {SecurityModule} from "@pristine-ts/security";
 import {TelemetryModule} from "@pristine-ts/telemetry";
 import {BooleanResolver, EnvironmentVariableResolver} from "@pristine-ts/configuration";
 import {LoggingModule} from "@pristine-ts/logging";
+import {DataMappingModule} from "@pristine-ts/data-mapping";
 
 export * from "./cache/cache";
 export * from "./decorators/decorators";
@@ -25,6 +26,7 @@ export const NetworkingModule: ModuleInterface = {
         LoggingModule,
         SecurityModule,
         TelemetryModule,
+        DataMappingModule,
     ],
     configurationDefinitions: [
         /**

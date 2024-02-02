@@ -1,3 +1,4 @@
+export * from "./body-mapping-context.interface";
 export * from "./body-parameter-decorator.interface";
 export * from "./controller-method-parameter-decorator-resolver.interface";
 export * from "./header-parameter-decorator.interface";

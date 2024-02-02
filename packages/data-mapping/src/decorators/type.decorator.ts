@@ -1,4 +1,3 @@
-import {ClassConstructor} from "class-transformer";
 import {PropertyMetadata} from "@pristine-ts/metadata";
 import {MetadataEnum} from "@pristine-ts/common";
 
