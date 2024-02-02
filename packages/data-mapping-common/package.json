@@ -20,8 +20,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@pristine-ts/class-validator": "^1.0.23",
-    "@pristine-ts/metadata": "~1.0.6",
+    "@pristine-ts/class-validator": "^1.0.25",
+    "@pristine-ts/metadata": "~1.0.8",
     "class-transformer": "^0.5.1",
     "date-fns": "^3.3.1",
     "tsyringe": "^4.8.0"
