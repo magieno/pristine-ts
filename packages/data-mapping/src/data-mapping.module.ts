@@ -6,6 +6,10 @@ import {DependencyContainer} from "tsyringe";
 export * from "./decorators/decorators";
 export * from "./interceptors/interceptors";
 
+// To facilitate things, this module should re-export everything. Therefore, no one else needs to know that we have two
+// modules unless you specifically just want the raw classes (like in the frontend).
+export * from "@pristine-ts/data-mapping-common";
+
 const normalizers = [
     StringNormalizer,
     NumberNormalizer,
