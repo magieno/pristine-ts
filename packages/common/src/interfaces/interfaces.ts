@@ -1,4 +1,5 @@
 export * from "./app-module.interface";
+export * from "./class-provider-registration.interface";
 export * from "./context-aware.interface";
 export * from "./dynamic-configuration-resolver.interface";
 export * from "./factory-provider-registration.interface";

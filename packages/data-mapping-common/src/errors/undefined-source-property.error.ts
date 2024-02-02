@@ -1,16 +1,13 @@
-import {LoggableError} from "@pristine-ts/common";
 import {DataMappingLeaf} from "../nodes/data-mapping.leaf";
 import {DataMappingNode} from "../nodes/data-mapping.node";
 
 /**
  * This Error is thrown when you are trying to add a Node which has an undefined sourceProperty value.
  */
-export class UndefinedSourcePropertyError extends LoggableError {
+export class UndefinedSourcePropertyError extends Error {
 
     public constructor(node: DataMappingLeaf | DataMappingNode) {
-        super("The `sourceProperty` property of the Node cannot be undefined to be added as a Node to its parent.", {
-            node,
-        });
+        super("The `sourceProperty` property of the Node cannot be undefined to be added as a Node to its parent.");
 
         // Set the prototype explicitly.
         // As specified in the documentation in TypeScript

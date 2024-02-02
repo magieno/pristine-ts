@@ -1,9 +1,7 @@
-import {injectable} from "tsyringe";
 import {DataNormalizerInterface} from "../interfaces/data-normalizer.interface";
 import {DateNormalizerOptions} from "../normalizer-options/date-normalizer.options";
 import {TypeEnum, TypeUtils} from "@pristine-ts/metadata";
 
-@injectable()
 export class DateNormalizer implements DataNormalizerInterface<Date | undefined, DateNormalizerOptions> {
     getUniqueKey(): string {
         return DateNormalizer.name;

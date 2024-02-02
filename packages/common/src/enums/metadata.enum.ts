@@ -4,5 +4,4 @@ export enum MetadataEnum {
     Route = "route",
     ControllerRoutes = "controller:routes",
     ControllerBasePath = "controller:basePath",
-    TypeFactory = "type:factory",
 }

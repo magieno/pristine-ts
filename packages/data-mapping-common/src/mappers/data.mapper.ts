@@ -2,9 +2,6 @@ import {DataNormalizerUniqueKey} from "../types/data-normalizer-unique-key.type"
 import {DataNormalizerInterface} from "../interfaces/data-normalizer.interface";
 import {DataMappingInterceptorUniqueKeyType} from "../types/data-mapping-interceptor-unique-key.type";
 import {DataMappingInterceptorInterface} from "../interfaces/data-mapping-interceptor.interface";
-import {moduleScoped} from "@pristine-ts/common";
-import {DataMappingModuleKeyname} from "../data-mapping.module.keyname";
-import {injectable, injectAll} from "tsyringe";
 import {DataMappingBuilder} from "../builders/data-mapping.builder";
 import {ClassConstructor, plainToInstance} from "class-transformer";
 import {DataMappingInterceptorNotFoundError} from "../errors/data-mapping-interceptor-not-found.error";
@@ -12,16 +9,14 @@ import {ClassMetadata} from "@pristine-ts/metadata";
 import {AutoDataMappingBuilder} from "../builders/auto-data-mapping.builder";
 import {AutoDataMappingBuilderOptions} from "../options/auto-data-mapping-builder.options";
 
-@moduleScoped(DataMappingModuleKeyname)
-@injectable()
 export class DataMapper {
     private readonly dataNormalizersMap: { [key in DataNormalizerUniqueKey]: DataNormalizerInterface<any, any> } = {}
     private readonly dataTransformerInterceptorsMap: { [key in DataMappingInterceptorUniqueKeyType]: DataMappingInterceptorInterface } = {}
 
     public constructor(
         private readonly autoDataMappingBuilder: AutoDataMappingBuilder,
-        @injectAll("DataNormalizerInterface") private readonly dataNormalizers: DataNormalizerInterface<any, any>[],
-                       @injectAll("DataTransformerInterceptor") private readonly dataTransformerInterceptors: DataMappingInterceptorInterface[],) {
+        private readonly dataNormalizers: DataNormalizerInterface<any, any>[],
+        private readonly dataTransformerInterceptors: DataMappingInterceptorInterface[],) {
         dataNormalizers.forEach(dataNormalizer => {
             this.dataNormalizersMap[dataNormalizer.getUniqueKey()] = dataNormalizer;
         })

@@ -2,11 +2,7 @@ import {DataNormalizerInterface} from "../interfaces/data-normalizer.interface";
 import {DataNormalizerUniqueKey} from "../types/data-normalizer-unique-key.type";
 import {NormalizerInvalidSourceTypeError} from "../errors/normalizer-invalid-source-type.error";
 import {LowercaseNormalizerOptions} from "../normalizer-options/lowercase-normalizer.options";
-import {tag} from "@pristine-ts/common";
-import {injectable} from "tsyringe";
 
-@tag("DataNormalizerInterface")
-@injectable()
 export class LowercaseNormalizer implements DataNormalizerInterface<string, LowercaseNormalizerOptions>{
     getUniqueKey(): DataNormalizerUniqueKey {
         return LowercaseNormalizer.name;

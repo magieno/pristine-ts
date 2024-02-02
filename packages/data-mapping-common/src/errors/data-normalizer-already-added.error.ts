@@ -1,16 +1,10 @@
-import {LoggableError} from "@pristine-ts/common";
-import {Request} from "@pristine-ts/common";
-
 /**
  * This Error is thrown when a normalizer is added more than once.
  */
-export class DataNormalizerAlreadyAdded extends LoggableError {
+export class DataNormalizerAlreadyAdded extends Error {
 
     public constructor(message: string, normalizerUniqueKey: string, options?: any) {
-        super(message, {
-            normalizerUniqueKey,
-            options,
-        });
+        super(message);
 
 
         // Set the prototype explicitly.

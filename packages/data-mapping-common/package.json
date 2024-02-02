@@ -1,22 +1,15 @@
 {
-  "name": "@pristine-ts/validation",
-  "version": "0.0.282",
+  "name": "@pristine-ts/data-mapping-common",
+  "version": "0.0.278",
   "description": "",
-  "module": "dist/lib/esm/validation.module.js",
-  "main": "dist/lib/cjs/validation.module.js",
-  "types": "dist/types/validation.module.d.ts",
+  "module": "dist/lib/esm/data-mapping-common.js",
+  "main": "dist/lib/cjs/data-mapping-common.js",
+  "types": "dist/types/data-mapping-common.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
     "prepublish": "npm run build",
     "test": "jest",
     "test:cov": "jest --coverage"
-  },
-  "dependencies": {
-    "@pristine-ts/class-validator": "^1.0.25",
-    "@pristine-ts/common": "file:../common",
-    "@pristine-ts/core": "file:../core",
-    "@pristine-ts/networking": "file:../networking",
-    "class-transformer": "^0.5.1"
   },
   "files": [
     "dist"
@@ -25,6 +18,13 @@
   "license": "ISC",
   "publishConfig": {
     "access": "public"
+  },
+  "dependencies": {
+    "@pristine-ts/class-validator": "^1.0.25",
+    "@pristine-ts/metadata": "~1.0.8",
+    "class-transformer": "^0.5.1",
+    "date-fns": "^3.3.1",
+    "tsyringe": "^4.8.0"
   },
   "jest": {
     "transform": {
@@ -58,6 +58,9 @@
     },
     "collectCoverageFrom": [
       "src/*.{js,ts}"
+    ],
+    "setupFilesAfterEnv": [
+      "jest-extended/all"
     ]
   },
   "gitHead": "112f715bf4ac6467192d416aa6e419f772b77c58"

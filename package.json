@@ -52,6 +52,7 @@
     "@pristine-ts/common": "file:packages/common",
     "@pristine-ts/configuration": "file:packages/configuration",
     "@pristine-ts/core": "file:packages/core",
+    "@pristine-ts/data-mapping-common": "file:packages/data-mapping-common",
     "@pristine-ts/data-mapping": "file:packages/data-mapping",
     "@pristine-ts/e2e": "file:tests/e2e",
     "@pristine-ts/express": "file:packages/express",

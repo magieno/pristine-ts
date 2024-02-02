@@ -9,6 +9,7 @@
     "@pristine-ts/cli": "file:../../packages/cli",
     "@pristine-ts/common": "file:../../packages/common",
     "@pristine-ts/core": "file:../../packages/core",
+    "@pristine-ts/data-mapping": "file:../../packages/data-mapping",
     "@pristine-ts/express": "file:../../packages/express",
     "@pristine-ts/logging": "file:../../packages/logging",
     "@pristine-ts/networking": "file:../../packages/networking",

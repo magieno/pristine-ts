@@ -1,5 +1,5 @@
-describe("Basic test", () => {
-    it("should have at least one test", () => {
+describe("Data Mapping Module", () => {
+    it("should", () => {
         expect(true).toBeTruthy()
     })
 })

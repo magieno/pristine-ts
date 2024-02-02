@@ -1,14 +1,11 @@
-import {LoggableError} from "@pristine-ts/common";
 
 /**
  * This Error is thrown when a node is of type array but the `source[sourceProperty]` doesn't actually contain an array.
  */
-export class ArrayDataMappingNodeInvalidSourcePropertyTypeError extends LoggableError {
+export class ArrayDataMappingNodeInvalidSourcePropertyTypeError extends Error{
 
     public constructor(message: string, sourceProperty: string) {
-        super(message, {
-            sourceProperty,
-        });
+        super(message);
 
 
         // Set the prototype explicitly.

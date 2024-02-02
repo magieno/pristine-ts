@@ -1,9 +1,7 @@
-import {injectable} from "tsyringe";
 import {DataNormalizerInterface} from "../interfaces/data-normalizer.interface";
 import {NumberNormalizerOptions} from "../normalizer-options/number-normalizer.options";
 import {TypeEnum, TypeUtils} from "@pristine-ts/metadata";
 
-@injectable()
 export class NumberNormalizer implements DataNormalizerInterface<number | undefined, NumberNormalizerOptions> {
     getUniqueKey(): string {
         return NumberNormalizer.name;
