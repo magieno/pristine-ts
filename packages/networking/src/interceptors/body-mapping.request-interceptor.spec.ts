@@ -72,7 +72,7 @@ describe("Body Mapping Request Interceptor", () => {
     it("should map a body when a function is passed", async () => {
         const spy = jest.fn();
 
-        const bodyMapping = (body: any) => {
+        const bodyMapping = async (body: any) => {
             spy();
             return new Date();
         }

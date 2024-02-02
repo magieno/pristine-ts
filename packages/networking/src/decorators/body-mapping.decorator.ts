@@ -11,7 +11,7 @@ export const bodyMappingDecoratorMetadataKeyname = "@bodyMappingDecorator";
 /**
  * The bodyMapping decorator can be used to map the body to another object.
  */
-export const bodyMapping = (argument: ClassConstructor<any> | {builder: DataMappingBuilder, destination?: ClassConstructor<any>} | ((body: any, dataMapper: DataMapper) => any) ) => {
+export const bodyMapping = (argument: ClassConstructor<any> | {builder: DataMappingBuilder, destination?: ClassConstructor<any>} | ((body: any, dataMapper: DataMapper) => Promise<any>) ) => {
     return (
         /**
          * The class on which the decorator is used.

@@ -8,7 +8,7 @@ export interface BodyMappingContextInterface {
 export interface FunctionBodyMappingContextInterface extends BodyMappingContextInterface {
     type: "function";
 
-    function: ((body: any, dataMapper: DataMapper) => any);
+    function: ((body: any, dataMapper: DataMapper) => Promise<any>);
 }
 
 export interface ClassTransformerBodyMappingContextInterface extends BodyMappingContextInterface {
