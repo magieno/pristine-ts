@@ -4,14 +4,14 @@ import {
     FunctionBodyMappingContextInterface
 } from "../interfaces/body-mapping-context.interface";
 import {ClassConstructor} from "class-transformer";
-import {DataMappingBuilder} from "@pristine-ts/data-mapping";
+import {DataMapper, DataMappingBuilder} from "@pristine-ts/data-mapping";
 
 export const bodyMappingDecoratorMetadataKeyname = "@bodyMappingDecorator";
 
 /**
  * The bodyMapping decorator can be used to map the body to another object.
  */
-export const bodyMapping = (argument: ClassConstructor<any> | {builder: DataMappingBuilder, destination?: ClassConstructor<any>} | ((body: any) => any) ) => {
+export const bodyMapping = (argument: ClassConstructor<any> | {builder: DataMappingBuilder, destination?: ClassConstructor<any>} | ((body: any, dataMapper: DataMapper) => any) ) => {
     return (
         /**
          * The class on which the decorator is used.

@@ -4,7 +4,7 @@ import {
     ClassTransformerBodyMappingContextInterface, DataMappingBuilderBodyMappingContextInterface,
     FunctionBodyMappingContextInterface
 } from "../interfaces/body-mapping-context.interface";
-import {DataMappingBuilder, LowercaseNormalizer} from "@pristine-ts/data-mapping";
+import {DataMapper, DataMappingBuilder, LowercaseNormalizer} from "@pristine-ts/data-mapping";
 
 class Class {}
 
@@ -22,7 +22,7 @@ describe("Body Mapping Decorator", () =>{
     })
 
     it("should properly set the context for a function", () => {
-        const method:((body: any) => any) = (body) => {return {...body, "a": true}};
+        const method:((body: any, dataMapper: DataMapper) => any) = (body) => {return {...body, "a": true}};
 
         class Test2 {
             @bodyMapping(method)
