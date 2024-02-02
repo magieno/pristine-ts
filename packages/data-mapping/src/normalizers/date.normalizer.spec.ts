@@ -1,5 +1,6 @@
 import "reflect-metadata"
 import {DateNormalizer} from "./date.normalizer";
+import {DateNormalizerOptions} from "../normalizer-options/date-normalizer.options";
 
 describe('DateNormalizer', () => {
 
@@ -11,7 +12,11 @@ describe('DateNormalizer', () => {
     it('should return the current date for undefined input when returnUndefinedOnInvalidDate is false', () => {
         const normalizer = new DateNormalizer();
         const expectedDate = new Date();
-        expect(normalizer.normalize(undefined, {returnUndefinedOnInvalidDate: false})).toEqual(expectedDate);
+        expect(normalizer.normalize(undefined, new DateNormalizerOptions({returnUndefinedOnInvalidDate: false}))!.getMinutes()).toEqual(expectedDate.getMinutes());
+        expect(normalizer.normalize(undefined, new DateNormalizerOptions({returnUndefinedOnInvalidDate: false}))!.getHours()).toEqual(expectedDate.getHours());
+        expect(normalizer.normalize(undefined, new DateNormalizerOptions({returnUndefinedOnInvalidDate: false}))!.getDate()).toEqual(expectedDate.getDate());
+        expect(normalizer.normalize(undefined, new DateNormalizerOptions({returnUndefinedOnInvalidDate: false}))!.getMonth()).toEqual(expectedDate.getMonth());
+        expect(normalizer.normalize(undefined, new DateNormalizerOptions({returnUndefinedOnInvalidDate: false}))!.getFullYear()).toEqual(expectedDate.getFullYear());
     });
 
     it('should return a Date object for a valid date string', () => {
@@ -31,7 +36,15 @@ describe('DateNormalizer', () => {
         const normalizer = new DateNormalizer();
         const invalidDateString = 'invalid-date';
         const expectedDate = new Date();
-        expect(normalizer.normalize(invalidDateString, {returnUndefinedOnInvalidDate: false})).toEqual(expectedDate);
+
+        const normalizedDate = normalizer.normalize(invalidDateString, new DateNormalizerOptions({returnUndefinedOnInvalidDate: false}));
+        expect(normalizedDate).toBeDefined()
+        expect(normalizedDate!.getSeconds()).toEqual(expectedDate.getSeconds());
+        expect(normalizedDate!.getMinutes()).toEqual(expectedDate.getMinutes());
+        expect(normalizedDate!.getHours()).toEqual(expectedDate.getHours());
+        expect(normalizedDate!.getDate()).toEqual(expectedDate.getDate());
+        expect(normalizedDate!.getMonth()).toEqual(expectedDate.getMonth());
+        expect(normalizedDate!.getFullYear()).toEqual(expectedDate.getFullYear());
     });
 
     it('should return a Date object for a number representing milliseconds', () => {
@@ -45,7 +58,7 @@ describe('DateNormalizer', () => {
         const normalizer = new DateNormalizer();
         const seconds = 1675275580; // Represents 2024-01-31T18:53:00Z in seconds
         const expectedDate = new Date(seconds * 1000);
-        expect(normalizer.normalize(seconds, {treatNumbers: 'seconds'})).toEqual(expectedDate);
+        expect(normalizer.normalize(seconds, new DateNormalizerOptions({treatNumbers: 'seconds'}))).toEqual(expectedDate);
     });
 
     it('should return a Date object for a valid date object', () => {

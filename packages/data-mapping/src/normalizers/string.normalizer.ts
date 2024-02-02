@@ -43,8 +43,10 @@ export class StringNormalizer implements DataNormalizerInterface<string | undefi
                 return source.map( (item: any) => this.normalize(item, options));
 
             case TypeEnum.Symbol:
+                return source.toString();
+
             case TypeEnum.Object:
-                if(typeof source.toString === "function") {
+                if(source.hasOwnProperty("toString") === true) {
                     return source.toString();
                 }
 

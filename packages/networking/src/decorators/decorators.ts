@@ -1,4 +1,5 @@
 export * from "./body.decorator";
+export * from "./body-mapping.decorator";
 export * from "./controller.decorator";
 export * from "./header.decorator";
 export * from "./headers.decorator";

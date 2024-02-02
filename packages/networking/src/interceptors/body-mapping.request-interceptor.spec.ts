@@ -1,17 +1,21 @@
 import {BodyMappingRequestInterceptor} from "./body-mapping.request-interceptor";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import {DataMapper} from "../mappers/data.mapper";
 import {HttpMethod, Request} from "@pristine-ts/common";
 import {Type} from "class-transformer";
-import {MethodRouterNode, Route} from "@pristine-ts/networking";
 import {bodyMappingDecoratorMetadataKeyname} from "../decorators/body-mapping.decorator";
 import {
     ClassTransformerBodyMappingContextInterface, DataMappingBuilderBodyMappingContextInterface,
     FunctionBodyMappingContextInterface
 } from "../interfaces/body-mapping-context.interface";
-import {DataMappingBuilder} from "../builders/data-mapping.builder";
-import {LowercaseNormalizer} from "../normalizers/lowercase.normalizer";
-import {AutoDataMappingBuilder} from "../builders/auto-data-mapping.builder";
+import {classMetadata, property} from "@pristine-ts/metadata";
+import {
+    AutoDataMappingBuilder, DataMapper,
+    DataMappingBuilder, DateNormalizer,
+    LowercaseNormalizer, NumberNormalizer,
+    StringNormalizer
+} from "@pristine-ts/data-mapping";
+import {Route} from "../models/route";
+import {MethodRouterNode} from "../nodes/method-router.node";
 
 const mockLogHandler: LogHandlerInterface = {
     critical(message: string, extra?: any, module?: string): void {
@@ -26,15 +30,18 @@ const mockLogHandler: LogHandlerInterface = {
 
 describe("Body Mapping Request Interceptor", () => {
     it("should map a body when a class is passed", async () => {
+        @classMetadata()
         class Nested {
+            @property()
             nestedProperty: string;
         }
 
+        @classMetadata()
         class Test {
-            @Type(() => Nested)
+            @property()
             nested: Nested;
 
-            @Type(() => Date)
+            @property()
             date: Date;
         }
 
@@ -46,7 +53,7 @@ describe("Body Mapping Request Interceptor", () => {
             "date": "2023-12-01",
         }
 
-        const bodyMappingRequestInterceptor = new BodyMappingRequestInterceptor(mockLogHandler, new DataMapper(new AutoDataMappingBuilder(), [], []));
+        const bodyMappingRequestInterceptor = new BodyMappingRequestInterceptor(mockLogHandler, new DataMapper(new AutoDataMappingBuilder(), [new StringNormalizer(), new NumberNormalizer(), new DateNormalizer()], []));
         const route = new Route(null, "");
         route.context = {};
         route.context[bodyMappingDecoratorMetadataKeyname] = {
@@ -65,7 +72,7 @@ describe("Body Mapping Request Interceptor", () => {
     it("should map a body when a function is passed", async () => {
         const spy = jest.fn();
 
-        const bodyMapping = (body: any) => {
+        const bodyMapping = async (body: any) => {
             spy();
             return new Date();
         }

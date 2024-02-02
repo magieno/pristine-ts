@@ -7,7 +7,7 @@ import {NumberNormalizer} from "../normalizers/number.normalizer";
 import {StringNormalizer} from "../normalizers/string.normalizer";
 import {DateNormalizer} from "../normalizers/date.normalizer";
 import {MetadataEnum} from "@pristine-ts/common";
-import {TypeFactoryCallback} from "../decorators/type-factory.decorator";
+import {TypeFactoryCallback} from "../decorators/type.decorator";
 import {DataMappingNodeTypeEnum} from "../enums/data-mapping-node-type.enum";
 import {injectable} from "tsyringe";
 import {AutoDataMappingBuilderOptions} from "../options/auto-data-mapping-builder.options";
@@ -43,7 +43,7 @@ export class AutoDataMappingBuilder {
      */
     private internalBuild(source: any, destinationType: ClassConstructor<any>, root: DataMappingBuilder,
                           parent: DataMappingNode | DataMappingBuilder, options: AutoDataMappingBuilderOptions) {
-        if (source === undefined) {
+        if (!source) {
             return;
         }
 

@@ -1,5 +1,6 @@
 import "reflect-metadata"
 import {NumberNormalizer} from "./number.normalizer";
+import {NumberNormalizerOptions} from "../normalizer-options/number-normalizer.options";
 
 describe('NumberNormalizer', () => {
 
@@ -12,8 +13,8 @@ describe('NumberNormalizer', () => {
 
     it('should return 0 if ignoreUndefined is false', () => {
         const normalizer = new NumberNormalizer();
-        expect(normalizer.normalize(null, { ignoreUndefined: false })).toBe(0);
-        expect(normalizer.normalize({}, { ignoreUndefined: false })).toBeUndefined();
+        expect(normalizer.normalize(null, new NumberNormalizerOptions({ ignoreUndefined: false }))).toBe(0);
+        expect(normalizer.normalize({}, new NumberNormalizerOptions({ ignoreUndefined: false }))).toBeUndefined();
     });
 
     it('should return undefined for invalid numbers', () => {

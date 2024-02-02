@@ -1,1 +1,1 @@
-export * from "./body-mapping.decorator"
+export * from "./type.decorator"
