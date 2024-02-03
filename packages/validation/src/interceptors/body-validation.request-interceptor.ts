@@ -7,6 +7,7 @@ import {injectable, inject} from "tsyringe";
 import { plainToInstance } from 'class-transformer';
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {bodyValidationMetadataKeyname} from "../decorators/body-validation.decorator";
+import {DataMapper} from "@pristine-ts/data-mapping-common";
 
 /**
  * This class is an interceptor to validate the body of an incoming request.
@@ -26,6 +27,7 @@ export class BodyValidationRequestInterceptor implements RequestInterceptorInter
      * @param validator The validator that validates objects.
      */
     constructor(@inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface,
+                private readonly dataMapper: DataMapper,
                 private readonly validator: Validator) {
     }
 
@@ -49,7 +51,7 @@ export class BodyValidationRequestInterceptor implements RequestInterceptorInter
         }, ValidationModuleKeyname)
 
         // Validates that the body can be mapped to the expected type
-        const mappedBody = plainToInstance(bodyValidator.classType, request.body);
+        const mappedBody = await this.dataMapper.autoMap(bodyValidator.classType, request.body);
 
         // Validates if all the conditions are respected in the expected type.
         const errors = await this.validator.validate(mappedBody);
