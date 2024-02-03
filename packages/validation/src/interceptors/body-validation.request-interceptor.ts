@@ -27,8 +27,9 @@ export class BodyValidationRequestInterceptor implements RequestInterceptorInter
      * @param validator The validator that validates objects.
      */
     constructor(@inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface,
+                private readonly validator: Validator,
                 private readonly dataMapper: DataMapper,
-                private readonly validator: Validator) {
+                ) {
     }
 
     /**
