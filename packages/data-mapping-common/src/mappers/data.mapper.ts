@@ -53,7 +53,7 @@ export class DataMapper {
         try {
             const dataMappingBuilder = this.autoDataMappingBuilder.build(source, destinationType, options);
 
-            return this.map(dataMappingBuilder, source, destinationType);
+            return await this.map(dataMappingBuilder, source, destinationType);
         } catch (e) {
             console.error(e);
 

@@ -52,7 +52,7 @@ export class BodyValidationRequestInterceptor implements RequestInterceptorInter
         }, ValidationModuleKeyname)
 
         // Validates that the body can be mapped to the expected type
-        const mappedBody = await this.dataMapper.autoMap(bodyValidator.classType, request.body);
+        const mappedBody = await this.dataMapper.autoMap(request.body, bodyValidator.classType);
 
         // Validates if all the conditions are respected in the expected type.
         const errors = await this.validator.validate(mappedBody);
