@@ -50,9 +50,16 @@ export class DataMapper {
      * @param options
      */
     public async autoMap(source: any, destinationType: ClassConstructor<any>, options?: AutoDataMappingBuilderOptions): Promise<any> {
-        const dataMappingBuilder = this.autoDataMappingBuilder.build(source, destinationType, options);
+        try {
+            const dataMappingBuilder = this.autoDataMappingBuilder.build(source, destinationType, options);
 
-        return this.map(dataMappingBuilder, source, destinationType);
+            return await this.map(dataMappingBuilder, source, destinationType);
+        } catch (e) {
+            console.error(e);
+
+            // Return the source on error.
+            return source;
+        }
     }
 
     /**
