@@ -3,7 +3,6 @@ import {DataMappingModuleKeyname} from "./data-mapping.module.keyname";
 import {AutoDataMappingBuilder, DataMapper, StringNormalizer, NumberNormalizer, DateNormalizer} from "@pristine-ts/data-mapping-common"
 import {DependencyContainer} from "tsyringe";
 
-export * from "./decorators/decorators";
 export * from "./interceptors/interceptors";
 
 // To facilitate things, this module should re-export everything. Therefore, no one else needs to know that we have two
