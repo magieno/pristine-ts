@@ -27,7 +27,7 @@ export class AutoDataMappingBuilder {
 
         return dataMappingBuilder;
     }
-    
+
     /**
      * This method is the internal method that is called recursively to build the schema.
      *

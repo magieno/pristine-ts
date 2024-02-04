@@ -7,4 +7,5 @@ export * from "./mappers/mappers";
 export * from "./nodes/nodes";
 export * from "./normalizer-options/normalizer-options";
 export * from "./normalizers/normalizers";
+export * from "./options/options";
 export * from "./types/types";
