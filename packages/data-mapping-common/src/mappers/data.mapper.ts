@@ -62,7 +62,7 @@ export class DataMapper {
                 const destination = [];
 
                 for(const element of source) {
-                    destination.push(await this.map(dataMappingBuilder, source, destinationType, new DataMapperOptions({
+                    destination.push(await this.map(dataMappingBuilder, element, destinationType, new DataMapperOptions({
                         excludeExtraneousValues: options?.excludeExtraneousValues,
                     })));
                 }

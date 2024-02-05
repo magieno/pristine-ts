@@ -9,6 +9,8 @@ import {DataMappingBuilder} from "../builders/data-mapping.builder";
 import {DataMapper} from "./data.mapper";
 import {Type} from "class-transformer";
 import {AutoDataMappingBuilder} from "../builders/auto-data-mapping.builder";
+import {type} from "../decorators/type.decorator";
+import {array} from "../decorators/array.decorator";
 
 describe("Data Mapper", () =>{
     it("should map a very complex object into another complex object. Then, it should export the builder, import the builder and make sure it still maps everything properly.", async () => {
@@ -101,6 +103,8 @@ describe("Data Mapper", () =>{
         expect(destination instanceof Destination).toBeTruthy();
 
         expect(destination.name).toBe("TITLE");
+        // @ts-ignore
+        expect(destination.title).toBeUndefined()
         expect(destination.infants.length).toBe(3);
         expect(destination.infants[0]).toBe("etienne")
         expect(destination.infants[1]).toBe("antoine")
@@ -406,6 +410,66 @@ describe("Data Mapper", () =>{
 
         expect(mapped.simpleInterface).toBeDefined()
         expect(mapped.simpleInterface.name).toBe("InterfaceName")
+
+        // Same with an array
+        const mappedArray = await dataMapper.autoMap([{
+            simpleInterface: {
+                name: "InterfaceName"
+            }
+        }], Simpleclass)
+
+        expect(mappedArray[0].simpleInterface).toBeDefined()
+        expect(mappedArray[0].simpleInterface.name).toBe("InterfaceName")
+    })
+
+    it("should automap a class with a generic type", async () => {
+        interface SimpleInterface {
+            name: string;
+        }
+
+        class Simpleclass {
+            @property()
+            simpleInterface: SimpleInterface
+        }
+
+        interface PaginationResult {
+            /**
+             * The number of items returned in the page.
+             */
+            count: number;
+            /**
+             * The key of the last item returned in the page.
+             */
+            lastEvaluatedKey: any;
+        }
+
+        class ListResultResponse<T> {
+            @array((target: any, propertyKey: string, index: number) => {
+                return new Simpleclass();
+            })
+            items: T[];
+
+            @property()
+            paginationResult?: PaginationResult
+        }
+
+        const list: ListResultResponse<Simpleclass> = {
+            items: [{
+                simpleInterface: {
+                    name: "InterfaceName"
+                }
+            }],
+            paginationResult: {
+                count: 0,
+                lastEvaluatedKey: 98
+            }
+        };
+
+        const dataMapper = new DataMapper(new AutoDataMappingBuilder(), [new LowercaseNormalizer()], []);
+
+        const mapped = await dataMapper.autoMap(list, ListResultResponse<Simpleclass>)
+        expect(mapped).toBeInstanceOf(ListResultResponse);
+        expect(mapped.items).toBeArray()
     })
 
 })
