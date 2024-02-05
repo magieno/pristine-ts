@@ -1,6 +1,6 @@
 import "reflect-metadata"
 import {AutoDataMappingBuilder} from "./auto-data-mapping.builder";
-import {classMetadata, property, array} from "@pristine-ts/metadata";
+import {classMetadata, property} from "@pristine-ts/metadata";
 import {DataMapper} from "../mappers/data.mapper";
 import {StringNormalizer} from "../normalizers/string.normalizer";
 import {NumberNormalizer} from "../normalizers/number.normalizer";
@@ -10,6 +10,7 @@ import {DataMappingNode} from "../nodes/data-mapping.node";
 import {DataMappingLeaf} from "../nodes/data-mapping.leaf";
 import {DataMappingBuilder} from "./data-mapping.builder";
 import {DataMappingNodeTypeEnum} from "../enums/data-mapping-node-type.enum";
+import {array} from "../decorators/array.decorator";
 
 describe("Auto DataMappingBuilder", () => {
     it("should automatically map a multi level nested object", async () => {

@@ -83,15 +83,8 @@ export class AutoDataMappingBuilder {
 
                     let arrayMemberType = PropertyMetadata.getMetadata(destinationType.prototype, propertyKey, MetadataEnum.ArrayMemberTypeFactory)
 
-                    if(arrayMemberType !== undefined) { // If this isn't undefined, then it has to be an objectArray.
-                        nestedType = DataMappingNodeTypeEnum.ObjectArray;
-                    } else {
-                        arrayMemberType = PropertyMetadata.getMetadata(destinationType.prototype, propertyKey, PropertyInformationEnum.ArrayMemberType);
-
-                        if(arrayMemberType === undefined) {
-                            // Use the first element in the array to determine the type of content stored in the array if not type have been passed. Here, we assume that all the elements in the array are of the same type.
-                            arrayMemberType = TypeUtils.getTypeOfValue(source[propertyKey][0]);
-                        }
+                    if(arrayMemberType === undefined) { // If this is undefined, then we it's possible that it's a ScalarArray.
+                        arrayMemberType = PropertyMetadata.getMetadata(destinationType.prototype, propertyKey, PropertyInformationEnum.ArrayMemberType) ?? source[propertyKey][0];  // Use the first element in the array to determine the type of content stored in the array if not type have been passed. Here, we assume that all the elements in the array are of the same type.
 
                         const nestedElementType = TypeUtils.getTypeOfValue(arrayMemberType);
 
