@@ -50,11 +50,27 @@ export class DataMapper {
      * @param destinationType
      * @param options
      */
-    public async autoMap(source: any, destinationType: ClassConstructor<any>, options?: AutoDataMappingBuilderOptions): Promise<any> {
+    public async autoMap(source: any | any[], destinationType: ClassConstructor<any>, options?: AutoDataMappingBuilderOptions): Promise<any> {
         try {
-            const dataMappingBuilder = this.autoDataMappingBuilder.build(source, destinationType, options);
+            if(Array.isArray(source)) {
+                if(source.length === 0) {
+                    return [];
+                }
 
-            options = new AutoDataMappingBuilderOptions(options);
+                const dataMappingBuilder = this.autoDataMappingBuilder.build(source[0], destinationType, options);
+
+                const destination = [];
+
+                for(const element of source) {
+                    destination.push(await this.map(dataMappingBuilder, source, destinationType, new DataMapperOptions({
+                        excludeExtraneousValues: options?.excludeExtraneousValues,
+                    })));
+                }
+
+                return destination;
+            }
+
+            const dataMappingBuilder = this.autoDataMappingBuilder.build(source, destinationType, options);
 
             return await this.map(dataMappingBuilder, source, destinationType, new DataMapperOptions({
                 excludeExtraneousValues: options?.excludeExtraneousValues,
