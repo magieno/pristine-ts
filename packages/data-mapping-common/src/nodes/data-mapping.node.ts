@@ -139,23 +139,23 @@ export class DataMappingNode extends BaseDataMappingNode {
 
         const sourceElement = source[this.sourceProperty];
 
-        if(destination[this.destinationProperty] === undefined) {
+        //if(destination[this.destinationProperty] === undefined) {
             if(this.type === DataMappingNodeTypeEnum.ObjectArray) {
                 destination[this.destinationProperty] = [];
             } else {
                 if(this.destinationType) {
-                    destination[this.destinationProperty] = plainToInstance(this.destinationType, {});
+                    destination[this.destinationProperty] = plainToInstance(this.destinationType, sourceElement);
                 } else {
                     destination[this.destinationProperty] = {}
                 }
 
                 if(options?.excludeExtraneousValues === false) {
-                    Object.keys(source[this.sourceProperty]).forEach(property => {
-                        destination[this.destinationProperty][property] = source[this.sourceProperty][property];
+                    Object.keys(sourceElement).forEach(property => {
+                        destination[this.destinationProperty][property] = sourceElement[property];
                     })
                 }
             }
-        }
+       // }
 
         const destinationElement = destination[this.destinationProperty];
 
