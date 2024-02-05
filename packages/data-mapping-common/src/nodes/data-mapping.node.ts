@@ -9,6 +9,7 @@ import {
     ArrayDataMappingNodeInvalidSourcePropertyTypeError
 } from "../errors/array-data-mapping-node-invalid-source-property-type.error";
 import {ClassConstructor, plainToInstance} from "class-transformer";
+import {DataMapperOptions} from "../options/data-mapper.options";
 
 export class DataMappingNode extends BaseDataMappingNode {
     /**
@@ -127,7 +128,7 @@ export class DataMappingNode extends BaseDataMappingNode {
      * @param destination
      * @param normalizersMap
      */
-    public async map(source: any, destination: any, normalizersMap: { [key in DataNormalizerUniqueKey]: DataNormalizerInterface<any, any> }) {
+    public async map(source: any, destination: any, normalizersMap: { [key in DataNormalizerUniqueKey]: DataNormalizerInterface<any, any> }, options?: DataMapperOptions) {
         if(source.hasOwnProperty(this.sourceProperty) === false) {
             if(this.isOptional) {
                 return
@@ -143,9 +144,9 @@ export class DataMappingNode extends BaseDataMappingNode {
                 destination[this.destinationProperty] = [];
             } else {
                 if(this.destinationType) {
-                    destination[this.destinationProperty] = plainToInstance(this.destinationType, {});
+                    destination[this.destinationProperty] = plainToInstance(this.destinationType, options?.excludeExtraneousValues ? {} : source[this.sourceProperty]);
                 } else {
-                    destination[this.destinationProperty] = {};
+                    destination[this.destinationProperty] = options?.excludeExtraneousValues ? {} : source[this.sourceProperty];
                 }
             }
         }
@@ -174,7 +175,7 @@ export class DataMappingNode extends BaseDataMappingNode {
 
                     const node = this.nodes[key];
 
-                    await node.map(element, dest, normalizersMap);
+                    await node.map(element, dest, normalizersMap, options);
                 }
 
                 destinationElement.push(dest);
@@ -191,7 +192,7 @@ export class DataMappingNode extends BaseDataMappingNode {
 
             const node = this.nodes[key];
 
-            await node.map(sourceElement, destinationElement, normalizersMap);
+            await node.map(sourceElement, destinationElement, normalizersMap, options);
         }
     }
 

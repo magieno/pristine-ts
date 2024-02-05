@@ -384,4 +384,27 @@ describe("Data Mapper", () =>{
         expect(destination.name).toBe("title");
     })
 
+    it("should still automap an interface", async () => {
+        interface SimpleInterface {
+            name: string;
+        }
+
+
+        class Simpleclass {
+            @property()
+            simpleInterface: SimpleInterface
+        }
+
+        const dataMapper = new DataMapper(new AutoDataMappingBuilder(), [new LowercaseNormalizer()], []);
+
+        const mapped = await dataMapper.autoMap({
+            simpleInterface: {
+                name: "InterfaceName"
+            }
+        }, Simpleclass)
+
+        expect(mapped.simpleInterface).toBeDefined()
+        expect(mapped.simpleInterface.name).toBe("InterfaceName")
+    })
+
 })

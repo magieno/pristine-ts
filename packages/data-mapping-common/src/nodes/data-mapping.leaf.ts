@@ -8,6 +8,8 @@ import {DataNormalizerInterface} from "../interfaces/data-normalizer.interface";
 import {
     ArrayDataMappingNodeInvalidSourcePropertyTypeError
 } from "../errors/array-data-mapping-node-invalid-source-property-type.error";
+import {DataMapperOptions} from "../options/data-mapper.options";
+
 
 export class DataMappingLeaf {
     /**
@@ -134,7 +136,7 @@ export class DataMappingLeaf {
      * @param destination
      * @param normalizersMap
      */
-    public async map(source: any, destination: any, normalizersMap: { [key in DataNormalizerUniqueKey]: DataNormalizerInterface<any, any> }) {
+    public async map(source: any, destination: any, normalizersMap: { [key in DataNormalizerUniqueKey]: DataNormalizerInterface<any, any> }, options?: DataMapperOptions) {
         if(source.hasOwnProperty(this.sourceProperty) === false) {
             if(this.isOptional) {
                 return
