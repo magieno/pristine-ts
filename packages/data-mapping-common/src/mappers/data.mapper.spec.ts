@@ -11,6 +11,10 @@ import {Type} from "class-transformer";
 import {AutoDataMappingBuilder} from "../builders/auto-data-mapping.builder";
 import {type} from "../decorators/type.decorator";
 import {array} from "../decorators/array.decorator";
+import {DateNormalizer} from "../normalizers/date.normalizer";
+import {StringNormalizer} from "../normalizers/string.normalizer";
+import {NumberNormalizer} from "../normalizers/number.normalizer";
+import {AutoDataMappingBuilderOptions} from "../options/auto-data-mapping-builder.options";
 
 describe("Data Mapper", () =>{
     it("should map a very complex object into another complex object. Then, it should export the builder, import the builder and make sure it still maps everything properly.", async () => {
@@ -408,6 +412,7 @@ describe("Data Mapper", () =>{
             }
         }, Simpleclass)
 
+        expect(mapped).toBeInstanceOf(Simpleclass)
         expect(mapped.simpleInterface).toBeDefined()
         expect(mapped.simpleInterface.name).toBe("InterfaceName")
 
@@ -472,4 +477,90 @@ describe("Data Mapper", () =>{
         expect(mapped.items).toBeArray()
     })
 
+    it("should automap a very complex object", async () => {
+        class DogHead {
+            @property()
+            name: string;
+        }
+
+        abstract class Animal {
+            @property()
+            friendly: boolean;
+        }
+
+        class Dog extends Animal {
+            @property()
+            head: DogHead;
+        }
+
+        class Cat extends Animal {
+            @property()
+            isSmall: boolean;
+        }
+
+        class ArraySource {
+            @property()
+            rank: number;
+        }
+
+        class NestedSource {
+            @property()
+            nestedTitle: string;
+
+            @type((target: any, propertyKey: string) => {
+                if(target.nestedTitle === "cat") {
+                    return new Cat();
+                }
+
+                return new Dog();
+            })
+            animal: Animal
+        }
+
+        class Source {
+            @property()
+            title: string;
+
+            @property()
+            nested: NestedSource;
+
+            @property()
+            date: Date
+
+            @array(ArraySource)
+            array: ArraySource[] = [];
+
+            @array(String)
+            children: string[] = [];
+        }
+
+        const source = {
+            "title": "My title",
+            "nested": {
+                "nestedTitle": "My nested Title",
+                "animal": {
+                    "head": {
+                        "name": "Peach",
+                    },
+                    "friendly": true,
+                },
+            },
+            "date": "1990-12-19",
+            "array": [
+                {
+                    rank: 0,
+                },
+                {
+                    rank: 1,
+                }
+            ],
+            "children": ["Thomas", "Jeanne"],
+        };
+
+        const dataMapper = new DataMapper(new AutoDataMappingBuilder(), [new LowercaseNormalizer(), new DateNormalizer(), new StringNormalizer(), new NumberNormalizer()], []);
+
+        const mapped = await dataMapper.autoMap(source, Source)
+
+        expect(mapped).toBeInstanceOf(Source);
+    })
 })

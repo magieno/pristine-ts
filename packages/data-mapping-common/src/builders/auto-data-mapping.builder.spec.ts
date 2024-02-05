@@ -11,6 +11,7 @@ import {DataMappingLeaf} from "../nodes/data-mapping.leaf";
 import {DataMappingBuilder} from "./data-mapping.builder";
 import {DataMappingNodeTypeEnum} from "../enums/data-mapping-node-type.enum";
 import {array} from "../decorators/array.decorator";
+import {AutoDataMappingBuilderOptions} from "../options/auto-data-mapping-builder.options";
 
 describe("Auto DataMappingBuilder", () => {
     it("should automatically map a multi level nested object", async () => {

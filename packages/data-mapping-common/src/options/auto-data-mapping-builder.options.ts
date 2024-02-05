@@ -4,7 +4,7 @@ export class AutoDataMappingBuilderOptions {
      *
      * It will not override the `isNullable` metadata for the property.
      *
-     * Default value is `false`.
+     * Default value is `true`.
      */
     isOptionalDefaultValue: boolean;
 
@@ -16,7 +16,7 @@ export class AutoDataMappingBuilderOptions {
     excludeExtraneousValues: boolean;
 
     constructor(options?: Partial<AutoDataMappingBuilderOptions>) {
-        this.isOptionalDefaultValue = options?.isOptionalDefaultValue ?? false;
+        this.isOptionalDefaultValue = options?.isOptionalDefaultValue ?? true;
         this.excludeExtraneousValues = options?.excludeExtraneousValues ?? false;
     }
 }

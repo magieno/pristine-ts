@@ -171,7 +171,7 @@ export class DataMappingNode extends BaseDataMappingNode {
                 let dest: any = {};
 
                 if (this.destinationType) {
-                    if(typeof this.destinationType === "function") {
+                    if(typeof this.destinationType === "function" && !this.destinationType.prototype) {
                         const destinationType: ArrayMemberTypeFactoryCallbackType = this.destinationType as ArrayMemberTypeFactoryCallbackType;
                         dest = plainToInstance(destinationType(source, this.sourceProperty, index).constructor, element);
                     } else {
