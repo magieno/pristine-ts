@@ -10,6 +10,7 @@ import {
 } from "../errors/array-data-mapping-node-invalid-source-property-type.error";
 import {ClassConstructor, plainToInstance} from "class-transformer";
 import {DataMapperOptions} from "../options/data-mapper.options";
+import {ArrayMemberTypeFactoryCallbackType} from "../types/array-member-type-factory-callback.type";
 
 export class DataMappingNode extends BaseDataMappingNode {
     /**
@@ -30,12 +31,12 @@ export class DataMappingNode extends BaseDataMappingNode {
     /**
      * IMPORTANT: This property is not serializable. It will be lost during the export.
      */
-    public destinationType?: ClassConstructor<any>;
+    public destinationType?: ClassConstructor<any> | ArrayMemberTypeFactoryCallbackType;
 
     constructor(public readonly root: DataMappingBuilder,
                 public readonly parent: DataMappingNode | DataMappingBuilder,
                 public readonly type: DataMappingNodeTypeEnum = DataMappingNodeTypeEnum.Node,
-                ) {
+    ) {
         super();
     }
 
@@ -61,7 +62,7 @@ export class DataMappingNode extends BaseDataMappingNode {
      * This is a setter for `destinationType`.
      * @param destinationType
      */
-    public setDestinationType(destinationType: ClassConstructor<any>): DataMappingNode {
+    public setDestinationType(destinationType: ClassConstructor<any> | ArrayMemberTypeFactoryCallbackType): DataMappingNode {
         this.destinationType = destinationType;
         return this;
     }
@@ -129,8 +130,8 @@ export class DataMappingNode extends BaseDataMappingNode {
      * @param normalizersMap
      */
     public async map(source: any, destination: any, normalizersMap: { [key in DataNormalizerUniqueKey]: DataNormalizerInterface<any, any> }, options?: DataMapperOptions) {
-        if(source.hasOwnProperty(this.sourceProperty) === false) {
-            if(this.isOptional) {
+        if (source.hasOwnProperty(this.sourceProperty) === false) {
+            if (this.isOptional) {
                 return
             }
 
@@ -139,43 +140,53 @@ export class DataMappingNode extends BaseDataMappingNode {
 
         const sourceElement = source[this.sourceProperty];
 
-        //if(destination[this.destinationProperty] === undefined) {
-            if(this.type === DataMappingNodeTypeEnum.ObjectArray) {
-                destination[this.destinationProperty] = [];
+        if (this.type === DataMappingNodeTypeEnum.ObjectArray) {
+            destination[this.destinationProperty] = [];
+        } else {
+            if (this.destinationType) {
+                destination[this.destinationProperty] = plainToInstance(this.destinationType as ClassConstructor<any>, sourceElement);
             } else {
-                if(this.destinationType) {
-                    destination[this.destinationProperty] = plainToInstance(this.destinationType, sourceElement);
-                } else {
-                    destination[this.destinationProperty] = {}
-                }
-
-                if(options?.excludeExtraneousValues === false) {
-                    Object.keys(sourceElement).forEach(property => {
-                        destination[this.destinationProperty][property] = sourceElement[property];
-                    })
-                }
+                destination[this.destinationProperty] = {}
             }
-       // }
+
+            if (options?.excludeExtraneousValues === false) {
+                Object.keys(sourceElement).forEach(property => {
+                    destination[this.destinationProperty][property] = sourceElement[property];
+                })
+            }
+        }
 
         const destinationElement = destination[this.destinationProperty];
 
-        if(this.type === DataMappingNodeTypeEnum.ObjectArray) {
+        if (this.type === DataMappingNodeTypeEnum.ObjectArray) {
             // This means that the source[propertyKey] contains an array of objects and each object should be mapped
             const array = source[this.sourceProperty];
 
-            if(Array.isArray(array) === false) {
+            if (Array.isArray(array) === false) {
                 throw new ArrayDataMappingNodeInvalidSourcePropertyTypeError(`According to your schema, the property '${this.sourceProperty}' in the source object must contain an Array of objects. Instead, it contains: '${typeof array}'.`, this.sourceProperty);
             }
 
+            let index = 0;
             for (const element of array) {
-                let dest = {};
+                let dest: any = {};
 
-                if(this.destinationType) {
-                    dest = plainToInstance(this.destinationType, {})
+                if (this.destinationType) {
+                    if(typeof this.destinationType === "function") {
+                        const destinationType: ArrayMemberTypeFactoryCallbackType = this.destinationType as ArrayMemberTypeFactoryCallbackType;
+                        dest = plainToInstance(destinationType(source, this.sourceProperty, index).constructor, element);
+                    } else {
+                        dest = plainToInstance(this.destinationType as ClassConstructor<any>, {})
+                    }
+                }
+
+                if (options?.excludeExtraneousValues === false) {
+                    Object.keys(element).forEach(property => {
+                        dest[property] = element[property];
+                    })
                 }
 
                 for (const key in this.nodes) {
-                    if(this.nodes.hasOwnProperty(key) === false) {
+                    if (this.nodes.hasOwnProperty(key) === false) {
                         continue;
                     }
 
@@ -187,12 +198,13 @@ export class DataMappingNode extends BaseDataMappingNode {
                 destinationElement.push(dest);
             }
 
+            index++;
             return;
         }
 
         // When the current node is not an array, we simply iterate
         for (const key in this.nodes) {
-            if(this.nodes.hasOwnProperty(key) === false) {
+            if (this.nodes.hasOwnProperty(key) === false) {
                 continue;
             }
 
@@ -215,8 +227,8 @@ export class DataMappingNode extends BaseDataMappingNode {
 
         const nodes = schema.nodes;
 
-        for(const key in nodes) {
-            if(nodes.hasOwnProperty(key) === false) {
+        for (const key in nodes) {
+            if (nodes.hasOwnProperty(key) === false) {
                 continue;
             }
 
@@ -249,7 +261,7 @@ export class DataMappingNode extends BaseDataMappingNode {
         const nodes = this.nodes;
 
         for (const key in nodes) {
-            if(nodes.hasOwnProperty(key) === false) {
+            if (nodes.hasOwnProperty(key) === false) {
                 continue;
             }
 

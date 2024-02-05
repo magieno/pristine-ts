@@ -1,7 +1,7 @@
 import {PropertyMetadata} from "@pristine-ts/metadata";
 import {MetadataEnum} from "../enums/metadata.enum";
+import {TypeFactoryCallback} from "../types/type-factory-callback.type";
 
-export type TypeFactoryCallback = (target: any, propertyKey: string) => any;
 
 export const type = (callback: TypeFactoryCallback) => {
     return (
