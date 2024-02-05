@@ -8,7 +8,7 @@ import {DataNormalizerInterface} from "../interfaces/data-normalizer.interface";
 import {
     ArrayDataMappingNodeInvalidSourcePropertyTypeError
 } from "../errors/array-data-mapping-node-invalid-source-property-type.error";
-import {ClassConstructor, plainToClassFromExist, plainToInstance} from "class-transformer";
+import {ClassConstructor, plainToInstance} from "class-transformer";
 import {DataMapperOptions} from "../options/data-mapper.options";
 
 export class DataMappingNode extends BaseDataMappingNode {
@@ -146,17 +146,13 @@ export class DataMappingNode extends BaseDataMappingNode {
                 if(this.destinationType) {
                     destination[this.destinationProperty] = plainToInstance(this.destinationType, {});
                 } else {
-                    destination[this.destinationProperty] = options?.excludeExtraneousValues ? {} : source[this.sourceProperty];
+                    destination[this.destinationProperty] = {}
                 }
 
                 if(options?.excludeExtraneousValues === false) {
-                    for(const property in source[this.sourceProperty]) {
-                        if(source[this.sourceProperty].hasOwnProperty(property) === false) {
-                            continue;
-                        }
-
+                    Object.keys(source[this.sourceProperty]).forEach(property => {
                         destination[this.destinationProperty][property] = source[this.sourceProperty][property];
-                    }
+                    })
                 }
             }
         }

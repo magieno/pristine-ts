@@ -134,6 +134,7 @@ describe("Data Mapper", () =>{
         expect(destinationAfterExportAndReimport.infants[2]).toBe("olivier")
         expect(destinationAfterExportAndReimport.child).toBeDefined()
         expect(destinationAfterExportAndReimport.child instanceof NestedDestination).toBeTruthy();
+        expect(destinationAfterExportAndReimport.child).toBeInstanceOf(NestedDestination);
         expect(destinationAfterExportAndReimport.child.nestedName).toBe("nested_title")
         expect(destinationAfterExportAndReimport.list).toBeDefined()
         expect(destinationAfterExportAndReimport.list.length).toBe(2)
