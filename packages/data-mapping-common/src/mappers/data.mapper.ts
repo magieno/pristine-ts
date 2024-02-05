@@ -8,6 +8,7 @@ import {DataMappingInterceptorNotFoundError} from "../errors/data-mapping-interc
 import {ClassMetadata} from "@pristine-ts/metadata";
 import {AutoDataMappingBuilder} from "../builders/auto-data-mapping.builder";
 import {AutoDataMappingBuilderOptions} from "../options/auto-data-mapping-builder.options";
+import {DataMapperOptions} from "../options/data-mapper.options";
 
 export class DataMapper {
     private readonly dataNormalizersMap: { [key in DataNormalizerUniqueKey]: DataNormalizerInterface<any, any> } = {}
@@ -53,7 +54,11 @@ export class DataMapper {
         try {
             const dataMappingBuilder = this.autoDataMappingBuilder.build(source, destinationType, options);
 
-            return await this.map(dataMappingBuilder, source, destinationType);
+            options = new AutoDataMappingBuilderOptions(options);
+
+            return await this.map(dataMappingBuilder, source, destinationType, new DataMapperOptions({
+                excludeExtraneousValues: options?.excludeExtraneousValues,
+            }));
         } catch (e) {
             console.error(e);
 
@@ -69,11 +74,14 @@ export class DataMapper {
      * @param builder
      * @param source
      * @param destinationType
+     * @param options
      */
-    public async map(builder: DataMappingBuilder, source: any, destinationType?: ClassConstructor<any>): Promise<any> {
+    public async map(builder: DataMappingBuilder, source: any, destinationType?: ClassConstructor<any>, options?: DataMapperOptions): Promise<any> {
         let destination = {};
 
         let interceptedSource = source;
+
+        options = new DataMapperOptions(options);
 
         // Execute the before interceptors.
         for (const element of builder.beforeMappingInterceptors) {
@@ -94,7 +102,7 @@ export class DataMapper {
             }
 
             const node = builder.nodes[key];
-            await node.map(interceptedSource, destination, this.dataNormalizersMap);
+            await node.map(interceptedSource, destination, this.dataNormalizersMap, options);
         }
 
         // Execute the before interceptors.
