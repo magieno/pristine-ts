@@ -1,8 +1,6 @@
-import {PropertyMetadata} from "../../../../../../magieno/pristine-metadata/src/metadata/property.metadata";
-import {PropertyInformationEnum} from "../../../../../../magieno/pristine-metadata/src/enums/property-information.enum";
 import {ArrayMemberTypeFactoryCallbackType} from "../types/array-member-type-factory-callback.type";
 import {MetadataEnum} from "../enums/metadata.enum";
-
+import {PropertyMetadata, PropertyInformationEnum}  from "@pristine-ts/metadata"
 /**
  * This decorator can be used to specify that a property is nullable. This data
  * is currently not available out of the box so it needs to be manually specified.
