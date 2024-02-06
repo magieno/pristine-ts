@@ -10,6 +10,7 @@ import {
 import {bodyMappingDecoratorMetadataKeyname} from "../decorators/body-mapping.decorator";
 import {RequestInterceptorInterface} from "../interfaces/request-interceptor.interface";
 import {MethodRouterNode} from "../nodes/method-router.node";
+import {RequestInterceptorPriorityEnum} from "../enums/request-interceptor-priority.enum";
 
 /**
  * This class is an interceptor that maps the body of an incoming request.
@@ -23,6 +24,8 @@ export class BodyMappingRequestInterceptor implements RequestInterceptorInterfac
     constructor(@inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface,
                 private readonly dataMapper: DataMapper) {
     }
+
+    priority = RequestInterceptorPriorityEnum.BodyMapping;
 
     /**
      * Intercepts the request and maps that the body to the corresponding argument passed in the `@bodyMapping` validator

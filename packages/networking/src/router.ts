@@ -32,6 +32,7 @@ import {HttpError} from "./errors/http.error";
 import {CachedRouterRoute} from "./cache/cached.router-route";
 import {RouterCache} from "./cache/router.cache";
 import {ClassMetadata, MethodMetadata} from "@pristine-ts/metadata";
+import {RequestInterceptorPriorityEnum} from "./enums/request-interceptor-priority.enum";
 
 /**
  * The router service is the service that creates the routing tree from the controllers.
@@ -408,7 +409,12 @@ export class Router implements RouterInterface {
 
         // Check first if there are any Request Interceptors
         if (container.isRegistered(ServiceDefinitionTagEnum.RequestInterceptor, true)) {
-            const interceptors: any[] = container.resolveAll(ServiceDefinitionTagEnum.RequestInterceptor);
+            const interceptors: any[] = (container.resolveAll(ServiceDefinitionTagEnum.RequestInterceptor) as RequestInterceptorInterface[]).sort( (a: RequestInterceptorInterface, b:RequestInterceptorInterface) => {
+                let aPriority = a.priority ?? RequestInterceptorPriorityEnum.Default;
+                let bPriority = b.priority ?? RequestInterceptorPriorityEnum.Default;
+
+                return bPriority - aPriority;
+            });
 
             for (const interceptor of interceptors) {
                 // We don't have a guarantee that the Router Interceptors will implement the Interface, even though we specify it should.
@@ -463,7 +469,12 @@ export class Router implements RouterInterface {
 
         // Check first if there are any Request interceptors
         if (container.isRegistered(ServiceDefinitionTagEnum.RequestInterceptor, true)) {
-            const interceptors: any[] = container.resolveAll(ServiceDefinitionTagEnum.RequestInterceptor);
+            const interceptors: any[] = (container.resolveAll(ServiceDefinitionTagEnum.RequestInterceptor) as RequestInterceptorInterface[]).sort( (a: RequestInterceptorInterface, b:RequestInterceptorInterface) => {
+                let aPriority = a.priority ?? RequestInterceptorPriorityEnum.Default;
+                let bPriority = b.priority ?? RequestInterceptorPriorityEnum.Default;
+
+                return bPriority - aPriority;
+            });
 
             for (const interceptor of interceptors) {
                 // We don't have a guarantee that the Router response interceptors will implement the Interface, even though we specify it should.
@@ -533,7 +544,12 @@ export class Router implements RouterInterface {
 
         // Check first if there are any Request interceptors
         if (container.isRegistered(ServiceDefinitionTagEnum.RequestInterceptor, true)) {
-            const interceptors: any[] = container.resolveAll(ServiceDefinitionTagEnum.RequestInterceptor);
+            const interceptors: any[] = (container.resolveAll(ServiceDefinitionTagEnum.RequestInterceptor) as RequestInterceptorInterface[]).sort( (a: RequestInterceptorInterface, b:RequestInterceptorInterface) => {
+                let aPriority = a.priority ?? RequestInterceptorPriorityEnum.Default;
+                let bPriority = b.priority ?? RequestInterceptorPriorityEnum.Default;
+
+                return bPriority - aPriority;
+            });
 
             for (const interceptor of interceptors) {
                 // We don't have a guarantee that the Router response interceptors will implement the Interface, even though we specify it should.

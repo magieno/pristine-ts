@@ -4,6 +4,7 @@ import {moduleScoped, Request, ServiceDefinitionTagEnum, tag} from "@pristine-ts
 import {NetworkingModuleKeyname} from "../networking.module.keyname";
 import {RequestInterceptorInterface} from "../interfaces/request-interceptor.interface";
 import {InvalidBodyHttpError} from "../errors/invalid-body.http-error";
+import {RequestInterceptorPriorityEnum} from "../enums/request-interceptor-priority.enum";
 
 /**
  * The Request Body Converter Interceptor intercepts the request and parses the body based on the Content-tTpe header.
@@ -23,6 +24,8 @@ export class RequestBodyConverterInterceptor implements RequestInterceptorInterf
     constructor(@inject("%" + NetworkingModuleKeyname + ".requestBodyConverter.isActive%") private readonly isActive: boolean,
                 @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface) {
     }
+
+    priority = RequestInterceptorPriorityEnum.BodyConverter;
 
     /**
      * Intercepts the request and parses the body based on it's Content-Type header.

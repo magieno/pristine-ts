@@ -1,7 +1,13 @@
 import {Request, Response} from "@pristine-ts/common";
 import {MethodRouterNode} from "../nodes/method-router.node";
+import {RequestInterceptorPriorityEnum} from "../enums/request-interceptor-priority.enum";
 
 export interface RequestInterceptorInterface {
+    /**
+     * The priority of the interceptor. The higher the number, the higher the priority. The default priority is 0.
+     */
+    priority?: number | RequestInterceptorPriorityEnum;
+
     /**
      * This method receives a request object and must return a transformed request object. If you don't want to
      * manipulate the request object (when logging for example), juste resolve a promise with the request passed to this method.
