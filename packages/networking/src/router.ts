@@ -410,8 +410,8 @@ export class Router implements RouterInterface {
         // Check first if there are any Request Interceptors
         if (container.isRegistered(ServiceDefinitionTagEnum.RequestInterceptor, true)) {
             const interceptors: any[] = (container.resolveAll(ServiceDefinitionTagEnum.RequestInterceptor) as RequestInterceptorInterface[]).sort( (a: RequestInterceptorInterface, b:RequestInterceptorInterface) => {
-                let aPriority = a.priority ?? RequestInterceptorPriorityEnum.Default;
-                let bPriority = b.priority ?? RequestInterceptorPriorityEnum.Default;
+                const aPriority = a.priority ?? RequestInterceptorPriorityEnum.Default;
+                const bPriority = b.priority ?? RequestInterceptorPriorityEnum.Default;
 
                 return bPriority - aPriority;
             });
@@ -470,8 +470,8 @@ export class Router implements RouterInterface {
         // Check first if there are any Request interceptors
         if (container.isRegistered(ServiceDefinitionTagEnum.RequestInterceptor, true)) {
             const interceptors: any[] = (container.resolveAll(ServiceDefinitionTagEnum.RequestInterceptor) as RequestInterceptorInterface[]).sort( (a: RequestInterceptorInterface, b:RequestInterceptorInterface) => {
-                let aPriority = a.priority ?? RequestInterceptorPriorityEnum.Default;
-                let bPriority = b.priority ?? RequestInterceptorPriorityEnum.Default;
+                const aPriority = a.priority ?? RequestInterceptorPriorityEnum.Default;
+                const bPriority = b.priority ?? RequestInterceptorPriorityEnum.Default;
 
                 return bPriority - aPriority;
             });
