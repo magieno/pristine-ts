@@ -4,6 +4,7 @@ import {MethodRouterNode} from "../nodes/method-router.node";
 import {RequestInterceptorInterface} from "../interfaces/request-interceptor.interface";
 import {injectable, inject} from "tsyringe";
 import { LogHandlerInterface } from "@pristine-ts/logging";
+import {RequestInterceptorPriorityEnum} from "../enums/request-interceptor-priority.enum";
 
 /**
  * The Default ContentType Response Header Interceptor intercepts the response of the router and adds the default content-type header to the response.
@@ -24,6 +25,8 @@ export class DefaultContentTypeResponseHeaderInterceptor implements RequestInter
     constructor(@inject(`%${NetworkingModuleKeyname}.defaultContentTypeResponseHeader%`) private readonly defaultContentTypeResponseHeader: string,
                 @inject(`%${NetworkingModuleKeyname}.defaultContentTypeResponseHeader.isActive%`) private readonly isActive: boolean,
                 @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface){}
+
+    priority = RequestInterceptorPriorityEnum.DefaultContentTypeResponseHeader
 
     /**
      * Intercepts the response from the router and adds the Content-Type header to it if it's not already there, with the default provided.

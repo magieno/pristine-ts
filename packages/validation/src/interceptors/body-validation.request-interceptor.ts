@@ -1,6 +1,6 @@
 import {RequestInterceptorInterface, MethodRouterNode} from "@pristine-ts/networking";
 import {Validator} from "@pristine-ts/class-validator";
-import {BadRequestHttpError} from "@pristine-ts/networking";
+import {BadRequestHttpError, RequestInterceptorPriorityEnum} from "@pristine-ts/networking";
 import {moduleScoped, ServiceDefinitionTagEnum, tag, Request} from "@pristine-ts/common";
 import {ValidationModuleKeyname} from "../validation.module.keyname";
 import {injectable, inject} from "tsyringe";
@@ -31,6 +31,8 @@ export class BodyValidationRequestInterceptor implements RequestInterceptorInter
                 private readonly dataMapper: DataMapper,
                 ) {
     }
+
+    priority = RequestInterceptorPriorityEnum.BodyMapping - 100;
 
     /**
      * Intercepts the request and validates that the body of the request matches the expected class.
