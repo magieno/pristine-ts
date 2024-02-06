@@ -56,6 +56,12 @@ export class BodyMappingRequestInterceptor implements RequestInterceptorInterfac
                 break;
         }
 
+        this.loghandler.debug("BodyMappingRequestInterceptor - body mapped.", {
+            request,
+            methodNode,
+            routeContext: methodNode.route.context,
+        }, NetworkingModuleKeyname)
+
         return request;
     }
 }
