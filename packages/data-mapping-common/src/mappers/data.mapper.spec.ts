@@ -563,4 +563,43 @@ describe("Data Mapper", () =>{
 
         expect(mapped).toBeInstanceOf(Source);
     })
+
+    it("should automap an object without a type", async () => {
+        class Source {
+            nested: {
+                nestedTitle: string,
+                animal: {
+                    head: {
+                        name: string;
+                    };
+                    friendly: boolean;
+                };
+            };
+        }
+
+        const source = {
+            "nested": {
+                "nestedTitle": "My nested Title",
+                "animal": {
+                    "head": {
+                        "name": "Peach",
+                    },
+                    "friendly": true,
+                },
+            },
+        };
+
+        const dataMapper = new DataMapper(new AutoDataMappingBuilder(), [new LowercaseNormalizer(), new DateNormalizer(), new StringNormalizer(), new NumberNormalizer()], []);
+
+        const mapped = await dataMapper.autoMap(source, Source)
+
+        expect(mapped).toBeInstanceOf(Source);
+        expect(mapped.nested).toBeDefined()
+        expect(mapped.nested.nestedTitle).toBe("My nested Title")
+        expect(mapped.nested.animal).toBeDefined()
+        expect(mapped.nested.animal.friendly).toBeTruthy()
+        expect(mapped.nested.animal.head).toBeDefined()
+        expect(mapped.nested.animal.head.name).toBeDefined()
+        expect(mapped.nested.animal.head.name).toBe("Peach")
+    })
 })
