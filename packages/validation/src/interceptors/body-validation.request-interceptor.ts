@@ -47,7 +47,7 @@ export class BodyValidationRequestInterceptor implements RequestInterceptorInter
             return request;
         }
 
-        this.loghandler.debug("BodyValidationRequestEnricher", {
+        this.loghandler.debug("BodyValidationRequestInterceptor", {
             request,
             methodNode,
             routeContext: methodNode.route.context,
