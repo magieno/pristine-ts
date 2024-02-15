@@ -242,7 +242,13 @@ export class Router implements RouterInterface {
 
             // Instantiate the controller
             const routerControllerResolverSpan = tracingManager.startSpan(SpanKeynameEnum.RouterControllerResolver, SpanKeynameEnum.RouterRequestExecution);
+            this.loghandler.debug("Router - Will resolve the controller from the container", {
+                routeParameters
+            }, NetworkingModuleKeyname);
             const controller: any = container.resolve(methodNode.route.controllerInstantiationToken);
+            this.loghandler.debug("Router - Controller resolved from the container", {
+                routeParameters
+            }, NetworkingModuleKeyname);
             routerControllerResolverSpan.end();
 
             this.loghandler.debug("Router - Before calling the authenticationManager", {
