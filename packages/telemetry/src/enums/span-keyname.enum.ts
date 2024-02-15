@@ -3,8 +3,10 @@
  */
 export enum SpanKeynameEnum {
     ChildContainerCreation = "child.container.creation",
+    ChildContainerRegistration = "child.container.registration",
     ConfigurationInitialization = "configuration.initialization",
     ErrorResponseInterceptors = "error.response.interceptors",
+    EventDispatcherResolver = "event.dispatcher.resolver",
     EventExecution = "event.execution",
     EventInitialization = "event.initialization",
     EventPreMappingInterception = "event.pre-mapping.interception",

@@ -222,16 +222,22 @@ export class EventPipeline {
                         const eventResponses = [];
 
                         for (const event of eventExecutionOptions.events) {
+                            let span = this.tracingManager.startSpan(SpanKeynameEnum.ChildContainerCreation);
                             const childContainer = container.createChildContainer() as DependencyContainer;
+                            span.end();
 
                             // It's important to register the CurrentChildContainer since even though it's not 100% recommended,
                             // some handlers might want to retrieve the container. For example, the RequestHandler needs this mechanism
                             // to dynamically load the controllers and not load all the containers all the time.
+                            span = this.tracingManager.startSpan(SpanKeynameEnum.ChildContainerRegistration);
                             childContainer.register(ServiceDefinitionTagEnum.CurrentChildContainer, {
                                 useValue: childContainer,
                             });
+                            span.end();
 
+                            span = this.tracingManager.startSpan(SpanKeynameEnum.EventDispatcherResolver);
                             const eventDispatcher = childContainer.resolve("EventDispatcherInterface") as EventDispatcherInterface;
+                            span.end();
 
                             try {
                                 eventResponses.push(await this.executeEvent(event, eventDispatcher));
@@ -247,16 +253,22 @@ export class EventPipeline {
                 case 'parallel':
                     for (const event of eventExecutionOptions.events) {
                         eventsExecutionPromises.push(new Promise<EventResponse<any, any> | EventResponse<any, any>[]>(async (resolve, reject) => {
+                            let span = this.tracingManager.startSpan(SpanKeynameEnum.ChildContainerCreation);
                             const childContainer = container.createChildContainer();
+                            span.end();
 
                             // It's important to register the CurrentChildContainer since even though it's not 100% recommended,
                             // some handlers might want to retrieve the container. For example, the RequestHandler needs this mechanism
                             // to dynamically load the controllers and not load all the containers all the time.
+                            span = this.tracingManager.startSpan(SpanKeynameEnum.ChildContainerRegistration);
                             childContainer.register(ServiceDefinitionTagEnum.CurrentChildContainer, {
                                 useValue: childContainer,
                             });
+                            span.end();
 
+                            span = this.tracingManager.startSpan(SpanKeynameEnum.EventDispatcherResolver);
                             const eventDispatcher = childContainer.resolve("EventDispatcherInterface") as EventDispatcherInterface;
+                            span.end();
 
                             this.executeEvent(event, eventDispatcher).then(eventResponse => resolve(eventResponse)).catch(error => reject(error));
                         }));
