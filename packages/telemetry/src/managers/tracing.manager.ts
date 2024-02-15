@@ -162,7 +162,7 @@ export class TracingManager implements TracingManagerInterface {
         }
 
         if(this.debug) {
-            this.loghandler.debug("Adding the span", {
+            this.loghandler.debug(`[span:start] - ${span.keyname}`, {
                 keyname: span.keyname,
                 trace: this.trace,
                 span,
@@ -216,7 +216,7 @@ export class TracingManager implements TracingManagerInterface {
         }
 
         if(this.debug) {
-            this.loghandler.debug("Ending the span", {
+            this.loghandler.debug(`[span:end] - ${span.keyname}`, {
                 trace: this.trace,
                 span,
             }, TelemetryModuleKeyname)
