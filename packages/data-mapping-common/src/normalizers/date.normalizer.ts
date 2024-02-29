@@ -21,10 +21,16 @@ export class DateNormalizer implements DataNormalizerInterface<Date | undefined,
         let date: Date;
 
         switch (typeEnum) {
+            case TypeEnum.Date:
+                if(!isNaN(source.getTime())) {
+                    return source;
+                }
+
             case TypeEnum.Number:
                 if(options?.treatNumbers === "seconds") {
                     source = source * 1000;
                 }
+                // We don't break here because the behaviour is that same as with a string.
 
             case TypeEnum.String:
                 date = new Date(source);
