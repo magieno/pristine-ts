@@ -12,6 +12,7 @@ import {plainToInstance} from "class-transformer";
 import {ConsoleManager} from "../managers/console.manager";
 import {ExitCodeEnum} from "../enums/exit-code.enum";
 import {CliModuleKeyname} from "../cli.module.keyname";
+import {DataMapper} from "@pristine-ts/data-mapping-common";
 
 @tag(ServiceDefinitionTagEnum.EventHandler)
 @moduleScoped(CliModuleKeyname)
@@ -21,6 +22,7 @@ export class CliEventHandler implements EventHandlerInterface<any, any>{
         @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
         private readonly validator: Validator,
         private readonly consoleManager: ConsoleManager,
+        private readonly dataMapper: DataMapper,
         @injectAll(ServiceDefinitionTagEnum.Command) private readonly commands: CommandInterface<any>[]) {
     }
 
@@ -35,7 +37,15 @@ export class CliEventHandler implements EventHandlerInterface<any, any>{
         let mappedArguments;
 
         if(event.payload.arguments !== undefined) {
-             mappedArguments = plainToInstance(command.optionsType, event.payload.arguments);
+            try {
+                mappedArguments = await this.dataMapper.autoMap(event.payload.arguments, command.optionsType, {
+                    isOptionalDefaultValue: true,
+                    excludeExtraneousValues: false,
+                });
+            } catch (e) {
+                // Trying without the arguments being mapped.
+                mappedArguments = event.payload.arguments;
+            }
         }
 
         // Validates if all the conditions are respected in the expected type.

@@ -2,10 +2,22 @@ import "reflect-metadata"
 import {HttpClient, HttpWrapper, ResponseTypeEnum, FileHttpServer} from "@pristine-ts/http";
 import {HttpMethod} from "@pristine-ts/common";
 import {v4 as uuidv4} from "uuid";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 
 describe("FileHttpServer", () => {
     it("should start the server and serve files.", async () =>{
-        const fileHttpServer = new FileHttpServer("127.0.0.1", 9000);
+        const fileHttpServer = new FileHttpServer("127.0.0.1", 9000, {
+            debug(message: string, extra?: any, module?: string) {
+            },
+            error(message: string, extra?: any, module?: string) {
+            },
+            info(message: string, extra?: any, module?: string) {
+            },
+            warning(message: string, extra?: any, module?: string) {
+            },
+            critical(message: string, extra?: any, module?: string) {
+            },
+        } as LogHandlerInterface);
 
         await fileHttpServer.start(__dirname + "/../../../files/");
 
