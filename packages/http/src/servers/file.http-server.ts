@@ -20,9 +20,9 @@ export class FileHttpServer {
         return 0;
     }
 
-    async start(directory: string) {
-        const port = this.getPort();
-        const address = this.address;
+    async start(directory: string, port?: number, address?: string) {
+        port = port ?? this.getPort();
+        address = address ?? this.address;
 
         return new Promise<void>((resolve, reject) => {
             http.createServer( (req: IncomingMessage, res) => {

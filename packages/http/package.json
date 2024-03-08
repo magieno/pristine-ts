@@ -16,8 +16,11 @@
   ],
   "dependencies": {
     "@pristine-ts/common": "file:../common",
+    "@pristine-ts/class-validator": "^1.0.25",
+    "@pristine-ts/cli": "file:../cli",
     "@pristine-ts/logging": "file:../logging",
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "tsyringe": "^4.8.0"
   },
   "author": "",
   "license": "ISC",

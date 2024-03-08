@@ -2,8 +2,10 @@ import {ModuleInterface} from "@pristine-ts/common";
 import {HttpModuleKeyname} from "./http.module.keyname";
 import {LoggingModule} from "@pristine-ts/logging";
 import {BooleanResolver, EnvironmentVariableResolver, NumberResolver} from "@pristine-ts/configuration";
+import {CliModule} from "@pristine-ts/cli";
 
 export * from "./http.module.keyname";
+export * from "./commands/commands";
 export * from "./clients/clients";
 export * from "./enums/enums";
 export * from "./errors/errors";
@@ -16,7 +18,7 @@ export * from "./wrappers/wrappers";
 
 export const HttpModule: ModuleInterface = {
     keyname: HttpModuleKeyname,
-    importModules: [LoggingModule],
+    importModules: [LoggingModule, CliModule],
     configurationDefinitions: [
         {
             parameterName: `%${HttpModuleKeyname}.logging-enabled`,
