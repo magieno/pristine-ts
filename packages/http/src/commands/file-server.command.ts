@@ -1,3 +1,4 @@
+import "reflect-metadata"
 import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {HttpModuleKeyname} from "../http.module.keyname";
 import {injectable} from "tsyringe";
@@ -10,7 +11,8 @@ import {FileServerCommandOptions} from "./file-server.command-options";
 @injectable()
 export class FileServerCommand implements CommandInterface<FileServerCommandOptions>{
     constructor(
-        private readonly consoleManager: ConsoleManager, private readonly fileHttpServer: FileHttpServer) {
+        private readonly consoleManager: ConsoleManager,
+        private readonly fileHttpServer: FileHttpServer) {
     }
 
     optionsType: FileServerCommandOptions = new FileServerCommandOptions()
