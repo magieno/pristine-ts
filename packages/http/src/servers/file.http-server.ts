@@ -26,8 +26,6 @@ export class FileHttpServer {
 
         return new Promise<void>((resolve, reject) => {
             http.createServer( (req: IncomingMessage, res) => {
-                console.log(`${req.method} ${req.url}`);
-
                 if(req.url === undefined)  {
                     console.error("URL undefined, skipping.")
                     return;
@@ -141,7 +139,7 @@ export class FileHttpServer {
                 });
 
             }).listen(port, address, () => {
-                console.log("Server started on port " + port);
+                console.log("Server started on port: " + port);
 
                 return resolve();
             });

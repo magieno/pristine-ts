@@ -24,8 +24,6 @@ describe("FileHttpServer", () => {
         });
 
         expect(response.status).toBe(200);
-        expect(response.headers["content-type"]).toBe("image/svg+xml");
-
-        const a = 0;
+        expect(response.headers!["content-type"]).toBe("image/svg+xml");
     })
 })
