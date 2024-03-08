@@ -60,6 +60,8 @@ export class DirectoryManager {
                     target = basename;
                 } else if (options.matchType === MatchTypeEnum.Filename) {
                     target = filename;
+                } else if (options.matchType === MatchTypeEnum.Path) {
+                    target = fullPath;
                 } else {
                     throw new Error(`When trying to list the files, options.matchType contains invalid value "${options.matchType}", should be "MatchTypeEnum.Extension", "MatchTypeEnum.Base" or "MatchTypeEnum.Filename"`);
                 }

@@ -12,7 +12,8 @@
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
     "prepublish": "npm run build",
     "test": "jest",
-    "test:cov": "jest --coverage"
+    "test:cov": "jest --coverage",
+    "pristine:command": "pristine help"
   },
   "files": [
     "dist"
@@ -25,6 +26,7 @@
   "dependencies": {
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/core": "file:../core",
+    "@pristine-ts/file": "file:../file",
     "@pristine-ts/logging": "file:../logging",
     "@pristine-ts/validation": "file:../validation",
     "class-transformer": "^0.5.1"
