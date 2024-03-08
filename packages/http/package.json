@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/http",
-  "version": "0.0.303",
+  "version": "0.0.304",
   "description": "",
   "module": "dist/lib/esm/http.module.js",
   "main": "dist/lib/cjs/http.module.js",
@@ -15,9 +15,9 @@
     "dist"
   ],
   "dependencies": {
-    "@pristine-ts/common": "file:../common",
     "@pristine-ts/class-validator": "^1.0.25",
     "@pristine-ts/cli": "file:../cli",
+    "@pristine-ts/common": "file:../common",
     "@pristine-ts/logging": "file:../logging",
     "lodash": "^4.17.21",
     "tsyringe": "^4.8.0"
