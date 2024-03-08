@@ -364,6 +364,54 @@ describe("Data Mapper", () =>{
         expect(destination.name).toBe("title");
     })
 
+    it("sould not keep existing properties when the excludeExtraneousValues is set to true", async () => {
+        class SourceOptions {
+            @property()
+            extra: string;
+        }
+
+        class Source {
+            @property()
+            title: string;
+
+            @property()
+            options: SourceOptions
+        }
+
+        class Source2 {
+            @property()
+            title: string;
+        }
+
+        class TopLevel {
+            @property()
+            title: string;
+
+            @array((target: any, propertyKey: string) => {
+                return new Source2();
+            })
+            array: Source2[];
+        }
+
+        const dataMapper = new DataMapper(new AutoDataMappingBuilder(), [new StringNormalizer()], []);
+        const topLevel = await dataMapper.autoMap({
+            title: "Title",
+            array: [
+                {
+                    title: "Title",
+                    options: {
+                        extra: "Extra"
+                    }
+                }
+            ]
+        }, TopLevel, {excludeExtraneousValues: true, isOptionalDefaultValue: false});
+
+        const a = 0;
+
+        expect(topLevel.array[0].options).toBeUndefined();
+        expect(topLevel.array[0].title).toBe("title");
+    })
+
     it("should properly type the nested objects", async () => {
         class Source {
             @property()
