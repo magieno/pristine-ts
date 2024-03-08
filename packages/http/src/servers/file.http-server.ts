@@ -34,7 +34,7 @@ export class FileHttpServer {
                     return;
                 }
 
-                this.logHandler.debug("Request received: " + req.url, {req, directory, port, address});
+                this.logHandler.info("Request received: " + req.url, {req, directory, port, address});
 
                 // parse URL
                 const parsedUrl = url.parse(req.url);
@@ -144,8 +144,8 @@ export class FileHttpServer {
                 });
 
             }).listen(port, address, () => {
-                console.log("Server started on port: " + port);
-
+                this.logHandler.info("Server started on port: " + port);
+            }).on('close', () =>{
                 return resolve();
             });
         });
