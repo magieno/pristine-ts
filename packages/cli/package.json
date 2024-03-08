@@ -12,7 +12,8 @@
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
     "prepublish": "npm run build",
     "test": "jest",
-    "test:cov": "jest --coverage"
+    "test:cov": "jest --coverage",
+    "pristine:command": "pristine help"
   },
   "files": [
     "dist"
