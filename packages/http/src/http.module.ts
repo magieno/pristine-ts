@@ -21,7 +21,7 @@ export const HttpModule: ModuleInterface = {
     importModules: [LoggingModule, CliModule],
     configurationDefinitions: [
         {
-            parameterName: `%${HttpModuleKeyname}.logging-enabled`,
+            parameterName: `${HttpModuleKeyname}.logging-enabled`,
             defaultValue: true,
             isRequired: false,
             defaultResolvers: [
@@ -29,7 +29,7 @@ export const HttpModule: ModuleInterface = {
             ]
         },
         {
-            parameterName: `%${HttpModuleKeyname}.http-server.file.address%`,
+            parameterName: `${HttpModuleKeyname}.http-server.file.address`,
             defaultValue: "127.0.0.1",
             isRequired: false,
             defaultResolvers: [
@@ -37,7 +37,7 @@ export const HttpModule: ModuleInterface = {
             ]
         },
         {
-            parameterName: `%${HttpModuleKeyname}.http-server.file.port%`,
+            parameterName: `${HttpModuleKeyname}.http-server.file.port`,
             defaultValue: 9000,
             isRequired: false,
             defaultResolvers: [
