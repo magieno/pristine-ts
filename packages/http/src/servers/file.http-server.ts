@@ -4,11 +4,14 @@ import http, {IncomingMessage} from "http";
 import fs from "fs";
 import path from "path";
 import url from "url";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 
 @injectable()
 export class FileHttpServer {
     constructor(@inject(`%${HttpModuleKeyname}.http-server.file.address%`) private readonly address: string,
-                @inject(`%${HttpModuleKeyname}.http-server.file.port%`) private readonly port: number,) {
+                @inject(`%${HttpModuleKeyname}.http-server.file.port%`) private readonly port: number,
+                @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
+                ) {
     }
 
     private getPort(): number {
@@ -27,9 +30,11 @@ export class FileHttpServer {
         return new Promise<void>((resolve, reject) => {
             http.createServer( (req: IncomingMessage, res) => {
                 if(req.url === undefined)  {
-                    console.error("URL undefined, skipping.")
+                    this.logHandler.error("URL undefined, skipping.", {req, directory, port, address})
                     return;
                 }
+
+                this.logHandler.debug("Request received: " + req.url, {req, directory, port, address});
 
                 // parse URL
                 const parsedUrl = url.parse(req.url);
