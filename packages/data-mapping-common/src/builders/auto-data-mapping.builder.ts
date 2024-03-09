@@ -164,7 +164,13 @@ export class AutoDataMappingBuilder {
                     .end();
             })
         } catch (e) {
-            console.error(e);
+            if(options?.logErrors) {
+                console.error(e);
+            }
+
+            if(options?.throwOnErrors) {
+                throw e;
+            }
         }
     }
 }
