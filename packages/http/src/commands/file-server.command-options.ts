@@ -8,4 +8,6 @@ export class FileServerCommandOptions {
     port?: number;
 
     address?: string;
+
+    header?: string | string[];
 }
