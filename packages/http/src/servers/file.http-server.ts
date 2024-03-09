@@ -106,6 +106,7 @@ export class FileHttpServer {
                     ".ttf": "font/ttf",
                     ".txt": "text/plain",
                     ".vsd": "application/vnd.visio",
+                    ".wasm": "application/wasm",
                     ".wav": "audio/wav",
                     ".weba": "audio/webm",
                     ".webm": "video/webm",
