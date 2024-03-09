@@ -45,7 +45,7 @@ export class FileHttpServer {
                 // extract URL path
                 let pathname = path.join(directory, `${parsedUrl.pathname}`);
                 // based on the URL path, extract the file extension. e.g. .js, .doc, ...
-                const ext = path.parse(pathname).ext;
+                let ext = path.parse(pathname).ext;
                 // maps file extension to MIME typere
                 const map: {[key in string]: string} = {
                     ".aac": "audio/aac",
@@ -133,7 +133,8 @@ export class FileHttpServer {
 
                     // if is a directory search for index file matching the extension
                     if (fs.statSync(pathname).isDirectory()) {
-                        pathname += 'index.html';
+                        ext = "html";
+                        pathname += `index.${ext}`;
                     }
 
                     // read file from file system
