@@ -19,7 +19,7 @@ describe("FileHttpServer", () => {
             },
         } as LogHandlerInterface);
 
-        await fileHttpServer.start(__dirname + "/../../../files/");
+        fileHttpServer.start(__dirname + "/../../../files/");
 
         const httpClient = new HttpClient(new HttpWrapper())
         httpClient.defaultOptions.responseType = ResponseTypeEnum.Raw;
@@ -37,5 +37,7 @@ describe("FileHttpServer", () => {
 
         expect(response.status).toBe(200);
         expect(response.headers!["content-type"]).toBe("image/svg+xml");
+
+        await fileHttpServer.stop();
     })
 })
