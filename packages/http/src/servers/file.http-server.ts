@@ -25,7 +25,7 @@ export class FileHttpServer {
         return 0;
     }
 
-    async start(directory: string, port?: number, address?: string, listeningCallback?: (port?: number, address?: string) => void) {
+    async start(directory: string, port?: number, address?: string, listeningCallback?: (port?: number, address?: string) => void, requestCallback?:(req: IncomingMessage) => void) {
         port = port ?? this.getPort();
         address = address ?? this.address;
 
@@ -35,6 +35,8 @@ export class FileHttpServer {
                     this.logHandler.error("URL undefined, skipping.", {req, directory, port, address})
                     return;
                 }
+
+                requestCallback?.(req);
 
                 this.logHandler.info("Request received: " + req.url, {req, directory, port, address});
 
