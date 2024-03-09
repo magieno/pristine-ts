@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/data-mapping",
-  "version": "0.0.315",
+  "version": "0.0.316",
   "description": "",
   "module": "dist/lib/esm/data-mapping.module.js",
   "main": "dist/lib/cjs/data-mapping.module.js",
