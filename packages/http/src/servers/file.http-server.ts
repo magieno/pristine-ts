@@ -133,8 +133,8 @@ export class FileHttpServer {
 
                     // if is a directory search for index file matching the extension
                     if (fs.statSync(pathname).isDirectory()) {
-                        ext = "html";
-                        pathname += `index.${ext}`;
+                        ext = ".html";
+                        pathname += `index${ext}`;
                     }
 
                     // read file from file system
