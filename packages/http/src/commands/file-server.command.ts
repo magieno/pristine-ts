@@ -19,11 +19,24 @@ export class FileServerCommand implements CommandInterface<FileServerCommandOpti
     name = "file-server:start";
 
     async run(args: FileServerCommandOptions): Promise<ExitCodeEnum | number> {
+        const defaultHeaders: {[key in string]: string} = {};
+
+        if(Array.isArray(args.header)) {
+            for(const header of args.header) {
+                const [key, value] = header.split(":");
+                defaultHeaders[key] = value;
+            }
+        } else if(args.header) {
+            const [key, value] = args.header.split(":");
+            defaultHeaders[key] = value;
+        }
+
         await this.fileHttpServer.start(args.directory ?? "./", args.port, args.address, (port, address) => {
             this.consoleManager.writeLine(`Pristine HTTP File server listening on: '${address}:${port}'`);
         }, (req) => {
             this.consoleManager.writeLine(`Request received: ${req.url}`);
-        });
+        },
+            defaultHeaders);
 
         return ExitCodeEnum.Success;
     }

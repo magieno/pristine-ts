@@ -53,7 +53,19 @@ export class CommandEventMapper implements EventMapperInterface<CommandEventPayl
             const indexOfEqualSign = argumentName.indexOf("=");
             if(numberOfStartingDashes === 2 && indexOfEqualSign != -1) {
                 const actualArgumentName = argumentName.slice(0, indexOfEqualSign);
-                command.arguments[actualArgumentName] = argumentName.slice(indexOfEqualSign+1);
+                const actualArgumentValue =  argumentName.slice(indexOfEqualSign+1)
+
+                if(command.arguments[actualArgumentName] !== undefined && Array.isArray(command.arguments[actualArgumentName]) === false) {
+                    command.arguments[actualArgumentName] = [command.arguments[actualArgumentName] as (string)];
+                }
+
+                if(Array.isArray(command.arguments[actualArgumentName])) {
+                    (command.arguments[actualArgumentName] as (string | number | boolean)[]).push(actualArgumentValue);
+                    continue;
+                }
+
+                // Else, directly assign it
+                command.arguments[actualArgumentName] = actualArgumentValue;
                 continue;
             }
 
@@ -80,6 +92,15 @@ export class CommandEventMapper implements EventMapperInterface<CommandEventPayl
                 continue;
             } else if(parsedValue === "false") {
                 command.arguments[argumentName] = false;
+                continue;
+            }
+
+            if(command.arguments[argumentName] !== undefined && Array.isArray(command.arguments[argumentName]) === false) {
+                command.arguments[argumentName] = [command.arguments[argumentName] as (string)];
+            }
+
+            if(Array.isArray(command.arguments[argumentName])) {
+                (command.arguments[argumentName] as (string | number | boolean)[]).push(argumentValue);
                 continue;
             }
 

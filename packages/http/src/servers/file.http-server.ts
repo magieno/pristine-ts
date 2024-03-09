@@ -25,7 +25,7 @@ export class FileHttpServer {
         return 0;
     }
 
-    async start(directory: string, port?: number, address?: string, listeningCallback?: (port?: number, address?: string) => void, requestCallback?:(req: IncomingMessage) => void) {
+    async start(directory: string, port?: number, address?: string, listeningCallback?: (port?: number, address?: string) => void, requestCallback?:(req: IncomingMessage) => void, defaultHeaders: {[id in string]: string} = {}) {
         port = port ?? this.getPort();
         address = address ?? this.address;
 
@@ -146,6 +146,11 @@ export class FileHttpServer {
                         } else {
                             // if the file is found, set Content-type and send data
                             res.setHeader('Content-type', map[ext] ?? 'text/plain' );
+
+                            for (const key in defaultHeaders) {
+                                res.setHeader(key, defaultHeaders[key]);
+                            }
+
                             res.end(data);
                         }
                     });
