@@ -12,7 +12,7 @@ import {plainToInstance} from "class-transformer";
 import {ConsoleManager} from "../managers/console.manager";
 import {ExitCodeEnum} from "../enums/exit-code.enum";
 import {CliModuleKeyname} from "../cli.module.keyname";
-import {DataMapper} from "@pristine-ts/data-mapping-common";
+import {AutoDataMappingBuilderOptions, DataMapper} from "@pristine-ts/data-mapping-common";
 
 @tag(ServiceDefinitionTagEnum.EventHandler)
 @moduleScoped(CliModuleKeyname)
@@ -38,10 +38,10 @@ export class CliEventHandler implements EventHandlerInterface<any, any>{
 
         if(event.payload.arguments !== undefined) {
             try {
-                mappedArguments = await this.dataMapper.autoMap(event.payload.arguments, command.optionsType, {
+                mappedArguments = await this.dataMapper.autoMap(event.payload.arguments, command.optionsType, new AutoDataMappingBuilderOptions({
                     isOptionalDefaultValue: true,
                     excludeExtraneousValues: false,
-                });
+                }));
             } catch (e) {
                 // Trying without the arguments being mapped.
                 mappedArguments = event.payload.arguments;

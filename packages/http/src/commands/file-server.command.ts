@@ -19,7 +19,9 @@ export class FileServerCommand implements CommandInterface<FileServerCommandOpti
     name = "file-server:start";
 
     async run(args: FileServerCommandOptions): Promise<ExitCodeEnum | number> {
-        await this.fileHttpServer.start(args.directory ?? "./", args.port, args.address);
+        await this.fileHttpServer.start(args.directory ?? "./", args.port, args.address, (port, address) => {
+            this.consoleManager.writeLine(`File server started on ${address}:${port}`);
+        });
 
         return ExitCodeEnum.Success;
     }
