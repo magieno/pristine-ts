@@ -76,7 +76,13 @@ export class DataMapper {
                 excludeExtraneousValues: options?.excludeExtraneousValues,
             }));
         } catch (e) {
-            console.error(e);
+            if(options?.logErrors) {
+                console.error(e);
+            }
+
+            if(options?.throwOnErrors) {
+                throw e;
+            }
 
             // Return the source on error.
             return source;

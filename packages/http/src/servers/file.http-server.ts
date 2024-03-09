@@ -25,7 +25,7 @@ export class FileHttpServer {
         return 0;
     }
 
-    async start(directory: string, port?: number, address?: string) {
+    async start(directory: string, port?: number, address?: string, listeningCallback?: (port?: number, address?: string) => void) {
         port = port ?? this.getPort();
         address = address ?? this.address;
 
@@ -147,6 +147,8 @@ export class FileHttpServer {
 
             }).listen(port, address, () => {
                 this.logHandler.info("Server started on port: " + port);
+
+                listeningCallback?.(port, address);
             }).on('close', () =>{
                 return resolve();
             });
