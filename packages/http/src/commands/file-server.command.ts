@@ -21,6 +21,8 @@ export class FileServerCommand implements CommandInterface<FileServerCommandOpti
     async run(args: FileServerCommandOptions): Promise<ExitCodeEnum | number> {
         await this.fileHttpServer.start(args.directory ?? "./", args.port, args.address, (port, address) => {
             this.consoleManager.writeLine(`Pristine HTTP File server listening on: '${address}:${port}'`);
+        }, (req) => {
+            this.consoleManager.writeLine(`Request received: ${req.url}`);
         });
 
         return ExitCodeEnum.Success;
