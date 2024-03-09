@@ -18,12 +18,12 @@ export class AutoDataMappingBuilderOptions {
     /**
      * This property specifies if the auto mapper should throw on errors or if it should return the source object.
      */
-    throwOnErrors: boolean;
+    throwOnErrors?: boolean;
 
     /**
      * This property specifies if the errors should be logged.
      */
-    logErrors: boolean;
+    logErrors?: boolean;
 
     constructor(options?: Partial<AutoDataMappingBuilderOptions>) {
         this.isOptionalDefaultValue = options?.isOptionalDefaultValue ?? true;
