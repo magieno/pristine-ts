@@ -1,6 +1,6 @@
 import {injectable, inject} from "tsyringe";
 import {HttpModuleKeyname} from "../http.module.keyname";
-import http, {IncomingMessage} from "http";
+import http, {IncomingMessage, Server} from "http";
 import fs from "fs";
 import path from "path";
 import url from "url";
@@ -8,6 +8,8 @@ import {LogHandlerInterface} from "@pristine-ts/logging";
 
 @injectable()
 export class FileHttpServer {
+    private server?: Server;
+
     constructor(@inject(`%${HttpModuleKeyname}.http-server.file.address%`) private readonly address: string,
                 @inject(`%${HttpModuleKeyname}.http-server.file.port%`) private readonly port: number,
                 @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
@@ -28,7 +30,7 @@ export class FileHttpServer {
         address = address ?? this.address;
 
         return new Promise<void>((resolve, reject) => {
-            http.createServer( (req: IncomingMessage, res) => {
+            this.server = http.createServer( (req: IncomingMessage, res) => {
                 if(req.url === undefined)  {
                     this.logHandler.error("URL undefined, skipping.", {req, directory, port, address})
                     return;
@@ -148,6 +150,20 @@ export class FileHttpServer {
             }).on('close', () =>{
                 return resolve();
             });
+        });
+    }
+
+    async stop() {
+        return new Promise<void>((resolve, reject) => {
+            if(this.server) {
+                this.server.close(() => {
+                    this.logHandler.info("Server stopped.");
+                    return resolve();
+                });
+            }
+            else {
+                return resolve();
+            }
         });
     }
 }

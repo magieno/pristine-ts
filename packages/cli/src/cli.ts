@@ -12,8 +12,8 @@ const getLocalAppModuleCJSPath = async (): Promise<string | undefined> => {
         fs.stat(packageJson, async (err, stats) => {
             if (err || stats.isFile() === false) {
                 const message = "Cannot find the package.json at '" + packageJson + "'. Make sure that you execute this script directly from the parent of your 'package.json'"
-                console.error(message);
-                console.error(err);
+                //console.error(message);
+                //console.error(err);
                 return resolve(undefined);
             }
 
@@ -21,18 +21,18 @@ const getLocalAppModuleCJSPath = async (): Promise<string | undefined> => {
 
             if (pristine === undefined) {
                 const message = "There needs to be a section 'pristine' in your package.json file located at: '" + packageJson + "'";
-                console.error(message);
+                //console.error(message);
                 return resolve(undefined);
             }
 
             if (pristine.appModule === undefined) {
                 const message = "There should be a section 'appModule' under 'pristine' in your package.json file located at: '" + packageJson + "'"
-                console.error(message);
+                //console.error(message);
                 return resolve(undefined);
             }
             if (pristine.appModule.cjsPath === undefined) {
                 const message = "There should be a property 'cjsPath' under 'pristine.appModule' in your package.json file located at: '" + packageJson + "'"
-                console.error(message);
+                //console.error(message);
                 return resolve(undefined);
             }
 
