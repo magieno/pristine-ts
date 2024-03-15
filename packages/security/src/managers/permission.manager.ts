@@ -1,7 +1,7 @@
-import {injectable, injectAll, inject} from "tsyringe";
+import {inject, injectable, injectAll} from "tsyringe";
 import {VoterInterface} from "../interfaces/voter.interface";
 import {VotingStrategyEnum} from "../enums/voting-strategy.enum";
-import {LogHandler, LogHandlerInterface} from "@pristine-ts/logging";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 import {VoteEnum} from "../enums/vote.enum";
 import {IdentityInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {SecurityModuleKeyname} from "../security.module.keyname";
@@ -49,7 +49,15 @@ export class PermissionManager {
 
             try {
                 const vote = await voter.vote(identity, action, resource);
-                this.logHandler.debug("PERMISSION MANAGER - [" + voter.constructor.name + "] - Decision: " + vote, {identity, action, resource, voter: voter.constructor.name}, SecurityModuleKeyname );
+
+                const message = "PERMISSION MANAGER - [" + voter.constructor.name + "] - Decision: " + vote;
+
+                if(vote === VoteEnum.Deny) { // When it's being denied, it usually mean that something is important to be noticed.
+                    this.logHandler.info(message, {identity, action, resource, voter: voter.constructor.name}, SecurityModuleKeyname)
+                }
+                 else {
+                    this.logHandler.debug("PERMISSION MANAGER - [" + voter.constructor.name + "] - Decision: " + vote, {identity, action, resource, voter: voter.constructor.name}, SecurityModuleKeyname );
+                }
 
                 votes.push(vote);
             } catch (error) {
