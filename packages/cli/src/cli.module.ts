@@ -12,6 +12,7 @@ export * from "./event-payloads/event-payloads";
 export * from "./interfaces/interfaces";
 export * from "./managers/managers";
 export * from "./mappers/mappers";
+export * from "./options/options";
 export * from "./types/types";
 
 export const CliModule: ModuleInterface = {
