@@ -11,8 +11,8 @@ describe("Path Manager", () => {
         const pathParts = path.split("/").reverse();
 
         expect(pathParts[0]).toBe("allo")
-        expect(pathParts[1]).toBe("ci-cd")
-        expect(pathParts[2]).toBe("projects")
+        expect(pathParts[1]).toBe("cli")
+        expect(pathParts[2]).toBe("packages")
     })
 
     it("should properly append a path that ends with a '/'.", () => {
@@ -23,8 +23,8 @@ describe("Path Manager", () => {
         const pathParts = path.split("/").reverse();
 
         expect(pathParts[0]).toBe("allo")
-        expect(pathParts[1]).toBe("ci-cd")
-        expect(pathParts[2]).toBe("projects")
+        expect(pathParts[1]).toBe("cli")
+        expect(pathParts[2]).toBe("packages")
     })
 
     it("should throw an error when passing two filenames", () => {
@@ -42,7 +42,7 @@ describe("Path Manager", () => {
 
         expect(pathParts[0]).toBe("test.txt")
         expect(pathParts[1]).toBe("allo")
-        expect(pathParts[2]).toBe("ci-cd")
-        expect(pathParts[3]).toBe("projects")
+        expect(pathParts[2]).toBe("cli")
+        expect(pathParts[3]).toBe("packages")
     })
 })
