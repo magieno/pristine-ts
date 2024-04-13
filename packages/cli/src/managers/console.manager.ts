@@ -17,7 +17,7 @@ export class ConsoleManager {
         this.write(message + "\n");
     }
 
-    writeTable(table: string[][]) {
+    writeTable(table: any[]) {
         console.table(table);
     }
 
