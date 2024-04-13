@@ -1,24 +1,28 @@
+import "reflect-metadata"
 import {injectable} from "tsyringe"
+
 @injectable()
 export class DateUtil {
     formatDuration(milliseconds: number) {
-        if(milliseconds === 0) {
-            return "0ms";
+        const parts = [];
+        const units = [
+            { name: "year", duration: 31536000000 }, // 1000ms*60s*60m*24h*365d
+            { name: "day", duration: 86400000 }, // 1000*60*60*24
+            { name: "hour", duration: 3600000 }, // 1000*60*60
+            { name: "minute", duration: 60000 }, // 1000*60
+            { name: "second", duration: 1000 }, // 1000
+            { name: "ms", duration: 1 }, // 1
+        ]
+
+        for(let i = 0; i < units.length; i++) {
+            const unit = units[i];
+            const value = Math.floor(milliseconds / unit.duration);
+            if(value > 0 || (parts.length > 0 && value === 0)) {
+                parts.push(`${value} ${unit.name}${value > 1 && unit.name !== "ms" ? 's' : ''}`);
+                milliseconds -= value * unit.duration;
+            }
         }
 
-        const seconds = Math.floor(milliseconds / 1000);
-        const minutes = Math.floor(seconds / 60);
-        const hours = Math.floor(minutes / 60);
-        const days = Math.floor(hours / 24);
-        const years = Math.floor(days / 365);
-
-        const parts = [];
-        if (years > 0) parts.push(`${years} year${years > 1 ? 's' : ''}`);
-        if (days > 0) parts.push(`${days} day${days > 1 ? 's' : ''}`);
-        if (hours > 0) parts.push(`${hours} hour${hours > 1 ? 's' : ''}`);
-        if (minutes > 0) parts.push(`${minutes} minute${minutes > 1 ? 's' : ''}`);
-        parts.push(`${seconds % 60} second${seconds % 60 > 1 ? 's' : ''}`);
-
-        return parts.join(", ").replace(/, (.*)$/, " and $1");
+        return parts.join(", ").replace(/, ([a-zA-Z0-9 ]*)$/, " and $1") || '0 ms';
     }
 }
