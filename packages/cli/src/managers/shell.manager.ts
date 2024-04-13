@@ -40,10 +40,15 @@ export class ShellManager {
             const start = new Date();
 
             if(outputTimeBeforeExecutingCommand) {
-                this.consoleManager.writeLine(start.toISOString());
+                if(outputStdout) {
+                    this.consoleManager.writeLine(start.toISOString() + " - " + finalCommand);
+                } else {
+                    this.consoleManager.writeLine(start.toISOString());
+                }
+            } else {
+                outputStdout && this.consoleManager.writeLine(finalCommand);
             }
 
-            this.consoleManager.writeLine(finalCommand);
 
             if(streamStdout) {
                 const child = spawn(finalCommand, [], { shell: true, env });
