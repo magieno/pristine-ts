@@ -17,6 +17,10 @@ export class ConsoleManager {
         this.write(message + "\n");
     }
 
+    writeTable(table: string[][]) {
+        console.table(table);
+    }
+
     read(): string {
         return process.stdin.read() as string;
     }

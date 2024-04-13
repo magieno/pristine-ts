@@ -12,6 +12,8 @@ export class ShellManager {
         directory?: string,
         streamStdout?: boolean,
         maxBuffer?: number,
+        outputStdout?: boolean,
+        outputStderr?: boolean,
     }): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             const env = process.env;
@@ -20,25 +22,28 @@ export class ShellManager {
             const streamStdout = options?.streamStdout ?? false;
             const directory = options?.directory;
 
+            const outputStdout = options?.outputStdout ?? true;
+            const outputStderr = options?.outputStderr ?? true;
+
             if(directory) {
                 const absoluteDirectory = this.pathManager.getPathRelativeToCurrentExecutionDirectory(directory);
                 finalCommand = "cd " + absoluteDirectory + " && " + command;
             }
 
-            this.consoleManager.writeLine(finalCommand);
+            outputStdout && this.consoleManager.writeLine(finalCommand);
 
             if(streamStdout) {
                 const child = spawn(finalCommand, [], { shell: true, env });
                 child.stdout.on('data', (data) => {
-                    this.consoleManager.writeLine(`${data}`);
+                    outputStdout && this.consoleManager.writeLine(`${data}`);
                 });
 
                 child.stderr.on('data', (data) => {
-                    this.consoleManager.writeLine(`Stderr: ${data}`);
+                    outputStderr && this.consoleManager.writeLine(`Stderr: ${data}`);
                 });
 
                 child.on('close', (code) => {
-                    this.consoleManager.writeLine(`Command exited with code ${code}`);
+                    outputStdout && this.consoleManager.writeLine(`Command exited with code ${code}`);
 
                     if(code !== 0) {
                         return reject(code);
@@ -50,16 +55,16 @@ export class ShellManager {
 
             return exec(finalCommand, {env, maxBuffer: options?.maxBuffer}, (error, stdout, stderr) => {
                 if (error && error.code) {
-                    this.consoleManager.writeLine("Error: " + error.message);
+                    outputStderr && this.consoleManager.writeLine("Error: " + error.message);
                     return reject(error);
                 }
 
                 if (stderr) {
-                    this.consoleManager.writeLine("Stderr: " + stderr);
+                    outputStderr && this.consoleManager.writeLine("Stderr: " + stderr);
                     return resolve(stderr);
                 }
 
-                this.consoleManager.writeLine(stdout);
+                outputStdout && this.consoleManager.writeLine(stdout);
                 return resolve(stdout);
             })
         })
