@@ -2,10 +2,13 @@ import {exec, spawn} from "child_process";
 import {ConsoleManager} from "./console.manager";
 import {injectable} from "tsyringe";
 import {PathManager} from "./path.manager";
+import {DateUtil} from "@pristine-ts/common"
 
 @injectable()
 export class ShellManager {
-    constructor(private readonly consoleManager: ConsoleManager, private readonly pathManager: PathManager) {
+    constructor(private readonly consoleManager: ConsoleManager,
+                private readonly pathManager: PathManager,
+                private readonly dateUtil: DateUtil) {
     }
 
     execute(command: string, options?: {
@@ -14,6 +17,8 @@ export class ShellManager {
         maxBuffer?: number,
         outputStdout?: boolean,
         outputStderr?: boolean,
+        outputDuration?: boolean,
+        outputTimeBeforeExecutingCommand?: boolean,
     }): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             const env = process.env;
@@ -24,13 +29,21 @@ export class ShellManager {
 
             const outputStdout = options?.outputStdout ?? true;
             const outputStderr = options?.outputStderr ?? true;
+            const outputDuration = options?.outputDuration ?? true;
+            const outputTimeBeforeExecutingCommand = options?.outputTimeBeforeExecutingCommand ?? true;
 
             if(directory) {
                 const absoluteDirectory = this.pathManager.getPathRelativeToCurrentExecutionDirectory(directory);
                 finalCommand = "cd " + absoluteDirectory + " && " + command;
             }
 
-            outputStdout && this.consoleManager.writeLine(finalCommand);
+            const start = new Date();
+
+            if(outputTimeBeforeExecutingCommand) {
+                this.consoleManager.writeLine(start.toISOString());
+            }
+
+            this.consoleManager.writeLine(finalCommand);
 
             if(streamStdout) {
                 const child = spawn(finalCommand, [], { shell: true, env });
@@ -49,6 +62,13 @@ export class ShellManager {
                         return reject(code);
                     }
 
+                    // Output the duration in human readable format
+                    if(outputDuration) {
+                        const end = new Date();
+                        const duration = end.getTime() - start.getTime();
+                        this.consoleManager.writeLine(`Executed in: ${this.dateUtil.formatDuration(duration)}`);
+                    }
+
                     return resolve(code + "");
                 });
             }
@@ -62,6 +82,13 @@ export class ShellManager {
                 if (stderr) {
                     outputStderr && this.consoleManager.writeLine("Stderr: " + stderr);
                     return resolve(stderr);
+                }
+
+                // Output the duration in human readable format
+                if(outputDuration) {
+                    const end = new Date();
+                    const duration = end.getTime() - start.getTime();
+                    this.consoleManager.writeLine(`Executed in: ${this.dateUtil.formatDuration(duration)}`);
                 }
 
                 outputStdout && this.consoleManager.writeLine(stdout);
