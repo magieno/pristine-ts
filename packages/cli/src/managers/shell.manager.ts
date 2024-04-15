@@ -40,7 +40,7 @@ export class ShellManager {
             const start = new Date();
 
             if(outputTimeBeforeExecutingCommand) {
-                this.consoleManager.writeLine(start.toISOString() + " - " + finalCommand);
+                this.consoleManager.writeLine(start.toISOString() + ": " + finalCommand);
             } else {
                 outputStdout && this.consoleManager.writeLine(finalCommand);
             }
