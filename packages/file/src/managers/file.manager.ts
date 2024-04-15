@@ -3,10 +3,12 @@ import {injectable} from "tsyringe";
 import {FileCursorInterface} from "../interfaces/file-cursor.interface";
 import fs from "fs";
 import * as readline from "readline";
+import {DirectoryListOptions} from "../options/directory-list.options";
+import {FileInfoInterface} from "../interfaces/file-info.interface";
 
 @injectable()
 export class FileManager {
-    async findInFile(search: string, filePath: string): Promise<FileCursorInterface[]> {
+    async findInFile(search: string | RegExp, filePath: string): Promise<FileCursorInterface[]> {
         const fileStream = fs.createReadStream(filePath);
 
         const rl = readline.createInterface({
@@ -23,14 +25,26 @@ export class FileManager {
             lineIndex++;
 
             do {
-                position = line.indexOf(search, position);
+                if(typeof search === "string") {
+                    position = line.indexOf(search, position);
+                } else {
+                    const lineToSearch = line.substring(position);
+                    const substrPosition = lineToSearch.search(search);
+
+                    if(substrPosition !== -1) {
+                        // Need to add the new position to the current position else we will return the wrong position
+                        position += substrPosition;
+                    } else {
+                        position = -1;
+                    }
+                }
 
                 // If the search string is found, simply add its position
                 if(position !== -1) {
                     fileCursors.push({line: lineIndex, position, lineText: line})
 
-                    // Move the position by the length of the search term.
-                    position += search.length;
+                    // Increment the position to continue the search.
+                    position++;
                 }
             } while (position != -1 || position >= line.length)
         }
