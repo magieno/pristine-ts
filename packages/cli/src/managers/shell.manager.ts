@@ -77,22 +77,20 @@ export class ShellManager {
             return exec(finalCommand, {env, maxBuffer: options?.maxBuffer}, (error, stdout, stderr) => {
                 if (error && error.code) {
                     outputStderr && this.consoleManager.writeLine("Error: " + error.message);
-                    return reject(error);
                 }
 
                 if (stderr) {
                     outputStderr && this.consoleManager.writeLine("Stderr: " + stderr);
-                    return resolve(stderr);
-                }
-
-                // Output the duration in human readable format
-                if(outputDuration) {
-                    const end = new Date();
-                    const duration = end.getTime() - start.getTime();
-                    this.consoleManager.writeLine(`Executed in: ${this.dateUtil.formatDuration(duration)}`);
                 }
 
                 outputStdout && this.consoleManager.writeLine(stdout);
+
+                if(error && error.code) {
+                    return reject(error);
+                } else if(stderr) {
+                    return resolve(stderr);
+                }
+
                 return resolve(stdout);
             })
         })
