@@ -32,22 +32,22 @@ export class ShellManager {
             const outputDuration = options?.outputDuration ?? true;
             const outputTimeBeforeExecutingCommand = options?.outputTimeBeforeExecutingCommand ?? true;
 
-            if(directory) {
+            if (directory) {
                 const absoluteDirectory = this.pathManager.getPathRelativeToCurrentExecutionDirectory(directory);
                 finalCommand = "cd " + absoluteDirectory + " && " + command;
             }
 
             const start = new Date();
 
-            if(outputTimeBeforeExecutingCommand) {
+            if (outputTimeBeforeExecutingCommand) {
                 this.consoleManager.writeLine(start.toISOString() + ": " + finalCommand);
             } else {
                 outputStdout && this.consoleManager.writeLine(finalCommand);
             }
 
 
-            if(streamStdout) {
-                const child = spawn(finalCommand, [], { shell: true, env });
+            if (streamStdout) {
+                const child = spawn(finalCommand, [], {shell: true, env});
                 child.stdout.on('data', (data) => {
                     outputStdout && this.consoleManager.writeLine(`${data}`);
                 });
@@ -59,12 +59,12 @@ export class ShellManager {
                 child.on('close', (code) => {
                     outputStdout && this.consoleManager.writeLine(`Command exited with code ${code}`);
 
-                    if(code !== 0) {
+                    if (code !== 0) {
                         return reject(code);
                     }
 
                     // Output the duration in human readable format
-                    if(outputDuration) {
+                    if (outputDuration) {
                         const end = new Date();
                         const duration = end.getTime() - start.getTime();
                         this.consoleManager.writeLine(`Executed in: ${this.dateUtil.formatDuration(duration)}`);
@@ -77,22 +77,27 @@ export class ShellManager {
             return exec(finalCommand, {env, maxBuffer: options?.maxBuffer}, (error, stdout, stderr) => {
                 if (error && error.code) {
                     outputStderr && this.consoleManager.writeLine("Error: " + error.message);
-                    return reject(error);
                 }
 
                 if (stderr) {
                     outputStderr && this.consoleManager.writeLine("Stderr: " + stderr);
-                    return resolve(stderr);
                 }
 
+                outputStdout && this.consoleManager.writeLine(stdout);
+
                 // Output the duration in human readable format
-                if(outputDuration) {
+                if (outputDuration) {
                     const end = new Date();
                     const duration = end.getTime() - start.getTime();
                     this.consoleManager.writeLine(`Executed in: ${this.dateUtil.formatDuration(duration)}`);
                 }
 
-                outputStdout && this.consoleManager.writeLine(stdout);
+                if (error && error.code) {
+                    return reject(error);
+                } else if (stderr) {
+                    return resolve(stderr);
+                }
+
                 return resolve(stdout);
             })
         })
