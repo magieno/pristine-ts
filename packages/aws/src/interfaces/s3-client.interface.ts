@@ -1,5 +1,6 @@
 import {S3PresignedOperationTypeEnum} from "../enums/s3-presigned-operation-type.enum";
 import {S3Client as AWSS3Client, S3ClientConfig, GetObjectCommandOutput} from "@aws-sdk/client-s3";
+import {ClientOptionsInterface} from "./client-options.interface";
 
 /**
  * The S3Client Interface defines the methods that an S3 client must implement.
@@ -21,27 +22,31 @@ export interface S3ClientInterface {
      * Retrieves the key from the S3 Bucket.
      * @param bucketName
      * @param key
+     * @param options
      */
-    get(bucketName: string, key: string): Promise<GetObjectCommandOutput>
+    get(bucketName: string, key: string, options?: Partial<ClientOptionsInterface>): Promise<GetObjectCommandOutput>
 
     /**
      * Gets an object's body as an array buffer from S3.
      * @param bucketName The bucket name where to get the object.
      * @param key The key of the object.
+     * @param options
      */
-    getObjectBodyAsArrayBuffer(bucketName: string, key: string): Promise<ArrayBuffer>;
+    getObjectBodyAsArrayBuffer(bucketName: string, key: string, options?: Partial<ClientOptionsInterface>): Promise<ArrayBuffer>;
 
     /**
      * Lists the keys of a bucket.
      * @param bucketName The name of the bucket.
+     * @param options
      */
-    listKeys(bucketName: string): Promise<string[]>;
+    listKeys(bucketName: string, options?: Partial<ClientOptionsInterface>): Promise<string[]>;
 
     /**
      * Lists the object of a bucket.
      * @param bucketName The name of the bucket.
+     * @param options
      */
-    listObjects(bucketName: string): Promise<any[]>;
+    listObjects(bucketName: string, options?: Partial<ClientOptionsInterface>): Promise<any[]>;
 
     /**
      * Uploads an object to a bucket of S3.
@@ -50,8 +55,9 @@ export interface S3ClientInterface {
      * @param data The data to upload.
      * @param contentEncoding The encoding of the data to upload.
      * @param contentType The content type of the data to upload.
+     * @param options
      */
-    upload(bucketName: string, key: string, data: any, contentEncoding?: string, contentType?: string): Promise<void>;
+    upload(bucketName: string, key: string, data: any, contentEncoding?: string, contentType?: string, options?: Partial<ClientOptionsInterface>): Promise<void>;
 
     /**
      * Creates a pre signed url to allow a third party to take action on S3.

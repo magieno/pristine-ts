@@ -12,8 +12,9 @@ export class SSMResolver implements ResolverInterface<string> {
      * @param ssmParameterName The name of the SSM parameter, or the resolver to get that name.
      * @param region The AWS region in which the SSM parameter needs to be resolved from.
      * @param isSecure If the parameter is secure or not.
+     * @param requestTimeout The number of time in miliseconds that the resolver will take to resolve the parameter. Default: 10 000ms
      */
-    public constructor(private readonly ssmParameterName: string | ResolverInterface<string> , private readonly region: string | ResolverInterface<string> , private readonly isSecure: boolean = false) { }
+    public constructor(private readonly ssmParameterName: string | ResolverInterface<string> , private readonly region: string | ResolverInterface<string> , private readonly isSecure: boolean = false, private readonly requestTimeout: number = 10000) { }
 
     /**
      * Resolves a parameter from AWS SSM.
@@ -27,7 +28,9 @@ export class SSMResolver implements ResolverInterface<string> {
             WithDecryption: this.isSecure,
         }
         try {
-            const parameterOutput = await ssm.getParameter(params);
+            const parameterOutput = await ssm.getParameter(params, {
+                requestTimeout: this.requestTimeout,
+            });
             if(!parameterOutput.Parameter?.Value) {
                 throw new SSMResolverError("No value for this parameter.", ssmParameterName);
             }

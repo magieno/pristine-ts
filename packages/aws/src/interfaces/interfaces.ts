@@ -1,3 +1,4 @@
+export * from "./client-options.interface";
 export * from "./cloudformation-client.interface";
 export * from "./cloudfront-client.interface";
 export * from "./dynamodb-client.interface";

@@ -5,6 +5,7 @@ import {LogHandlerInterface} from "@pristine-ts/logging";
 import {SecretsManagerClientInterface} from "../interfaces/secrets-manager-client.interface";
 import {GetSecretValueCommand, SecretsManagerClient as AWSSecretsManagerClient} from "@aws-sdk/client-secrets-manager";
 import {GetSecretSecretsManagerError} from "../errors/get-secret-secrets-manager.error";
+import {ClientOptionsInterface} from "../interfaces/client-options.interface";
 
 @tag("SecretsManagerClientInterface")
 @moduleScoped(AwsModuleKeyname)
@@ -32,13 +33,16 @@ export class SecretsManagerClient implements SecretsManagerClientInterface {
      * This retrieves a secret from the secret manager
      *
      * @param secretName
+     * @param options
      */
-    async getSecret(secretName: string): Promise<{[key in string]: string}> {
+    async getSecret(secretName: string, options?: Partial<ClientOptionsInterface>): Promise<{[key in string]: string}> {
         const command: GetSecretValueCommand = new GetSecretValueCommand({
             SecretId: secretName,
         });
 
-        const response = await this.getClient().send(command);
+        const response = await this.getClient().send(command, {
+            requestTimeout: options?.requestTimeout,
+        });
 
         const secretString = response.SecretString;
 

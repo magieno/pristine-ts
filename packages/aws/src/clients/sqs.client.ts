@@ -6,6 +6,7 @@ import {SqsSendMessageError} from "../errors/sqs-send-message.error";
 import {moduleScoped, tag} from "@pristine-ts/common";
 import {AwsModuleKeyname} from "../aws.module.keyname";
 import {SqsClientInterface} from "../interfaces/sqs-client.interface";
+import {ClientOptionsInterface} from "../interfaces/client-options.interface";
 
 /**
  * The client to use to interact with AWS SQS. It is a wrapper around the SQSClient of @aws-sdk/client-sqs.
@@ -47,7 +48,7 @@ export class SqsClient implements SqsClientInterface {
      * @param endpoint The endpoint for SQS.
      * @param messageDeduplicationId The unique id used by Amazon SQS in Fifo queues to avoid treating a message twice.
      */
-    async send(queueUrl: string, body: string, messageGroupId?: string, delaySeconds?: number, endpoint?: string, messageDeduplicationId?: string): Promise<SqsMessageSentConfirmationModel> {
+    async send(queueUrl: string, body: string, messageGroupId?: string, delaySeconds?: number, endpoint?: string, messageDeduplicationId?: string, options?: Partial<ClientOptionsInterface>): Promise<SqsMessageSentConfirmationModel> {
         try {
             const client = this.getClient(endpoint);
 
@@ -67,7 +68,7 @@ export class SqsClient implements SqsClientInterface {
                 messageDeduplicationId,
             }, AwsModuleKeyname)
 
-            const response = await client.send(command);
+            const response = await client.send(command, options);
 
             this.logHandler.debug("Message successfully sent to the queue", {
                 queueUrl,

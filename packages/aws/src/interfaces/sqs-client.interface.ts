@@ -1,5 +1,6 @@
 import {SqsMessageSentConfirmationModel} from "../models/sqs-message-sent-confirmation.model";
 import {SQSClient} from "@aws-sdk/client-sqs";
+import {ClientOptionsInterface} from "./client-options.interface";
 
 /**
  * The S3Client Interface defines the methods that an S3 client must implement.
@@ -20,5 +21,5 @@ export interface SqsClientInterface {
      * @param delaySeconds The length of time, in seconds, for which to delay a specific message.
      * @param endpoint The endpoint for SQS.
      */
-    send(queueUrl: string, body: string, messageGroupId?: string, delaySeconds?: number, endpoint?: string): Promise<SqsMessageSentConfirmationModel>;
+    send(queueUrl: string, body: string, messageGroupId?: string, delaySeconds?: number, endpoint?: string, options?: Partial<ClientOptionsInterface>): Promise<SqsMessageSentConfirmationModel>;
 }

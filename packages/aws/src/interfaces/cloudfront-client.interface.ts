@@ -14,6 +14,7 @@ import {
 } from "@aws-sdk/client-cloudfront/dist-types/CloudFrontClient";
 import {CloudfrontClient} from "../clients/cloudfront.client";
 import {CreateInvalidationResult, GetInvalidationResult} from "@aws-sdk/client-cloudfront";
+import {ClientOptionsInterface} from "./client-options.interface";
 
 /**
  * The CloudfrontClientInterface Interface defines the methods that a Cloudfront client must implement.
@@ -36,14 +37,16 @@ export interface CloudfrontClientInterface {
      *
      * @param distributionId
      * @param paths
+     * @param options
      */
-    invalidate(distributionId: string, paths: string[]):  Promise<CreateInvalidationResult>
+    invalidate(distributionId: string, paths: string[], options?: Partial<ClientOptionsInterface>):  Promise<CreateInvalidationResult>
 
     /**
      * Returns the status of the invalidation
      *
      * @param distributionId
      * @param invalidationId
+     * @param options
      */
-    getInvalidation(distributionId: string, invalidationId: string): Promise<GetInvalidationResult>
+    getInvalidation(distributionId: string, invalidationId: string, options?: Partial<ClientOptionsInterface>): Promise<GetInvalidationResult>
 }

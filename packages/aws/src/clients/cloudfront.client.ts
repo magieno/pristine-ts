@@ -10,6 +10,7 @@ import {
 import {CloudfrontClientInterface} from "../interfaces/cloudfront-client.interface";
 import {DescribeStacksCommand, DescribeStacksCommandOutput} from "@aws-sdk/client-cloudformation";
 import { v4 as uuidv4 } from 'uuid';
+import {ClientOptionsInterface} from "../interfaces/client-options.interface";
 
 /**
  * The client to use to interact with AWS Cloudformation. It is a wrapper around the Cloudfront of @aws-sdk/client-cloudfront.
@@ -58,8 +59,9 @@ export class CloudfrontClient implements CloudfrontClientInterface {
      *
      * @param distributionId
      * @param paths
+     * @param options
      */
-    async invalidate(distributionId: string, paths: string[]): Promise<CreateInvalidationResult> {
+    async invalidate(distributionId: string, paths: string[], options?: Partial<ClientOptionsInterface>): Promise<CreateInvalidationResult> {
         this.logHandler.debug("CloudFront CLIENT - Invalidating", {distributionId, paths}, AwsModuleKeyname);
         const command = new CreateInvalidationCommand({
             DistributionId: distributionId,
@@ -72,7 +74,7 @@ export class CloudfrontClient implements CloudfrontClientInterface {
             }
         })
         try {
-            const response: CreateInvalidationResult = await this.getClient().send(command);
+            const response: CreateInvalidationResult = await this.getClient().send(command, options);
 
             if(response === undefined) {
                 throw new Error("Unknown error invalidating the CloudFront distribution");
@@ -90,8 +92,9 @@ export class CloudfrontClient implements CloudfrontClientInterface {
      *
      * @param distributionId
      * @param invalidationId
+     * @param options
      */
-    async getInvalidation(distributionId: string, invalidationId: string): Promise<GetInvalidationResult> {
+    async getInvalidation(distributionId: string, invalidationId: string, options?: Partial<ClientOptionsInterface>): Promise<GetInvalidationResult> {
         this.logHandler.debug("CloudFront CLIENT - Get Invalidating", {distributionId, invalidationId}, AwsModuleKeyname);
         const command = new GetInvalidationCommand({
             DistributionId: distributionId,
@@ -99,7 +102,7 @@ export class CloudfrontClient implements CloudfrontClientInterface {
         })
 
         try {
-            const response: GetInvalidationResult = await this.getClient().send(command);
+            const response: GetInvalidationResult = await this.getClient().send(command, options);
 
             if(response === undefined) {
                 throw new Error("Unknown error invalidating the CloudFront distribution");
