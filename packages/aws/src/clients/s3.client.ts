@@ -6,6 +6,7 @@ import { S3ClientInterface } from "../interfaces/s3-client.interface";
 import { GetObjectCommand, GetObjectCommandOutput, ListObjectsCommand, ListObjectsCommandOutput, PutObjectCommand, S3Client as AWSS3Client, S3ClientConfig } from "@aws-sdk/client-s3";
 import { S3PresignedOperationTypeEnum } from "../enums/s3-presigned-operation-type.enum";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import {ClientOptionsInterface} from "../interfaces/client-options.interface";
 
 /**
  * The client to use to interact with AWS S3. It is a wrapper around the AWSS3Client of @aws-sdk/client-s3.
@@ -52,15 +53,16 @@ export class S3Client implements S3ClientInterface {
      * Gets an object and all its details from S3.
      * @param bucketName The bucket name where to get the object.
      * @param key The key of the object.
+     * @param options
      */
-    async get(bucketName: string, key: string): Promise<GetObjectCommandOutput> {
+    async get(bucketName: string, key: string, options?: Partial<ClientOptionsInterface>): Promise<GetObjectCommandOutput> {
         this.logHandler.debug("S3 CLIENT - Getting item", {bucketName, key}, AwsModuleKeyname);
         const command = new GetObjectCommand({
             Bucket: bucketName,
             Key: key,
         })
         try {
-            return await this.getClient().send(command);
+            return await this.getClient().send(command, options);
         } catch (e) {
             this.logHandler.error("Error getting object from S3", {error: e}, AwsModuleKeyname);
             throw e;
@@ -71,10 +73,11 @@ export class S3Client implements S3ClientInterface {
      * Gets an object's body as an array buffer from S3.
      * @param bucketName The bucket name where to get the object.
      * @param key The key of the object.
+     * @param options
      */
-    async getObjectBodyAsArrayBuffer(bucketName: string, key: string): Promise<ArrayBuffer> {
+    async getObjectBodyAsArrayBuffer(bucketName: string, key: string, options?: Partial<ClientOptionsInterface>): Promise<ArrayBuffer> {
         try {
-            const object = await this.get(bucketName, key);
+            const object = await this.get(bucketName, key, options);
             return this.streamToArrayBuffer(object.Body);
         } catch (e) {
             this.logHandler.error("Error getting content of object from S3", {error: e}, AwsModuleKeyname);
@@ -85,25 +88,27 @@ export class S3Client implements S3ClientInterface {
     /**
      * Lists the keys of a bucket.
      * @param bucketName The name of the bucket.
+     * @param options
      */
-    async listKeys(bucketName: string): Promise<string[]> {
+    async listKeys(bucketName: string, options?: Partial<ClientOptionsInterface>): Promise<string[]> {
         this.logHandler.debug("S3 CLIENT - Listing bucket keys", {bucketName}, AwsModuleKeyname);
-        const objects = await this.listObjects(bucketName)
+        const objects = await this.listObjects(bucketName, options)
         return objects.map((object) => object.Key);
     }
 
     /**
      * Lists the object of a bucket.
      * @param bucketName The name of the bucket.
+     * @param options
      */
-    async listObjects(bucketName: string): Promise<any[]> {
+    async listObjects(bucketName: string, options?: Partial<ClientOptionsInterface>): Promise<any[]> {
         this.logHandler.debug("S3 CLIENT - Listing bucket objects", {bucketName}, AwsModuleKeyname);
         const command = new ListObjectsCommand({
             Bucket: bucketName,
         })
         let objects: ListObjectsCommandOutput
         try {
-            objects = await this.getClient().send(command);
+            objects = await this.getClient().send(command, options);
         } catch (e) {
             this.logHandler.error("Error listing objects from S3", {error: e}, AwsModuleKeyname);
             throw e;
@@ -118,8 +123,9 @@ export class S3Client implements S3ClientInterface {
      * @param data The data to upload.
      * @param contentEncoding The encoding of the data to upload.
      * @param contentType The content type of the data to upload.
+     * @param options
      */
-    async upload(bucketName: string, key: string, data: any, contentEncoding?: string, contentType?: string): Promise<void> {
+    async upload(bucketName: string, key: string, data: any, contentEncoding?: string, contentType?: string, options?: Partial<ClientOptionsInterface>): Promise<void> {
         this.logHandler.debug("S3 CLIENT - Uploading object", {bucketName, key, contentEncoding, contentType}, AwsModuleKeyname);
 
         const command = new PutObjectCommand({
@@ -131,7 +137,7 @@ export class S3Client implements S3ClientInterface {
         });
 
         try {
-            await this.getClient().send(command);
+            await this.getClient().send(command, options);
         } catch (e) {
             this.logHandler.error("Error putting object in S3", {error: e}, AwsModuleKeyname);
             throw e;
@@ -166,6 +172,7 @@ export class S3Client implements S3ClientInterface {
      * @param bucketName The name of the bucket.
      * @param key The key for the object on which the action will be allowed.
      * @param fileName If operation is Get, then a filename can be provided for the name of the file that will be downloaded.
+     * @param options
      * @private
      */
     private getCommandForPresign(operation: S3PresignedOperationTypeEnum, bucketName: string, key: string, fileName?: string): GetObjectCommand | PutObjectCommand {

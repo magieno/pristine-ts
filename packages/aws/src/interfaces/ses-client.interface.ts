@@ -1,6 +1,7 @@
 import {SESClient} from "@aws-sdk/client-ses";
 import {EmailModel} from "../models/email.model";
 import {SesMessageSentConfirmationModel} from "../models/ses-message-sent-confirmation.model";
+import {ClientOptionsInterface} from "./client-options.interface";
 
 /**
  * The SESClient Interface defines the methods that an SES client must implement.
@@ -18,8 +19,9 @@ export interface SesClientInterface {
      *
      * @param email
      * @param endpoint
+     * @param options
      */
-    send(email: EmailModel, endpoint?: string): Promise<SesMessageSentConfirmationModel>
+    send(email: EmailModel, endpoint?: string, options?: Partial<ClientOptionsInterface>): Promise<SesMessageSentConfirmationModel>
 
     /**
      * This sends an email with the specified template and template Data.
@@ -27,6 +29,7 @@ export interface SesClientInterface {
      * @param templateName
      * @param templateData
      * @param endpoint
+     * @param options
      */
-    sendTemplate(email: EmailModel, templateName: string, templateData: {[key in string]: string}, endpoint?: string): Promise<SesMessageSentConfirmationModel>
+    sendTemplate(email: EmailModel, templateName: string, templateData: {[key in string]: string}, endpoint?: string, options?: Partial<ClientOptionsInterface>): Promise<SesMessageSentConfirmationModel>
 }

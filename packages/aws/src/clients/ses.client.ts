@@ -14,6 +14,7 @@ import {EmailModel} from "../models/email.model";
 import {SqsSendMessageError} from "../errors/sqs-send-message.error";
 import {SesMessageSentConfirmationModel} from "../models/ses-message-sent-confirmation.model";
 import {SesSendError} from "../errors/ses-send.error";
+import {ClientOptionsInterface} from "../interfaces/client-options.interface";
 
 @tag("SesClientInterface")
 @moduleScoped(AwsModuleKeyname)
@@ -37,7 +38,7 @@ export class SesClient implements SesClientInterface {
         });
     }
 
-    async sendTemplate(email: EmailModel, templateName: string, templateData: {[key in string]: string}, endpoint?: string): Promise<SesMessageSentConfirmationModel> {
+    async sendTemplate(email: EmailModel, templateName: string, templateData: {[key in string]: string}, endpoint?: string, options?: Partial<ClientOptionsInterface>): Promise<SesMessageSentConfirmationModel> {
         try {
             const client = this.getClient(endpoint);
 
@@ -52,7 +53,7 @@ export class SesClient implements SesClientInterface {
                 TemplateData: JSON.stringify(templateData),
             });
 
-            const response = await client.send(sendEmailCommand);
+            const response = await client.send(sendEmailCommand, options);
 
             return {
                 messageId: response.MessageId,
@@ -69,7 +70,7 @@ export class SesClient implements SesClientInterface {
         }
     }
 
-    async send(email: EmailModel, endpoint?: string): Promise<SesMessageSentConfirmationModel> {
+    async send(email: EmailModel, endpoint?: string, options?: Partial<ClientOptionsInterface>): Promise<SesMessageSentConfirmationModel> {
         try {
             const client = this.getClient(endpoint);
 
@@ -98,7 +99,7 @@ export class SesClient implements SesClientInterface {
                 Source: email.from,
             });
 
-            const response = await client.send(sendEmailCommand);
+            const response = await client.send(sendEmailCommand, options);
 
             return {
                 messageId: response.MessageId,

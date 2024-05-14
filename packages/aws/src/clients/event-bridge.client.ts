@@ -6,6 +6,7 @@ import {EventBridgeSendMessageError} from "../errors/event-bridge-send-message.e
 import {EventBridgeClientInterface} from "../interfaces/event-bridge-client.interface";
 import {moduleScoped, tag} from "@pristine-ts/common";
 import {AwsModuleKeyname} from "../aws.module.keyname";
+import {ClientOptionsInterface} from "../interfaces/client-options.interface";
 
 /**
  * The client to use to interact with AWS Event Bridge. It is a wrapper around the AwsEventBridgeClient of @aws-sdk/client-eventbridge.
@@ -43,9 +44,10 @@ export class EventBridgeClient implements EventBridgeClientInterface {
      * Sends an event to event bridge.
      * @param eventBridgeMessages The messages to send to event bridge.
      * @param eventBusName The event bus name where to send the messages.
+     * @param options
      * @param endpoint The endpoint for event bridge.
      */
-    async send(eventBridgeMessages: EventBridgeMessageModel | EventBridgeMessageModel[], eventBusName: string, endpoint?: string): Promise<void> {
+    async send(eventBridgeMessages: EventBridgeMessageModel | EventBridgeMessageModel[], eventBusName: string, endpoint?: string, options?: Partial<ClientOptionsInterface>): Promise<void> {
         try {
             const client = this.getClient(endpoint);
 
@@ -79,7 +81,7 @@ export class EventBridgeClient implements EventBridgeClientInterface {
                 }]
             }
 
-            const response = await client.send(putEventsCommand);
+            const response = await client.send(putEventsCommand, options);
 
             this.logHandler.debug("Message successfully sent to the EventBridge", {
                 eventBridgeMessages,

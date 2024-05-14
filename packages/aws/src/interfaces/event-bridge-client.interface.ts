@@ -1,5 +1,6 @@
 import {EventBridgeMessageModel} from "../models/event-bridge-message.model";
 import {EventBridgeClient as AwsEventBridgeClient} from "@aws-sdk/client-eventbridge";
+import {ClientOptionsInterface} from "./client-options.interface";
 
 /**
  * The EventBridgeClient Interface defines the methods that an Event bridge client must implement.
@@ -17,6 +18,7 @@ export interface EventBridgeClientInterface {
      * @param eventBridgeMessages The messages to send to event bridge.
      * @param eventBusName The event bus name where to send the messages.
      * @param endpoint The endpoint for event bridge.
+     * @param options
      */
-    send(eventBridgeMessages: EventBridgeMessageModel | EventBridgeMessageModel[], eventBusName: string, endpoint?: string): Promise<void>;
+    send(eventBridgeMessages: EventBridgeMessageModel | EventBridgeMessageModel[], eventBusName: string, endpoint?: string, options?: Partial<ClientOptionsInterface>): Promise<void>;
 }
