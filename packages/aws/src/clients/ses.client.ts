@@ -70,7 +70,7 @@ export class SesClient implements SesClientInterface {
         }
     }
 
-    async send(email: EmailModel, endpoint?: string): Promise<SesMessageSentConfirmationModel> {
+    async send(email: EmailModel, endpoint?: string, options?: Partial<ClientOptionsInterface>): Promise<SesMessageSentConfirmationModel> {
         try {
             const client = this.getClient(endpoint);
 

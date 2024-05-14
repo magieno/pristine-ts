@@ -20,6 +20,8 @@ export interface SqsClientInterface {
      * @param messageGroupId The message group id for FIFO queues.
      * @param delaySeconds The length of time, in seconds, for which to delay a specific message.
      * @param endpoint The endpoint for SQS.
+     * @param messageDeduplicationId
+     * @param options
      */
-    send(queueUrl: string, body: string, messageGroupId?: string, delaySeconds?: number, endpoint?: string, options?: Partial<ClientOptionsInterface>): Promise<SqsMessageSentConfirmationModel>;
+    send(queueUrl: string, body: string, messageGroupId?: string, delaySeconds?: number, endpoint?: string, messageDeduplicationId?: string, options?: Partial<ClientOptionsInterface>): Promise<SqsMessageSentConfirmationModel>;
 }

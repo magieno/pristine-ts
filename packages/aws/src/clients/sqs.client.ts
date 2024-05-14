@@ -47,6 +47,7 @@ export class SqsClient implements SqsClientInterface {
      * @param delaySeconds The length of time, in seconds, for which to delay a specific message.
      * @param endpoint The endpoint for SQS.
      * @param messageDeduplicationId The unique id used by Amazon SQS in Fifo queues to avoid treating a message twice.
+     * @param options
      */
     async send(queueUrl: string, body: string, messageGroupId?: string, delaySeconds?: number, endpoint?: string, messageDeduplicationId?: string, options?: Partial<ClientOptionsInterface>): Promise<SqsMessageSentConfirmationModel> {
         try {
