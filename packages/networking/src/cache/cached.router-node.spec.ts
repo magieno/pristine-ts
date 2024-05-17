@@ -1,6 +1,5 @@
-import {Request} from "../models/request";
-import {RequestUtil} from "./request.util";
-import {HttpMethod} from "../enums/http-method.enum";
+import {HttpMethod, Request} from "@pristine-ts/common";
+import {CachedRouterRoute} from "./cached.router-route";
 
 describe("Request Util", () => {
     it("should hash the same request twice", () => {
@@ -22,8 +21,8 @@ describe("Request Util", () => {
             "header1": "value1",
         });
 
-        const request1Hash = RequestUtil.hash(request);
-        const request2Hash = RequestUtil.hash(request2);
+        const request1Hash = CachedRouterRoute.hashRequest(request);
+        const request2Hash = CachedRouterRoute.hashRequest(request2);
 
         expect(request1Hash).toBe(request2Hash);
     })
@@ -55,9 +54,9 @@ describe("Request Util", () => {
             "header1": "value1",
         });
 
-        const request1Hash = RequestUtil.hash(request);
-        const request2Hash = RequestUtil.hash(request2);
-        const request3Hash = RequestUtil.hash(request3);
+        const request1Hash = CachedRouterRoute.hashRequest(request);
+        const request2Hash = CachedRouterRoute.hashRequest(request2);
+        const request3Hash = CachedRouterRoute.hashRequest(request3);
 
         expect(request1Hash).not.toBe(request2Hash);
         expect(request1Hash).not.toBe(request3Hash);

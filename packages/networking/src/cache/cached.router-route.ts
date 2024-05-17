@@ -1,5 +1,7 @@
 import {MethodRouterNode} from "../nodes/method-router.node";
 import {Request, RequestUtil} from "@pristine-ts/common";
+import {createHash} from "crypto";
+import {URL} from "url";
 
 export class CachedRouterRoute {
     private cachedControllerMethodArguments: { [requestHash: string]: any[] } = {};
@@ -9,13 +11,42 @@ export class CachedRouterRoute {
     ) {
     }
 
-    private hashRequest(request: Request): string | null {
-        return RequestUtil.hash(request);
+    public static hashRequest(request: Request): string | null {
+        const sort = (obj: any) => {
+            const ret: any = {};
+
+            Object.keys(obj).sort().forEach(function (key) {
+                ret[key] = obj[key];
+            });
+
+            return ret;
+        };
+
+        const hash = createHash("md5");
+
+        const parsedUrl = new URL(request.url);
+
+        parsedUrl.searchParams.sort();
+
+        hash.update(parsedUrl.pathname);
+        hash.update(request.httpMethod);
+        hash.update(parsedUrl.searchParams.toString());
+        hash.update(parsedUrl.hash);
+        hash.update(JSON.stringify(sort(request.headers)));
+
+        try {
+            hash.write(JSON.stringify(request.body));
+        } catch (e) {
+            return null;
+        }
+
+
+        return hash.digest("hex");
     }
 
     getCachedControllerMethodArguments(request: Request): any[] | undefined {
         // Hashed the request
-        const hash = this.hashRequest(request);
+        const hash = CachedRouterRoute.hashRequest(request);
 
         if(hash === null) {
             return;
