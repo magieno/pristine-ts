@@ -1,5 +1,5 @@
 import {MethodRouterNode} from "../nodes/method-router.node";
-import {Request, RequestUtil} from "@pristine-ts/common";
+import {Request} from "@pristine-ts/common";
 import {createHash} from "crypto";
 import {URL} from "url";
 
@@ -58,7 +58,7 @@ export class CachedRouterRoute {
 
     cacheControllerMethodArguments(request: Request, methodArguments: any[]): void {
         // Hashed the request
-        const hash = this.hashRequest(request);
+        const hash = CachedRouterRoute.hashRequest(request);
 
         if(hash === null) {
             return;
