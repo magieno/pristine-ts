@@ -107,8 +107,11 @@ export class ConsoleLogger extends BaseLogger implements LoggerInterface {
     } else {
       this.numberOfLogsInThisSecond++;
       if (this.numberOfLogsInThisSecond > this.maximumLogsPerSecond) {
+        if(!this.currentlyThrottlingLogs) {
+          console.error(`Throttling the logs as we are outputting too many logs (${this.maximumLogsPerSecond}) per second.`);
+        }
         this.currentlyThrottlingLogs = true;
-        console.error(`Throttling the logs as we are outputting too many logs (${this.maximumLogsPerSecond}) per second.`);
+
       }
     }
 
