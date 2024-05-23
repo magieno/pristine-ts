@@ -183,6 +183,19 @@ export const LoggingModule: ModuleInterface = {
                 new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_ACTIVATE_DIAGNOSTICS")),
             ]
         },
+        /**
+         * Whether or not the diagnostic should be activated.
+         * When activated, the stack trace and other diagnostic information will be added to the logs.
+         * This is an intensive process and can dramatically reduce the performance of the code.
+         */
+        {
+            parameterName: LoggingModuleKeyname + ".maximumLogsPerSecond",
+            defaultValue: 100,
+            isRequired: false,
+            defaultResolvers: [
+                new NumberResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_MAXIMUM_LOGS_PER_SECOND")),
+            ]
+        },
     ],
     importModules: [
         CommonModule,

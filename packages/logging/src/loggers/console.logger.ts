@@ -24,6 +24,12 @@ export class ConsoleLogger extends BaseLogger implements LoggerInterface {
    */
   public readableStream?: Readable;
 
+  private currentSecond = -1;
+
+  private numberOfLogsInThisSecond = 0;
+
+  private currentlyThrottlingLogs = false;
+
   /**
    * The ConsoleLogger outputs the logs in the console.
    * @param numberOfStackedLogs The number of logs to keep in the stack and to print once a log with a high enough severity arrives.
@@ -41,6 +47,7 @@ export class ConsoleLogger extends BaseLogger implements LoggerInterface {
    * We often do not need to go to the bottom layer of an object, so we can truncate at a certain depth.
    * @param isActivated Whether or not this particular logger is activated and should output logs.
    * @param outputMode The output mode, that the logger should use.
+   * @param maximumLogsPerSecond The maximum numner of logs per second that can be outputted
    */
   public constructor(@inject("%pristine.logging.numberOfStackedLogs%") numberOfStackedLogs: number,
                      @inject("%pristine.logging.logSeverityLevelConfiguration%") logSeverityLevelConfiguration: number,
@@ -51,6 +58,7 @@ export class ConsoleLogger extends BaseLogger implements LoggerInterface {
                      @inject("%pristine.logging.logCriticalDepthConfiguration%") logCriticalDepthConfiguration: number,
                      @inject("%pristine.logging.consoleLoggerActivated%") isActivated: boolean,
                      @inject("%pristine.logging.consoleLoggerOutputMode%") outputMode: OutputModeEnum,
+                     @inject("%pristine.logging.maximumLogsPerSecond%") private readonly maximumLogsPerSecond: number,
                      ) {
     super(numberOfStackedLogs,
         logSeverityLevelConfiguration,
@@ -90,6 +98,23 @@ export class ConsoleLogger extends BaseLogger implements LoggerInterface {
     }
   }
 
+  private shouldThrottleLogs() {
+    const now = new Date().getSeconds();
+    if (this.currentSecond !== now) {
+      this.currentSecond = now;
+      this.numberOfLogsInThisSecond = 1;
+      this.currentlyThrottlingLogs = false;
+    } else {
+      this.numberOfLogsInThisSecond++;
+      if (this.numberOfLogsInThisSecond > this.maximumLogsPerSecond) {
+        this.currentlyThrottlingLogs = true;
+        console.error(`Throttling the logs as we are outputting too many logs (${this.maximumLogsPerSecond}) per second.`);
+      }
+    }
+
+    return this.currentlyThrottlingLogs;
+  }
+
   /**
    * Outputs the log in the console.
    * @param log The log to be outputted
@@ -97,6 +122,10 @@ export class ConsoleLogger extends BaseLogger implements LoggerInterface {
    */
   protected log(log: LogModel): void {
     const outputLog = this.getFormattedOutputLog(log);
+
+    if(this.shouldThrottleLogs()) {
+      return;
+    }
 
     switch (log.severity) {
       case SeverityEnum.Debug:
