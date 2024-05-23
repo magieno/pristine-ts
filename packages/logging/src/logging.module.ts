@@ -190,7 +190,7 @@ export const LoggingModule: ModuleInterface = {
          */
         {
             parameterName: LoggingModuleKeyname + ".maximumLogsPerSecond",
-            defaultValue: 100,
+            defaultValue: 50,
             isRequired: false,
             defaultResolvers: [
                 new NumberResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_MAXIMUM_LOGS_PER_SECOND")),
