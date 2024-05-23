@@ -56,7 +56,8 @@ describe("Console writer", () => {
             3,
             3,
             true,
-            OutputModeEnum.Json
+            OutputModeEnum.Json,
+            50
         );
 
         consoleWriter.readableStream.push(logInfo);
@@ -84,7 +85,8 @@ describe("Console writer", () => {
             3,
             3,
             true,
-            OutputModeEnum.Json
+            OutputModeEnum.Json,
+            50
         );
 
         consoleWriter.readableStream.push(logInfo);
@@ -112,7 +114,8 @@ describe("Console writer", () => {
             3,
             3,
             true,
-            OutputModeEnum.Json
+            OutputModeEnum.Json,
+            50
         );
 
         consoleWriter.readableStream.push(logInfo);
@@ -140,7 +143,8 @@ describe("Console writer", () => {
             3,
             3,
             true,
-            OutputModeEnum.Json
+            OutputModeEnum.Json,
+            50
         );
 
         consoleWriter.readableStream.push(logInfo);
@@ -169,7 +173,8 @@ describe("Console writer", () => {
             3,
             3,
             true,
-            OutputModeEnum.Json
+            OutputModeEnum.Json,
+            50
         );
 
         consoleWriter.readableStream.push(logInfo);
@@ -197,7 +202,8 @@ describe("Console writer", () => {
             3,
             3,
             true,
-            OutputModeEnum.Json
+            OutputModeEnum.Json,
+            50
         );
 
         consoleWriter.readableStream.push(logInfo);
