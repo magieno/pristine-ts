@@ -391,7 +391,7 @@ export class CloudformationClient implements CloudformationClientInterface {
                 case ChangeSetStatus.FAILED:
                     switch(response.StatusReason) {
                         case "No updates are to be performed.":
-                        case"The submitted information didn't contain changes. Submit different information to create a change set.":
+                        case "The submitted information didn't contain changes. Submit different information to create a change set.":
                             return CloudformationDeploymentStatusEnum.NoChangesToPerform;
                         default:
                             return CloudformationDeploymentStatusEnum.Failed;
