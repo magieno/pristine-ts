@@ -389,8 +389,12 @@ export class CloudformationClient implements CloudformationClientInterface {
                     return CloudformationDeploymentStatusEnum.Completed;
 
                 case ChangeSetStatus.FAILED:
-                    if(response.StatusReason == "The submitted information didn't contain changes. Submit different information to create a change set.") {
-                        return CloudformationDeploymentStatusEnum.NoChangesToPerform;
+                    switch(response.StatusReason) {
+                        case "No updates are to be performed.":
+                        case "The submitted information didn't contain changes. Submit different information to create a change set.":
+                            return CloudformationDeploymentStatusEnum.NoChangesToPerform;
+                        default:
+                            return CloudformationDeploymentStatusEnum.Failed;
                     }
                 case ChangeSetStatus.DELETE_FAILED:
                     this.logHandler.error("Error with the ChangeSet.", {response}, AwsModuleKeyname)
