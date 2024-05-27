@@ -41,8 +41,16 @@ const getLocalAppModuleCJSPath = async (): Promise<string | undefined> => {
     })
 }
 
+export const startKernel = async(module: AppModuleInterface, configurationOverrides: { [key: string]: ModuleConfigurationValue } = {
+    [LoggingModuleKeyname + ".consoleLoggerOutputMode"]: OutputModeEnum.Simple,
+    [LoggingModuleKeyname + ".logSeverityLevelConfiguration"] :SeverityEnum.Error,
+}) => {
+    const kernel = new Kernel();
+    await kernel.start(module, configurationOverrides);
 
-export const bootstrap = async () => {
+    await kernel.handle(process.argv, {keyname: ExecutionContextKeynameEnum.Cli, context: null})
+}
+ const bootstrap = async () => {
     let localAppModule: AppModuleInterface;
     let isLoggingModulePresent = false;
 
@@ -92,10 +100,7 @@ export const bootstrap = async () => {
         configuration[LoggingModuleKeyname + ".logSeverityLevelConfiguration"] = SeverityEnum.Error;
     }
 
-    const kernel = new Kernel();
-    await kernel.start(localAppModule, configuration);
-
-    await kernel.handle(process.argv, {keyname: ExecutionContextKeynameEnum.Cli, context: null})
+    await startKernel(localAppModule, configuration);
 }
 
 bootstrap();
