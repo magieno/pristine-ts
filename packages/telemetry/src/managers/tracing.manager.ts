@@ -26,7 +26,7 @@ export class TracingManager implements TracingManagerInterface {
     /**
      * This object contains a map of all the spans sorted by their keyname.
      */
-    public spans: {[keyname: string]: Span} = {};
+    public spans: {[keyname: string]: Span[]} = {};
 
     /**
      * The Tracing Manager provides methods to help with tracing.
@@ -93,9 +93,10 @@ export class TracingManager implements TracingManagerInterface {
      * This method starts a new span.
      * @param keyname The keyname for this new span.
      * @param parentKeyname The keyname of the parent span.
+     * @param parentId The id of the parent span.
      * @param context The context if there is one.
      */
-    public startSpan(keyname: string, parentKeyname?: string, context?: any): Span {
+    public startSpan(keyname: string, parentKeyname?: string, parentId?: string, context?: any): Span {
         // Check if there's an active trace. If not, start one.
         if(this.trace === undefined) {
             this.startTracing(SpanKeynameEnum.RootExecution, undefined, context);
@@ -119,7 +120,20 @@ export class TracingManager implements TracingManagerInterface {
         // Check to find the parentKeyname in our internal map of spans. If n ot, the rootSpan will be the parent since every span
         // needs at least one parent.
         if(parentKeyname) {
-            parentSpan = this.spans[parentKeyname] ?? parentSpan;
+            const parentSpans = this.spans[parentKeyname];
+            // If multiple spans have the same keyname we need an id to find the parent
+            if (parentSpans) {
+                if (parentSpans.length > 1) {
+                    if (!parentId) {
+                        this.loghandler.error("Error finding the parent span, there are multiple spans with that keyname and no id is provided.", {parentKeyname});
+                    } else {
+                        parentSpan = parentSpans.find(span => span.id === parentId) ?? parentSpan;
+                    }
+                } else if (parentSpans.length === 1) {
+                    // If only one span has the keyname we can use it
+                    parentSpan = parentSpans[0];
+                }
+            }
         }
 
         // Add the new span as a child of its parent.
@@ -154,7 +168,11 @@ export class TracingManager implements TracingManagerInterface {
         span.trace = this.trace!;
 
         // Add it to the map of spans
-        this.spans[span.keyname] = span;
+        if(!this.spans[span.keyname]) {
+            this.spans[span.keyname] = [span];
+        } else {
+            this.spans[span.keyname].push(span);
+        }
 
         // If the tracing is deactivated, simply return the span and don't complain.
         if(this.isActive === false) {
@@ -188,8 +206,10 @@ export class TracingManager implements TracingManagerInterface {
         if(this.spans.hasOwnProperty(keyname) === false) {
             return;
         }
-
-        this.endSpan(this.spans[keyname]);
+        if(this.spans[keyname] && this.spans[keyname].length === 1){
+            return this.endSpan(this.spans[keyname][0]);
+        }
+        this.loghandler.error("Error ending span by keyname since multiple spans exist with this keyname");
     }
 
     /**
@@ -263,7 +283,7 @@ export class TracingManager implements TracingManagerInterface {
 
         // Trace time
         // Top 5 longest spans
-        const longestSpans = Object.values(this.spans).sort( (a, b) => b.getDuration() - a.getDuration());
+        const longestSpans = Object.values(this.spans).flat(2).sort( (a, b) => b.getDuration() - a.getDuration());
         longestSpans.splice(5);
 
         this.loghandler.info("Ending the trace. \n" +
