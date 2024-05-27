@@ -16,7 +16,7 @@ export class TracingManagerMock implements TracingManagerInterface {
     endTrace(): void {
     }
 
-    startSpan(keyname: string, parentKeyname?: string, context?: { [p: string]: string }): Span {
+    startSpan(keyname: string, parentKeyname?: string, parentId?: string, context?: { [p: string]: string }): Span {
         return new Span("");
     }
 

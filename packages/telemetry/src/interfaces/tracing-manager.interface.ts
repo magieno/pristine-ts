@@ -27,9 +27,10 @@ export interface TracingManagerInterface {
      * This method starts a new span.
      * @param keyname The keyname for this new span.
      * @param parentKeyname The keyname of the parent span.
+     * @param parentId The id of the parent span.
      * @param context The context if there is one.
      */
-    startSpan(keyname: string, parentKeyname?: string, context?: { [key: string]: string }): Span;
+    startSpan(keyname: string, parentKeyname?: string, parentId?: string, context?: { [key: string]: string }): Span;
 
     /**
      * This methods adds an already created Span to the trace. It assumes that it its hierarchy is correct.
