@@ -42,7 +42,7 @@ const getLocalAppModuleCJSPath = async (): Promise<string | undefined> => {
 }
 
 
-const bootstrap = async () => {
+export const bootstrap = async () => {
     let localAppModule: AppModuleInterface;
     let isLoggingModulePresent = false;
 
