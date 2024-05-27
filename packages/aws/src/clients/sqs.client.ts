@@ -1,6 +1,6 @@
 import {inject, injectable} from "tsyringe";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import {SQSClient, SendMessageCommand} from "@aws-sdk/client-sqs";
+import {SQSClient, SendMessageCommand, SQSClientConfig} from "@aws-sdk/client-sqs";
 import {SqsMessageSentConfirmationModel} from "../models/sqs-message-sent-confirmation.model";
 import {SqsSendMessageError} from "../errors/sqs-send-message.error";
 import {moduleScoped, tag} from "@pristine-ts/common";
@@ -30,12 +30,12 @@ export class SqsClient implements SqsClientInterface {
 
     /**
      * Returns the instantiated SQSClient from the @aws-sdk/client-sqs library.
-     * @param endpoint The endpoint for which the SQS client is created.
+     * @param configs The configs for which the SQS client is created.
      */
-    public getClient(endpoint?: string): SQSClient {
+    public getClient(configs?: Partial<SQSClientConfig>): SQSClient {
         return new SQSClient({
             region: this.region,
-            endpoint: endpoint ?? undefined,
+            ...configs
         });
     }
 
@@ -45,13 +45,13 @@ export class SqsClient implements SqsClientInterface {
      * @param body The body of the message to send in the queue.
      * @param messageGroupId The message group id for FIFO queues.
      * @param delaySeconds The length of time, in seconds, for which to delay a specific message.
-     * @param endpoint The endpoint for SQS.
      * @param messageDeduplicationId The unique id used by Amazon SQS in Fifo queues to avoid treating a message twice.
      * @param options
+     * @param configs The configs for which the SQS client is created.
      */
-    async send(queueUrl: string, body: string, messageGroupId?: string, delaySeconds?: number, endpoint?: string, messageDeduplicationId?: string, options?: Partial<ClientOptionsInterface>): Promise<SqsMessageSentConfirmationModel> {
+    async send(queueUrl: string, body: string, messageGroupId?: string, delaySeconds?: number, messageDeduplicationId?: string, options?: Partial<ClientOptionsInterface>, configs?: Partial<SQSClientConfig>): Promise<SqsMessageSentConfirmationModel> {
         try {
-            const client = this.getClient(endpoint);
+            const client = this.getClient(configs);
 
             const command = new SendMessageCommand({
                 QueueUrl: queueUrl,
