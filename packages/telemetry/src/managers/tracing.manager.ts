@@ -122,15 +122,17 @@ export class TracingManager implements TracingManagerInterface {
         if(parentKeyname) {
             const parentSpans = this.spans[parentKeyname];
             // If multiple spans have the same keyname we need an id to find the parent
-            if (parentSpans && parentSpans.length > 1) {
-                if(!parentId) {
-                    this.loghandler.error("Error finding the parent span, there are multiple spans with that keyname and no id is provided.", {parentKeyname});
-                } else {
-                    parentSpan = parentSpans.find(span => span.id === parentId) ?? parentSpan;
+            if (parentSpans) {
+                if (parentSpans.length > 1) {
+                    if (!parentId) {
+                        this.loghandler.error("Error finding the parent span, there are multiple spans with that keyname and no id is provided.", {parentKeyname});
+                    } else {
+                        parentSpan = parentSpans.find(span => span.id === parentId) ?? parentSpan;
+                    }
+                } else if (parentSpans.length === 1) {
+                    // If only one span has the keyname we can use it
+                    parentSpan = parentSpans[0];
                 }
-            } else if (parentSpans.length === 1) {
-                // If only one span has the keyname we can use it
-                parentSpan = parentSpans[0];
             }
         }
 
