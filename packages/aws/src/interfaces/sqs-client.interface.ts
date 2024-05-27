@@ -1,5 +1,5 @@
 import {SqsMessageSentConfirmationModel} from "../models/sqs-message-sent-confirmation.model";
-import {SQSClient} from "@aws-sdk/client-sqs";
+import {SQSClient, SQSClientConfig} from "@aws-sdk/client-sqs";
 import {ClientOptionsInterface} from "./client-options.interface";
 
 /**
@@ -9,9 +9,9 @@ import {ClientOptionsInterface} from "./client-options.interface";
 export interface SqsClientInterface {
     /**
      * Returns the instantiated SQSClient from the @aws-sdk/client-sqs library.
-     * @param endpoint The endpoint for which the SQS client is created.
+     * @param configs The configs for which the SQS client is created.
      */
-    getClient(endpoint?: string): SQSClient;
+    getClient(configs?: Partial<SQSClientConfig>): SQSClient;
 
     /**
      * Sends a message to the specified Queue URL.
@@ -22,6 +22,7 @@ export interface SqsClientInterface {
      * @param endpoint The endpoint for SQS.
      * @param messageDeduplicationId
      * @param options
+     * @param configs The configs for which the SQS client is created.
      */
-    send(queueUrl: string, body: string, messageGroupId?: string, delaySeconds?: number, endpoint?: string, messageDeduplicationId?: string, options?: Partial<ClientOptionsInterface>): Promise<SqsMessageSentConfirmationModel>;
+    send(queueUrl: string, body: string, messageGroupId?: string, delaySeconds?: number, messageDeduplicationId?: string, options?: Partial<ClientOptionsInterface>, configs?: Partial<SQSClientConfig>): Promise<SqsMessageSentConfirmationModel>;
 }
