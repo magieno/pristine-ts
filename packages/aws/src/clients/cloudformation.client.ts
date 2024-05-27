@@ -44,6 +44,7 @@ import {v4 as uuid} from "uuid";
 import {CloudformationDeploymentStatusEnum} from "../enums/cloudformation-deployment-status.enum";
 import {NotFoundHttpError} from "@pristine-ts/networking";
 import {ClientOptionsInterface} from "../interfaces/client-options.interface";
+import * as AWSXRay from "aws-xray-sdk";
 
 /**
  * The client to use to interact with AWS Cloudformation. It is a wrapper around the CloudformationClient of @aws-sdk/client-cloudformation.
@@ -65,10 +66,12 @@ export class CloudformationClient implements CloudformationClientInterface {
      * The client to use to interact with AWS Cloudformation. It is a wrapper around the CloudformationClient of @aws-sdk/client-cloudformation.
      * @param logHandler The log handler used to output logs.
      * @param region The aws region for which the client will be used.
+     * @param isTracingActive Whether or not the service tracing is activated.
      */
     constructor(
         @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
         @inject("%pristine.aws.region%") public region: string,
+        @inject("%pristine.aws.serviceTracing.isActive") public isTracingActive: boolean,
     ) {
     }
 
@@ -76,7 +79,10 @@ export class CloudformationClient implements CloudformationClientInterface {
      * Returns the instantiated CloudformationClient from the @aws-sdk/client-s3 cloudformation
      */
     getClient(): AWSCloudformationClient {
-        return this.client = this.client ?? new AWSCloudformationClient({region: this.region});
+        if (this.client) {
+            return this.client
+        }
+        return this.client = this.isTracingActive === true ? AWSXRay.captureAWSv3Client(new AWSCloudformationClient({region: this.region})) : new AWSCloudformationClient({region: this.region});
     }
 
     /**
@@ -84,7 +90,7 @@ export class CloudformationClient implements CloudformationClientInterface {
      * @param config
      */
     setClient(config: CloudFormationClientConfig) {
-        this.client = new AWSCloudformationClient(config);
+        this.client =  this.isTracingActive === true ? AWSXRay.captureAWSv3Client(new AWSCloudformationClient(config)) : new AWSCloudformationClient(config);
     }
 
     /**

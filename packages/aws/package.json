@@ -27,6 +27,7 @@
     "@aws-sdk/client-sqs": "^3.569.0",
     "@aws-sdk/client-ssm": "^3.569.0",
     "@aws-sdk/s3-request-presigner": "^3.569.0",
+    "aws-xray-sdk": "^3.5.3",
     "@awslabs-community-fork/dynamodb-data-mapper": "^0.7.13",
     "@awslabs-community-fork/dynamodb-data-marshaller": "^0.7.13",
     "@awslabs-community-fork/dynamodb-expressions": "^0.7.13",

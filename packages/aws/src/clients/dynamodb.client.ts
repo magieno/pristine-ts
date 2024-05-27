@@ -22,6 +22,8 @@ import { ListOptions } from "../options/list.options";
 import { FindBySecondaryIndexOptions } from "../options/find-by-secondary-index.options";
 import { ListResult } from "../results/list.result";
 import { DynamodbSortOrderEnum } from "../enums/dynamodb-sort-order.enum";
+import * as AWSXRay from "aws-xray-sdk";
+import {CloudFrontClient as AWSCloudFrontClient} from "@aws-sdk/client-cloudfront/dist-types/CloudFrontClient";
 
 /**
  * The client to use to interact with AWS DynamoDb. It is a wrapper around the client of @aws-sdk/client-dynamodb.
@@ -47,10 +49,12 @@ export class DynamodbClient implements DynamodbClientInterface{
      * The client to use to interact with DynamoDb. It is a wrapper around the client of @aws-sdk/client-dynamodb.
      * @param logHandler The log handler used to output logs.
      * @param region The aws region for which the client will be used.
+     * @param isTracingActive Whether or not the service tracing is activated.
      */
     constructor(
         @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
         @inject("%pristine.aws.region%") private readonly region: string,
+        @inject("%pristine.aws.serviceTracing.isActive") public isTracingActive: boolean,
     ) {
     }
 
@@ -58,7 +62,10 @@ export class DynamodbClient implements DynamodbClientInterface{
      * Returns the DynamoDB client from the @aws-sdk/client-dynamodb library
      */
     public async getClient(): Promise<DynamoDB> {
-        return this.client = this.client ?? new DynamoDB({region: this.region});
+        if (this.client) {
+            return this.client
+        }
+        return this.client = this.isTracingActive === true ? AWSXRay.captureAWSv3Client(new DynamoDB({region: this.region})) : new DynamoDB({region: this.region});
     }
 
     /**

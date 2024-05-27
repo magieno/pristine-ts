@@ -8,9 +8,9 @@ import {
     CreateInvalidationCommand, CreateInvalidationResult, GetInvalidationCommand, GetInvalidationResult
 } from "@aws-sdk/client-cloudfront"
 import {CloudfrontClientInterface} from "../interfaces/cloudfront-client.interface";
-import {DescribeStacksCommand, DescribeStacksCommandOutput} from "@aws-sdk/client-cloudformation";
 import { v4 as uuidv4 } from 'uuid';
 import {ClientOptionsInterface} from "../interfaces/client-options.interface";
+import * as AWSXRay from "aws-xray-sdk";
 
 /**
  * The client to use to interact with AWS Cloudformation. It is a wrapper around the Cloudfront of @aws-sdk/client-cloudfront.
@@ -32,10 +32,12 @@ export class CloudfrontClient implements CloudfrontClientInterface {
      * The client to use to interact with AWS CloudFront. It is a wrapper around the CloudFrontClient of @aws-sdk/client-cloudfront.
      * @param logHandler The log handler used to output logs.
      * @param region The aws region for which the client will be used.
+     * @param isTracingActive Whether or not the service tracing is activated.
      */
     constructor(
         @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
         @inject("%pristine.aws.region%") public region: string,
+        @inject("%pristine.aws.serviceTracing.isActive") public isTracingActive: boolean,
     ) {
     }
 
@@ -43,7 +45,10 @@ export class CloudfrontClient implements CloudfrontClientInterface {
      * Returns the instantiated CloudFrontClient from the @aws-sdk/client-cloudfront
      */
     getClient(): AWSCloudFrontClient {
-        return this.client = this.client ?? new AWSCloudFrontClient({region: this.region});
+        if (this.client) {
+            return this.client
+        }
+        return this.client = this.isTracingActive === true ? AWSXRay.captureAWSv3Client(new AWSCloudFrontClient({region: this.region})) : new AWSCloudFrontClient({region: this.region});
     }
 
     /**
@@ -51,7 +56,7 @@ export class CloudfrontClient implements CloudfrontClientInterface {
      * @param config
      */
     setClient(config: CloudFrontClientConfig) {
-        this.client = new AWSCloudFrontClient(config);
+        this.client = this.isTracingActive === true ? AWSXRay.captureAWSv3Client(new AWSCloudFrontClient(config)) : new AWSCloudFrontClient(config);
     }
 
     /**

@@ -7,6 +7,7 @@ import {EventBridgeClientInterface} from "../interfaces/event-bridge-client.inte
 import {moduleScoped, tag} from "@pristine-ts/common";
 import {AwsModuleKeyname} from "../aws.module.keyname";
 import {ClientOptionsInterface} from "../interfaces/client-options.interface";
+import * as AWSXRay from "aws-xray-sdk";
 
 /**
  * The client to use to interact with AWS Event Bridge. It is a wrapper around the AwsEventBridgeClient of @aws-sdk/client-eventbridge.
@@ -21,10 +22,12 @@ export class EventBridgeClient implements EventBridgeClientInterface {
      * The client to use to interact with AWS Event Bridge. It is a wrapper around the AwsEventBridgeClient of @aws-sdk/client-eventbridge.
      * @param logHandler The log handler used to output logs.
      * @param region The aws region for which the client will be used.
+     * @param isTracingActive Whether or not the service tracing is activated.
      */
     constructor(
         @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
         @inject("%pristine.aws.region%") private readonly region: string,
+        @inject("%pristine.aws.serviceTracing.isActive") public isTracingActive: boolean,
     ) {
     }
 
@@ -33,6 +36,15 @@ export class EventBridgeClient implements EventBridgeClientInterface {
      * @param endpoint The endpoint for which the Event Bridge client is created.
      */
     public getClient(endpoint?: string): AwsEventBridgeClient {
+        if (this.isTracingActive === true) {
+            return AWSXRay.captureAWSv3Client(
+                new AwsEventBridgeClient({
+                    apiVersion: "2015-10-17",
+                    region: this.region,
+                    endpoint: endpoint ?? undefined,
+                }));
+        }
+
         return new AwsEventBridgeClient({
             apiVersion: "2015-10-17",
             region: this.region,

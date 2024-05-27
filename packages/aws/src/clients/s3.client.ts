@@ -7,6 +7,7 @@ import { GetObjectCommand, GetObjectCommandOutput, ListObjectsCommand, ListObjec
 import { S3PresignedOperationTypeEnum } from "../enums/s3-presigned-operation-type.enum";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import {ClientOptionsInterface} from "../interfaces/client-options.interface";
+import * as AWSXRay from 'aws-xray-sdk';
 
 /**
  * The client to use to interact with AWS S3. It is a wrapper around the AWSS3Client of @aws-sdk/client-s3.
@@ -27,10 +28,12 @@ export class S3Client implements S3ClientInterface {
      * The client to use to interact with AWS S3. It is a wrapper around the AWSS3Client of @aws-sdk/client-s3.
      * @param logHandler The log handler used to output logs.
      * @param region The aws region for which the client will be used.
+     * @param isTracingActive Whether or not the service tracing is activated.
      */
     constructor(
         @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
         @inject("%pristine.aws.region%") public region: string,
+        @inject("%pristine.aws.serviceTracing.isActive") public isTracingActive: boolean,
     ) {
     }
 
@@ -38,7 +41,11 @@ export class S3Client implements S3ClientInterface {
      * Returns the instantiated AWSS3Client from the @aws-sdk/client-s3 library
      */
     getClient(): AWSS3Client {
-        return this.client = this.client ?? new AWSS3Client({region: this.region});
+        if (this.client) {
+            return this.client
+        }
+
+        return this.client = this.isTracingActive === true ? AWSXRay.captureAWSv3Client(new AWSS3Client({region: this.region})) : new AWSS3Client({region: this.region});
     }
 
     /**

@@ -4,7 +4,7 @@ import {DynamoDbTable} from "@awslabs-community-fork/dynamodb-data-mapper";
 import {LoggingModule, LogHandlerInterface} from "@pristine-ts/logging";
 import {DependencyContainer} from "tsyringe";
 import {AwsModuleKeyname} from "./aws.module.keyname";
-import {EnvironmentVariableResolver} from "@pristine-ts/configuration";
+import {BooleanResolver, EnvironmentVariableResolver} from "@pristine-ts/configuration";
 import {CoreModule} from "@pristine-ts/core";
 
 export * from "./clients/clients";
@@ -33,6 +33,14 @@ export const AwsModule: ModuleInterface = {
             defaultValue: "us-east-1",
             defaultResolvers: [
                 new EnvironmentVariableResolver("AWS_REGION"),
+            ]
+        },
+        {
+            parameterName: AwsModuleKeyname + ".serviceTracing.isActive",
+            isRequired: false,
+            defaultValue: "us-east-1",
+            defaultResolvers: [
+                new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_AWS_SERVICE_TRACING_IS_ACTIVE")),
             ]
         },
     ],

@@ -6,6 +6,7 @@ import {SecretsManagerClientInterface} from "../interfaces/secrets-manager-clien
 import {GetSecretValueCommand, SecretsManagerClient as AWSSecretsManagerClient} from "@aws-sdk/client-secrets-manager";
 import {GetSecretSecretsManagerError} from "../errors/get-secret-secrets-manager.error";
 import {ClientOptionsInterface} from "../interfaces/client-options.interface";
+import * as AWSXRay from "aws-xray-sdk";
 
 @tag("SecretsManagerClientInterface")
 @moduleScoped(AwsModuleKeyname)
@@ -15,14 +16,24 @@ export class SecretsManagerClient implements SecretsManagerClientInterface {
      * The client to use to interact with AWS SES. It is a wrapper around the SESClient of @aws-sdk/client-ses.
      * @param logHandler The log handler used to output logs.
      * @param region The aws region for which the client will be used.
+     * @param isTracingActive Whether or not the service tracing is activated.
      */
     constructor(
         @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
         @inject("%pristine.aws.region%") private readonly region: string,
+        @inject("%pristine.aws.serviceTracing.isActive") public isTracingActive: boolean,
     ) {
     }
 
     getClient(endpoint?: string): AWSSecretsManagerClient {
+        if (this.isTracingActive === true) {
+            return AWSXRay.captureAWSv3Client(
+                new AWSSecretsManagerClient({
+                    region: this.region,
+                    endpoint: endpoint ?? undefined,
+                }));
+        }
+
         return new AWSSecretsManagerClient({
             region: this.region,
             endpoint: endpoint ?? undefined,

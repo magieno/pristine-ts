@@ -15,6 +15,10 @@ import {SqsSendMessageError} from "../errors/sqs-send-message.error";
 import {SesMessageSentConfirmationModel} from "../models/ses-message-sent-confirmation.model";
 import {SesSendError} from "../errors/ses-send.error";
 import {ClientOptionsInterface} from "../interfaces/client-options.interface";
+import * as AWSXRay from "aws-xray-sdk";
+import {
+    SecretsManagerClient as AWSSecretsManagerClient
+} from "@aws-sdk/client-secrets-manager/dist-types/SecretsManagerClient";
 
 @tag("SesClientInterface")
 @moduleScoped(AwsModuleKeyname)
@@ -24,14 +28,24 @@ export class SesClient implements SesClientInterface {
      * The client to use to interact with AWS SES. It is a wrapper around the SESClient of @aws-sdk/client-ses.
      * @param logHandler The log handler used to output logs.
      * @param region The aws region for which the client will be used.
+     * @param isTracingActive Whether or not the service tracing is activated.
      */
     constructor(
         @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
         @inject("%pristine.aws.region%") private readonly region: string,
+        @inject("%pristine.aws.serviceTracing.isActive") public isTracingActive: boolean,
     ) {
     }
 
     getClient(endpoint?: string): SESClient {
+        if (this.isTracingActive === true) {
+            return AWSXRay.captureAWSv3Client(
+                new SESClient({
+                    region: this.region,
+                    endpoint: endpoint ?? undefined,
+                }));
+        }
+
         return new SESClient({
             region: this.region,
             endpoint: endpoint ?? undefined,

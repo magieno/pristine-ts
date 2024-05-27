@@ -7,6 +7,7 @@ import {moduleScoped, tag} from "@pristine-ts/common";
 import {AwsModuleKeyname} from "../aws.module.keyname";
 import {SqsClientInterface} from "../interfaces/sqs-client.interface";
 import {ClientOptionsInterface} from "../interfaces/client-options.interface";
+import * as AWSXRay from "aws-xray-sdk";
 
 /**
  * The client to use to interact with AWS SQS. It is a wrapper around the SQSClient of @aws-sdk/client-sqs.
@@ -21,10 +22,12 @@ export class SqsClient implements SqsClientInterface {
      * The client to use to interact with AWS SQS. It is a wrapper around the SQSClient of @aws-sdk/client-sqs.
      * @param logHandler The log handler used to output logs.
      * @param region The aws region for which the client will be used.
+     * @param isTracingActive Whether or not the service tracing is activated.
      */
     constructor(
         @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
         @inject("%pristine.aws.region%") private readonly region: string,
+        @inject("%pristine.aws.serviceTracing.isActive") public isTracingActive: boolean,
     ) {
     }
 
@@ -33,6 +36,14 @@ export class SqsClient implements SqsClientInterface {
      * @param endpoint The endpoint for which the SQS client is created.
      */
     public getClient(endpoint?: string): SQSClient {
+        if (this.isTracingActive === true) {
+            return AWSXRay.captureAWSv3Client(
+                new SQSClient({
+                    region: this.region,
+                    endpoint: endpoint ?? undefined,
+                }));
+        }
+
         return new SQSClient({
             region: this.region,
             endpoint: endpoint ?? undefined,

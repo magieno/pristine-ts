@@ -41,7 +41,7 @@ export class XrayTracer implements TracerInterface{
         }
 
         if(trace.rootSpan === undefined) {
-            this.loghandler.error("The RootSpance of the trace is undefined, there's nothing we can do", {
+            this.loghandler.error("The RootSpan of the trace is undefined, there's nothing we can do", {
                 segment,
                 trace,
             }, AwsXrayModuleKeyname)
