@@ -1,4 +1,4 @@
-import {injectable, scoped, Lifecycle, injectAll, inject} from "tsyringe";
+import {injectable, singleton, Lifecycle, injectAll, inject} from "tsyringe";
 import {Trace} from "../models/trace.model";
 import {Span} from "../models/span.model";
 import {TracingManagerInterface} from "../interfaces/tracing-manager.interface";
@@ -15,7 +15,7 @@ import {LogHandlerInterface} from "@pristine-ts/logging";
  */
 @moduleScoped(TelemetryModuleKeyname)
 @tag("TracingManagerInterface")
-@scoped(Lifecycle.ContainerScoped)
+@singleton()
 @injectable()
 export class TracingManager implements TracingManagerInterface {
     /**
