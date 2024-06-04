@@ -4,4 +4,5 @@ export interface TableDecoratorMetadataInterface {
     tableName: string;
 
     autoColumnNamingStrategy?: ColumnNamingStrategyType;
+    autoColumnNamingStrategyReverse?: ColumnNamingStrategyType;
 }

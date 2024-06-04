@@ -22,6 +22,7 @@
   "dependencies": {
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/core": "file:../core",
+    "@pristine-ts/data-mapping-common": "file:../data-mapping-common",
     "@pristine-ts/data-mapping": "file:../data-mapping",
     "@pristine-ts/metadata": "^1.0.6",
     "@pristine-ts/security": "file:../security",

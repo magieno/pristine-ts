@@ -2,11 +2,20 @@ import {column} from "../decorators/column.decorator";
 import {table} from "../decorators/table.decorator";
 import {snakeCaseColumnStrategy} from "../strategies/snake-case-column.strategy";
 import {MysqlClient} from "./mysql.client";
+import {
+    AutoDataMappingBuilder,
+    DataMapper,
+    DateNormalizer,
+    NumberNormalizer,
+    StringNormalizer
+} from "@pristine-ts/data-mapping-common";
+import {camelCaseColumnStrategy} from "../strategies/camel-case-column.strategy";
 
 describe('MySQL Client', () => {
     @table({
         tableName: "users",
         autoColumnNamingStrategy: snakeCaseColumnStrategy,
+        autoColumnNamingStrategyReverse: camelCaseColumnStrategy,
     })
     class User {
         @column({
@@ -29,7 +38,7 @@ describe('MySQL Client', () => {
         }, terminate(): void {
         }, warning(message: string, extra?: any, module?: string): void {
         }
-    });
+    }, new DataMapper(new AutoDataMappingBuilder(), [new DateNormalizer(), new StringNormalizer(), new NumberNormalizer()], []));
 
     it("should retrieve the table metadata", () => {
         const tableMetadata = mysqlClient.getTableMetadata(User);
@@ -72,8 +81,27 @@ describe('MySQL Client', () => {
         expect(mysqlClient.getColumnName(User, "lastName")).toBe("last_name");
     })
 
-    it("should properly craft a SQL statement and map the object back", () => {
+    it("should properly retrieve an object in the db based on the id", async () => {
         // Mock the executeSql method with a spy and verify that the first argument was the expected SQL Statement.
-        const executeSqlSpy = jest.spyOn(mysqlClient, "executeSql").mockResolvedValueOnce({});
+        const executeSqlSpy = jest.spyOn(mysqlClient, "executeSql").mockResolvedValueOnce([
+            {
+            "unique_id": "1",
+            "first_name": "John",
+            "last_name": "Smith",
+            }
+            ]);
+        const user = await mysqlClient.get("pristine", User, "1" );
+
+        expect(executeSqlSpy).toHaveBeenCalledWith(
+            "pristine",
+            "SELECT * FROM users WHERE unique_id = ?",
+            ["1"],
+        );
+
+        expect(user).toBeDefined();
+        expect(user).toBeInstanceOf(User);
+        expect(user!.uniqueId).toBe("1");
+        expect(user!.firstName).toBe("John");
+        expect(user!.lastName).toBe("Smith");
     })
 });

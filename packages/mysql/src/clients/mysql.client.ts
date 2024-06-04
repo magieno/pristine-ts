@@ -5,8 +5,9 @@ import {DecoratorMetadataKeynameEnum} from "../enums/decorator-metadata-keyname.
 import {TableDecoratorMetadataInterface} from "../interfaces/table-decorator-metadata.interface";
 import {ColumnDecoratorMetadataInterface} from "../interfaces/column-decorator-metadata.interface";
 import {MysqlModuleKeyname} from "../mysql.module.keyname";
-import {createPool, Pool} from "mysql2";
+import {createPool, Pool} from "mysql2/promise";
 import {LogHandlerInterface} from "@pristine-ts/logging";
+import {DataMapper} from "@pristine-ts/data-mapping-common";
 
 @injectable()
 @singleton()
@@ -20,6 +21,7 @@ export class MysqlClient implements MysqlClientInterface {
                 @inject(`%${MysqlModuleKeyname}.connection_limit%`) private readonly connectionLimit: number,
                 @inject(`%${MysqlModuleKeyname}.debug%`) private readonly debug: boolean,
                 @inject('LogHandlerInterface') private readonly logHandler: LogHandlerInterface,
+                private readonly dataMapper: DataMapper,
     ) {
     }
 
@@ -56,7 +58,9 @@ export class MysqlClient implements MysqlClientInterface {
         return this.pools.get(databaseName) as Pool;
     }
 
-    public getTableMetadata<T extends { [key: string]: any; }>(classType: { new(): T; }): TableDecoratorMetadataInterface {
+    public getTableMetadata<T extends { [key: string]: any; }>(classType: {
+        new(): T;
+    }): TableDecoratorMetadataInterface {
         const tableMetadata: TableDecoratorMetadataInterface = ClassMetadata.getMetadata(classType, DecoratorMetadataKeynameEnum.Table);
 
         if (!tableMetadata) {
@@ -66,7 +70,9 @@ export class MysqlClient implements MysqlClientInterface {
         return tableMetadata;
     }
 
-    public getColumnsMetadata<T extends { [key: string]: any; }>(classType: { new(): T; }): { [property in string]: ColumnDecoratorMetadataInterface } {
+    public getColumnsMetadata<T extends { [key: string]: any; }>(classType: {
+        new(): T;
+    }): { [property in string]: ColumnDecoratorMetadataInterface } {
         const properties = ClassMetadata.getInformation(classType).properties;
 
         const columnsMetadata: { [property in string]: ColumnDecoratorMetadataInterface } = {};
@@ -82,7 +88,9 @@ export class MysqlClient implements MysqlClientInterface {
         return columnsMetadata;
     }
 
-    public getColumnMetadata<T extends { [key: string]: any; }>(classType: { new(): T; }, propertyName: string): ColumnDecoratorMetadataInterface {
+    public getColumnMetadata<T extends { [key: string]: any; }>(classType: {
+        new(): T;
+    }, propertyName: string): ColumnDecoratorMetadataInterface {
         const metadata = PropertyMetadata.getMetadata(classType.prototype, propertyName, DecoratorMetadataKeynameEnum.Column);
 
         if (!metadata) {
@@ -132,40 +140,52 @@ export class MysqlClient implements MysqlClientInterface {
     }
 
     async executeSql(databaseName: string, sqlStatement: string, values: any[]): Promise<any> {
-        return new Promise<any>(async (resolve, reject) => {
-            const pool = await this.getPool(databaseName);
+        const pool = await this.getPool(databaseName);
 
-            this.logHandler.debug("Executing SQL Statement", {sqlStatement, values});
+        this.logHandler.debug("Executing SQL Statement", {sqlStatement, values});
 
-            pool.query(sqlStatement, values, (error, result) => {
-                if (error) {
-                    this.logHandler.error("There was an error executing the SQL Statement", {
-                        sqlStatement,
-                        values,
-                        error,
-                        result
-                    });
+        try {
+            const result = await pool.query(sqlStatement, values);
+            this.logHandler.debug("Successfully executed the SQL Statement", {sqlStatement, values, result})
 
-                    return reject(error);
-                }
-
-                this.logHandler.debug("Successfully executed the SQL Statement", {sqlStatement, values, error, result})
-
-                return resolve(result);
+            return result;
+        } catch (error) {
+            this.logHandler.error("There was an error executing the SQL Statement", {
+                sqlStatement,
+                values,
+                error,
             });
+
+            throw error;
+        }
+    }
+
+    async mapResults(classType: { new(): any; }, results: any[]) {
+        // Transform back the column names from the strategy
+        const tableMetadata = this.getTableMetadata(classType);
+
+        if(tableMetadata.autoColumnNamingStrategyReverse) {
+            results = results.map((result) => {
+                for(const key in result) {
+                    const newKey = tableMetadata.autoColumnNamingStrategyReverse!(key);
+                    result[newKey] = result[key];
+                    delete result[key];
+                }
+                return result;
+            });
+        }
+
+        return results.map((result) => {
+            return this.dataMapper.autoMap(result, classType);
         });
     }
 
     async get<T extends { [key: string]: any; }>(databaseName: string, classType: { new(): T; }, id: string | number): Promise<T | null> {
-        const sql = `SELECT *
-                     FROM ${this.getTableMetadata(classType).tableName}
-                     WHERE ${this.getPrivateKeyColumnName(classType)} = ?`;
+        const sql = `SELECT * FROM ${this.getTableMetadata(classType).tableName} WHERE ${this.getPrivateKeyColumnName(classType)} = ?`;
 
-        const values = this.executeSql(databaseName, sql, [id]);
+        const values = await this.executeSql(databaseName, sql, [id]);
 
-        // Use data mapper to transform the values into the actual object type.
-
-        return null;
+        return (await this.mapResults(classType, values))[0];
     }
 
     /*async create<T extends { [key: string]: any; }>(databaseName: string, element: T): Promise<T | null> {
