@@ -4,6 +4,16 @@ import {DecoratorMetadataKeynameEnum} from "../enums/decorator-metadata-keyname.
 
 export const column = (element?: ColumnDecoratorMetadataInterface) => {
     return (target: any, propertyKey: string) => {
+
+        if(!element) {
+            element = {};
+        }
+
+        if(element?.isSearchable === undefined) {
+            // Default value is true for isSearchable.
+            element.isSearchable = true;
+        }
+
         PropertyMetadata.defineMetadata(target, propertyKey, DecoratorMetadataKeynameEnum.Column, element ?? {})
     }
 };

@@ -8,6 +8,7 @@ import {MysqlModuleKeyname} from "../mysql.module.keyname";
 import {createPool, Pool} from "mysql2/promise";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {DataMapper} from "@pristine-ts/data-mapping-common";
+import {SearchQuery, SearchResult} from "@pristine-ts/mysql-common";
 
 @injectable()
 @singleton()
@@ -184,10 +185,10 @@ export class MysqlClient implements MysqlClientInterface {
         });
     }
 
-    async get<T extends { [key: string]: any; }>(databaseName: string, classType: { new(): T; }, id: string | number): Promise<T | null> {
+    async get<T extends { [key: string]: any; }>(databaseName: string, classType: { new(): T; }, primaryKey: string | number): Promise<T | null> {
         const sql = `SELECT * FROM ${this.getTableMetadata(classType).tableName} WHERE ${this.getPrimaryKeyColumnName(classType)} = ?`;
 
-        const values = await this.executeSql(databaseName, sql, [id]);
+        const values = await this.executeSql(databaseName, sql, [primaryKey]);
 
         return (await this.mapResults(classType, values))[0];
     }
@@ -199,12 +200,12 @@ export class MysqlClient implements MysqlClientInterface {
         const columnValues = Object.keys(columns).map(column => element[column]);
 
         // Generate update SQL statement:
-        const sql = `UPDATE ${this.getTableMetadata(element.constructor as { new(): T; }).tableName} SET (${columnNames.join(", ")}) WHERE `;
+        const sql = `UPDATE ${this.getTableMetadata(element.constructor as { new(): T; }).tableName} SET ${columnNames.join(", ")} WHERE `;
 
         await this.executeSql(databaseName, sql, columnValues);
     }
 
-    async update<T extends { [key: string]: any; }>(databaseName: string, element: T): Promise<T | null> {
+    async update<T extends { [key: string]: any; }>(databaseName: string, element: T): Promise<void> {
         const columns = this.getColumnsMetadata(element.constructor as { new(): T; });
 
         const primaryKeyColumnName = this.getPrimaryKeyColumnName(element.constructor as { new(): T; });
@@ -221,30 +222,89 @@ export class MysqlClient implements MysqlClientInterface {
 
         const sql = `UPDATE ${this.getTableMetadata(element.constructor as { new(): T; }).tableName} SET ${columnNames.join(" = ?, ")} = ? WHERE ${primaryKeyColumnName} = ?`;
 
-        return this.executeSql(databaseName, sql, columnValues);
+        await this.executeSql(databaseName, sql, columnValues);
     }
 
-    /*async delete<T extends { [key: string]: any; }>(databaseName: string, element: T): Promise<T | null> {
-        const columns = this.getColumnsMetadata(element.constructor);
+    async delete<T extends { [key: string]: any; }>(databaseName: string, classType: { new(): T; }, primaryKey: string | number): Promise<void> {
+        const sql = `DELETE FROM ${this.getTableMetadata(classType).tableName} WHERE ${this.getPrimaryKeyColumnName(classType)} = ?`;
 
-        const columnNames = Object.keys(columns).map(column => this.getColumnName(element.constructor, column));
-        const columnValues = Object.keys(columns).map(column => element[column]);
+        await this.executeSql(databaseName, sql, [primaryKey]);
+    }
 
-        const sql = `INSERT INTO ${this.getTableMetadata(element.constructor).tableName} (${columnNames.join(", ")})
-                     VALUES (${columnValues.map(() => "?").join(", ")})`;
+    async search<T extends { [key: string]: any; }>(databaseName: string, classType: { new(): T; }, query: SearchQuery): Promise<SearchResult<T>> {
+        let sql = "";
+        const columns = this.getColumnsMetadata(classType);
+        const defaultSearchableFields = Object.keys(columns).filter(column => columns[column].isSearchable).map(column => this.getColumnName(classType, column));
+        const tableName = this.getTableMetadata(classType).tableName;
+        const sqlValues: any[] = [];
 
-        return this.executeSql(databaseName, sql, columnValues);
-    }*/
+        // Look in the query.fields and look for all the fields that should not be excluded, or that are included explicitly. If there are no fields that match, include `title` and `calculationKeyname` as default fields.
+        if (query.query) {
+            let fieldsToSearch = query.fields.filter(field => field.includeExplicitly === true).map(field => field.field);
 
-    /*async search<T extends { [key: string]: any; }>(databaseName: string, element: T): Promise<T | null> {
-        const columns = this.getColumnsMetadata(element.constructor);
+            if(fieldsToSearch.length === 0) {
+                fieldsToSearch = defaultSearchableFields;
+            }
 
-        const columnNames = Object.keys(columns).map(column => this.getColumnName(element.constructor, column));
-        const columnValues = Object.keys(columns).map(column => element[column]);
+            // Exclude all the fields that are marked as excluded
+            fieldsToSearch = fieldsToSearch.filter(fieldName => {
+                const field = query.fields.find(field => field.field === fieldName && field.exclude);
 
-        const sql = `INSERT INTO ${this.getTableMetadata(element.constructor).tableName} (${columnNames.join(", ")})
-                     VALUES (${columnValues.map(() => "?").join(", ")})`;
+                if(field === undefined) {
+                    return true;
+                }
 
-        return this.executeSql(databaseName, sql, columnValues);
-    }*/
+                // Exclude the excluded field.
+                return false;
+            });
+
+            // Converts each element in fieldsToSearch from camelCase to snakeCase
+            fieldsToSearch = fieldsToSearch.map(field => field.replace(/([A-Z])/g, "_$1").toLowerCase());
+
+            // For each fieldsToSearch, add a LIKE clause to the SQL
+            sql += " AND " + fieldsToSearch.map(field => field + " LIKE ?").join(" OR ");
+
+            fieldsToSearch.forEach(field => sqlValues.push("%" + query.query + "%"));
+        }
+
+        //
+        // ORDERING
+        //
+        const orderBy: string[] = []
+
+        query.fields.forEach(field => {
+            if(field.order) {
+                // Convert the field from camelCase to snakeCase
+                const snakeCaseField = field.field.replace(/([A-Z])/g, "_$1").toLowerCase();
+                orderBy.push(snakeCaseField + " " + field.order.toUpperCase());
+            }
+        })
+
+        if(orderBy.length > 0) {
+            sql += " ORDER BY " + orderBy.join(", ");
+        }
+
+        const totalNumberOfResults = (await this.executeSql(databaseName, "SELECT COUNT(*) as total_number_of_results FROM `" + tableName + "` WHERE 1=1 " + sql, sqlValues))[0]["total_number_of_results"];
+
+        //
+        // PAGING
+        //
+
+        // If there's a page, add the limit and offset
+        sql += " LIMIT " + query.maximumNumberOfResultsPerPage + " OFFSET " + (query.page - 1) * query.maximumNumberOfResultsPerPage;
+
+        const response = await this.executeSql(databaseName, "SELECT * FROM `" + tableName + "` WHERE 1=1 " + sql, sqlValues);
+
+        // Convert every key in the response array from snakeCase to camelCase
+        await this.mapResults(classType, response);
+
+        const searchResult = new SearchResult<any>();
+        searchResult.page = query.page;
+        searchResult.totalNumberOfResults = totalNumberOfResults;
+        searchResult.results = response;
+        searchResult.maximumNumberOfResultsPerPage = query.maximumNumberOfResultsPerPage;
+        searchResult.numberOfResultsReturned = response.length;
+
+        return searchResult;
+    }
 }

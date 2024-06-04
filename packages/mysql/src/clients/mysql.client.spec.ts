@@ -138,4 +138,12 @@ describe('MySQL Client', () => {
             ["John", "Smith", "1"],
         );
     })
+
+    it("should properly delete an object in the db", async() => {
+        expect(false).toBeTruthy()
+    })
+
+    it("should properly search an object in the db", async() => {
+        expect(false).toBeTruthy()
+    })
 });

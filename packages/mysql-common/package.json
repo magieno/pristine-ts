@@ -1,10 +1,10 @@
 {
-  "name": "@pristine-ts/mysql",
+  "name": "@pristine-ts/mysql-common",
   "version": "0.0.335",
   "description": "",
-  "module": "dist/lib/esm/mysql.module.js",
-  "main": "dist/lib/cjs/mysql.module.js",
-  "types": "dist/types/mysql.module.d.ts",
+  "module": "dist/lib/esm/mysql-common.js",
+  "main": "dist/lib/cjs/mysql-common.js",
+  "types": "dist/types/mysql-common.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
     "prepublish": "npm run build",
@@ -21,15 +21,7 @@
   },
   "dependencies": {
     "@pristine-ts/common": "file:../common",
-    "@pristine-ts/core": "file:../core",
-    "@pristine-ts/data-mapping-common": "file:../data-mapping-common",
-    "@pristine-ts/data-mapping": "file:../data-mapping",
-    "@pristine-ts/mysql-common": "file:../mysql-common",
-    "@pristine-ts/metadata": "^1.0.6",
-    "@pristine-ts/security": "file:../security",
-    "@pristine-ts/telemetry": "file:../telemetry",
-    "mysql2": "^3.10.0",
-    "tsyringe": "^4.8.0"
+    "@pristine-ts/metadata": "^1.0.13"
   },
   "jest": {
     "transform": {
