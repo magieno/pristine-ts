@@ -68,7 +68,7 @@ describe('MySQL Client', () => {
     })
 
     it("should retrieve the primary key column name", () => {
-        const primaryKeyColumnName = mysqlClient.getPrivateKeyColumnName(User);
+        const primaryKeyColumnName = mysqlClient.getPrimaryKeyColumnName(User);
 
         expect(primaryKeyColumnName).toBe("unique_id");
     })
@@ -103,5 +103,39 @@ describe('MySQL Client', () => {
         expect(user!.uniqueId).toBe("1");
         expect(user!.firstName).toBe("John");
         expect(user!.lastName).toBe("Smith");
+    })
+
+    it("should properly create an object in the db", async () => {
+        // Mock the executeSql method with a spy and verify that the first argument was the expected SQL Statement.
+        const executeSqlSpy = jest.spyOn(mysqlClient, "executeSql").mockResolvedValueOnce([]);
+        const user = new User();
+        user.uniqueId = "1";
+        user.firstName = "John";
+        user.lastName = "Smith";
+
+        await mysqlClient.create("pristine", user);
+
+        expect(executeSqlSpy).toHaveBeenCalledWith(
+            "pristine",
+            "INSERT INTO users (unique_id, first_name, last_name) VALUES (?, ?, ?)",
+            ["1", "John", "Smith"],
+        );
+    })
+
+    it("should properly update an object in the db", async () => {
+        // Mock the executeSql method with a spy and verify that the first argument was the expected SQL Statement.
+        const executeSqlSpy = jest.spyOn(mysqlClient, "executeSql").mockResolvedValueOnce([]);
+        const user = new User();
+        user.uniqueId = "1";
+        user.firstName = "John";
+        user.lastName = "Smith";
+
+        await mysqlClient.update("pristine", user);
+
+        expect(executeSqlSpy).toHaveBeenCalledWith(
+            "pristine",
+            "UPDATE users SET first_name = ?, last_name = ? WHERE unique_id = ?",
+            ["John", "Smith", "1"],
+        );
     })
 });

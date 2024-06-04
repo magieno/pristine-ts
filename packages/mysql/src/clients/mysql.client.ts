@@ -100,7 +100,7 @@ export class MysqlClient implements MysqlClientInterface {
         return metadata;
     }
 
-    public getPrivateKeyColumnName<T extends { [key: string]: any; }>(classType: { new(): T; }) {
+    public getPrimaryKeyPropertyName<T extends { [key: string]: any; }>(classType: { new(): T; }) {
         const columns = this.getColumnsMetadata(classType);
 
         let primaryKeyColumn: string | null = null;
@@ -118,7 +118,11 @@ export class MysqlClient implements MysqlClientInterface {
             throw new Error(`The class ${classType.name} does not have a primary key.`);
         }
 
-        return this.getColumnName(classType, primaryKeyColumn);
+        return primaryKeyColumn;
+    }
+
+    public getPrimaryKeyColumnName<T extends { [key: string]: any; }>(classType: { new(): T; }) {
+        return this.getColumnName(classType, this.getPrimaryKeyPropertyName(classType));
     }
 
     public getColumnName<T extends { [key: string]: any; }>(classType: { new(): T; }, propertyName: string): string {
@@ -181,14 +185,58 @@ export class MysqlClient implements MysqlClientInterface {
     }
 
     async get<T extends { [key: string]: any; }>(databaseName: string, classType: { new(): T; }, id: string | number): Promise<T | null> {
-        const sql = `SELECT * FROM ${this.getTableMetadata(classType).tableName} WHERE ${this.getPrivateKeyColumnName(classType)} = ?`;
+        const sql = `SELECT * FROM ${this.getTableMetadata(classType).tableName} WHERE ${this.getPrimaryKeyColumnName(classType)} = ?`;
 
         const values = await this.executeSql(databaseName, sql, [id]);
 
         return (await this.mapResults(classType, values))[0];
     }
 
-    /*async create<T extends { [key: string]: any; }>(databaseName: string, element: T): Promise<T | null> {
+    async create<T extends { [key: string]: any; }>(databaseName: string, element: T): Promise<void> {
+        const columns = this.getColumnsMetadata(element.constructor as { new(): T; });
+
+        const columnNames = Object.keys(columns).map(column => this.getColumnName(element.constructor as { new(): T; }, column));
+        const columnValues = Object.keys(columns).map(column => element[column]);
+
+        // Generate update SQL statement:
+        const sql = `UPDATE ${this.getTableMetadata(element.constructor as { new(): T; }).tableName} SET (${columnNames.join(", ")}) WHERE `;
+
+        await this.executeSql(databaseName, sql, columnValues);
+    }
+
+    async update<T extends { [key: string]: any; }>(databaseName: string, element: T): Promise<T | null> {
+        const columns = this.getColumnsMetadata(element.constructor as { new(): T; });
+
+        const primaryKeyColumnName = this.getPrimaryKeyColumnName(element.constructor as { new(): T; });
+        const primaryKeyPropertyName = this.getPrimaryKeyPropertyName(element.constructor as { new(): T; });
+        const primaryKeyValue = element[primaryKeyPropertyName];
+
+        const propertyNames = Object.keys(columns).filter(column => column !== primaryKeyPropertyName);
+
+        const columnNames = propertyNames.map(column => this.getColumnName(element.constructor as { new(): T; }, column));
+        const columnValues = propertyNames.map(column => element[column]);
+
+        // Add it since it will be the last element that will tell us which row to update.
+        columnValues.push(primaryKeyValue);
+
+        const sql = `UPDATE ${this.getTableMetadata(element.constructor as { new(): T; }).tableName} SET ${columnNames.join(" = ?, ")} = ? WHERE ${primaryKeyColumnName} = ?`;
+
+        return this.executeSql(databaseName, sql, columnValues);
+    }
+
+    /*async delete<T extends { [key: string]: any; }>(databaseName: string, element: T): Promise<T | null> {
+        const columns = this.getColumnsMetadata(element.constructor);
+
+        const columnNames = Object.keys(columns).map(column => this.getColumnName(element.constructor, column));
+        const columnValues = Object.keys(columns).map(column => element[column]);
+
+        const sql = `INSERT INTO ${this.getTableMetadata(element.constructor).tableName} (${columnNames.join(", ")})
+                     VALUES (${columnValues.map(() => "?").join(", ")})`;
+
+        return this.executeSql(databaseName, sql, columnValues);
+    }*/
+
+    /*async search<T extends { [key: string]: any; }>(databaseName: string, element: T): Promise<T | null> {
         const columns = this.getColumnsMetadata(element.constructor);
 
         const columnNames = Object.keys(columns).map(column => this.getColumnName(element.constructor, column));
