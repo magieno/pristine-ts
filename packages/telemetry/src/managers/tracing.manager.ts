@@ -125,7 +125,7 @@ export class TracingManager implements TracingManagerInterface {
             if (parentSpans) {
                 if (parentSpans.length > 1) {
                     if (!parentId) {
-                        this.loghandler.error("Error finding the parent span, there are multiple spans with that keyname and no id is provided.", {parentKeyname});
+                        //this.loghandler.error("Error finding the parent span, there are multiple spans with that keyname and no id is provided.", {parentKeyname});
                     } else {
                         parentSpan = parentSpans.find(span => span.id === parentId) ?? parentSpan;
                     }

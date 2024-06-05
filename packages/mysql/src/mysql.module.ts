@@ -32,7 +32,16 @@ export const MysqlModule: ModuleInterface = {
     providerRegistrations: [
         {
             token: ServiceDefinitionTagEnum.MysqlConfig,
-            useValue: new MysqlConfig("__default__", "", 0, "", "", 0, false, "")
+            useValue: {
+                uniqueKeyname: "__default__",
+                host: "",
+                port: 0,
+                user: "",
+                password: "",
+                connectionLimit: 0,
+                debug: false,
+                database: "",
+            }
         }
     ]
 };
