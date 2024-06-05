@@ -1,0 +1,69 @@
+{
+  "name": "@pristine-ts/mysql",
+  "version": "0.0.335",
+  "description": "",
+  "module": "dist/lib/esm/mysql.module.js",
+  "main": "dist/lib/cjs/mysql.module.js",
+  "types": "dist/types/mysql.module.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
+    "prepublish": "npm run build",
+    "test": "jest",
+    "test:cov": "jest --coverage"
+  },
+  "files": [
+    "dist"
+  ],
+  "author": "",
+  "license": "ISC",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@pristine-ts/common": "file:../common",
+    "@pristine-ts/core": "file:../core",
+    "@pristine-ts/data-mapping-common": "file:../data-mapping-common",
+    "@pristine-ts/data-mapping": "file:../data-mapping",
+    "@pristine-ts/mysql-common": "file:../mysql-common",
+    "@pristine-ts/metadata": "^1.0.6",
+    "@pristine-ts/security": "file:../security",
+    "@pristine-ts/telemetry": "file:../telemetry",
+    "mysql2": "^3.10.0",
+    "tsyringe": "^4.8.0"
+  },
+  "jest": {
+    "transform": {
+      ".(ts|tsx)": "ts-jest"
+    },
+    "globals": {
+      "ts-jest": {
+        "tsconfig": {
+          "strictNullChecks": false
+        }
+      }
+    },
+    "testEnvironment": "node",
+    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/test/"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 90,
+        "functions": 95,
+        "lines": 95,
+        "statements": 95
+      }
+    },
+    "collectCoverageFrom": [
+      "src/*.{js,ts}"
+    ]
+  },
+  "gitHead": "112f715bf4ac6467192d416aa6e419f772b77c58"
+}

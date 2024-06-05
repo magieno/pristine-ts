@@ -60,6 +60,8 @@
     "@pristine-ts/http": "file:packages/http",
     "@pristine-ts/jwt": "file:packages/jwt",
     "@pristine-ts/logging": "file:packages/logging",
+    "@pristine-ts/mysql": "file:packages/mysql",
+    "@pristine-ts/mysql-common": "file:packages/mysql-comon",
     "@pristine-ts/networking": "file:packages/networking",
     "@pristine-ts/opensearch": "file:packages/opensearch",
     "@pristine-ts/redis": "file:packages/redis",
