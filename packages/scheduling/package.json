@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/scheduling",
-  "version": "0.0.339",
+  "version": "0.0.340",
   "description": "",
   "module": "dist/lib/esm/scheduling.module.js",
   "main": "dist/lib/cjs/scheduling.module.js",
