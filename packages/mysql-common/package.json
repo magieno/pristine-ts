@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/mysql-common",
-  "version": "0.0.337",
+  "version": "0.0.338",
   "description": "",
   "module": "dist/lib/esm/mysql-common.js",
   "main": "dist/lib/cjs/mysql-common.js",
