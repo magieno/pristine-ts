@@ -373,7 +373,7 @@ export class MysqlClient implements MysqlClientInterface {
                 if(operator === null) {
                     return;
                 }
-                
+
                 sql += " AND " + column + " " + operator + " ?";
                 sqlValues.push(filter.value);
             });
