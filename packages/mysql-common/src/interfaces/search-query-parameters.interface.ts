@@ -30,4 +30,9 @@ export interface SearchQueryParametersInterface {
      * Separated by commas string of `field:asc|desc` to sort the results.
      */
     sort?: string;
+
+    /**
+     * Separated by commas string of `filter:field:operator:value` to filter the results.
+     */
+    filters?: string;
 }

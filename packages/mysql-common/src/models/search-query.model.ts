@@ -1,6 +1,8 @@
 import {SearchQueryField} from "./search-query-field.model";
 import {SortOrderEnum} from "../enums/sort-order.enum";
 import {SearchQueryParametersInterface} from "../interfaces/search-query-parameters.interface";
+import {SearchFieldFilter} from "./search-field-filter.model";
+import {FilteringOperatorEnum} from "../enums/filtering-operator.enum";
 
 export class SearchQuery {
     /**
@@ -25,6 +27,11 @@ export class SearchQuery {
      */
     query?: string;
 
+    /**
+     * The filters to apply to the search.
+     */
+    filters: SearchFieldFilter[] = [];
+
     constructor(options?: Partial<SearchQuery>) {
         this.fields = options?.fields ?? [];
         this.page = options?.page ?? 1;
@@ -39,6 +46,14 @@ export class SearchQuery {
      */
     getField(fieldName: string): SearchQueryField | undefined {
         return this.fields.find((field) => field.field === fieldName);
+    }
+
+    /**
+     * This method adds a filter to the search query.
+     * @param filter
+     */
+    addFilter(filter: SearchFieldFilter) {
+        this.filters.push(filter);
     }
 
     clearSort(field: string) {
@@ -119,6 +134,14 @@ export class SearchQuery {
             });
         }
 
+        if(queryStrings.filters) {
+            queryStrings.filters.split(",").forEach((filter) => {
+                const [fieldName, operator, value] = filter.split(":");
+
+                this.addFilter(new SearchFieldFilter(fieldName, operator as FilteringOperatorEnum, value));
+            });
+        }
+
         if(queryStrings.excludeFieldsFromResponse) {
             queryStrings.excludeFieldsFromResponse?.split(",").forEach((fieldName) => {
                 const field = this.getField(fieldName);
@@ -144,6 +167,7 @@ export class SearchQuery {
             excludeFieldsFromResponse: this.fields.filter((field) => field.exclude).map((field) => field.field).join(","),
             fields: this.fields.filter((field) => field.includeExplicitly).map((field) => field.field).join(","),
             sort: this.fields.filter((field) => field.order !== undefined).map((field) => `${field.field}:${field.order}`).join(","),
+            filters: this.filters.map((filter) => `${filter.field}:${filter.operator}:${filter.value}`).join(",")
         };
     }
 }
