@@ -10,6 +10,7 @@ import {
     StringNormalizer
 } from "@pristine-ts/data-mapping-common";
 import {camelCaseColumnStrategy} from "../strategies/camel-case-column.strategy";
+import {SearchQuery} from "@pristine-ts/mysql-common";
 
 describe('MySQL Client', () => {
     @table({
@@ -85,12 +86,12 @@ describe('MySQL Client', () => {
         // Mock the executeSql method with a spy and verify that the first argument was the expected SQL Statement.
         const executeSqlSpy = jest.spyOn(mysqlClient, "executeSql").mockResolvedValueOnce([
             {
-            "unique_id": "1",
-            "first_name": "John",
-            "last_name": "Smith",
+                "unique_id": "1",
+                "first_name": "John",
+                "last_name": "Smith",
             }
-            ]);
-        const user = await mysqlClient.get("pristine", User, "1" );
+        ]);
+        const user = await mysqlClient.get("pristine", User, "1");
 
         expect(executeSqlSpy).toHaveBeenCalledWith(
             "pristine",
@@ -139,11 +140,54 @@ describe('MySQL Client', () => {
         );
     })
 
-    it("should properly delete an object in the db", async() => {
-        expect(false).toBeTruthy()
+    it("should properly delete an object in the db", async () => {
+        const executeSqlSpy = jest.spyOn(mysqlClient, "executeSql").mockResolvedValueOnce([]);
+
+        await mysqlClient.delete("pristine", User, "1");
+
+        expect(executeSqlSpy).toHaveBeenCalledWith(
+            "pristine",
+            "DELETE FROM users WHERE unique_id = ?",
+            ["1"],
+        );
     })
 
-    it("should properly search an object in the db", async() => {
-        expect(false).toBeTruthy()
+    it("should properly search an object in the db", async () => {
+        const executeSqlSpy = jest.spyOn(mysqlClient, "executeSql").mockImplementation(async (databaseName: string, sqlStatement: string, values: any[]) => {
+            if (sqlStatement.startsWith("SELECT COUNT(*)")) {
+                return [
+                    {
+                        "total_number_of_results": 3,
+                    }
+                ];
+            }
+
+            if(sqlStatement.startsWith("SELECT * FROM `users` WHERE 1=1 ")) {
+                return [
+                    {"unique_id": "1", "first_name": "John", "last_name": "Smith"},
+                    {"unique_id": "2", "first_name": "Rick", "last_name": "Sanchez"},
+                    {"unique_id": "3", "first_name": "Peter", "last_name": "Ricardo"},
+                ];
+            }
+        });
+
+        const query = new SearchQuery();
+
+        const searchResults = await mysqlClient.search("pristine", User, query);
+        expect(searchResults.numberOfResultsReturned).toBe(3);
+        expect(searchResults.totalNumberOfResults).toBe(3);
+        expect(searchResults.results.length).toBe(3);
+        expect(searchResults.results[0]).toBeInstanceOf(User);
+        expect(searchResults.results[0].uniqueId).toBe("1");
+        expect(searchResults.results[0].firstName).toBe("John");
+        expect(searchResults.results[0].lastName).toBe("Smith");
+        expect(searchResults.results[1]).toBeInstanceOf(User);
+        expect(searchResults.results[1].uniqueId).toBe("2");
+        expect(searchResults.results[1].firstName).toBe("Rick");
+        expect(searchResults.results[1].lastName).toBe("Sanchez");
+        expect(searchResults.results[2]).toBeInstanceOf(User);
+        expect(searchResults.results[2].uniqueId).toBe("3");
+        expect(searchResults.results[2].firstName).toBe("Peter");
+        expect(searchResults.results[2].lastName).toBe("Ricardo");
     })
 });

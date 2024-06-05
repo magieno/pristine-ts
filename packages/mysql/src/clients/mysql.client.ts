@@ -180,9 +180,7 @@ export class MysqlClient implements MysqlClientInterface {
             });
         }
 
-        return results.map((result) => {
-            return this.dataMapper.autoMap(result, classType);
-        });
+        return this.dataMapper.autoMap(results, classType);
     }
 
     async get<T extends { [key: string]: any; }>(databaseName: string, classType: { new(): T; }, primaryKey: string | number): Promise<T | null> {
@@ -295,13 +293,10 @@ export class MysqlClient implements MysqlClientInterface {
 
         const response = await this.executeSql(databaseName, "SELECT * FROM `" + tableName + "` WHERE 1=1 " + sql, sqlValues);
 
-        // Convert every key in the response array from snakeCase to camelCase
-        await this.mapResults(classType, response);
-
         const searchResult = new SearchResult<any>();
         searchResult.page = query.page;
         searchResult.totalNumberOfResults = totalNumberOfResults;
-        searchResult.results = response;
+        searchResult.results = await this.mapResults(classType, response);
         searchResult.maximumNumberOfResultsPerPage = query.maximumNumberOfResultsPerPage;
         searchResult.numberOfResultsReturned = response.length;
 
