@@ -6,7 +6,6 @@ import {
     EnvironmentVariableResolver, NumberResolver
 } from "@pristine-ts/configuration";
 import {MysqlModuleKeyname} from "./mysql.module.keyname";
-import {SSMResolver} from "@pristine-ts/aws";
 
 
 export * from "./clients/clients";
@@ -55,14 +54,14 @@ export const MysqlModule: ModuleInterface = {
             parameterName: MysqlModuleKeyname + ".user",
             isRequired: true,
             defaultResolvers: [
-                new SSMResolver(new EnvironmentVariableResolver("PRISTINE_MYSQL_USER"), new EnvironmentVariableResolver("REGION"), false),
+                new EnvironmentVariableResolver("PRISTINE_MYSQL_USER"),
             ]
         },
         {
             parameterName: MysqlModuleKeyname + ".password",
             isRequired: true,
             defaultResolvers: [
-                new SSMResolver(new EnvironmentVariableResolver("PRISTINE_MYSQL_PASSWORD"), new EnvironmentVariableResolver("REGION"), true),
+                new EnvironmentVariableResolver("PRISTINE_MYSQL_PASSWORD"),
             ]
         },
         {
