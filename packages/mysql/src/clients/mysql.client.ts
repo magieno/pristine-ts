@@ -9,7 +9,9 @@ import {createPool, Pool} from "mysql2/promise";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {DataMapper} from "@pristine-ts/data-mapping-common";
 import {SearchQuery, SearchResult} from "@pristine-ts/mysql-common";
+import {tag} from "@pristine-ts/common";
 
+@tag("MysqlClientInterface")
 @injectable()
 @singleton()
 export class MysqlClient implements MysqlClientInterface {
@@ -26,6 +28,11 @@ export class MysqlClient implements MysqlClientInterface {
     ) {
     }
 
+    /**
+     * This method returns a pool of connections to the database.
+     * @param databaseName
+     * @param force
+     */
     async getPool(databaseName: string, force: boolean = false): Promise<Pool> {
         if (!this.pools.has(databaseName) && !force) {
             try {
@@ -59,9 +66,11 @@ export class MysqlClient implements MysqlClientInterface {
         return this.pools.get(databaseName) as Pool;
     }
 
-    public getTableMetadata<T extends { [key: string]: any; }>(classType: {
-        new(): T;
-    }): TableDecoratorMetadataInterface {
+    /**
+     * This method returns the table metadata for a given class.
+     * @param classType
+     */
+    public getTableMetadata<T extends { [key: string]: any; }>(classType: { new(): T; }): TableDecoratorMetadataInterface {
         const tableMetadata: TableDecoratorMetadataInterface = ClassMetadata.getMetadata(classType, DecoratorMetadataKeynameEnum.Table);
 
         if (!tableMetadata) {
@@ -71,9 +80,11 @@ export class MysqlClient implements MysqlClientInterface {
         return tableMetadata;
     }
 
-    public getColumnsMetadata<T extends { [key: string]: any; }>(classType: {
-        new(): T;
-    }): { [property in string]: ColumnDecoratorMetadataInterface } {
+    /**
+     * This method returns the columns metadata for a given class.
+     * @param classType
+     */
+    public getColumnsMetadata<T extends { [key: string]: any; }>(classType: { new(): T; }): { [property in string]: ColumnDecoratorMetadataInterface } {
         const properties = ClassMetadata.getInformation(classType).properties;
 
         const columnsMetadata: { [property in string]: ColumnDecoratorMetadataInterface } = {};
@@ -89,9 +100,12 @@ export class MysqlClient implements MysqlClientInterface {
         return columnsMetadata;
     }
 
-    public getColumnMetadata<T extends { [key: string]: any; }>(classType: {
-        new(): T;
-    }, propertyName: string): ColumnDecoratorMetadataInterface {
+    /**
+     * This method returns the column metadata for a given class and property name.
+     * @param classType
+     * @param propertyName
+     */
+    public getColumnMetadata<T extends { [key: string]: any; }>(classType: { new(): T;}, propertyName: string): ColumnDecoratorMetadataInterface {
         const metadata = PropertyMetadata.getMetadata(classType.prototype, propertyName, DecoratorMetadataKeynameEnum.Column);
 
         if (!metadata) {
@@ -101,6 +115,10 @@ export class MysqlClient implements MysqlClientInterface {
         return metadata;
     }
 
+    /**
+     * This method returns the primary key property name for a given class.
+     * @param classType
+     */
     public getPrimaryKeyPropertyName<T extends { [key: string]: any; }>(classType: { new(): T; }) {
         const columns = this.getColumnsMetadata(classType);
 
@@ -122,10 +140,20 @@ export class MysqlClient implements MysqlClientInterface {
         return primaryKeyColumn;
     }
 
+    /**
+     * This method returns the primary key column name for a given class.
+     * @param classType
+     */
     public getPrimaryKeyColumnName<T extends { [key: string]: any; }>(classType: { new(): T; }) {
         return this.getColumnName(classType, this.getPrimaryKeyPropertyName(classType));
     }
 
+    /**
+     * This method returns the column name for a given class and property name.
+     *
+     * @param classType
+     * @param propertyName
+     */
     public getColumnName<T extends { [key: string]: any; }>(classType: { new(): T; }, propertyName: string): string {
         const columns = this.getColumnsMetadata(classType);
 
@@ -144,6 +172,12 @@ export class MysqlClient implements MysqlClientInterface {
         return propertyName;
     }
 
+    /**
+     * This method returns the column name for a given class and property name.
+     * @param databaseName
+     * @param sqlStatement
+     * @param values
+     */
     async executeSql(databaseName: string, sqlStatement: string, values: any[]): Promise<any> {
         const pool = await this.getPool(databaseName);
 
@@ -165,6 +199,11 @@ export class MysqlClient implements MysqlClientInterface {
         }
     }
 
+    /**
+     * This method maps the results to a given class type.
+     * @param classType
+     * @param results
+     */
     async mapResults(classType: { new(): any; }, results: any[]) {
         // Transform back the column names from the strategy
         const tableMetadata = this.getTableMetadata(classType);
@@ -183,6 +222,12 @@ export class MysqlClient implements MysqlClientInterface {
         return this.dataMapper.autoMap(results, classType);
     }
 
+    /**
+     * This method returns a single element from the database.
+     * @param databaseName
+     * @param classType
+     * @param primaryKey
+     */
     async get<T extends { [key: string]: any; }>(databaseName: string, classType: { new(): T; }, primaryKey: string | number): Promise<T | null> {
         const sql = `SELECT * FROM ${this.getTableMetadata(classType).tableName} WHERE ${this.getPrimaryKeyColumnName(classType)} = ?`;
 
@@ -191,6 +236,11 @@ export class MysqlClient implements MysqlClientInterface {
         return (await this.mapResults(classType, values))[0];
     }
 
+    /**
+     * This method creates a new element in the database.
+     * @param databaseName
+     * @param element
+     */
     async create<T extends { [key: string]: any; }>(databaseName: string, element: T): Promise<void> {
         const columns = this.getColumnsMetadata(element.constructor as { new(): T; });
 
@@ -203,6 +253,11 @@ export class MysqlClient implements MysqlClientInterface {
         await this.executeSql(databaseName, sql, columnValues);
     }
 
+    /**
+     * This method updates an element in the database.
+     * @param databaseName
+     * @param element
+     */
     async update<T extends { [key: string]: any; }>(databaseName: string, element: T): Promise<void> {
         const columns = this.getColumnsMetadata(element.constructor as { new(): T; });
 
@@ -223,12 +278,24 @@ export class MysqlClient implements MysqlClientInterface {
         await this.executeSql(databaseName, sql, columnValues);
     }
 
+    /**
+     * This method deletes an element in the database.
+     * @param databaseName
+     * @param classType
+     * @param primaryKey
+     */
     async delete<T extends { [key: string]: any; }>(databaseName: string, classType: { new(): T; }, primaryKey: string | number): Promise<void> {
         const sql = `DELETE FROM ${this.getTableMetadata(classType).tableName} WHERE ${this.getPrimaryKeyColumnName(classType)} = ?`;
 
         await this.executeSql(databaseName, sql, [primaryKey]);
     }
 
+    /**
+     * This method searches the database.
+     * @param databaseName
+     * @param classType
+     * @param query
+     */
     async search<T extends { [key: string]: any; }>(databaseName: string, classType: { new(): T; }, query: SearchQuery): Promise<SearchResult<T>> {
         let sql = "";
         const columns = this.getColumnsMetadata(classType);
