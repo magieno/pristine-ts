@@ -32,7 +32,7 @@ describe('MySQL Client', () => {
     }
 
     it("should retrieve the table metadata", () => {
-        const mysqlClient = new MysqlClient("", 0, "", "", 0, false, {
+        const mysqlClient = new MysqlClient([],{
             critical(message: string, extra?: any, module?: string): void {
             }, debug(message: string, extra?: any, module?: string): void {
             }, error(message: string, extra?: any, module?: string): void {
@@ -48,7 +48,7 @@ describe('MySQL Client', () => {
     })
 
     it("should retrieve the columns metadata", () => {
-        const mysqlClient = new MysqlClient("", 0, "", "", 0, false, {
+        const mysqlClient = new MysqlClient([],{
             critical(message: string, extra?: any, module?: string): void {
             }, debug(message: string, extra?: any, module?: string): void {
             }, error(message: string, extra?: any, module?: string): void {
@@ -67,7 +67,7 @@ describe('MySQL Client', () => {
     })
 
     it("should retrieve the column metadata", () => {
-        const mysqlClient = new MysqlClient("", 0, "", "", 0, false, {
+        const mysqlClient = new MysqlClient([],{
             critical(message: string, extra?: any, module?: string): void {
             }, debug(message: string, extra?: any, module?: string): void {
             }, error(message: string, extra?: any, module?: string): void {
@@ -86,7 +86,7 @@ describe('MySQL Client', () => {
     })
 
     it("should retrieve the primary key column name", () => {
-        const mysqlClient = new MysqlClient("", 0, "", "", 0, false, {
+        const mysqlClient = new MysqlClient([],{
             critical(message: string, extra?: any, module?: string): void {
             }, debug(message: string, extra?: any, module?: string): void {
             }, error(message: string, extra?: any, module?: string): void {
@@ -101,7 +101,7 @@ describe('MySQL Client', () => {
     })
 
     it("should retrieve the column names", () => {
-        const mysqlClient = new MysqlClient("", 0, "", "", 0, false, {
+        const mysqlClient = new MysqlClient([],{
             critical(message: string, extra?: any, module?: string): void {
             }, debug(message: string, extra?: any, module?: string): void {
             }, error(message: string, extra?: any, module?: string): void {
@@ -118,7 +118,7 @@ describe('MySQL Client', () => {
     })
 
     it("should properly retrieve an object in the db based on the id", async () => {
-        const mysqlClient = new MysqlClient("", 0, "", "", 0, false, {
+        const mysqlClient = new MysqlClient([],{
             critical(message: string, extra?: any, module?: string): void {
             }, debug(message: string, extra?: any, module?: string): void {
             }, error(message: string, extra?: any, module?: string): void {
@@ -152,7 +152,7 @@ describe('MySQL Client', () => {
     })
 
     it("should properly create an object in the db", async () => {
-        const mysqlClient = new MysqlClient("", 0, "", "", 0, false, {
+        const mysqlClient = new MysqlClient([],{
             critical(message: string, extra?: any, module?: string): void {
             }, debug(message: string, extra?: any, module?: string): void {
             }, error(message: string, extra?: any, module?: string): void {
@@ -179,7 +179,7 @@ describe('MySQL Client', () => {
     })
 
     it("should properly update an object in the db", async () => {
-        const mysqlClient = new MysqlClient("", 0, "", "", 0, false, {
+        const mysqlClient = new MysqlClient([],{
             critical(message: string, extra?: any, module?: string): void {
             }, debug(message: string, extra?: any, module?: string): void {
             }, error(message: string, extra?: any, module?: string): void {
@@ -206,7 +206,7 @@ describe('MySQL Client', () => {
     })
 
     it("should properly delete an object in the db", async () => {
-        const mysqlClient = new MysqlClient("", 0, "", "", 0, false, {
+        const mysqlClient = new MysqlClient([],{
             critical(message: string, extra?: any, module?: string): void {
             }, debug(message: string, extra?: any, module?: string): void {
             }, error(message: string, extra?: any, module?: string): void {
@@ -228,7 +228,7 @@ describe('MySQL Client', () => {
     })
 
     it("should properly search an object in the db", async () => {
-        const mysqlClient = new MysqlClient("", 0, "", "", 0, false, {
+        const mysqlClient = new MysqlClient([],{
             critical(message: string, extra?: any, module?: string): void {
             }, debug(message: string, extra?: any, module?: string): void {
             }, error(message: string, extra?: any, module?: string): void {

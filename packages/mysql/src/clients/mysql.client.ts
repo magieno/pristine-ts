@@ -1,4 +1,4 @@
-import {inject, injectable, singleton} from "tsyringe";
+import {inject, injectable, singleton, injectAll} from "tsyringe";
 import {MysqlClientInterface} from "../interfaces/mysql-client.interface";
 import {ClassMetadata, PropertyMetadata} from "@pristine-ts/metadata";
 import {DecoratorMetadataKeynameEnum} from "../enums/decorator-metadata-keyname.enum";
@@ -9,7 +9,8 @@ import {createPool, Pool} from "mysql2/promise";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {DataMapper} from "@pristine-ts/data-mapping-common";
 import {SearchQuery, SearchResult} from "@pristine-ts/mysql-common";
-import {tag} from "@pristine-ts/common";
+import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {MysqlConfig} from "../configs/mysql.config";
 
 @tag("MysqlClientInterface")
 @injectable()
@@ -17,43 +18,51 @@ import {tag} from "@pristine-ts/common";
 export class MysqlClient implements MysqlClientInterface {
     private pools: Map<string, Pool> = new Map<string, Pool>();
 
-    constructor(@inject(`%${MysqlModuleKeyname}.address%`) private readonly address: string,
-                @inject(`%${MysqlModuleKeyname}.port%`) private readonly port: number,
-                @inject(`%${MysqlModuleKeyname}.user%`) private readonly user: string,
-                @inject(`%${MysqlModuleKeyname}.password%`) private readonly password: string,
-                @inject(`%${MysqlModuleKeyname}.connection_limit%`) private readonly connectionLimit: number,
-                @inject(`%${MysqlModuleKeyname}.debug%`) private readonly debug: boolean,
+    constructor(
+                @injectAll(ServiceDefinitionTagEnum.MysqlConfig) private readonly mysqlConfigs: MysqlConfig[],
                 @inject('LogHandlerInterface') private readonly logHandler: LogHandlerInterface,
                 private readonly dataMapper: DataMapper,
     ) {
     }
 
     /**
+     * This method returns the mysql config corresponding to the unique keyname.
+     * @param configUniqueKeyname
+     */
+    private getMysqlConfig(configUniqueKeyname: string): MysqlConfig {
+        const mysqlConfig = this.mysqlConfigs.find(mysqlConfig => mysqlConfig.uniqueKeyname === configUniqueKeyname) as MysqlConfig;
+
+        if(!mysqlConfig) {
+            throw new Error(`The mysql config with the keyname ${configUniqueKeyname} does not exist.`);
+        }
+
+        return mysqlConfig;
+    }
+
+    /**
      * This method returns a pool of connections to the database.
-     * @param databaseName
+     * @param configUniqueKeyname
      * @param force
      */
-    async getPool(databaseName: string, force: boolean = false): Promise<Pool> {
-        if (!this.pools.has(databaseName) && !force) {
+    async getPool(configUniqueKeyname: string, force: boolean = false): Promise<Pool> {
+        if (!this.pools.has(configUniqueKeyname) && !force) {
             try {
+                const mysqlConfig = this.getMysqlConfig(configUniqueKeyname);
+
                 const pool = createPool({
-                    connectionLimit: this.connectionLimit,
-                    host: this.address,
-                    port: this.port,
-                    user: this.user,
-                    password: this.password,
-                    database: databaseName,
-                    debug: this.debug,
+                    connectionLimit: mysqlConfig.connectionLimit,
+                    host: mysqlConfig.host,
+                    port: mysqlConfig.port,
+                    user: mysqlConfig.user,
+                    password: mysqlConfig.password,
+                    database: mysqlConfig.database,
+                    debug: mysqlConfig.debug,
                 });
 
-                this.pools.set(databaseName, pool);
+                this.pools.set(configUniqueKeyname, pool);
 
                 this.logHandler.debug('MySql Adapter Pool generated successfully', {
-                    connectionLimit: this.connectionLimit,
-                    host: this.address,
-                    user: this.user,
-                    password: this.password,
-                    database: databaseName,
+                    mysqlConfig,
                     pool,
                 });
             } catch (error) {
@@ -63,7 +72,7 @@ export class MysqlClient implements MysqlClientInterface {
             }
         }
 
-        return this.pools.get(databaseName) as Pool;
+        return this.pools.get(configUniqueKeyname) as Pool;
     }
 
     /**
@@ -174,12 +183,12 @@ export class MysqlClient implements MysqlClientInterface {
 
     /**
      * This method returns the column name for a given class and property name.
-     * @param databaseName
+     * @param configUniqueKeyname
      * @param sqlStatement
      * @param values
      */
-    async executeSql(databaseName: string, sqlStatement: string, values: any[]): Promise<any> {
-        const pool = await this.getPool(databaseName);
+    async executeSql(configUniqueKeyname: string, sqlStatement: string, values: any[]): Promise<any> {
+        const pool = await this.getPool(configUniqueKeyname);
 
         this.logHandler.debug("Executing SQL Statement", {sqlStatement, values});
 
@@ -224,24 +233,24 @@ export class MysqlClient implements MysqlClientInterface {
 
     /**
      * This method returns a single element from the database.
-     * @param databaseName
+     * @param configUniqueKeyname
      * @param classType
      * @param primaryKey
      */
-    async get<T extends { [key: string]: any; }>(databaseName: string, classType: { new(): T; }, primaryKey: string | number): Promise<T | null> {
+    async get<T extends { [key: string]: any; }>(configUniqueKeyname: string, classType: { new(): T; }, primaryKey: string | number): Promise<T | null> {
         const sql = `SELECT * FROM ${this.getTableMetadata(classType).tableName} WHERE ${this.getPrimaryKeyColumnName(classType)} = ?`;
 
-        const values = await this.executeSql(databaseName, sql, [primaryKey]);
+        const values = await this.executeSql(configUniqueKeyname, sql, [primaryKey]);
 
         return (await this.mapResults(classType, values))[0];
     }
 
     /**
      * This method creates a new element in the database.
-     * @param databaseName
+     * @param configUniqueKeyname
      * @param element
      */
-    async create<T extends { [key: string]: any; }>(databaseName: string, element: T): Promise<void> {
+    async create<T extends { [key: string]: any; }>(configUniqueKeyname: string, element: T): Promise<void> {
         const columns = this.getColumnsMetadata(element.constructor as { new(): T; });
 
         const columnNames = Object.keys(columns).map(column => this.getColumnName(element.constructor as { new(): T; }, column));
@@ -250,15 +259,15 @@ export class MysqlClient implements MysqlClientInterface {
         // Generate update SQL statement:
         const sql = `INSERT INTO ${this.getTableMetadata(element.constructor as { new(): T; }).tableName} (${columnNames.join(", ")}) VALUES (${columnValues.map(() => "?").join(", ")})`;
 
-        await this.executeSql(databaseName, sql, columnValues);
+        await this.executeSql(configUniqueKeyname, sql, columnValues);
     }
 
     /**
      * This method updates an element in the database.
-     * @param databaseName
+     * @param configUniqueKeyname
      * @param element
      */
-    async update<T extends { [key: string]: any; }>(databaseName: string, element: T): Promise<void> {
+    async update<T extends { [key: string]: any; }>(configUniqueKeyname: string, element: T): Promise<void> {
         const columns = this.getColumnsMetadata(element.constructor as { new(): T; });
 
         const primaryKeyColumnName = this.getPrimaryKeyColumnName(element.constructor as { new(): T; });
@@ -275,28 +284,28 @@ export class MysqlClient implements MysqlClientInterface {
 
         const sql = `UPDATE ${this.getTableMetadata(element.constructor as { new(): T; }).tableName} SET ${columnNames.join(" = ?, ")} = ? WHERE ${primaryKeyColumnName} = ?`;
 
-        await this.executeSql(databaseName, sql, columnValues);
+        await this.executeSql(configUniqueKeyname, sql, columnValues);
     }
 
     /**
      * This method deletes an element in the database.
-     * @param databaseName
+     * @param configUniqueKeyname
      * @param classType
      * @param primaryKey
      */
-    async delete<T extends { [key: string]: any; }>(databaseName: string, classType: { new(): T; }, primaryKey: string | number): Promise<void> {
+    async delete<T extends { [key: string]: any; }>(configUniqueKeyname: string, classType: { new(): T; }, primaryKey: string | number): Promise<void> {
         const sql = `DELETE FROM ${this.getTableMetadata(classType).tableName} WHERE ${this.getPrimaryKeyColumnName(classType)} = ?`;
 
-        await this.executeSql(databaseName, sql, [primaryKey]);
+        await this.executeSql(configUniqueKeyname, sql, [primaryKey]);
     }
 
     /**
      * This method searches the database.
-     * @param databaseName
+     * @param configUniqueKeyname
      * @param classType
      * @param query
      */
-    async search<T extends { [key: string]: any; }>(databaseName: string, classType: { new(): T; }, query: SearchQuery): Promise<SearchResult<T>> {
+    async search<T extends { [key: string]: any; }>(configUniqueKeyname: string, classType: { new(): T; }, query: SearchQuery): Promise<SearchResult<T>> {
         let sql = "";
         const columns = this.getColumnsMetadata(classType);
         const defaultSearchableFields = Object.keys(columns).filter(column => columns[column].isSearchable).map(column => this.getColumnName(classType, column));
@@ -349,7 +358,7 @@ export class MysqlClient implements MysqlClientInterface {
             sql += " ORDER BY " + orderBy.join(", ");
         }
 
-        const totalNumberOfResults = (await this.executeSql(databaseName, "SELECT COUNT(*) as total_number_of_results FROM `" + tableName + "` WHERE 1=1 " + sql, sqlValues))[0]["total_number_of_results"];
+        const totalNumberOfResults = (await this.executeSql(configUniqueKeyname, "SELECT COUNT(*) as total_number_of_results FROM `" + tableName + "` WHERE 1=1 " + sql, sqlValues))[0]["total_number_of_results"];
 
         //
         // PAGING
@@ -358,7 +367,7 @@ export class MysqlClient implements MysqlClientInterface {
         // If there's a page, add the limit and offset
         sql += " LIMIT " + query.maximumNumberOfResultsPerPage + " OFFSET " + (query.page - 1) * query.maximumNumberOfResultsPerPage;
 
-        const response = await this.executeSql(databaseName, "SELECT * FROM `" + tableName + "` WHERE 1=1 " + sql, sqlValues);
+        const response = await this.executeSql(configUniqueKeyname, "SELECT * FROM `" + tableName + "` WHERE 1=1 " + sql, sqlValues);
 
         const searchResult = new SearchResult<any>();
         searchResult.page = query.page;

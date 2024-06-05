@@ -18,6 +18,7 @@ export enum ServiceDefinitionTagEnum {
     IdentityProvider = "IdentityProviderInterface",
     Logger = "LoggerInterface",
     MethodParameterDecoratorResolver = "METHOD_PARAMETER_DECORATOR_RESOLVER",
+    MysqlConfig = "MysqlConfig",
     RequestInterceptor = "RequestInterceptorInterface",
     ScheduledTask = "ScheduledTaskInterface",
     Tracer = "TracerInterface",
