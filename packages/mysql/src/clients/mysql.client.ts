@@ -11,6 +11,7 @@ import {DataMapper} from "@pristine-ts/data-mapping-common";
 import {SearchQuery, SearchResult} from "@pristine-ts/mysql-common";
 import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {MysqlConfig} from "../configs/mysql.config";
+import {MysqlConfigProviderInterface} from "../interfaces/mysql-config-provider.interface";
 
 @tag("MysqlClientInterface")
 @injectable()
@@ -19,7 +20,7 @@ export class MysqlClient implements MysqlClientInterface {
     private pools: Map<string, Pool> = new Map<string, Pool>();
 
     constructor(
-                @injectAll(ServiceDefinitionTagEnum.MysqlConfig) private readonly mysqlConfigs: MysqlConfig[],
+                @injectAll("MysqlConfigProviderInterface") private readonly mysqlConfigProviders: MysqlConfigProviderInterface[],
                 @inject('LogHandlerInterface') private readonly logHandler: LogHandlerInterface,
                 private readonly dataMapper: DataMapper,
     ) {
@@ -29,14 +30,14 @@ export class MysqlClient implements MysqlClientInterface {
      * This method returns the mysql config corresponding to the unique keyname.
      * @param configUniqueKeyname
      */
-    private getMysqlConfig(configUniqueKeyname: string): MysqlConfig {
-        const mysqlConfig = this.mysqlConfigs.find(mysqlConfig => mysqlConfig.uniqueKeyname === configUniqueKeyname) as MysqlConfig;
+    private async getMysqlConfig(configUniqueKeyname: string): Promise<MysqlConfig> {
+        const mysqlConfig = this.mysqlConfigProviders.find(mysqlConfigProvider => mysqlConfigProvider.supports(configUniqueKeyname));
 
         if(!mysqlConfig) {
             throw new Error(`The mysql config with the keyname ${configUniqueKeyname} does not exist.`);
         }
 
-        return mysqlConfig;
+        return await mysqlConfig.getMysqlConfig(configUniqueKeyname) as MysqlConfig;
     }
 
     /**
@@ -47,7 +48,7 @@ export class MysqlClient implements MysqlClientInterface {
     async getPool(configUniqueKeyname: string, force: boolean = false): Promise<Pool> {
         if (!this.pools.has(configUniqueKeyname) && !force) {
             try {
-                const mysqlConfig = this.getMysqlConfig(configUniqueKeyname);
+                const mysqlConfig = await this.getMysqlConfig(configUniqueKeyname);
 
                 const pool = createPool({
                     connectionLimit: mysqlConfig.connectionLimit,
