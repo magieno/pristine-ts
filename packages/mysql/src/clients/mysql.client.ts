@@ -8,7 +8,7 @@ import {MysqlModuleKeyname} from "../mysql.module.keyname";
 import {createPool, Pool} from "mysql2/promise";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {DataMapper} from "@pristine-ts/data-mapping-common";
-import {SearchQuery, SearchResult} from "@pristine-ts/mysql-common";
+import {SearchQuery, SearchResult, FilteringOperatorEnum} from "@pristine-ts/mysql-common";
 import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {MysqlConfig} from "../configs/mysql.config";
 import {MysqlConfigProviderInterface} from "../interfaces/mysql-config-provider.interface";
@@ -340,6 +340,42 @@ export class MysqlClient implements MysqlClientInterface {
             sql += " AND " + fieldsToSearch.map(field => field + " LIKE ?").join(" OR ");
 
             fieldsToSearch.forEach(field => sqlValues.push("%" + query.query + "%"));
+        }
+
+        if(query.filters.length > 0) {
+            query.filters.forEach(filter => {
+                const column = this.getColumnName(classType, filter.field);
+
+                let operator = null;
+
+                switch (filter.operator as FilteringOperatorEnum) {
+                    case FilteringOperatorEnum.Equal:
+                        operator = "=";
+                        break;
+                    case FilteringOperatorEnum.NotEqual:
+                        operator = "!=";
+                        break;
+                    case FilteringOperatorEnum.GreaterThan:
+                        operator = ">";
+                        break;
+                    case FilteringOperatorEnum.GreaterThanOrEqual:
+                        operator = ">=";
+                        break;
+                    case FilteringOperatorEnum.LessThan:
+                        operator = "<";
+                        break;
+                    case FilteringOperatorEnum.LessThanOrEqual:
+                        operator = "<=";
+                        break;
+                }
+
+                if(operator === null) {
+                    return;
+                }
+
+                sql += " AND " + column + " " + operator + " ?";
+                sqlValues.push(filter.value);
+            });
         }
 
         //
