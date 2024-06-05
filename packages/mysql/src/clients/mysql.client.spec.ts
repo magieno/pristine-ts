@@ -31,17 +31,16 @@ describe('MySQL Client', () => {
         lastName: string;
     }
 
-    const mysqlClient = new MysqlClient("", 0, "", "", 0, false, {
-        critical(message: string, extra?: any, module?: string): void {
-        }, debug(message: string, extra?: any, module?: string): void {
-        }, error(message: string, extra?: any, module?: string): void {
-        }, info(message: string, extra?: any, module?: string): void {
-        }, terminate(): void {
-        }, warning(message: string, extra?: any, module?: string): void {
-        }
-    }, new DataMapper(new AutoDataMappingBuilder(), [new DateNormalizer(), new StringNormalizer(), new NumberNormalizer()], []));
-
     it("should retrieve the table metadata", () => {
+        const mysqlClient = new MysqlClient("", 0, "", "", 0, false, {
+            critical(message: string, extra?: any, module?: string): void {
+            }, debug(message: string, extra?: any, module?: string): void {
+            }, error(message: string, extra?: any, module?: string): void {
+            }, info(message: string, extra?: any, module?: string): void {
+            }, terminate(): void {
+            }, warning(message: string, extra?: any, module?: string): void {
+            }
+        }, new DataMapper(new AutoDataMappingBuilder(), [new DateNormalizer(), new StringNormalizer(), new NumberNormalizer()], []));
         const tableMetadata = mysqlClient.getTableMetadata(User);
 
         expect(tableMetadata.tableName).toBe("users");
@@ -49,32 +48,68 @@ describe('MySQL Client', () => {
     })
 
     it("should retrieve the columns metadata", () => {
+        const mysqlClient = new MysqlClient("", 0, "", "", 0, false, {
+            critical(message: string, extra?: any, module?: string): void {
+            }, debug(message: string, extra?: any, module?: string): void {
+            }, error(message: string, extra?: any, module?: string): void {
+            }, info(message: string, extra?: any, module?: string): void {
+            }, terminate(): void {
+            }, warning(message: string, extra?: any, module?: string): void {
+            }
+        }, new DataMapper(new AutoDataMappingBuilder(), [new DateNormalizer(), new StringNormalizer(), new NumberNormalizer()], []));
         const columnsMetadata = mysqlClient.getColumnsMetadata(User);
 
         expect(columnsMetadata.uniqueId.name).toBeUndefined()
         expect(columnsMetadata.uniqueId.isPrimaryKey).toBeTruthy()
 
-        expect(columnsMetadata.firstName).toEqual({});
-        expect(columnsMetadata.lastName).toEqual({});
+        expect(columnsMetadata.firstName).toStrictEqual({"isSearchable": true});
+        expect(columnsMetadata.lastName).toStrictEqual({"isSearchable": true});
     })
 
     it("should retrieve the column metadata", () => {
+        const mysqlClient = new MysqlClient("", 0, "", "", 0, false, {
+            critical(message: string, extra?: any, module?: string): void {
+            }, debug(message: string, extra?: any, module?: string): void {
+            }, error(message: string, extra?: any, module?: string): void {
+            }, info(message: string, extra?: any, module?: string): void {
+            }, terminate(): void {
+            }, warning(message: string, extra?: any, module?: string): void {
+            }
+        }, new DataMapper(new AutoDataMappingBuilder(), [new DateNormalizer(), new StringNormalizer(), new NumberNormalizer()], []));
         const uniqueIdColumnMetadata = mysqlClient.getColumnMetadata(User, "uniqueId");
 
         expect(uniqueIdColumnMetadata.name).toBeUndefined()
         expect(uniqueIdColumnMetadata.isPrimaryKey).toBeTruthy()
 
-        expect(mysqlClient.getColumnMetadata(User, "firstName")).toEqual({});
-        expect(mysqlClient.getColumnMetadata(User, "lastName")).toEqual({});
+        expect(mysqlClient.getColumnMetadata(User, "firstName")).toStrictEqual({"isSearchable": true});
+        expect(mysqlClient.getColumnMetadata(User, "lastName")).toStrictEqual({"isSearchable": true});
     })
 
     it("should retrieve the primary key column name", () => {
+        const mysqlClient = new MysqlClient("", 0, "", "", 0, false, {
+            critical(message: string, extra?: any, module?: string): void {
+            }, debug(message: string, extra?: any, module?: string): void {
+            }, error(message: string, extra?: any, module?: string): void {
+            }, info(message: string, extra?: any, module?: string): void {
+            }, terminate(): void {
+            }, warning(message: string, extra?: any, module?: string): void {
+            }
+        }, new DataMapper(new AutoDataMappingBuilder(), [new DateNormalizer(), new StringNormalizer(), new NumberNormalizer()], []));
         const primaryKeyColumnName = mysqlClient.getPrimaryKeyColumnName(User);
 
         expect(primaryKeyColumnName).toBe("unique_id");
     })
 
     it("should retrieve the column names", () => {
+        const mysqlClient = new MysqlClient("", 0, "", "", 0, false, {
+            critical(message: string, extra?: any, module?: string): void {
+            }, debug(message: string, extra?: any, module?: string): void {
+            }, error(message: string, extra?: any, module?: string): void {
+            }, info(message: string, extra?: any, module?: string): void {
+            }, terminate(): void {
+            }, warning(message: string, extra?: any, module?: string): void {
+            }
+        }, new DataMapper(new AutoDataMappingBuilder(), [new DateNormalizer(), new StringNormalizer(), new NumberNormalizer()], []));
         const primaryKeyColumnName = mysqlClient.getColumnName(User, "uniqueId");
 
         expect(mysqlClient.getColumnName(User, "uniqueId")).toBe("unique_id");
@@ -83,6 +118,16 @@ describe('MySQL Client', () => {
     })
 
     it("should properly retrieve an object in the db based on the id", async () => {
+        const mysqlClient = new MysqlClient("", 0, "", "", 0, false, {
+            critical(message: string, extra?: any, module?: string): void {
+            }, debug(message: string, extra?: any, module?: string): void {
+            }, error(message: string, extra?: any, module?: string): void {
+            }, info(message: string, extra?: any, module?: string): void {
+            }, terminate(): void {
+            }, warning(message: string, extra?: any, module?: string): void {
+            }
+        }, new DataMapper(new AutoDataMappingBuilder(), [new DateNormalizer(), new StringNormalizer(), new NumberNormalizer()], []));
+
         // Mock the executeSql method with a spy and verify that the first argument was the expected SQL Statement.
         const executeSqlSpy = jest.spyOn(mysqlClient, "executeSql").mockResolvedValueOnce([
             {
@@ -107,6 +152,16 @@ describe('MySQL Client', () => {
     })
 
     it("should properly create an object in the db", async () => {
+        const mysqlClient = new MysqlClient("", 0, "", "", 0, false, {
+            critical(message: string, extra?: any, module?: string): void {
+            }, debug(message: string, extra?: any, module?: string): void {
+            }, error(message: string, extra?: any, module?: string): void {
+            }, info(message: string, extra?: any, module?: string): void {
+            }, terminate(): void {
+            }, warning(message: string, extra?: any, module?: string): void {
+            }
+        }, new DataMapper(new AutoDataMappingBuilder(), [new DateNormalizer(), new StringNormalizer(), new NumberNormalizer()], []));
+
         // Mock the executeSql method with a spy and verify that the first argument was the expected SQL Statement.
         const executeSqlSpy = jest.spyOn(mysqlClient, "executeSql").mockResolvedValueOnce([]);
         const user = new User();
@@ -124,6 +179,16 @@ describe('MySQL Client', () => {
     })
 
     it("should properly update an object in the db", async () => {
+        const mysqlClient = new MysqlClient("", 0, "", "", 0, false, {
+            critical(message: string, extra?: any, module?: string): void {
+            }, debug(message: string, extra?: any, module?: string): void {
+            }, error(message: string, extra?: any, module?: string): void {
+            }, info(message: string, extra?: any, module?: string): void {
+            }, terminate(): void {
+            }, warning(message: string, extra?: any, module?: string): void {
+            }
+        }, new DataMapper(new AutoDataMappingBuilder(), [new DateNormalizer(), new StringNormalizer(), new NumberNormalizer()], []));
+
         // Mock the executeSql method with a spy and verify that the first argument was the expected SQL Statement.
         const executeSqlSpy = jest.spyOn(mysqlClient, "executeSql").mockResolvedValueOnce([]);
         const user = new User();
@@ -141,6 +206,16 @@ describe('MySQL Client', () => {
     })
 
     it("should properly delete an object in the db", async () => {
+        const mysqlClient = new MysqlClient("", 0, "", "", 0, false, {
+            critical(message: string, extra?: any, module?: string): void {
+            }, debug(message: string, extra?: any, module?: string): void {
+            }, error(message: string, extra?: any, module?: string): void {
+            }, info(message: string, extra?: any, module?: string): void {
+            }, terminate(): void {
+            }, warning(message: string, extra?: any, module?: string): void {
+            }
+        }, new DataMapper(new AutoDataMappingBuilder(), [new DateNormalizer(), new StringNormalizer(), new NumberNormalizer()], []));
+
         const executeSqlSpy = jest.spyOn(mysqlClient, "executeSql").mockResolvedValueOnce([]);
 
         await mysqlClient.delete("pristine", User, "1");
@@ -153,6 +228,16 @@ describe('MySQL Client', () => {
     })
 
     it("should properly search an object in the db", async () => {
+        const mysqlClient = new MysqlClient("", 0, "", "", 0, false, {
+            critical(message: string, extra?: any, module?: string): void {
+            }, debug(message: string, extra?: any, module?: string): void {
+            }, error(message: string, extra?: any, module?: string): void {
+            }, info(message: string, extra?: any, module?: string): void {
+            }, terminate(): void {
+            }, warning(message: string, extra?: any, module?: string): void {
+            }
+        }, new DataMapper(new AutoDataMappingBuilder(), [new DateNormalizer(), new StringNormalizer(), new NumberNormalizer()], []));
+
         const executeSqlSpy = jest.spyOn(mysqlClient, "executeSql").mockImplementation(async (databaseName: string, sqlStatement: string, values: any[]) => {
             if (sqlStatement.startsWith("SELECT COUNT(*)")) {
                 return [

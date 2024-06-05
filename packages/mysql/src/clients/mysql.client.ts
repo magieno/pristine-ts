@@ -248,7 +248,7 @@ export class MysqlClient implements MysqlClientInterface {
         const columnValues = Object.keys(columns).map(column => element[column]);
 
         // Generate update SQL statement:
-        const sql = `UPDATE ${this.getTableMetadata(element.constructor as { new(): T; }).tableName} SET ${columnNames.join(", ")} WHERE `;
+        const sql = `INSERT INTO ${this.getTableMetadata(element.constructor as { new(): T; }).tableName} (${columnNames.join(", ")}) VALUES (${columnValues.map(() => "?").join(", ")})`;
 
         await this.executeSql(databaseName, sql, columnValues);
     }
