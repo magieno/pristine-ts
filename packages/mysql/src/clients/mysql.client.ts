@@ -8,11 +8,10 @@ import {MysqlModuleKeyname} from "../mysql.module.keyname";
 import {createPool, Pool} from "mysql2/promise";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {DataMapper} from "@pristine-ts/data-mapping-common";
-import {SearchQuery, SearchResult} from "@pristine-ts/mysql-common";
+import {SearchQuery, SearchResult, FilteringOperatorEnum} from "@pristine-ts/mysql-common";
 import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {MysqlConfig} from "../configs/mysql.config";
 import {MysqlConfigProviderInterface} from "../interfaces/mysql-config-provider.interface";
-import {FilteringOperatorEnum} from "@pristine-ts/mysql-common/dist/types/enums/filtering-operator.enum";
 
 @tag("MysqlClientInterface")
 @injectable()
