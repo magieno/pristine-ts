@@ -6,10 +6,10 @@ import {SearchQuery, SearchResult} from "@pristine-ts/mysql-common";
 export interface MysqlClientInterface {
     /**
      * This method returns a pool of connections to the database.
-     * @param databaseName
+     * @param configUniqueKeyname
      * @param force
      */
-    getPool(databaseName: string, force: boolean): Promise<Pool>;
+    getPool(configUniqueKeyname: string, force: boolean): Promise<Pool>;
 
     /**
      * This method returns the table metadata for a given class.
@@ -52,11 +52,11 @@ export interface MysqlClientInterface {
 
     /**
      * This method returns the column name for a given class and property name.
-     * @param databaseName
+     * @param configUniqueKeyname
      * @param sqlStatement
      * @param values
      */
-    executeSql(databaseName: string, sqlStatement: string, values: any[]): Promise<any>
+    executeSql(configUniqueKeyname: string, sqlStatement: string, values: any[]): Promise<any>
 
     /**
      * This method maps the results to a given class type.
@@ -67,39 +67,39 @@ export interface MysqlClientInterface {
 
     /**
      * This method returns a single element from the database.
-     * @param databaseName
+     * @param configUniqueKeyname
      * @param classType
      * @param primaryKey
      */
-    get<T extends { [key: string]: any; }>(databaseName: string, classType: { new(): T; }, primaryKey: string | number): Promise<T | null>
+    get<T extends { [key: string]: any; }>(configUniqueKeyname: string, classType: { new(): T; }, primaryKey: string | number): Promise<T | null>
 
     /**
      * This method creates a new element in the database.
-     * @param databaseName
+     * @param configUniqueKeyname
      * @param element
      */
-    create<T extends { [key: string]: any; }>(databaseName: string, element: T): Promise<void>
+    create<T extends { [key: string]: any; }>(configUniqueKeyname: string, element: T): Promise<void>
 
     /**
      * This method updates an element in the database.
-     * @param databaseName
+     * @param configUniqueKeyname
      * @param element
      */
-    update<T extends { [key: string]: any; }>(databaseName: string, element: T): Promise<void>
+    update<T extends { [key: string]: any; }>(configUniqueKeyname: string, element: T): Promise<void>
 
     /**
      * This method deletes an element in the database.
-     * @param databaseName
+     * @param configUniqueKeyname
      * @param classType
      * @param primaryKey
      */
-    delete<T extends { [key: string]: any; }>(databaseName: string, classType: { new(): T; }, primaryKey: string | number): Promise<void>
+    delete<T extends { [key: string]: any; }>(configUniqueKeyname: string, classType: { new(): T; }, primaryKey: string | number): Promise<void>
 
     /**
      * This method searches the database.
-     * @param databaseName
+     * @param configUniqueKeyname
      * @param classType
      * @param query
      */
-    search<T extends { [key: string]: any; }>(databaseName: string, classType: { new(): T; }, query: SearchQuery): Promise<SearchResult<T>>
+    search<T extends { [key: string]: any; }>(configUniqueKeyname: string, classType: { new(): T; }, query: SearchQuery): Promise<SearchResult<T>>
 }
