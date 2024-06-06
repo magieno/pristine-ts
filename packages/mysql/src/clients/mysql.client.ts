@@ -197,7 +197,7 @@ export class MysqlClient implements MysqlClientInterface {
             const result = await pool.query(sqlStatement, values);
             this.logHandler.debug("Successfully executed the SQL Statement", {sqlStatement, values, result})
 
-            return result;
+            return result[0];
         } catch (error) {
             this.logHandler.error("There was an error executing the SQL Statement", {
                 sqlStatement,
