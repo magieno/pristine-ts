@@ -29,6 +29,9 @@ describe('MySQL Client', () => {
 
         @column()
         lastName: string;
+
+        @column()
+        date: Date;
     }
 
     it("should retrieve the table metadata", () => {
@@ -274,5 +277,28 @@ describe('MySQL Client', () => {
         expect(searchResults.results[2].uniqueId).toBe("3");
         expect(searchResults.results[2].firstName).toBe("Peter");
         expect(searchResults.results[2].lastName).toBe("Ricardo");
+    })
+
+    it("should properly map the results", async () => {
+        const mysqlClient = new MysqlClient([],{
+            critical(message: string, extra?: any, module?: string): void {
+            }, debug(message: string, extra?: any, module?: string): void {
+            }, error(message: string, extra?: any, module?: string): void {
+            }, info(message: string, extra?: any, module?: string): void {
+            }, terminate(): void {
+            }, warning(message: string, extra?: any, module?: string): void {
+            }
+        }, new DataMapper(new AutoDataMappingBuilder(), [new DateNormalizer(), new StringNormalizer(), new NumberNormalizer()], []));
+
+        const users = await mysqlClient.mapResults(User, [
+            {"unique_id": "1", "first_name": "John", "last_name": "Smith", "date": "2021-01-01T00:00:00.000Z"},
+            {"unique_id": "2", "first_name": "Rick", "last_name": "Sanchez", "date": "2021-01-01T00:00:00.000Z"},
+            {"unique_id": "3", "first_name": "Peter", "last_name": "Ricardo", "date": "2021-01-01T00:00:00.000Z"},
+        ]);
+
+        expect(users).toBeDefined();
+        expect(Array.isArray(users)).toBeTruthy()
+        expect(users[0] instanceof User).toBeTruthy()
+        expect(users[0].uniqueId).toBe("1")
     })
 });
