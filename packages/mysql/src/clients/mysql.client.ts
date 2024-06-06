@@ -223,7 +223,10 @@ export class MysqlClient implements MysqlClientInterface {
                 for(const key in result) {
                     const newKey = tableMetadata.autoColumnNamingStrategyReverse!(key);
                     result[newKey] = result[key];
-                    delete result[key];
+
+                    if(key !== newKey) {
+                        delete result[key];
+                    }
                 }
                 return result;
             });
