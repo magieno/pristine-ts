@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/data-mapping-common",
-  "version": "0.0.342",
+  "version": "0.0.343",
   "description": "",
   "module": "dist/lib/esm/data-mapping-common.js",
   "main": "dist/lib/cjs/data-mapping-common.js",
