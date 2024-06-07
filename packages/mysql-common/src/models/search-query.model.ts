@@ -108,8 +108,14 @@ export class SearchQuery {
         }
 
         this.query = queryStrings.query ?? this.query;
-        this.page = queryStrings.page ?? this.page;
-        this.maximumNumberOfResultsPerPage = queryStrings.maximumNumberOfResultsPerPage ?? this.maximumNumberOfResultsPerPage;
+        if(queryStrings.page) {
+            this.page = parseInt(queryStrings.page);
+        }
+
+        if(queryStrings.maximumNumberOfResultsPerPage) {
+            this.maximumNumberOfResultsPerPage = parseInt(queryStrings.maximumNumberOfResultsPerPage);
+        }
+
         if(queryStrings.fields) {
             this.fields = queryStrings.fields?.split(",").map((field) => new SearchQueryField(field, {includeExplicitly: true})) ?? this.fields;
         }
@@ -162,8 +168,8 @@ export class SearchQuery {
     exportQueryParameters(): SearchQueryParametersInterface {
         return {
             query: this.query,
-            page: this.page,
-            maximumNumberOfResultsPerPage: this.maximumNumberOfResultsPerPage,
+            page: this.page + "",
+            maximumNumberOfResultsPerPage: this.maximumNumberOfResultsPerPage + "",
             excludeFieldsFromResponse: this.fields.filter((field) => field.exclude).map((field) => field.field).join(","),
             fields: this.fields.filter((field) => field.includeExplicitly).map((field) => field.field).join(","),
             sort: this.fields.filter((field) => field.order !== undefined).map((field) => `${field.field}:${field.order}`).join(","),

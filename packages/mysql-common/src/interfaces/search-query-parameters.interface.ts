@@ -14,7 +14,7 @@ export interface SearchQueryParametersInterface {
     /**
      * The page number to retrieve.
      */
-    page?: number;
+    page?: string;
 
     /**
      * Comma separated list of field to consider in the search.
@@ -24,7 +24,7 @@ export interface SearchQueryParametersInterface {
     /**
      * The maximum number of results per page to return.
      */
-    maximumNumberOfResultsPerPage?: number;
+    maximumNumberOfResultsPerPage?: string;
 
     /**
      * Separated by commas string of `field:asc|desc` to sort the results.
