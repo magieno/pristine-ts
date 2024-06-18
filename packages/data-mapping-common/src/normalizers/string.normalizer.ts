@@ -2,14 +2,17 @@ import {DataNormalizerInterface} from "../interfaces/data-normalizer.interface";
 import {TypeEnum, TypeUtils} from "@pristine-ts/metadata";
 import {StringNormalizerOptions} from "../normalizer-options/string-normalizer.options";
 import {format} from "date-fns";
+import {BaseNormalizer} from "./base.normalizer";
 
-export class StringNormalizer implements DataNormalizerInterface<string | undefined, StringNormalizerOptions> {
+export class StringNormalizer extends BaseNormalizer<StringNormalizerOptions> implements DataNormalizerInterface<string | undefined, StringNormalizerOptions> {
     getUniqueKey(): string {
         return StringNormalizer.name;
     }
 
     normalize(source: any, options?: StringNormalizerOptions): string | undefined {
         const typeEnum = TypeUtils.getTypeOfValue(source);
+
+        options = this.getOptions(options);
 
         if (typeEnum === undefined || typeEnum === TypeEnum.Null) {
             if (options?.ignoreUndefined === false) {

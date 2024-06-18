@@ -1,14 +1,17 @@
 import {DataNormalizerInterface} from "../interfaces/data-normalizer.interface";
 import {DateNormalizerOptions} from "../normalizer-options/date-normalizer.options";
 import {TypeEnum, TypeUtils} from "@pristine-ts/metadata";
+import {BaseNormalizer} from "./base.normalizer";
 
-export class DateNormalizer implements DataNormalizerInterface<Date | undefined, DateNormalizerOptions> {
+export class DateNormalizer extends BaseNormalizer<DateNormalizerOptions> implements DataNormalizerInterface<Date | undefined, DateNormalizerOptions> {
     getUniqueKey(): string {
         return DateNormalizer.name;
     }
 
     normalize(source: any, options?: DateNormalizerOptions): Date | undefined {
         const typeEnum = TypeUtils.getTypeOfValue(source);
+
+        options = this.getOptions(options);
 
         if (typeEnum === undefined) {
             if (options?.returnUndefinedOnInvalidDate === false) {
