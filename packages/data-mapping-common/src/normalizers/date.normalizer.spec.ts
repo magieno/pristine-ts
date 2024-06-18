@@ -96,4 +96,19 @@ describe('DateNormalizer', () => {
         expect(normalizedDate!.getMonth()).toEqual(expectedDate.getMonth());
         expect(normalizedDate!.getFullYear()).toEqual(expectedDate.getFullYear());
     });
+
+    it('should return a Date object for a number representing milliseconds when the default options is seconds and it gets overwritten', () => {
+        const normalizer = new DateNormalizer({treatNumbers: "seconds"});
+        const milliseconds = 1675275580000; // Represents 2024-01-31T18:53:00Z
+        const expectedDate = new Date(milliseconds);
+        expect(normalizer.normalize(milliseconds, new DateNormalizerOptions({treatNumbers: "milliseconds"}))).toEqual(expectedDate);
+    });
+
+    it('should treat a number as seconds when default options.treatNumbers is "seconds"', () => {
+        const normalizer = new DateNormalizer({treatNumbers: "seconds"})
+        const seconds = 1675275580; // Represents 2024-01-31T18:53:00Z in seconds
+        const expectedDate = new Date(seconds * 1000);
+        expect(normalizer.normalize(seconds)).toEqual(expectedDate);
+    });
+
 });

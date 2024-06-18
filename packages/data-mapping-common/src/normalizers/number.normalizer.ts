@@ -1,14 +1,17 @@
 import {DataNormalizerInterface} from "../interfaces/data-normalizer.interface";
 import {NumberNormalizerOptions} from "../normalizer-options/number-normalizer.options";
 import {TypeEnum, TypeUtils} from "@pristine-ts/metadata";
+import {BaseNormalizer} from "./base.normalizer";
 
-export class NumberNormalizer implements DataNormalizerInterface<number | undefined, NumberNormalizerOptions> {
+export class NumberNormalizer extends BaseNormalizer<NumberNormalizerOptions> implements DataNormalizerInterface<number | undefined, NumberNormalizerOptions> {
     getUniqueKey(): string {
         return NumberNormalizer.name;
     }
 
     normalize(source: any, options?: NumberNormalizerOptions): number | undefined {
         const typeEnum = TypeUtils.getTypeOfValue(source);
+
+        options = this.getOptions(options);
 
         switch (typeEnum) {
             case TypeEnum.String:
