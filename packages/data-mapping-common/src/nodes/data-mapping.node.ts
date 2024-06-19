@@ -140,6 +140,10 @@ export class DataMappingNode extends BaseDataMappingNode {
 
         const sourceElement = source[this.sourceProperty];
 
+        if(sourceElement === undefined) {
+            return;
+        }
+
         if (this.type === DataMappingNodeTypeEnum.ObjectArray) {
             destination[this.destinationProperty] = [];
         } else {
