@@ -29,6 +29,9 @@ describe('MySQL Client', () => {
 
         @column()
         lastName: string;
+
+        @column()
+        extraFields: any;
     }
 
     it("should retrieve the table metadata", () => {
@@ -173,7 +176,7 @@ describe('MySQL Client', () => {
 
         expect(executeSqlSpy).toHaveBeenCalledWith(
             "pristine",
-            "INSERT INTO users (unique_id, first_name, last_name) VALUES (?, ?, ?)",
+            "INSERT INTO users (unique_id, first_name, last_name, extra_fields) VALUES (?, ?, ?, ?)",
             ["1", "John", "Smith"],
         );
     })
@@ -200,8 +203,8 @@ describe('MySQL Client', () => {
 
         expect(executeSqlSpy).toHaveBeenCalledWith(
             "pristine",
-            "UPDATE users SET first_name = ?, last_name = ? WHERE unique_id = ?",
-            ["John", "Smith", "1"],
+            "UPDATE users SET first_name = ?, last_name = ?, extra_fields = ? WHERE unique_id = ?",
+            ["John", "Smith", undefined, "1"],
         );
     })
 
@@ -297,5 +300,30 @@ describe('MySQL Client', () => {
         expect(Array.isArray(users)).toBeTruthy()
         expect(users[0] instanceof User).toBeTruthy()
         expect(users[0].uniqueId).toBe("1")
+    })
+
+    it("should properly map the results and exclude the fields", async () => {
+        const mysqlClient = new MysqlClient([],{
+            critical(message: string, extra?: any, module?: string): void {
+            }, debug(message: string, extra?: any, module?: string): void {
+            }, error(message: string, extra?: any, module?: string): void {
+            }, info(message: string, extra?: any, module?: string): void {
+            }, terminate(): void {
+            }, warning(message: string, extra?: any, module?: string): void {
+            }
+        }, new DataMapper(new AutoDataMappingBuilder(), [new DateNormalizer(), new StringNormalizer(), new NumberNormalizer()], []));
+
+        const users = await mysqlClient.mapResults(User, [
+            {"unique_id": "1", "first_name": "John", "last_name": "Smith", "extra_fields": {"a": 1}},
+            {"unique_id": "2", "first_name": "Rick", "last_name": "Sanchez", "extra_fields": {"a": 1}},
+            {"unique_id": "3", "first_name": "Peter", "last_name": "Ricardo", "extra_fields": {"a": 1}},
+        ], ["extraFields"]);
+
+        expect(users).toBeDefined();
+        expect(Array.isArray(users)).toBeTruthy()
+        expect(users[0] instanceof User).toBeTruthy()
+        expect(users[0].uniqueId).toBe("1")
+        expect(users[0].extraFields).toBeUndefined()
+        expect(users[0].extra_fields).toBeUndefined()
     })
 });
