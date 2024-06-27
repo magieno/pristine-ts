@@ -214,7 +214,7 @@ export class MysqlClient implements MysqlClientInterface {
      * @param classType
      * @param results
      */
-    async mapResults(classType: { new(): any; }, results: any[]) {
+    async mapResults(classType: { new(): any; }, results: any[], excludeFields: string[] = []) {
         // Transform back the column names from the strategy
         const tableMetadata = this.getTableMetadata(classType);
 
@@ -222,6 +222,12 @@ export class MysqlClient implements MysqlClientInterface {
             results = results.map((result) => {
                 for(const key in result) {
                     const newKey = tableMetadata.autoColumnNamingStrategyReverse!(key);
+
+                    if(excludeFields.some(fieldToExclude => fieldToExclude ===newKey)) {
+                        delete result[key];
+                        continue;
+                    }
+
                     result[newKey] = result[key];
 
                     if(key !== newKey) {
@@ -309,7 +315,7 @@ export class MysqlClient implements MysqlClientInterface {
      * @param classType
      * @param query
      */
-    async search<T extends { [key: string]: any; }>(configUniqueKeyname: string, classType: { new(): T; }, query: SearchQuery): Promise<SearchResult<T>> {
+    async search<T extends { [key: string]: any; }>(configUniqueKeyname: string, classType: { new(): T; }, query: SearchQuery, excludeFieldsFromResponse: string[] = []): Promise<SearchResult<T>> {
         let sql = "";
         const columns = this.getColumnsMetadata(classType);
         const defaultSearchableFields = Object.keys(columns).filter(column => columns[column].isSearchable).map(column => this.getColumnName(classType, column));
@@ -412,7 +418,7 @@ export class MysqlClient implements MysqlClientInterface {
         const searchResult = new SearchResult<any>();
         searchResult.page = query.page;
         searchResult.totalNumberOfResults = totalNumberOfResults;
-        searchResult.results = await this.mapResults(classType, response);
+        searchResult.results = await this.mapResults(classType, response, excludeFieldsFromResponse);
         searchResult.maximumNumberOfResultsPerPage = query.maximumNumberOfResultsPerPage;
         searchResult.numberOfResultsReturned = response.length;
 
