@@ -11,7 +11,7 @@ describe("Path Manager", () => {
         const pathParts = path.split("/").reverse();
 
         expect(pathParts[0]).toBe("allo")
-        expect(pathParts[1]).toBe("cli")
+        expect(pathParts[1]).toBe("core")
         expect(pathParts[2]).toBe("packages")
     })
 
@@ -23,7 +23,7 @@ describe("Path Manager", () => {
         const pathParts = path.split("/").reverse();
 
         expect(pathParts[0]).toBe("allo")
-        expect(pathParts[1]).toBe("cli")
+        expect(pathParts[1]).toBe("core")
         expect(pathParts[2]).toBe("packages")
     })
 
@@ -42,7 +42,7 @@ describe("Path Manager", () => {
 
         expect(pathParts[0]).toBe("test.txt")
         expect(pathParts[1]).toBe("allo")
-        expect(pathParts[2]).toBe("cli")
+        expect(pathParts[2]).toBe("core")
         expect(pathParts[3]).toBe("packages")
     })
 })
