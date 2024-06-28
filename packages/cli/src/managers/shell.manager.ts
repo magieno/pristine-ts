@@ -1,7 +1,7 @@
 import {exec, spawn} from "child_process";
 import {ConsoleManager} from "./console.manager";
 import {injectable} from "tsyringe";
-import {PathManager} from "./path.manager";
+import {PathManager} from "@pristine-ts/core";
 import {DateUtil} from "@pristine-ts/common"
 
 @injectable()
