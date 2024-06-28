@@ -13,6 +13,7 @@ export * from "./handlers/handlers";
 export * from "./interceptors/interceptors";
 export * from "./interfaces/interfaces";
 export * from "./listeners/listeners";
+export * from "./managers/managers";
 export * from "./mappers/mappers";
 export * from "./models/models";
 export * from "./pipelines/pipelines";
