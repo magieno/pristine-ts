@@ -6,5 +6,6 @@ export * from "./event-mapping.error";
 export * from "./event-post-mapping-interception.error";
 export * from "./event-pre-mapping-interception.error";
 export * from "./kernel-initialization.error";
+export * from "./path-already-contains-filename.error";
 export * from "./provider-registration.error";
 export * from "./runtime.error";
