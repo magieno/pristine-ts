@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/core",
-  "version": "0.0.346",
+  "version": "0.0.347",
   "description": "",
   "module": "dist/lib/esm/core.module.js",
   "main": "dist/lib/cjs/core.module.js",
