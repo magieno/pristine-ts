@@ -22,6 +22,7 @@
   "dependencies": {
     "@pristine-ts/class-validator": "^1.0.25",
     "@pristine-ts/common": "file:../common",
+    "@pristine-ts/configuration": "file:../configuration",
     "@pristine-ts/data-mapping": "file:../data-mapping",
     "@pristine-ts/data-mapping-common": "file:../data-mapping-common"
   },

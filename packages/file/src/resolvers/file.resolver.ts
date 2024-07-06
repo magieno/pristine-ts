@@ -1,10 +1,10 @@
 import {ResolverInterface} from "@pristine-ts/common";
 import {ClassConstructor} from "class-transformer";
-import {ConfigurationResolverError} from "../../../configuration/src/errors/configuration-resolver.error";
 import {DataMapper} from "@pristine-ts/data-mapping-common";
 import {readFile} from "fs/promises";
 import {existsSync} from "node:fs";
 import {Validator} from "@pristine-ts/class-validator";
+import {ConfigurationResolverError} from "@pristine-ts/configuration";
 
 /**
  * This class is a resolver that is used to resolve the configuration coming from a file.
