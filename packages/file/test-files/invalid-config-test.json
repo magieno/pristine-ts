@@ -1,0 +1,8 @@
+{
+  "title": 1,
+  "index": "Test Config",
+  "nested": {
+    "name": 2,
+    "nestingLevel": "Nested Config"
+  }
+}
