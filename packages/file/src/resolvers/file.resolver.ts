@@ -12,12 +12,12 @@ import {ConfigurationResolverError} from "@pristine-ts/configuration";
  */
 export class FileResolver<Options> implements ResolverInterface<Options> {
     constructor(
-        private readonly dataMapper: DataMapper,
-        private readonly validator: Validator,
         private readonly options: {
         filename: string | ResolverInterface<string>,
         classType: ClassConstructor<Options>,
-    }) {
+    },
+        private readonly dataMapper?: DataMapper,
+        private readonly validator?: Validator,) {
     }
 
     private async resolveFilename(value:  string | ResolverInterface<string>): Promise<string> {
@@ -44,9 +44,23 @@ export class FileResolver<Options> implements ResolverInterface<Options> {
         let options;
 
         try {
+            options = JSON.parse(content);
+        } catch (error) {
+            throw new ConfigurationResolverError("Cannot JSON parse the content of this file", content)
+        }
+
+        if(this.dataMapper === undefined) {
+            return options;
+        }
+
+        try {
             options = await this.dataMapper.autoMap(JSON.parse(content), this.options.classType);
         } catch (error) {
             throw new ConfigurationResolverError("The content of the file is not valid.", content);
+        }
+
+        if(this.validator === undefined) {
+            return options;
         }
 
         // Validate the options
