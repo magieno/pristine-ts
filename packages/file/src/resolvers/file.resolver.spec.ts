@@ -55,7 +55,7 @@ describe("FileResolver", () => {
             classType: ConfigTest
         }, dataMapper, new Validator())
 
-        expect(fileResolver.resolve()).rejects.toThrow();//new ConfigurationResolverError("The file doesn't exist.", filename));
+        expect(fileResolver.resolve()).rejects.toThrow();
     })
 
     it("should throw if the configuration is invalid", async () => {
@@ -64,7 +64,7 @@ describe("FileResolver", () => {
             classType: ConfigTest
         }, dataMapper, new Validator(),)
 
-        expect(fileResolver.resolve()).rejects.toThrow();//new ConfigurationResolverError("The file doesn't exist.", filename));
+        expect(fileResolver.resolve()).rejects.toThrow();
     })
 
     it("should throw if the content of the file is not valid JSON", async () => {
