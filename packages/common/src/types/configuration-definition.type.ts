@@ -18,7 +18,7 @@ export type ConfigurationDefinition = {
     /**
      * Default resolvers that can be provided in the module to prevent having to define a new one everytime.
      */
-    defaultResolvers?:  (string | boolean | number | DynamicConfigurationResolverInterface<any> | Promise<string | boolean | number> | ResolverInterface<string | boolean | number>)[];
+    defaultResolvers?:  (string | boolean | number | DynamicConfigurationResolverInterface<any> | Promise<string | boolean | number> | ResolverInterface<string | boolean | number | any>)[];
 } | {
     /**
      * The name of the configuration parameter.
@@ -38,5 +38,5 @@ export type ConfigurationDefinition = {
     /**
      * Default resolvers that can be provided in the module to prevent having to define a new one everytime.
      */
-    defaultResolvers?:  (string | boolean | number | DynamicConfigurationResolverInterface<any> | Promise<string | boolean | number> | ResolverInterface<string | boolean | number>)[];
+    defaultResolvers?:  (string | boolean | number | DynamicConfigurationResolverInterface<any> | Promise<string | boolean | number> | ResolverInterface<string | boolean | number | any>)[];
 }

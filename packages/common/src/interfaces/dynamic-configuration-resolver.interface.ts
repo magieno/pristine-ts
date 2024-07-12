@@ -15,5 +15,5 @@ export interface DynamicConfigurationResolverInterface<T> {
      * The function that needs to be executed to resolve the value for the configuration.
      * @param injectedInstance The initialized instance of the service resolved with the injection token.
      */
-    dynamicResolve: (injectedInstance?: T) => Promise<string | number | boolean>;
+    dynamicResolve: (injectedInstance?: T) => Promise<string | number | boolean | any>;
 }
