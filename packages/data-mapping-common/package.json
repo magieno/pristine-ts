@@ -20,7 +20,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@pristine-ts/class-validator": "^1.0.25",
+    "@pristine-ts/class-validator": "^2.0.2",
     "@pristine-ts/metadata": "^1.0.13",
     "class-transformer": "^0.5.1",
     "date-fns": "^3.3.1"

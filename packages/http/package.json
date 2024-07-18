@@ -15,7 +15,7 @@
     "dist"
   ],
   "dependencies": {
-    "@pristine-ts/class-validator": "^1.0.25",
+    "@pristine-ts/class-validator": "^2.0.2",
     "@pristine-ts/cli": "file:../cli",
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/logging": "file:../logging",
