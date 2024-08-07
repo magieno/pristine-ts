@@ -9,7 +9,7 @@ export interface MysqlClientInterface {
      * @param configUniqueKeyname
      * @param force
      */
-    getPool(configUniqueKeyname: string, force: boolean): Promise<Pool>;
+    getPool(configUniqueKeyname: string, force?: boolean, options?: any): Promise<Pool>;
 
     /**
      * This method returns the table metadata for a given class.
@@ -57,6 +57,14 @@ export interface MysqlClientInterface {
      * @param values
      */
     executeSql(configUniqueKeyname: string, sqlStatement: string, values: any[]): Promise<any>
+
+    /**
+     * This method returns the column name for a given class and property name.
+     * @param configUniqueKeyname
+     * @param sqlStatement
+     * @param values
+     */
+    querySql(configUniqueKeyname: string, sqlStatement: string, values: any[]): Promise<any>
 
     /**
      * This method maps the results to a given class type.
