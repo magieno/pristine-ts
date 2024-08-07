@@ -45,7 +45,7 @@ export class MysqlClient implements MysqlClientInterface {
      * @param configUniqueKeyname
      * @param force
      */
-    async getPool(configUniqueKeyname: string, force: boolean = false): Promise<Pool> {
+    async getPool(configUniqueKeyname: string, force: boolean = false, options = {}): Promise<Pool> {
         if (!this.pools.has(configUniqueKeyname) && !force) {
             try {
                 const mysqlConfig = await this.getMysqlConfig(configUniqueKeyname);
@@ -58,6 +58,7 @@ export class MysqlClient implements MysqlClientInterface {
                     password: mysqlConfig.password,
                     database: mysqlConfig.database,
                     debug: mysqlConfig.debug,
+                    ...options,
                 });
 
                 this.pools.set(configUniqueKeyname, pool);
@@ -195,6 +196,35 @@ export class MysqlClient implements MysqlClientInterface {
 
         try {
             const result = await pool.query(sqlStatement, values);
+
+            this.logHandler.debug("Successfully executed the SQL Statement", {sqlStatement, values, result})
+
+            return result[0];
+        } catch (error) {
+            this.logHandler.error("There was an error executing the SQL Statement", {
+                sqlStatement,
+                values,
+                error,
+            });
+
+            throw error;
+        }
+    }
+
+    /**
+     * This method returns the column name for a given class and property name.
+     * @param configUniqueKeyname
+     * @param sqlStatement
+     * @param values
+     */
+    async querySql(configUniqueKeyname: string, sqlStatement: string, values: any[]): Promise<any> {
+        const pool = await this.getPool(configUniqueKeyname);
+
+        this.logHandler.debug("Executing SQL Statement", {sqlStatement, values});
+
+        try {
+            const result = await pool.query(sqlStatement, values);
+
             this.logHandler.debug("Successfully executed the SQL Statement", {sqlStatement, values, result})
 
             return result[0];
