@@ -58,6 +58,7 @@ export class MysqlClient implements MysqlClientInterface {
                     password: mysqlConfig.password,
                     database: mysqlConfig.database,
                     debug: mysqlConfig.debug,
+                    multipleStatements: mysqlConfig.multipleStatements ?? false,
                     ...options,
                 });
 
