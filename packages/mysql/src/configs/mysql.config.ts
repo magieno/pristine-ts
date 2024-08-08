@@ -7,4 +7,5 @@ export interface MysqlConfig {
     connectionLimit: number,
     debug: boolean,
     database: string,
+    multipleStatements?: boolean,
 }
