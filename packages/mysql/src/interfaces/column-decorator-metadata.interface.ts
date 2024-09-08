@@ -9,4 +9,9 @@ export interface ColumnDecoratorMetadataInterface {
      * Default: `true`
      */
     isSearchable?: boolean;
+
+    /**
+     * Whether this column should be treated as a JSON blob.
+     */
+    isJsonBlob?: boolean;
 }
