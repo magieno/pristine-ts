@@ -87,8 +87,8 @@ describe('MySQL Client', () => {
         expect(uniqueIdColumnMetadata.name).toBeUndefined()
         expect(uniqueIdColumnMetadata.isPrimaryKey).toBeTruthy()
 
-        expect(mysqlClient.getColumnMetadata(User, "firstName")).toStrictEqual({"isSearchable": true, "isJsonBlob": true});
-        expect(mysqlClient.getColumnMetadata(User, "lastName")).toStrictEqual({"isSearchable": true, "isJsonBlob": true});
+        expect(mysqlClient.getColumnMetadata(User, "firstName")).toStrictEqual({"isSearchable": true, "isJsonBlob": false});
+        expect(mysqlClient.getColumnMetadata(User, "lastName")).toStrictEqual({"isSearchable": true, "isJsonBlob": false});
     })
 
     it("should retrieve the primary key column name", () => {

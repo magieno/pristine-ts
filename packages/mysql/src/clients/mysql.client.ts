@@ -339,7 +339,7 @@ export class MysqlClient implements MysqlClientInterface {
         const propertyNames = Object.keys(columns).filter(column => column !== primaryKeyPropertyName);
 
         const columnNames = propertyNames.map(column => this.getColumnName(element.constructor as { new(): T; }, column));
-        const columnValues = Object.keys(columns).map(column => {
+        const columnValues = propertyNames.map(column => {
             const columnMetadata = this.getColumnMetadata(element.constructor as { new(): T; }, column);
 
             const columnValue = element[column];
