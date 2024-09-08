@@ -14,6 +14,11 @@ export const column = (element?: ColumnDecoratorMetadataInterface) => {
             element.isSearchable = true;
         }
 
+        if(element?.isJsonBlob === undefined) {
+            // Default value is false for isJsonBlob.
+            element.isJsonBlob = false;
+        }
+
         PropertyMetadata.defineMetadata(target, propertyKey, DecoratorMetadataKeynameEnum.Column, element ?? {})
     }
 };

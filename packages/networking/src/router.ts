@@ -230,7 +230,7 @@ export class Router implements RouterInterface {
                 }, NetworkingModuleKeyname);
 
                 routerRequestExecutionSpan.end();
-                return resolve(this.executeErrorResponseInterceptors(new NotFoundHttpError("No route found for path: '" + url.pathname + "'."), request, container));
+                return resolve(this.executeErrorResponseInterceptors(new NotFoundHttpError("No route found for method: '" + request.httpMethod + "' and path: '" + url.pathname + "'."), request, container));
             }
 
             // Get the route parameters

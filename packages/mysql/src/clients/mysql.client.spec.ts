@@ -30,7 +30,9 @@ describe('MySQL Client', () => {
         @column()
         lastName: string;
 
-        @column()
+        @column({
+            isJsonBlob: true,
+        })
         extraFields: any;
     }
 
@@ -65,8 +67,9 @@ describe('MySQL Client', () => {
         expect(columnsMetadata.uniqueId.name).toBeUndefined()
         expect(columnsMetadata.uniqueId.isPrimaryKey).toBeTruthy()
 
-        expect(columnsMetadata.firstName).toStrictEqual({"isSearchable": true});
-        expect(columnsMetadata.lastName).toStrictEqual({"isSearchable": true});
+        expect(columnsMetadata.firstName).toStrictEqual({"isSearchable": true, "isJsonBlob": false});
+        expect(columnsMetadata.lastName).toStrictEqual({"isSearchable": true, "isJsonBlob": false});
+        expect(columnsMetadata.extraFields).toStrictEqual({"isSearchable": true, "isJsonBlob": true});
     })
 
     it("should retrieve the column metadata", () => {
@@ -84,8 +87,8 @@ describe('MySQL Client', () => {
         expect(uniqueIdColumnMetadata.name).toBeUndefined()
         expect(uniqueIdColumnMetadata.isPrimaryKey).toBeTruthy()
 
-        expect(mysqlClient.getColumnMetadata(User, "firstName")).toStrictEqual({"isSearchable": true});
-        expect(mysqlClient.getColumnMetadata(User, "lastName")).toStrictEqual({"isSearchable": true});
+        expect(mysqlClient.getColumnMetadata(User, "firstName")).toStrictEqual({"isSearchable": true, "isJsonBlob": true});
+        expect(mysqlClient.getColumnMetadata(User, "lastName")).toStrictEqual({"isSearchable": true, "isJsonBlob": true});
     })
 
     it("should retrieve the primary key column name", () => {
@@ -291,15 +294,16 @@ describe('MySQL Client', () => {
         }, new DataMapper(new AutoDataMappingBuilder(), [new DateNormalizer(), new StringNormalizer(), new NumberNormalizer()], []));
 
         const users = await mysqlClient.mapResults(User, [
-            {"unique_id": "1", "first_name": "John", "last_name": "Smith"},
-            {"unique_id": "2", "first_name": "Rick", "last_name": "Sanchez"},
-            {"unique_id": "3", "first_name": "Peter", "last_name": "Ricardo"},
+            {"unique_id": "1", "first_name": "John", "last_name": "Smith", "extra_fields": '{"a": 1}'},
+            {"unique_id": "2", "first_name": "Rick", "last_name": "Sanchez", "extra_fields": '{"a": 1}'},
+            {"unique_id": "3", "first_name": "Peter", "last_name": "Ricardo", "extra_fields": '{"a": 1}'},
         ]);
 
         expect(users).toBeDefined();
         expect(Array.isArray(users)).toBeTruthy()
         expect(users[0] instanceof User).toBeTruthy()
         expect(users[0].uniqueId).toBe("1")
+        expect(users[0].extraFields.a).toBe(1)
     })
 
     it("should properly map the results and exclude the fields", async () => {

@@ -259,7 +259,18 @@ export class MysqlClient implements MysqlClientInterface {
                         continue;
                     }
 
-                    result[newKey] = result[key];
+                    const columnMetadata = this.getColumnMetadata(classType, newKey);
+
+                    if(columnMetadata.isJsonBlob) {
+                        try {
+                            result[newKey] = JSON.parse(result[key]);
+                        } catch (e) {
+                            this.logHandler.warning("mysql.client:mapResults - Could not parse the JSON blob. It will be returned as is.", {error: e, key, newKey, result});
+                        }
+
+                    } else {
+                        result[newKey] = result[key];
+                    }
 
                     if(key !== newKey) {
                         delete result[key];
@@ -295,7 +306,17 @@ export class MysqlClient implements MysqlClientInterface {
         const columns = this.getColumnsMetadata(element.constructor as { new(): T; });
 
         const columnNames = Object.keys(columns).map(column => this.getColumnName(element.constructor as { new(): T; }, column));
-        const columnValues = Object.keys(columns).map(column => element[column]);
+        const columnValues = Object.keys(columns).map(column => {
+            const columnMetadata = this.getColumnMetadata(element.constructor as { new(): T; }, column);
+
+            const columnValue = element[column];
+
+            if(columnMetadata.isJsonBlob) {
+                return JSON.stringify(columnValue);
+            }
+
+            return columnValue;
+        });
 
         // Generate update SQL statement:
         const sql = `INSERT INTO ${this.getTableMetadata(element.constructor as { new(): T; }).tableName} (${columnNames.join(", ")}) VALUES (${columnValues.map(() => "?").join(", ")})`;
@@ -318,7 +339,17 @@ export class MysqlClient implements MysqlClientInterface {
         const propertyNames = Object.keys(columns).filter(column => column !== primaryKeyPropertyName);
 
         const columnNames = propertyNames.map(column => this.getColumnName(element.constructor as { new(): T; }, column));
-        const columnValues = propertyNames.map(column => element[column]);
+        const columnValues = Object.keys(columns).map(column => {
+            const columnMetadata = this.getColumnMetadata(element.constructor as { new(): T; }, column);
+
+            const columnValue = element[column];
+
+            if(columnMetadata.isJsonBlob) {
+                return JSON.stringify(columnValue);
+            }
+
+            return columnValue;
+        });
 
         // Add it since it will be the last element that will tell us which row to update.
         columnValues.push(primaryKeyValue);
