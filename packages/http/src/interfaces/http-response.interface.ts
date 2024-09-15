@@ -25,4 +25,14 @@ export interface HttpResponseInterface {
      * The request that was sent for getting this response.
      */
     request: HttpRequestInterface;
+
+    /**
+     * The time it took to get the response (in ms).
+     */
+    responseTime?: number;
+
+    /**
+     * The time it took to get the first byte of the response (in ms).
+     */
+    timeToFirstByte?: number;
 }
