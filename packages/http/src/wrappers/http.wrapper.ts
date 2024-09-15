@@ -24,6 +24,8 @@ export class HttpWrapper implements HttpWrapperInterface {
     executeRequest(request: HttpRequestInterface): Promise<HttpResponseInterface> {
         return new Promise((resolve, reject) => {
             // Define the options required by the http and https modules.
+            let now: number = -1;
+
             const url = new URL(request.url);
             const options: RequestOptions = {
                 host: url.hostname,
@@ -48,19 +50,24 @@ export class HttpWrapper implements HttpWrapperInterface {
                 let body = '';
 
                 res.on('data', chunk => {
+                    response.timeToFirstByte = performance.now() - now;
                     body = body + "" + chunk;
                 });
 
                 res.on('error', error => {
+                    response.responseTime = performance.now() - now;
                     return reject(error);
                 })
 
                 res.on('end', async () => {
                     response.body = body;
+                    response.responseTime = performance.now() - now;
 
                     return resolve(response);
                 });
             }
+
+            now = performance.now();
 
             // Make the http or https call depending on the url.
             if (url.protocol === "http://" || url.protocol === "http:" || url.protocol === "http") {
