@@ -120,7 +120,7 @@ export class Kernel {
             // @ts-ignore - Register the provider in the container
             this.container.register(...args);
         } catch (e) {
-            throw new ProviderRegistrationError("There was an error registering the providerRegistration: ", providerRegistration, this);
+            throw new ProviderRegistrationError("There was an error registering the providerRegistration: " + e, providerRegistration, this);
         }
     }
 
