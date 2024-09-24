@@ -31,9 +31,9 @@ describe("Networking - Controllers", () => {
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        const request = new Request(HttpMethod.Get, "https://localhost:8080/api/2.0/magieno/pristine");
+        let request = new Request(HttpMethod.Get, "https://localhost:8080/api/2.0/magieno/pristine");
 
-        const response = await kernel.handle(request, {
+        let response = await kernel.handle(request, {
             keyname: ExecutionContextKeynameEnum.Jest,
             context: {}
         }) as Response;
@@ -41,5 +41,20 @@ describe("Networking - Controllers", () => {
         expect(response instanceof Response).toBeTruthy()
         expect(response.status).toBe(200);
         expect(response.body).toStrictEqual({"NestedController": true});
+
+        request = new Request(HttpMethod.Post, "https://localhost:8080/api/2.0/magieno/pristine");
+        const body = {
+            "my_body": true,
+        };
+        request.body = body;
+
+        response = await kernel.handle(request, {
+            keyname: ExecutionContextKeynameEnum.Jest,
+            context: {}
+        }) as Response;
+
+        expect(response instanceof Response).toBeTruthy()
+        expect(response.status).toBe(200);
+        expect(response.body).toStrictEqual([]);
     })
 })
