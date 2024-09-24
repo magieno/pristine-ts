@@ -23,4 +23,23 @@ describe("Networking - Controllers", () => {
         expect(response instanceof Response).toBeTruthy()
         expect(response.status).toBe(200);
     })
+
+    it("should load the 'nested' controller", async () => {
+        const kernel = new Kernel();
+        await kernel.start(testModule, {
+            "pristine.logging.consoleLoggerActivated": false,
+            "pristine.logging.fileLoggerActivated": false,
+        });
+
+        const request = new Request(HttpMethod.Get, "https://localhost:8080/api/2.0/magieno/pristine");
+
+        const response = await kernel.handle(request, {
+            keyname: ExecutionContextKeynameEnum.Jest,
+            context: {}
+        }) as Response;
+
+        expect(response instanceof Response).toBeTruthy()
+        expect(response.status).toBe(200);
+        expect(response.body).toStrictEqual({"NestedController": true});
+    })
 })
