@@ -55,6 +55,6 @@ describe("Networking - Controllers", () => {
 
         expect(response instanceof Response).toBeTruthy()
         expect(response.status).toBe(200);
-        expect(response.body).toStrictEqual([]);
+        expect(response.body).toStrictEqual(body);
     })
 })
