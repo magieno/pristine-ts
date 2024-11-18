@@ -5,7 +5,7 @@ import {BaseNormalizer} from "./base.normalizer";
 
 export class DateNormalizer extends BaseNormalizer<DateNormalizerOptions> implements DataNormalizerInterface<Date | undefined, DateNormalizerOptions> {
     getUniqueKey(): string {
-        return DateNormalizer.name;
+        return "PRISTINE_DATE_NORMALIZER";
     }
 
     normalize(source: any, options?: DateNormalizerOptions): Date | undefined {

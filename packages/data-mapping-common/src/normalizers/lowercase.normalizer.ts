@@ -6,7 +6,7 @@ import {BaseNormalizer} from "./base.normalizer";
 
 export class LowercaseNormalizer extends BaseNormalizer<LowercaseNormalizerOptions> implements DataNormalizerInterface<string, LowercaseNormalizerOptions>{
     getUniqueKey(): DataNormalizerUniqueKey {
-        return LowercaseNormalizer.name;
+        return "PRISTINE_LOWERCASE_NORMALIZER";
     }
 
     normalize(source: any, options?: LowercaseNormalizerOptions): string {
