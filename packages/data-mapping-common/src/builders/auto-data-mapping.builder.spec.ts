@@ -2,9 +2,9 @@ import "reflect-metadata"
 import {AutoDataMappingBuilder} from "./auto-data-mapping.builder";
 import {classMetadata, property} from "@pristine-ts/metadata";
 import {DataMapper} from "../mappers/data.mapper";
-import {StringNormalizer} from "../normalizers/string.normalizer";
-import {NumberNormalizer} from "../normalizers/number.normalizer";
-import {DateNormalizer} from "../normalizers/date.normalizer";
+import {StringNormalizer, StringNormalizerUniqueKey} from "../normalizers/string.normalizer";
+import {NumberNormalizer, NumberNormalizerUniqueKey} from "../normalizers/number.normalizer";
+import {DateNormalizer, DateNormalizerUniqueKey} from "../normalizers/date.normalizer";
 import {type} from "../decorators/type.decorator";
 import {DataMappingNode} from "../nodes/data-mapping.node";
 import {DataMappingLeaf} from "../nodes/data-mapping.leaf";
@@ -112,7 +112,7 @@ describe("Auto DataMappingBuilder", () => {
         const titleLeaf = dataMappingBuilder.nodes["title"] as DataMappingLeaf;
         expect(titleLeaf).toBeInstanceOf(DataMappingLeaf);
         expect(titleLeaf.normalizers).toHaveLength(1)
-        expect(titleLeaf.normalizers[0].key).toBe(StringNormalizer.name)
+        expect(titleLeaf.normalizers[0].key).toBe(StringNormalizerUniqueKey)
 
         const nestedNode = dataMappingBuilder.nodes["nested"] as DataMappingNode;
         expect(nestedNode).toBeInstanceOf(DataMappingNode);
@@ -135,12 +135,12 @@ describe("Auto DataMappingBuilder", () => {
         const nameLeaf = headNode.nodes["name"] as DataMappingLeaf;
         expect(nameLeaf).toBeInstanceOf(DataMappingLeaf);
         expect(nameLeaf.normalizers).toHaveLength(1)
-        expect(nameLeaf.normalizers[0].key).toBe(StringNormalizer.name)
+        expect(nameLeaf.normalizers[0].key).toBe(StringNormalizerUniqueKey)
 
         const dateLeaf = dataMappingBuilder.nodes["date"] as DataMappingLeaf;
         expect(dateLeaf).toBeInstanceOf(DataMappingLeaf);
         expect(dateLeaf.normalizers).toHaveLength(1)
-        expect(dateLeaf.normalizers[0].key).toBe(DateNormalizer.name);
+        expect(dateLeaf.normalizers[0].key).toBe(DateNormalizerUniqueKey);
 
         const arrayNode = dataMappingBuilder.nodes["array"] as DataMappingNode;
         expect(arrayNode).toBeInstanceOf(DataMappingNode);
@@ -149,12 +149,12 @@ describe("Auto DataMappingBuilder", () => {
         const rankLeaf = arrayNode.nodes["rank"] as DataMappingLeaf;
         expect(rankLeaf).toBeInstanceOf(DataMappingLeaf);
         expect(rankLeaf.normalizers).toHaveLength(1)
-        expect(rankLeaf.normalizers[0].key).toBe(NumberNormalizer.name);
+        expect(rankLeaf.normalizers[0].key).toBe(NumberNormalizerUniqueKey);
 
         const childrenLeaf = dataMappingBuilder.nodes["children"] as DataMappingLeaf;
         expect(childrenLeaf).toBeInstanceOf(DataMappingLeaf);
         expect(childrenLeaf.type).toBe(DataMappingNodeTypeEnum.ScalarArray);
         expect(childrenLeaf.normalizers).toHaveLength(1)
-        expect(childrenLeaf.normalizers[0].key).toBe(StringNormalizer.name);
+        expect(childrenLeaf.normalizers[0].key).toBe(StringNormalizerUniqueKey);
     })
 })
