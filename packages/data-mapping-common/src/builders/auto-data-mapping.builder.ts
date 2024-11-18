@@ -3,9 +3,9 @@ import {DataMappingBuilder} from "./data-mapping.builder";
 import {DataMappingNode} from "../nodes/data-mapping.node";
 import {ClassMetadata, PropertyInformationEnum, PropertyMetadata, TypeEnum, TypeUtils} from "@pristine-ts/metadata";
 import {DataMappingLeaf} from "../nodes/data-mapping.leaf";
-import {NumberNormalizer} from "../normalizers/number.normalizer";
-import {StringNormalizer} from "../normalizers/string.normalizer";
-import {DateNormalizer} from "../normalizers/date.normalizer";
+import {NumberNormalizer, NumberNormalizerUniqueKey} from "../normalizers/number.normalizer";
+import {StringNormalizer, StringNormalizerUniqueKey} from "../normalizers/string.normalizer";
+import {DateNormalizer, DateNormalizerUniqueKey} from "../normalizers/date.normalizer";
 import {DataMappingNodeTypeEnum} from "../enums/data-mapping-node-type.enum";
 import {AutoDataMappingBuilderOptions} from "../options/auto-data-mapping-builder.options";
 import {MetadataEnum} from "../enums/metadata.enum";
@@ -102,15 +102,15 @@ export class AutoDataMappingBuilder {
                             // todo: Allow for options to be specified per attribute. We should probably add a decorator to can customize the normalizer.
                             switch (nestedElementType) {
                                 case TypeEnum.Number:
-                                    normalizers.push(NumberNormalizer.name);
+                                    normalizers.push(NumberNormalizerUniqueKey);
                                     break;
 
                                 case TypeEnum.String:
-                                    normalizers.push(StringNormalizer.name);
+                                    normalizers.push(StringNormalizerUniqueKey);
                                     break;
 
                                 case TypeEnum.Date:
-                                    normalizers.push(DateNormalizer.name);
+                                    normalizers.push(DateNormalizerUniqueKey);
                                     break;
                             }
                             normalizers.forEach(normalizer => dataMappingLeaf.addNormalizer(normalizer));
@@ -142,15 +142,15 @@ export class AutoDataMappingBuilder {
                 // todo: Allow for options to be specified per attribute. We should probably add a decorator to can customize the normalizer.
                 switch (propertyInformation.typeEnum) {
                     case TypeEnum.Number:
-                        normalizers.push(NumberNormalizer.name);
+                        normalizers.push(NumberNormalizerUniqueKey);
                         break;
 
                     case TypeEnum.String:
-                        normalizers.push(StringNormalizer.name);
+                        normalizers.push(StringNormalizerUniqueKey);
                         break;
 
                     case TypeEnum.Date:
-                        normalizers.push(DateNormalizer.name);
+                        normalizers.push(DateNormalizerUniqueKey);
                         break;
                 }
 

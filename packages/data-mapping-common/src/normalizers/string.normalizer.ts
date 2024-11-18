@@ -4,9 +4,11 @@ import {StringNormalizerOptions} from "../normalizer-options/string-normalizer.o
 import {format} from "date-fns";
 import {BaseNormalizer} from "./base.normalizer";
 
+export const StringNormalizerUniqueKey = "PRISTINE_STRING_NORMALIZER";
+
 export class StringNormalizer extends BaseNormalizer<StringNormalizerOptions> implements DataNormalizerInterface<string | undefined, StringNormalizerOptions> {
     getUniqueKey(): string {
-        return "PRISTINE_STRING_NORMALIZER";
+        return StringNormalizerUniqueKey;
     }
 
     normalize(source: any, options?: StringNormalizerOptions): string | undefined {

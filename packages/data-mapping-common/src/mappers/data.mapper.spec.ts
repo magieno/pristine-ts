@@ -1,4 +1,4 @@
-import {LowercaseNormalizer} from "../normalizers/lowercase.normalizer";
+import {LowercaseNormalizer, LowercaseNormalizerUniqueKey} from "../normalizers/lowercase.normalizer";
 import {DataMappingInterceptorInterface} from "../interfaces/data-mapping-interceptor.interface";
 import {DataMappingInterceptorUniqueKeyType} from "../types/data-mapping-interceptor-unique-key.type";
 import {DataMappingInterceptorNotFoundError} from "../errors/data-mapping-interceptor-not-found.error";
@@ -59,11 +59,11 @@ describe("Data Mapper", () =>{
         let dataMappingBuilder = new DataMappingBuilder();
 
         dataMappingBuilder
-            .addNormalizer(LowercaseNormalizer.name)
+            .addNormalizer(LowercaseNormalizerUniqueKey)
             .add()
                 .setSourceProperty("title")
                 .setDestinationProperty("name")
-                .excludeNormalizer(LowercaseNormalizer.name)
+                .excludeNormalizer(LowercaseNormalizerUniqueKey)
             .end()
             .addNestingLevel()
                 .setSourceProperty("nested")
@@ -169,7 +169,7 @@ describe("Data Mapper", () =>{
             .end()
             .add()
                 .setSourceProperty("province")
-                .addNormalizer(LowercaseNormalizer.name)
+                .addNormalizer(LowercaseNormalizerUniqueKey)
                 .setDestinationProperty("province")
             .end()
             .add()
@@ -202,7 +202,7 @@ describe("Data Mapper", () =>{
             .end()
             .add()
                 .setSourceProperty("1")
-                .addNormalizer(LowercaseNormalizer.name)
+                .addNormalizer(LowercaseNormalizerUniqueKey)
                 .setDestinationProperty("province")
             .end()
             .add()
@@ -273,7 +273,7 @@ describe("Data Mapper", () =>{
             .end()
             .add()
                 .setSourceProperty("1")
-                .addNormalizer(LowercaseNormalizer.name)
+                .addNormalizer(LowercaseNormalizerUniqueKey)
                 .setDestinationProperty("province")
             .end()
             .add()
@@ -356,7 +356,7 @@ describe("Data Mapper", () =>{
             .add()
                 .setSourceProperty("title")
                 .setDestinationProperty("name")
-                .addNormalizer(LowercaseNormalizer.name)
+                .addNormalizer(LowercaseNormalizerUniqueKey)
             .end()
 
         const destination = await dataMapper.map(dataMappingBuilder, source, Destination);
@@ -385,7 +385,7 @@ describe("Data Mapper", () =>{
             .add()
                 .setSourceProperty("title")
                 .setDestinationProperty("name")
-                .addNormalizer(LowercaseNormalizer.name)
+                .addNormalizer(LowercaseNormalizerUniqueKey)
             .end()
 
         const destination = await dataMapper.map(dataMappingBuilder, source, Destination);
@@ -559,7 +559,7 @@ describe("Data Mapper", () =>{
 
         const dataMapper = new DataMapper(new AutoDataMappingBuilder(), [new LowercaseNormalizer(), new DateNormalizer(), new StringNormalizer(), new NumberNormalizer()], []);
 
-        const mapped = await dataMapper.autoMap(source, Source)
+        const mapped = await dataMapper.autoMap(source, Source, new AutoDataMappingBuilderOptions({throwOnErrors: true}))
 
         expect(mapped).toBeInstanceOf(Source);
     })

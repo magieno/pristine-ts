@@ -4,9 +4,11 @@ import {NormalizerInvalidSourceTypeError} from "../errors/normalizer-invalid-sou
 import {LowercaseNormalizerOptions} from "../normalizer-options/lowercase-normalizer.options";
 import {BaseNormalizer} from "./base.normalizer";
 
+export const LowercaseNormalizerUniqueKey = "PRISTINE_LOWERCASE_NORMALIZER";
+
 export class LowercaseNormalizer extends BaseNormalizer<LowercaseNormalizerOptions> implements DataNormalizerInterface<string, LowercaseNormalizerOptions>{
     getUniqueKey(): DataNormalizerUniqueKey {
-        return "PRISTINE_LOWERCASE_NORMALIZER";
+        return LowercaseNormalizerUniqueKey;
     }
 
     normalize(source: any, options?: LowercaseNormalizerOptions): string {

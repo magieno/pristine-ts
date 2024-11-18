@@ -11,7 +11,7 @@ import {classMetadata, property} from "@pristine-ts/metadata";
 import {
     AutoDataMappingBuilder, DataMapper,
     DataMappingBuilder, DateNormalizer,
-    LowercaseNormalizer, NumberNormalizer,
+    LowercaseNormalizer, LowercaseNormalizerUniqueKey, NumberNormalizer,
     StringNormalizer
 } from "@pristine-ts/data-mapping";
 import {Route} from "../models/route";
@@ -120,7 +120,7 @@ describe("Body Mapping Request Interceptor", () => {
             .add()
                 .setSourceProperty("title")
                 .setDestinationProperty("name")
-                .addNormalizer(LowercaseNormalizer.name)
+                .addNormalizer(LowercaseNormalizerUniqueKey)
             .end()
             .add()
                 .setSourceProperty("rank")
