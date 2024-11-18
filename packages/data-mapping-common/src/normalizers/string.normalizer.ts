@@ -6,7 +6,7 @@ import {BaseNormalizer} from "./base.normalizer";
 
 export class StringNormalizer extends BaseNormalizer<StringNormalizerOptions> implements DataNormalizerInterface<string | undefined, StringNormalizerOptions> {
     getUniqueKey(): string {
-        return StringNormalizer.name;
+        return "PRISTINE_STRING_NORMALIZER";
     }
 
     normalize(source: any, options?: StringNormalizerOptions): string | undefined {

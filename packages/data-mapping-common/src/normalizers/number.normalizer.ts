@@ -5,7 +5,7 @@ import {BaseNormalizer} from "./base.normalizer";
 
 export class NumberNormalizer extends BaseNormalizer<NumberNormalizerOptions> implements DataNormalizerInterface<number | undefined, NumberNormalizerOptions> {
     getUniqueKey(): string {
-        return NumberNormalizer.name;
+        return "PRISTINE_NUMBER_NORMALIZER";
     }
 
     normalize(source: any, options?: NumberNormalizerOptions): number | undefined {
