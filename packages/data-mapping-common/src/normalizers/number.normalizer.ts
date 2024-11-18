@@ -3,9 +3,11 @@ import {NumberNormalizerOptions} from "../normalizer-options/number-normalizer.o
 import {TypeEnum, TypeUtils} from "@pristine-ts/metadata";
 import {BaseNormalizer} from "./base.normalizer";
 
+export const NumberNormalizerUniqueKey = "PRISTINE_NUMBER_NORMALIZER";
+
 export class NumberNormalizer extends BaseNormalizer<NumberNormalizerOptions> implements DataNormalizerInterface<number | undefined, NumberNormalizerOptions> {
     getUniqueKey(): string {
-        return "PRISTINE_NUMBER_NORMALIZER";
+        return NumberNormalizerUniqueKey;
     }
 
     normalize(source: any, options?: NumberNormalizerOptions): number | undefined {

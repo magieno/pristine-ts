@@ -3,9 +3,11 @@ import {DateNormalizerOptions} from "../normalizer-options/date-normalizer.optio
 import {TypeEnum, TypeUtils} from "@pristine-ts/metadata";
 import {BaseNormalizer} from "./base.normalizer";
 
+export const DateNormalizerUniqueKey = "PRISTINE_DATE_NORMALIZER";
+
 export class DateNormalizer extends BaseNormalizer<DateNormalizerOptions> implements DataNormalizerInterface<Date | undefined, DateNormalizerOptions> {
     getUniqueKey(): string {
-        return "PRISTINE_DATE_NORMALIZER";
+        return DateNormalizerUniqueKey;
     }
 
     normalize(source: any, options?: DateNormalizerOptions): Date | undefined {
