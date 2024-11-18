@@ -142,15 +142,15 @@ export class AutoDataMappingBuilder {
                 // todo: Allow for options to be specified per attribute. We should probably add a decorator to can customize the normalizer.
                 switch (propertyInformation.typeEnum) {
                     case TypeEnum.Number:
-                        normalizers.push(NumberNormalizer.name);
+                        normalizers.push(NumberNormalizerUniqueKey);
                         break;
 
                     case TypeEnum.String:
-                        normalizers.push(StringNormalizer.name);
+                        normalizers.push(StringNormalizerUniqueKey);
                         break;
 
                     case TypeEnum.Date:
-                        normalizers.push(DateNormalizer.name);
+                        normalizers.push(DateNormalizerUniqueKey);
                         break;
                 }
 
