@@ -72,6 +72,8 @@ export class ShellManager {
 
                     return resolve(code + "");
                 });
+
+                return;
             }
 
             return exec(finalCommand, {env, maxBuffer: options?.maxBuffer}, (error, stdout, stderr) => {
