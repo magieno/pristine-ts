@@ -95,7 +95,7 @@ export const bootstrap = async () => {
     const kernel = new Kernel();
     await kernel.start(localAppModule, configuration);
 
-    await kernel.handle(process.argv, {keyname: ExecutionContextKeynameEnum.Cli, context: null})
+    await kernel.handle(process.argv, {keyname: ExecutionContextKeynameEnum.Cli, context: null});
 }
 
 bootstrap();
