@@ -82,9 +82,9 @@ export class CliEventHandler implements EventHandlerInterface<any, any>{
                 break;
         }
 
-        this.consoleManager.writeLine("Command '" + event.payload.name + "' exited with code: '" + exitCode + "' (Status: '" + status + "')");
+        this.consoleManager.writeLine(`[status:'${status}', code:'${exitCode}'] - Command '` + event.payload.name + "' exited.");
 
-        return new CommandEventResponse(event, exitCode);
+        process.exit(exitCode);
     }
 
     supports(event: Event<any>): boolean {
