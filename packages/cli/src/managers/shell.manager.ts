@@ -57,6 +57,24 @@ export class ShellManager {
                     outputStderr && this.consoleManager.writeLine(`Stderr: ${data}`);
                 });
 
+                child.on("error", (error) => {
+                    outputStdout && this.consoleManager.writeLine(`Error: ${error.message}`);
+
+                    return reject(error);
+                })
+                
+                child.on("exit", (code) => {
+                    outputStdout && this.consoleManager.writeLine(`Exit.`);
+
+                    return resolve(code + "");
+                })
+
+                child.on("disconnect", () => {
+                    outputStdout && this.consoleManager.writeLine(`Disconnect.`);
+
+                    return reject("Disconnected");
+                })
+
                 child.on('close', (code) => {
                     outputStdout && this.consoleManager.writeLine(`Command exited with code ${code}`);
 
