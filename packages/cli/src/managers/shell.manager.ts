@@ -1,4 +1,4 @@
-import {exec, spawn} from "child_process";
+import {ChildProcessWithoutNullStreams, exec, spawn} from "child_process";
 import {ConsoleManager} from "./console.manager";
 import {injectable} from "tsyringe";
 import {PathManager} from "@pristine-ts/core";
@@ -19,7 +19,7 @@ export class ShellManager {
         outputStderr?: boolean,
         outputDuration?: boolean,
         outputTimeBeforeExecutingCommand?: boolean,
-        childProcessHandleCallback?: (childProcessHandle: any) => void
+        childProcessHandleCallback?: (childProcessHandle: ChildProcessWithoutNullStreams) => void
     }): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             const env = process.env;
