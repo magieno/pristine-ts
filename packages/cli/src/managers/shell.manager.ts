@@ -19,6 +19,7 @@ export class ShellManager {
         outputStderr?: boolean,
         outputDuration?: boolean,
         outputTimeBeforeExecutingCommand?: boolean,
+        childProcessHandleCallback?: (childProcessHandle: any) => void
     }): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             const env = process.env;
@@ -73,6 +74,7 @@ export class ShellManager {
                     return resolve(code + "");
                 });
 
+                options?.childProcessHandleCallback?.(child);
                 return;
             }
 
