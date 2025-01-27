@@ -20,7 +20,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@pristine-ts/class-validator": "^2.0.2",
+    "@pristine-ts/class-validator": "^2.0.4",
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/configuration": "file:../configuration",
     "@pristine-ts/data-mapping": "file:../data-mapping",

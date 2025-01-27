@@ -16,7 +16,7 @@
     "@pristine-ts/logging": "file:../../packages/logging",
     "@pristine-ts/networking": "file:../../packages/networking",
     "class-transformer": "^0.5.1",
-    "@pristine-ts/class-validator": "^2.0.2",
+    "@pristine-ts/class-validator": "^2.0.4",
     "tsyringe": "^4.8.0",
     "uuid": "^9.0.1"
   },
