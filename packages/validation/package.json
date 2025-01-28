@@ -12,7 +12,7 @@
     "test:cov": "jest --coverage"
   },
   "dependencies": {
-    "@pristine-ts/class-validator": "^2.0.2",
+    "@pristine-ts/class-validator": "^2.0.4",
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/core": "file:../core",
     "@pristine-ts/data-mapping": "file:../data-mapping",
