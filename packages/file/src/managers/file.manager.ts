@@ -5,6 +5,9 @@ import fs from "fs";
 import * as readline from "readline";
 import {DirectoryListOptions} from "../options/directory-list.options";
 import {FileInfoInterface} from "../interfaces/file-info.interface";
+import {ReplaceInFileInterface} from "../interfaces/replace-in-file.interface";
+import {ReplaceInFileOperationInterface} from "../interfaces/replace-in-file-operation.interface";
+import {writeFile} from "node:fs/promises";
 
 @injectable()
 export class FileManager {
@@ -50,6 +53,39 @@ export class FileManager {
         }
 
         return fileCursors;
+    }
+
+    async replaceInFile(inputFilePath: string, replaceOperations: ReplaceInFileOperationInterface[], options?: ReplaceInFileInterface): Promise<void> {
+        const fileBuffer = await this.readFile(inputFilePath);
+
+        // This isn't particularly efficient. Ideally, we would stream and track if we have found the first token in the regex so that we must append chunks while the regex isn't complete.
+        // For now, we will load everything in memory.
+        let fileContent = fileBuffer.toString("utf-8");
+
+        replaceOperations.forEach(replaceOperation => {
+            const search = replaceOperation.search;
+            const replace = replaceOperation.replace;
+            let regex: RegExp;
+
+            if(typeof search === "string") {
+                regex = new RegExp(search, "gim");
+            } else {
+                regex = search;
+            }
+
+            // @ts-expect-error: Replace is either a string or a function. When we check if it's a string or else
+            // (by calling the same method with same parameters), it works. Therefore, this seems to be a bug in the typescript compiler.
+            fileContent = fileContent.replace(regex, replace);
+        });
+
+        // Replace the content of the file
+        let outputFilePath = inputFilePath;
+
+        if(options?.outputFilePath) {
+            outputFilePath = options.outputFilePath;
+        }
+
+        await writeFile(outputFilePath, fileContent);
     }
 
     readFile(filePath: string): Promise<Buffer> {
