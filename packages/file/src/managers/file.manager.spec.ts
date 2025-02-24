@@ -1,5 +1,6 @@
 import {FileManager} from "./file.manager";
-
+import {unlink} from "fs/promises";
+``
 describe("File Manager", () => {
     it("should properly find the elements in the text", async () => {
         const fileManager = new FileManager();
@@ -61,5 +62,102 @@ describe("File Manager", () => {
         // pulvinar
         expect(cursors[8].line).toBe(14);
         expect(cursors[8].position).toBe(414);
+    })
+
+    it("should properly replace the elements in the text", async () => {
+        const fileManager = new FileManager();
+
+        const replaceOperations = [
+            {
+                search: "ipsum",
+                replace: "REPLACED_TEXT_1",
+            },
+            {
+                search: /lorem/gi,
+                replace: "REPLACED_TEXT_2",
+            },
+        ];
+
+        await fileManager.replaceInFile("test-files/lorem_ipsum.txt", replaceOperations, {
+            outputFilePath: "test-files/lorem_ipsum_replaced.txt",
+        });
+
+        const fileBuffer = await fileManager.readFile("test-files/lorem_ipsum_replaced.txt");
+        const fileContent = fileBuffer.toString("utf-8");
+
+        expect(fileContent).toContain("REPLACED_TEXT_1");
+        // Count the number of times "ipsum" appears in the file
+        const ipsumCount = (fileContent.match(/REPLACED_TEXT_1/g) || []).length;
+        expect(ipsumCount).toBe(4);
+
+        expect(fileContent).toContain("REPLACED_TEXT_2");
+        // Count the number of times "lorem" appears in the file
+        const loremCount = (fileContent.match(/REPLACED_TEXT_2/g) || []).length;
+        expect(loremCount).toBe(6);
+
+        // Delete the file after the test
+        await unlink("test-files/lorem_ipsum_replaced.txt");
+    })
+
+    it("should properly replace the elements in the text with a function", async () => {
+        const fileManager = new FileManager();
+
+        const replaceOperations = [
+            {
+                search: "ipsum",
+                replace: (substring: string) => {
+                    return substring.toUpperCase();
+                },
+            },
+            {
+                search: /lorem/gi,
+                replace: (substring: string) => {
+                    return substring.toLowerCase();
+                },
+            },
+        ];
+
+        await fileManager.replaceInFile("test-files/lorem_ipsum.txt", replaceOperations, {
+            outputFilePath: "test-files/lorem_ipsum_replaced.txt",
+        });
+
+        const fileBuffer = await fileManager.readFile("test-files/lorem_ipsum_replaced.txt");
+        const fileContent = fileBuffer.toString("utf-8");
+
+        expect(fileContent).toContain("IPSUM");
+        // Count the number of times "ipsum" appears in the file
+        const ipsumCount = (fileContent.match(/IPSUM/g) || []).length;
+        expect(ipsumCount).toBe(4);
+
+        expect(fileContent).toContain("lorem");
+        // Count the number of times "lorem" appears in the file
+        const loremCount = (fileContent.match(/lorem/g) || []).length;
+        expect(loremCount).toBe(6);
+
+        // Delete the file after the test
+        await unlink("test-files/lorem_ipsum_replaced.txt");
+    })
+
+    it("should properly replace the elements in the text even when the search text is multiple lines", async () => {
+        const fileManager = new FileManager();
+
+        const replaceOperations = [
+            {
+                search: /\/\/ remove-if-prod(\n.*)*\/\/ end-remove-if-prod/gim,
+                replace: "",
+            },
+        ];
+
+        await fileManager.replaceInFile("test-files/test.js", replaceOperations, {
+            outputFilePath: "test-files/test_prod.js",
+        });
+
+        const fileBuffer = await fileManager.readFile("test-files/test_prod.js");
+        const fileContent = fileBuffer.toString("utf-8");
+
+        expect(fileContent).not.toContain("const prod = \"prod\";");
+
+        // Delete the file after the test
+        await unlink("test-files/test_prod.js");
     })
 })
