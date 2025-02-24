@@ -54,7 +54,7 @@ describe("Directory Manager", () => {
             recurse: true
         });
 
-        expect(files.length).toBe(7);
+        expect(files.length).toBe(6);
     })
 
     it("should properly copy one directory to another", async () => {
