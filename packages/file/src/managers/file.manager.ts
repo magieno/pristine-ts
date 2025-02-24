@@ -56,10 +56,6 @@ export class FileManager {
     }
 
     async replaceInFile(inputFilePath: string, replaceOperations: ReplaceInFileOperationInterface[], options?: ReplaceInFileInterface): Promise<void> {
-        if(replaceOperations.length === 0) {
-            return;
-        }
-
         const fileBuffer = await this.readFile(inputFilePath);
 
         // This isn't particularly efficient. Ideally, we would stream and track if we have found the first token in the regex so that we must append chunks while the regex isn't complete.

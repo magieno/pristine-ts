@@ -5,12 +5,17 @@ import {FileInfoInterface} from "../interfaces/file-info.interface";
 import {MatchTypeEnum} from "../enums/match-type.enum";
 import {TypesEnum} from "../enums/types.enum";
 import {DirectoryListResultEnum} from "../enums/directory-list-result.enum";
-import {promises as fsp} from "fs";
-import fs from "fs";
+import fs, {promises as fsp} from "fs";
 import path from "path";
+import {DirectoryCopyOptions} from "../options/directory-copy.options";
+import {FileManager} from "./file.manager";
 
 @injectable()
 export class DirectoryManager {
+
+    constructor(private readonly fileManager: FileManager) {
+    }
+
     private async listRecursively(dir: string, options: DirectoryListOptions) {
 
         // collect sub-directories for possible recursion
@@ -162,6 +167,29 @@ export class DirectoryManager {
         }
 
         return this.listRecursively(src, options);
+    }
+
+    async copy(sourceDir: string, destDir: string, options?: DirectoryCopyOptions): Promise<void> {
+        const directories = await this.list(sourceDir, {
+            resultType: DirectoryListResultEnum.FileInfoObject,
+            ...options
+        });
+
+        // For each files and directories listed, we copy them to the destination directory
+        for (const file of directories) {
+            const srcPath = (file as FileInfoInterface).fullPath;
+            const destPath = path.join(destDir, path.relative(sourceDir, srcPath));
+
+            // Create the destination directory if it doesn't exist
+            await fsp.mkdir(path.dirname(destPath), { recursive: true });
+
+            if((options?.replaceOperations?.length ?? 0) > 0) {
+                await this.fileManager.replaceInFile(srcPath, options?.replaceOperations ?? [], {outputFilePath: destPath});
+            } else {
+                // Copy the file
+                await fsp.copyFile(srcPath, destPath);
+            }
+        }
     }
 
     exists(filePath: string): Promise<boolean> {
