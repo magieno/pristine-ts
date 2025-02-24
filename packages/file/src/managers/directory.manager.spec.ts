@@ -41,7 +41,7 @@ describe("Directory Manager", () => {
             recurse: true
         });
 
-        expect(files.length).toBe(3);
+        expect(files.length).toBe(4);
     })
 
     it("should properly return the matching files using a regex", async () => {
@@ -54,7 +54,7 @@ describe("Directory Manager", () => {
             recurse: true
         });
 
-        expect(files.length).toBe(5);
+        expect(files.length).toBe(7);
     })
 
     it("should properly copy one directory to another", async () => {
