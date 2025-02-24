@@ -183,6 +183,9 @@ export class DirectoryManager {
             // Create the destination directory if it doesn't exist
             await fsp.mkdir(path.dirname(destPath), { recursive: true });
 
+            // Inform the monitor that a file is being copied
+            options?.monitor?.(file as FileInfoInterface);
+
             if((options?.replaceOperations?.length ?? 0) > 0) {
                 await this.fileManager.replaceInFile(srcPath, options?.replaceOperations ?? [], {outputFilePath: destPath});
             } else {
