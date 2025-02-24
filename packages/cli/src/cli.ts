@@ -1,7 +1,7 @@
 import {ExecutionContextKeynameEnum, Kernel} from "@pristine-ts/core";
 import fs from "fs";
 import {LoggingModuleKeyname, OutputModeEnum, SeverityEnum} from "@pristine-ts/logging";
-import {DirectoryListResultEnum, DirectoryManager, MatchTypeEnum, TypesEnum} from "@pristine-ts/file";
+import {DirectoryListResultEnum, DirectoryManager, MatchTypeEnum, TypesEnum, FileManager} from "@pristine-ts/file";
 import {AppModuleInterface} from "@pristine-ts/common";
 import {ModuleConfigurationValue} from "@pristine-ts/configuration";
 
@@ -54,7 +54,7 @@ export const bootstrap = async () => {
         isLoggingModulePresent = localAppModule.importModules.find((module) => module.keyname === LoggingModuleKeyname) !== undefined;
     } else { // Try the automatic Module creation.
         // Loop over the `node_modules/@pristine-ts/*/dist/lib/cjs/*.module.js` folders and find all the module files that are loaded.
-        const directoryManager = new DirectoryManager();
+        const directoryManager = new DirectoryManager(new FileManager());
         const moduleFiles = await directoryManager.list(process.cwd() + "/node_modules/@pristine-ts", {
             matchType: MatchTypeEnum.Path,
             match: /.*\/cjs\/.*\.module\.js$/,
