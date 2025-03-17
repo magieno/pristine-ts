@@ -242,6 +242,7 @@ export class Kernel {
     private registerServiceTags(module: ModuleInterface) {
         taggedProviderRegistrationsRegistry.forEach((taggedRegistrationType: TaggedRegistrationInterface) => {
             // Verify that if the constructor is moduleScoped, we only load it if its corresponding module is initialized.
+            // We only register the service tags for the module that is currently being initialized.
             // If the module is not initialized, we do not load the tagged service.
             // This is to prevent that classes that are only imported get registered event if the module is not initialized.
             const moduleScopedRegistration = moduleScopedServicesRegistry[taggedRegistrationType.constructor];
