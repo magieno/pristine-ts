@@ -3,9 +3,16 @@ import {injectable, injectAll, singleton, inject} from "tsyringe";
 import {SeverityEnum} from "../enums/severity.enum";
 import {LogModel} from "../models/log.model";
 import {LoggerInterface} from "../interfaces/logger.interface";
-import {ServiceDefinitionTagEnum, tag, TracingContext, InternalContainerParameterEnum} from "@pristine-ts/common";
+import {
+  ServiceDefinitionTagEnum,
+  tag,
+  TracingContext,
+  InternalContainerParameterEnum,
+  moduleScoped
+} from "@pristine-ts/common";
 import {LogHandlerInterface} from "../interfaces/log-handler.interface";
 import {Utils} from "../utils/utils";
+import {LoggingModule, LoggingModuleKeyname} from "../logging.module";
 
 /**
  * The LogHandler to use when we want to output some logs.
@@ -13,6 +20,7 @@ import {Utils} from "../utils/utils";
  * It is registered with the tag LogHandlerInterface so that it can be injected as a LogHandlerInterface to facilitate mocking.
  */
 @tag("LogHandlerInterface")
+@moduleScoped(LoggingModuleKeyname)
 @injectable()
 export class LogHandler implements LogHandlerInterface {
 
