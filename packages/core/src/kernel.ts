@@ -250,7 +250,7 @@ export class Kernel {
             // We only register the service tags for the module that is currently being initialized.
             // If the module is not initialized, we do not load the tagged service.
             // This is to prevent that classes that are only imported get registered event if the module is not initialized.
-            const moduleScopedRegistration = moduleScopedServicesRegistry[taggedRegistrationType.constructor.name];
+            const moduleScopedRegistration = moduleScopedServicesRegistry[taggedRegistrationType.constructor];
             if (module.keyname !== moduleScopedRegistration?.moduleKeyname) {
                 return;
             }
