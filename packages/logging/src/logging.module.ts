@@ -11,12 +11,13 @@ import {CommonModule} from "@pristine-ts/common";
 import {SeverityEnum} from "./enums/severity.enum";
 
 export * from "./enums/enums";
-export * from "./handlers/handlers";
 export * from "./interfaces/interfaces";
 export * from "./loggers/loggers";
 export * from "./models/models";
 export * from "./utils/utils";
-export * from "./logging.module.keyname"
+export * from "./logging.module.keyname";
+export * from "./handlers/handlers";
+
 
 export const LoggingModule: ModuleInterface = {
     keyname: LoggingModuleKeyname,

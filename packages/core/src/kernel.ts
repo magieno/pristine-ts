@@ -79,15 +79,15 @@ export class Kernel {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         initializedModuleSpans.forEach(span => this.initializationSpan!.addChild(span));
 
-        // Register all the service tags in the container.
-        await this.registerServiceTags();
-
         // Register the configuration.
         const configurationInitializationSpan = new Span(SpanKeynameEnum.ConfigurationInitialization)
         await this.initConfiguration(moduleConfigurationValues);
         configurationInitializationSpan.endDate = Date.now();
 
         this.initializationSpan.addChild(configurationInitializationSpan);
+
+        // Register the non module scoped tags
+        await this.registerNonModuleScopedServiceTags();
 
         // Run the after init of the module and its dependencies
         await this.afterInitModule(module);
@@ -159,6 +159,11 @@ export class Kernel {
         }
 
         importModulesSpan.endDate = Date.now();
+
+        // Register the service tags for this module before other provider registration,
+        // as inject only picks the latest one, and we want to be able to override tags with
+        // regular provider registrations.
+        await this.registerModuleServiceTags(module);
 
         // Add all the providers to the container
         if (module.providerRegistrations) {
@@ -233,17 +238,36 @@ export class Kernel {
     }
 
     /**
-     * This method loops through the service tag decorators defined in the taggedProviderRegistrationsRegistry and simply add
-     * all the entry to the container.
+     * This method loops through the service tag decorators defined in the taggedProviderRegistrationsRegistry and simply adds
+     * the entries that are scoped to the module we are instantiating to the container.
+     *
+     * @param module Module being instantiated.
      * @private
      */
-    private registerServiceTags() {
+    private registerModuleServiceTags(module: ModuleInterface) {
         taggedProviderRegistrationsRegistry.forEach((taggedRegistrationType: TaggedRegistrationInterface) => {
             // Verify that if the constructor is moduleScoped, we only load it if its corresponding module is initialized.
+            // We only register the service tags for the module that is currently being initialized.
             // If the module is not initialized, we do not load the tagged service.
             // This is to prevent that classes that are only imported get registered event if the module is not initialized.
             const moduleScopedRegistration = moduleScopedServicesRegistry[taggedRegistrationType.constructor];
-            if (moduleScopedRegistration && this.instantiatedModules.hasOwnProperty(moduleScopedRegistration.moduleKeyname) === false) {
+            if (module.keyname !== moduleScopedRegistration?.moduleKeyname) {
+                return;
+            }
+
+            this.registerProviderRegistration(taggedRegistrationType.providerRegistration);
+        })
+    }
+
+    /**
+     * This method loops through the service tag decorators defined in the taggedProviderRegistrationsRegistry and simply add
+     * all the entry that are not module scoped to the container.
+     * @private
+     */
+    private registerNonModuleScopedServiceTags() {
+        taggedProviderRegistrationsRegistry.forEach((taggedRegistrationType: TaggedRegistrationInterface) => {
+            const moduleScopedRegistration = moduleScopedServicesRegistry[taggedRegistrationType.constructor];
+            if (moduleScopedRegistration) {
                 return;
             }
 

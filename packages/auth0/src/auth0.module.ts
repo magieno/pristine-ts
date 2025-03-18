@@ -2,6 +2,7 @@ import {ModuleInterface} from "@pristine-ts/common";
 import {Auth0ModuleKeyname} from "./auth0.module.keyname";
 import {HttpModule} from "@pristine-ts/http";
 import {EnvironmentVariableResolver} from "@pristine-ts/configuration";
+import {LoggingModule} from "@pristine-ts/logging";
 
 export * from "./authenticators/authenticators";
 export * from "./interfaces/interfaces";
@@ -23,6 +24,9 @@ export const Auth0Module: ModuleInterface = {
             ]
         },
     ],
-    importModules: [HttpModule],
+    importModules: [
+        LoggingModule,
+        HttpModule
+    ],
 }
 
