@@ -8,7 +8,7 @@ export const moduleScopedServicesRegistry: {[key: string]: ModuleScopedRegistrat
  */
 export const moduleScoped = (moduleKeyname: string) => {
     return (constructor: any) => {
-        moduleScopedServicesRegistry[constructor] = {
+        moduleScopedServicesRegistry[constructor.name] = {
             moduleKeyname: moduleKeyname,
             constructor,
         }
