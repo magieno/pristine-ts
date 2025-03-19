@@ -1,5 +1,5 @@
 import "reflect-metadata"
-import {injectable, injectAll, singleton, inject} from "tsyringe";
+import {injectable, injectAll, singleton, inject, scoped, Lifecycle} from "tsyringe";
 import {SeverityEnum} from "../enums/severity.enum";
 import {LogModel} from "../models/log.model";
 import {LoggerInterface} from "../interfaces/logger.interface";
@@ -12,16 +12,17 @@ import {
 } from "@pristine-ts/common";
 import {LogHandlerInterface} from "../interfaces/log-handler.interface";
 import {Utils} from "../utils/utils";
-import {LoggingModule, LoggingModuleKeyname} from "../logging.module";
+import {LoggingModuleKeyname} from "../logging.module";
 
 /**
  * The LogHandler to use when we want to output some logs.
  * This handler makes sure that only the right level of logs are outputted, stacks logs, and logs with different loggers.
  * It is registered with the tag LogHandlerInterface so that it can be injected as a LogHandlerInterface to facilitate mocking.
  */
-@tag("LogHandlerInterface")
 @moduleScoped(LoggingModuleKeyname)
+@tag("LogHandlerInterface")
 @injectable()
+@scoped(Lifecycle.ContainerScoped)
 export class LogHandler implements LogHandlerInterface {
 
   /**
