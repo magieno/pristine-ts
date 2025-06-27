@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/data-mapping-common",
-  "version": "0.0.368",
+  "version": "0.0.369",
   "description": "",
   "module": "dist/lib/esm/data-mapping-common.js",
   "main": "dist/lib/cjs/data-mapping-common.js",
@@ -20,8 +20,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@pristine-ts/common": "file:../common",
     "@pristine-ts/class-validator": "^2.0.4",
+    "@pristine-ts/common": "file:../common",
     "@pristine-ts/metadata": "^1.0.16",
     "class-transformer": "^0.5.1",
     "date-fns": "^3.3.1"
