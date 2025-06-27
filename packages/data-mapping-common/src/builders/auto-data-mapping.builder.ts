@@ -10,6 +10,7 @@ import {DataMappingNodeTypeEnum} from "../enums/data-mapping-node-type.enum";
 import {AutoDataMappingBuilderOptions} from "../options/auto-data-mapping-builder.options";
 import {MetadataEnum} from "../enums/metadata.enum";
 import {TypeFactoryCallback} from "../types/type-factory-callback.type";
+import {BooleanNormalizerUniqueKey} from "../normalizers/boolean.normalizer";
 
 export class AutoDataMappingBuilder {
     /**
@@ -141,6 +142,9 @@ export class AutoDataMappingBuilder {
 
                 // todo: Allow for options to be specified per attribute. We should probably add a decorator to can customize the normalizer.
                 switch (propertyInformation.typeEnum) {
+                    case TypeEnum.Boolean:
+                        normalizers.push(BooleanNormalizerUniqueKey);
+                        break;
                     case TypeEnum.Number:
                         normalizers.push(NumberNormalizerUniqueKey);
                         break;

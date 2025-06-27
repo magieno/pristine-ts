@@ -1,4 +1,5 @@
 export * from "./base-normalizer.options";
+export * from "./boolean-normalizer.options";
 export * from "./date-normalizer.options";
 export * from "./lowercase-normalizer.options";
 export * from "./number-normalizer.options";
