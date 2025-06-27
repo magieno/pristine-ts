@@ -559,7 +559,7 @@ describe("Data Mapper", () => {
       "children": ["Thomas", "Jeanne"],
     };
 
-    const dataMapper = new DataMapper(new AutoDataMappingBuilder(), [new LowercaseNormalizer(), new DateNormalizer(), new StringNormalizer(), new NumberNormalizer()], []);
+    const dataMapper = new DataMapper(new AutoDataMappingBuilder(), [new LowercaseNormalizer(), new DateNormalizer(), new StringNormalizer(), new NumberNormalizer(), new BooleanNormalizer()], []);
 
     const mapped = await dataMapper.autoMap(source, Source, new AutoDataMappingBuilderOptions({throwOnErrors: true}))
 
@@ -591,7 +591,7 @@ describe("Data Mapper", () => {
       },
     };
 
-    const dataMapper = new DataMapper(new AutoDataMappingBuilder(), [new LowercaseNormalizer(), new DateNormalizer(), new StringNormalizer(), new NumberNormalizer()], []);
+    const dataMapper = new DataMapper(new AutoDataMappingBuilder(), [new LowercaseNormalizer(), new DateNormalizer(), new StringNormalizer(), new NumberNormalizer(), new BooleanNormalizer()], []);
 
     const mapped = await dataMapper.autoMap(source, Source)
 
