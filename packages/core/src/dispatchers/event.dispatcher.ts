@@ -39,8 +39,10 @@ export class EventDispatcher implements EventDispatcherInterface {
      */
     async dispatch(event: Event<any>): Promise<EventResponse<any, any>> {
         this.logHandler.debug("EventDispatcher: Dispatching event.", {
-            extra: {
+            highlights: {
                 event,
+            },
+            extra: {
                 eventHandlers: this.eventHandlers,
                 eventHandlerNames: this.eventHandlers.map(eventHandler => eventHandler.constructor.name),
             }
@@ -62,10 +64,12 @@ export class EventDispatcher implements EventDispatcherInterface {
         for (const eventHandler of this.eventHandlers) {
             if(eventHandler.supports(event)) {
                 this.logHandler.debug("EventDispatcher: The EventHandler supports the event.", {
-                    extra: {
+                    highlights: {
                         event,
-                        eventHandler: eventHandler,
                         eventHandlerName: eventHandler.constructor.name,
+                    },
+                    extra: {
+                        eventHandler: eventHandler,
                     }
                 }, CoreModuleKeyname)
 
@@ -74,10 +78,12 @@ export class EventDispatcher implements EventDispatcherInterface {
             }
             else {
                 this.logHandler.debug("EventDispatcher: The EventHandler doesn't support the event.", {
-                    extra: {
+                    highlights: {
                         event,
-                        eventHandler: eventHandler,
                         eventHandlerName: eventHandler.constructor.name,
+                    },
+                    extra: {
+                        eventHandler: eventHandler,
                     }
                 }, CoreModuleKeyname)
             }
@@ -90,7 +96,7 @@ export class EventDispatcher implements EventDispatcherInterface {
         }
 
         this.logHandler.debug("EventDispatcher: Calling event handler.", {
-            extra: {
+            highlights: {
                 event,
             }
         })
@@ -99,7 +105,7 @@ export class EventDispatcher implements EventDispatcherInterface {
         const eventResponse = await supportingEventHandlers[0].handle(event);
 
         this.logHandler.debug("EventDispatcher: Called event handler.", {
-            extra: {
+            highlights: {
                 event,
                 eventResponse,
             }

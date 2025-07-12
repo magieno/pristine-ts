@@ -142,9 +142,11 @@ export class RestApiEventMapper extends BaseApiEventMapper implements EventMappe
                 }
                 catch (e) {
                     this.logHandler.error("RestApiEventMapper: Could not convert the response body into a string by stringifying it as a JSON.", {
+                        highlights: {
+                            body,
+                        },
                         extra: {
                             error: e,
-                            body,
                         }
                     }, AwsApiGatewayModuleKeyname)
                 }

@@ -146,9 +146,11 @@ export class HttpApiEventMapper extends BaseApiEventMapper implements EventMappe
                 }
                 catch (e) {
                     this.logHandler.error("HttpApiEventMapper: Could not convert the response body into a string by stringifying it as a JSON.", {
+                        highlights: {
+                            body,
+                        },
                         extra: {
                             error: e,
-                            body,
                         }
                     }, AwsApiGatewayModuleKeyname)
                 }

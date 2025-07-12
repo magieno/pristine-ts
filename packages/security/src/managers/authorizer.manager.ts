@@ -53,7 +53,15 @@ export class AuthorizerManager implements AuthorizerManagerInterface {
                 isAuthorized = isAuthorized && didAuthorize;
             }
             catch (e) {
-                this.logHandler.error("AuthorizerManager: Error while authorizing the request.", {extra: {error: e}}, SecurityModuleKeyname);
+                this.logHandler.error("AuthorizerManager: Error while authorizing the request.", {
+                    highlights: {
+                        request,
+                        identity,
+                    },
+                    extra: {
+                        error: e
+                    }
+                }, SecurityModuleKeyname);
                 isAuthorized = false;
             }
         }
