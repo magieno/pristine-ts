@@ -14,7 +14,6 @@ export * from "./enums/enums";
 export * from "./interfaces/interfaces";
 export * from "./loggers/loggers";
 export * from "./models/models";
-export * from "./utils/utils";
 export * from "./logging.module.keyname";
 export * from "./handlers/handlers";
 export * from "./types/types";
