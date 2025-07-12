@@ -1,4 +1,6 @@
 import {SeverityEnum} from "../enums/severity.enum";
+import {BreadcrumbModel} from "./breadcrumb.model";
+import {LogHighlights} from "../types/log-highlights.type";
 
 /**
  * The model that represents a log
@@ -22,13 +24,25 @@ export class LogModel {
   /**
    * The module from which the log originated.
    * By default it will be the application module.
+   * @deprecated: Use breadcrumbs instead.
    */
   module: string = "application";
 
   /**
-   * Any extras that need to be outputted along with the message.
+   * Extras are additional data that provide extra context. They should be shown only when deeply investigating.
    */
   extra: any;
+
+  /**
+   * The list of breadcrumbs that led to this log.
+   */
+  breadcrumbs: BreadcrumbModel[] = [];
+
+  /**
+   * This is an object that is data that you want to "highlights" and show as logs. Select and be careful about what
+   * you choose to highlight to avoid showing to many useless things.
+   */
+  highlights: LogHighlights = {};
 
   /**
    * The model that represents a log
