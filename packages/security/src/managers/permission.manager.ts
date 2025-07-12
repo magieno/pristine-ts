@@ -32,10 +32,12 @@ export class PermissionManager {
     async hasAccessToResource(identity: IdentityInterface, action: string, resource: object, votingStrategy: VotingStrategyEnum = VotingStrategyEnum.DenyOnUnanimousAbstention): Promise<boolean>{
 
         if(this.voters.length === 0){
-            this.logHandler.warning("PERMISSION MANAGER - No voters were found.", {
-                identity,
-                action,
-                resource,
+            this.logHandler.warning("PermissionManager: No voters were found, this could lead to unexpected behavior. Make sure that you have registered voters in your application.", {
+                extra: {
+                    identity,
+                    action,
+                    resource,
+                }
             }, SecurityModuleKeyname);
         }
 
@@ -43,25 +45,25 @@ export class PermissionManager {
 
         for(const voter of this.voters) {
             if(voter.supports(resource) === false) {
-                this.logHandler.debug("PERMISSION MANAGER - [" + voter.constructor.name + "] - Doesn't support this resource.", {identity, action, resource, voter: voter.constructor.name}, SecurityModuleKeyname );
+                this.logHandler.debug("PermissionManager: voter does not support this resource.", {extra: {identity, action, resource, voter: voter.constructor.name}}, SecurityModuleKeyname );
                 continue;
             }
 
             try {
                 const vote = await voter.vote(identity, action, resource);
 
-                const message = "PERMISSION MANAGER - [" + voter.constructor.name + "] - Decision: " + vote;
+                const message = "PermissionManager: Voter " + voter.constructor.name + " voted: " + vote;
 
                 if(vote === VoteEnum.Deny) { // When it's being denied, it usually mean that something is important to be noticed.
-                    this.logHandler.info(message, {identity, action, resource, voter: voter.constructor.name}, SecurityModuleKeyname)
+                    this.logHandler.info(message, {extra: {identity, action, resource, voter: voter.constructor.name}}, SecurityModuleKeyname)
                 }
                  else {
-                    this.logHandler.debug("PERMISSION MANAGER - [" + voter.constructor.name + "] - Decision: " + vote, {identity, action, resource, voter: voter.constructor.name}, SecurityModuleKeyname );
+                    this.logHandler.debug(message, {extra: {identity, action, resource, voter: voter.constructor.name}}, SecurityModuleKeyname );
                 }
 
                 votes.push(vote);
             } catch (error) {
-                this.logHandler.error("Error while voting", {error, resource, voter: voter.constructor.name}, SecurityModuleKeyname);
+                this.logHandler.error("PermissionManager: Error while voting, please check the logs for more details.", {extra: {error, resource, voter: voter.constructor.name}}, SecurityModuleKeyname);
                 throw error;
             }
 
@@ -75,7 +77,7 @@ export class PermissionManager {
             }
         }
 
-        this.logHandler.info("PERMISSION MANAGER - " + (shouldGrantAccess ? "GRANTED" : "DENIED") + " - Resource: " + resource.constructor.name, {identity, action, resource}, SecurityModuleKeyname);
+        this.logHandler.info("PermissionManager: Access to resource " + resource.constructor.name + " was " + (shouldGrantAccess ? "GRANTED" : "DENIED"), {extra: {identity, action, resource}}, SecurityModuleKeyname);
 
         return shouldGrantAccess;
     }

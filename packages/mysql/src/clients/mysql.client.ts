@@ -64,12 +64,14 @@ export class MysqlClient implements MysqlClientInterface {
 
                 this.pools.set(configUniqueKeyname, pool);
 
-                this.logHandler.debug('MySql Adapter Pool generated successfully', {
-                    mysqlConfig,
-                    pool,
+                this.logHandler.debug('MysqlClient: MySql Adapter Pool generated successfully.', {
+                    extra: {
+                        mysqlConfig,
+                        pool,
+                    }
                 });
             } catch (error) {
-                this.logHandler.error("Could not create the connection pool", {error})
+                this.logHandler.error("MysqlClient: Could not create the connection pool.", {extra: {error}})
 
                 throw error;
             }
@@ -193,19 +195,21 @@ export class MysqlClient implements MysqlClientInterface {
     async executeSql(configUniqueKeyname: string, sqlStatement: string, values: any[]): Promise<any> {
         const pool = await this.getPool(configUniqueKeyname);
 
-        this.logHandler.debug("Executing SQL Statement", {sqlStatement, values});
+        this.logHandler.debug("MysqlClient: Executing SQL statement.", {extra: {sqlStatement, values}});
 
         try {
             const result = await pool.query(sqlStatement, values);
 
-            this.logHandler.debug("Successfully executed the SQL Statement", {sqlStatement, values, result})
+            this.logHandler.debug("MysqlClient: Successfully executed the SQL statement.", {extra: {sqlStatement, values, result}})
 
             return result[0];
         } catch (error) {
-            this.logHandler.error("There was an error executing the SQL Statement", {
-                sqlStatement,
-                values,
-                error,
+            this.logHandler.error("MysqlClient: There was an error executing the SQL statement.", {
+                extra: {
+                    sqlStatement,
+                    values,
+                    error,
+                }
             });
 
             throw error;
@@ -221,19 +225,21 @@ export class MysqlClient implements MysqlClientInterface {
     async querySql(configUniqueKeyname: string, sqlStatement: string, values: any[]): Promise<any> {
         const pool = await this.getPool(configUniqueKeyname);
 
-        this.logHandler.debug("Executing SQL Statement", {sqlStatement, values});
+        this.logHandler.debug("MysqlClient: Executing SQL statement.", {extra: {sqlStatement, values}});
 
         try {
             const result = await pool.query(sqlStatement, values);
 
-            this.logHandler.debug("Successfully executed the SQL Statement", {sqlStatement, values, result})
+            this.logHandler.debug("MysqlClient: Successfully executed the SQL statement.", {extra: {sqlStatement, values, result}})
 
             return result[0];
         } catch (error) {
-            this.logHandler.error("There was an error executing the SQL Statement", {
-                sqlStatement,
-                values,
-                error,
+            this.logHandler.error("MysqlClient: There was an error executing the SQL statement.", {
+                extra: {
+                    sqlStatement,
+                    values,
+                    error,
+                }
             });
 
             throw error;
@@ -265,7 +271,7 @@ export class MysqlClient implements MysqlClientInterface {
                         try {
                             result[newKey] = JSON.parse(result[key]);
                         } catch (e) {
-                            this.logHandler.warning("mysql.client:mapResults - Could not parse the JSON blob. It will be returned as is.", {error: e, key, newKey, result});
+                            this.logHandler.warning("MysqlClient: Could not parse the JSON blob. It will be returned as is.", {extra: {error: e, key, newKey, result}});
                         }
 
                     } else {

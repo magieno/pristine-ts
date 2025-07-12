@@ -26,8 +26,10 @@ describe("Error logging", () => {
 
         const error = new Error("Error thrown somewhere");
 
-        logHandler.error("There was an error thrown somewhere in the code.", {
-            error,
+        logHandler.error("This is an error message.", {
+            extra: {
+                error,
+            }
         })
 
         await new Promise(res => setTimeout(res, 100));
@@ -41,7 +43,7 @@ describe("Error logging", () => {
         const parsedLoggedMessage = JSON.parse(loggedMessage);
 
         expect(parsedLoggedMessage.severity).toBe("ERROR");
-        expect(parsedLoggedMessage.message).toBe("There was an error thrown somewhere in the code.")
+        expect(parsedLoggedMessage.message).toBe("This is an error message.")
 
         expect(parsedLoggedMessage.extra).toBeDefined();
         expect(parsedLoggedMessage.extra.error).toBeDefined();

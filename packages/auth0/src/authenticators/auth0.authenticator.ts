@@ -78,8 +78,10 @@ export class Auth0Authenticator implements AuthenticatorInterface {
 
         const claim = this.getAndVerifyClaims(token, key);
 
-        this.logHandler.debug("Claim confirmed", {
-            claim,
+        this.logHandler.debug("Auth0Authenticator: Claim confirmed.", {
+            extra: {
+                claim,
+            }
         }, Auth0ModuleKeyname);
 
         return {

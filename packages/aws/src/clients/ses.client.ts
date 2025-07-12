@@ -60,10 +60,12 @@ export class SesClient implements SesClientInterface {
                 metadata: response.$metadata,
             };
         } catch (error) {
-            this.logHandler.error("There was an error sending the email.", {
-                error,
-                email,
-                endpoint,
+            this.logHandler.error("SesClient: There was an error sending the email.", {
+                extra: {
+                    error,
+                    email,
+                    endpoint,
+                }
             }, AwsModuleKeyname);
 
             throw new SesSendError(error, email);
@@ -106,10 +108,12 @@ export class SesClient implements SesClientInterface {
                 metadata: response.$metadata,
             };
         } catch (error) {
-            this.logHandler.error("There was an error sending the email.", {
-                error,
-                email,
-                endpoint,
+            this.logHandler.error("SesClient: There was an error sending the email.", {
+                extra: {
+                    error,
+                    email,
+                    endpoint,
+                }
             }, AwsModuleKeyname);
 
             throw new SesSendError(error, email);

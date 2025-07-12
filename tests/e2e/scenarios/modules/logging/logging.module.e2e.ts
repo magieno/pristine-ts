@@ -44,7 +44,7 @@ describe("Logging Module instantiation in the Kernel", () => {
 
         const logHandler: LogHandler = await kernel.container.resolve(LogHandler);
 
-        logHandler.info("Allo", {depth1:{depth2:{depth3: {depth4: {depth5: {depth6: {depth7: {depth8: {depth9: 10}}}}}}}}});
+        logHandler.info("This is an info message.", {extra: {depth1:{depth2:{depth3: {depth4: {depth5: {depth6: {depth7: {depth8: {depth9: 10}}}}}}}}}});
 
         await new Promise(res => setTimeout(res, 1000));
 

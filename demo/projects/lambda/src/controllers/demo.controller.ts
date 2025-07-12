@@ -20,7 +20,7 @@ export class DemoController {
     @bodyValidation(BodyOptions)
     async list(@identity() identity: IdentityInterface, @body() body: BodyOptions) {
         const keys = await this.s3Client.listKeys("allo");
-        this.logHandler.debug("Identity", {identity});
+        this.logHandler.debug("DemoController: Identity", {extra: {identity}});
 
         return
     }

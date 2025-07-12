@@ -45,7 +45,7 @@ describe("Request Body Converter", () => {
 
         expect(response instanceof Response).toBeTruthy();
         expect(response.status).toBe(400)
-        expect(response.body.message).toBe("This request has the Content-Type header 'application/json', and the body is of type string, but the body contains invalid JSON.")
+        expect(response.body.message).toBe("RequestBodyConverterInterceptor: This request has the Content-Type header 'application/json', and the body is of type string, but the body contains invalid JSON.")
     })
 
     it("should not throw an error if the header Content-Type contains 'application/json'', and the body is of type string, and the body contains valid JSON.", async () => {

@@ -51,7 +51,7 @@ export class RequestBodyConverterInterceptor implements RequestInterceptorInterf
                         return request;
                     case "object":
                         if(request.body.constructor === Date) {
-                            const errorMessage = "This request has the Content-Type header 'application/json' but the body is a Date object which is invalid JSON.";
+                            const errorMessage = "RequestBodyConverterInterceptor: This request has the Content-Type header 'application/json' but the body is a Date object which is invalid JSON.";
                             this.logHandler.error(errorMessage);
 
                             throw new InvalidBodyHttpError(errorMessage);
@@ -65,7 +65,7 @@ export class RequestBodyConverterInterceptor implements RequestInterceptorInterf
                             }
                         }
                         catch (e) {
-                            const errorMessage = "This request has the Content-Type header 'application/json', and the body is of type string, but the body contains invalid JSON.";
+                            const errorMessage = "RequestBodyConverterInterceptor: This request has the Content-Type header 'application/json', and the body is of type string, but the body contains invalid JSON.";
                             this.logHandler.error(errorMessage);
 
                             throw new InvalidBodyHttpError(errorMessage);
@@ -73,7 +73,7 @@ export class RequestBodyConverterInterceptor implements RequestInterceptorInterf
                         break;
 
                     default:
-                        const errorMessage = "This request has the Content-Type header 'application/json' but the body contains invalid JSON.";
+                        const errorMessage = "RequestBodyConverterInterceptor: This request has the Content-Type header 'application/json' but the body contains invalid JSON.";
                         this.logHandler.error(errorMessage);
 
                         throw new InvalidBodyHttpError(errorMessage);

@@ -62,7 +62,7 @@ export class CloudfrontClient implements CloudfrontClientInterface {
      * @param options
      */
     async invalidate(distributionId: string, paths: string[], options?: Partial<ClientOptionsInterface>): Promise<CreateInvalidationResult> {
-        this.logHandler.debug("CloudFront CLIENT - Invalidating", {distributionId, paths}, AwsModuleKeyname);
+        this.logHandler.debug("CloudfrontClient: Invalidating paths.", {extra: {distributionId, paths}}, AwsModuleKeyname);
         const command = new CreateInvalidationCommand({
             DistributionId: distributionId,
             InvalidationBatch: {
@@ -82,7 +82,7 @@ export class CloudfrontClient implements CloudfrontClientInterface {
 
             return response;
         } catch (e) {
-            this.logHandler.error("Error invalidating cloudfront", {error: e}, AwsModuleKeyname);
+            this.logHandler.error("CloudfrontClient: Error invalidating cloudfront.", {extra: {error: e}}, AwsModuleKeyname);
             throw e;
         }
     }
@@ -95,7 +95,7 @@ export class CloudfrontClient implements CloudfrontClientInterface {
      * @param options
      */
     async getInvalidation(distributionId: string, invalidationId: string, options?: Partial<ClientOptionsInterface>): Promise<GetInvalidationResult> {
-        this.logHandler.debug("CloudFront CLIENT - Get Invalidating", {distributionId, invalidationId}, AwsModuleKeyname);
+        this.logHandler.debug("CloudfrontClient: Getting invalidation.", {extra: {distributionId, invalidationId}}, AwsModuleKeyname);
         const command = new GetInvalidationCommand({
             DistributionId: distributionId,
             Id: invalidationId,
@@ -110,7 +110,7 @@ export class CloudfrontClient implements CloudfrontClientInterface {
 
             return response;
         } catch (e) {
-            this.logHandler.error("Error getting invalidation from cloudfront", {error: e}, AwsModuleKeyname);
+            this.logHandler.error("CloudfrontClient: Error getting invalidation from cloudfront.", {extra: {error: e}}, AwsModuleKeyname);
             throw e;
         }
     }

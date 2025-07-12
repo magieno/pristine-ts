@@ -47,8 +47,8 @@ export class SecretsManagerClient implements SecretsManagerClientInterface {
         const secretString = response.SecretString;
 
         if(!secretString) {
-            const message = `No value for this parameter: '${secretName}'.`;
-            this.logHandler.error(message, {secretName});
+            const message = `SecretsManagerClient: No value for this parameter: '${secretName}'.`;
+            this.logHandler.error(message, {extra: {secretName}});
 
             throw new GetSecretSecretsManagerError(message);
         }
@@ -56,8 +56,8 @@ export class SecretsManagerClient implements SecretsManagerClientInterface {
         try {
             return JSON.parse(secretString);
         } catch (e) {
-            const message = `Couldn't parse the secret as a JSON object: '${secretName}'.`;
-            this.logHandler.error(message, {secretName});
+            const message = `SecretsManagerClient: Couldn't parse the secret as a JSON object: '${secretName}'.`;
+            this.logHandler.error(message, {extra: {secretName}});
 
             throw new GetSecretSecretsManagerError(message);
         }
@@ -73,8 +73,8 @@ export class SecretsManagerClient implements SecretsManagerClientInterface {
         const secret = await this.getSecret(secretName);
 
         if (secret.hasOwnProperty(key) === false) {
-            const message = `Cannot find jsonKey '${key}' in the secret: '${secretName}'.`;
-            this.logHandler.error(message, {secretName, key});
+            const message = `SecretsManagerClient: Cannot find jsonKey '${key}' in the secret: '${secretName}'.`;
+            this.logHandler.error(message, {extra: {secretName, key}});
             throw new GetSecretSecretsManagerError(message);
         }
 

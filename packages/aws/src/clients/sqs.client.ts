@@ -61,23 +61,27 @@ export class SqsClient implements SqsClientInterface {
                 MessageDeduplicationId: messageDeduplicationId,
             });
 
-            this.logHandler.debug("Sending a message to the queue", {
-                queueUrl,
-                body,
-                messageGroupId,
-                delaySeconds,
-                messageDeduplicationId,
+            this.logHandler.debug("SqsClient: Sending a message to the queue.", {
+                extra: {
+                    queueUrl,
+                    body,
+                    messageGroupId,
+                    delaySeconds,
+                    messageDeduplicationId,
+                }
             }, AwsModuleKeyname)
 
             const response = await client.send(command, options);
 
-            this.logHandler.debug("Message successfully sent to the queue", {
-                queueUrl,
-                body,
-                messageGroupId,
-                delaySeconds,
-                response,
-                messageDeduplicationId
+            this.logHandler.debug("SqsClient: Message successfully sent to the queue.", {
+                extra: {
+                    queueUrl,
+                    body,
+                    messageGroupId,
+                    delaySeconds,
+                    response,
+                    messageDeduplicationId
+                }
             }, AwsModuleKeyname)
 
             return {
@@ -85,13 +89,15 @@ export class SqsClient implements SqsClientInterface {
             };
 
         } catch (error) {
-            this.logHandler.error("There was an error sending the message to the queue", {
-                error,
-                queueUrl,
-                body,
-                messageGroupId,
-                delaySeconds,
-                messageDeduplicationId,
+            this.logHandler.error("SqsClient: There was an error sending the message to the queue.", {
+                extra: {
+                    error,
+                    queueUrl,
+                    body,
+                    messageGroupId,
+                    delaySeconds,
+                    messageDeduplicationId,
+                }
             }, AwsModuleKeyname);
 
             throw new SqsSendMessageError(error, queueUrl, body, messageGroupId, delaySeconds);

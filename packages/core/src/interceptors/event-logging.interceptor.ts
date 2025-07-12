@@ -19,33 +19,41 @@ export class EventLoggingInterceptor implements EventInterceptorInterface{
     }
 
     preMappingIntercept(event: object, executionContextInterface: ExecutionContextInterface<any>): Promise<object> {
-        this.logHandler.info("Event just before the EventMapping into an Event object.", {
-            event,
-            executionContextInterface
+        this.logHandler.info("EventLoggingInterceptor: Event just before the EventMapping into an Event object.", {
+            extra: {
+                event,
+                executionContextInterface
+            }
         }, CoreModuleKeyname)
 
         return Promise.resolve(event);
     }
 
     postMappingIntercept(event: Event<any>): Promise<Event<any>> {
-        this.logHandler.info("Event just after being mapped into an Event object.", {
-            event,
+        this.logHandler.info("EventLoggingInterceptor: Event just after being mapped into an Event object.", {
+            extra: {
+                event,
+            }
         }, CoreModuleKeyname)
 
         return Promise.resolve(event);
     }
 
     preResponseMappingIntercept(eventResponse: EventResponse<any, any>): Promise<EventResponse<any, any>> {
-        this.logHandler.info("Event response just after being dispatched to the Event Listeners.", {
-            eventResponse,
+        this.logHandler.info("EventLoggingInterceptor: Event response just after being dispatched to the Event Listeners.", {
+            extra: {
+                eventResponse,
+            }
         }, CoreModuleKeyname)
 
         return Promise.resolve(eventResponse);
     }
 
     postResponseMappingIntercept(eventResponse: object): Promise<object> {
-        this.logHandler.info("Final event response that will be returned.", {
-            eventResponse,
+        this.logHandler.info("EventLoggingInterceptor: Final event response that will be returned.", {
+            extra: {
+                eventResponse,
+            }
         }, CoreModuleKeyname)
 
         return Promise.resolve(eventResponse);

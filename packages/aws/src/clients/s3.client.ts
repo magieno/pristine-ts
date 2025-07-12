@@ -56,7 +56,7 @@ export class S3Client implements S3ClientInterface {
      * @param options
      */
     async get(bucketName: string, key: string, options?: Partial<ClientOptionsInterface>): Promise<GetObjectCommandOutput> {
-        this.logHandler.debug("S3 CLIENT - Getting item", {bucketName, key}, AwsModuleKeyname);
+        this.logHandler.debug("S3Client: Getting item from S3.", {extra: {bucketName, key}}, AwsModuleKeyname);
         const command = new GetObjectCommand({
             Bucket: bucketName,
             Key: key,
@@ -64,7 +64,7 @@ export class S3Client implements S3ClientInterface {
         try {
             return await this.getClient().send(command, options);
         } catch (e) {
-            this.logHandler.error("Error getting object from S3", {error: e}, AwsModuleKeyname);
+            this.logHandler.error("S3Client: Error getting object from S3.", {extra: {error: e}}, AwsModuleKeyname);
             throw e;
         }
     }
@@ -80,7 +80,7 @@ export class S3Client implements S3ClientInterface {
             const object = await this.get(bucketName, key, options);
             return this.streamToArrayBuffer(object.Body);
         } catch (e) {
-            this.logHandler.error("Error getting content of object from S3", {error: e}, AwsModuleKeyname);
+            this.logHandler.error("S3Client: Error getting content of object from S3.", {extra: {error: e}}, AwsModuleKeyname);
             throw e;
         }
     }
@@ -91,7 +91,7 @@ export class S3Client implements S3ClientInterface {
      * @param options
      */
     async listKeys(bucketName: string, options?: Partial<ClientOptionsInterface>): Promise<string[]> {
-        this.logHandler.debug("S3 CLIENT - Listing bucket keys", {bucketName}, AwsModuleKeyname);
+        this.logHandler.debug("S3Client: Listing bucket keys.", {extra: {bucketName}}, AwsModuleKeyname);
         const objects = await this.listObjects(bucketName, options)
         return objects.map((object) => object.Key);
     }
@@ -102,7 +102,7 @@ export class S3Client implements S3ClientInterface {
      * @param options
      */
     async listObjects(bucketName: string, options?: Partial<ClientOptionsInterface>): Promise<any[]> {
-        this.logHandler.debug("S3 CLIENT - Listing bucket objects", {bucketName}, AwsModuleKeyname);
+        this.logHandler.debug("S3Client: Listing bucket objects.", {extra: {bucketName}}, AwsModuleKeyname);
         const command = new ListObjectsCommand({
             Bucket: bucketName,
         })
@@ -110,7 +110,7 @@ export class S3Client implements S3ClientInterface {
         try {
             objects = await this.getClient().send(command, options);
         } catch (e) {
-            this.logHandler.error("Error listing objects from S3", {error: e}, AwsModuleKeyname);
+            this.logHandler.error("S3Client: Error listing objects from S3.", {extra: {error: e}}, AwsModuleKeyname);
             throw e;
         }
         return objects.Contents ?? [];
@@ -126,7 +126,7 @@ export class S3Client implements S3ClientInterface {
      * @param options
      */
     async upload(bucketName: string, key: string, data: any, contentEncoding?: string, contentType?: string, options?: Partial<ClientOptionsInterface>): Promise<void> {
-        this.logHandler.debug("S3 CLIENT - Uploading object", {bucketName, key, contentEncoding, contentType}, AwsModuleKeyname);
+        this.logHandler.debug("S3Client: Uploading object to S3.", {extra: {bucketName, key, contentEncoding, contentType}}, AwsModuleKeyname);
 
         const command = new PutObjectCommand({
             Bucket: bucketName,
@@ -139,7 +139,7 @@ export class S3Client implements S3ClientInterface {
         try {
             await this.getClient().send(command, options);
         } catch (e) {
-            this.logHandler.error("Error putting object in S3", {error: e}, AwsModuleKeyname);
+            this.logHandler.error("S3Client: Error putting object in S3.", {extra: {error: e}}, AwsModuleKeyname);
             throw e;
         }
     }
@@ -153,14 +153,14 @@ export class S3Client implements S3ClientInterface {
      * @param expiresIn The amount on time in seconds before the pre signed url expires.
      */
     async createSignedUrl(bucketName: string, key: string, operation: S3PresignedOperationTypeEnum, fileName?: string, expiresIn: number = 300): Promise<string> {
-        this.logHandler.debug("S3 CLIENT - Creating pre-signed url", {bucketName, key, operation, fileName, expiresIn}, AwsModuleKeyname);
+        this.logHandler.debug("S3Client: Creating pre-signed url.", {extra: {bucketName, key, operation, fileName, expiresIn}}, AwsModuleKeyname);
 
         const command = this.getCommandForPresign(operation, bucketName, key, fileName);
         let url;
         try {
             url = await getSignedUrl(this.getClient(), command, { expiresIn });
         } catch (e) {
-            this.logHandler.error("Error getting signed url.", {error: e}, AwsModuleKeyname);
+            this.logHandler.error("S3Client: Error getting signed url.", {extra: {error: e}}, AwsModuleKeyname);
             throw e;
         }
         return url;
@@ -176,7 +176,7 @@ export class S3Client implements S3ClientInterface {
      * @private
      */
     private getCommandForPresign(operation: S3PresignedOperationTypeEnum, bucketName: string, key: string, fileName?: string): GetObjectCommand | PutObjectCommand {
-        this.logHandler.debug("S3 CLIENT - Creating command for pre-signed url", {operation, bucketName, key, fileName}, AwsModuleKeyname);
+        this.logHandler.debug("S3Client: Creating command for pre-signed url.", {extra: {operation, bucketName, key, fileName}}, AwsModuleKeyname);
 
         switch (operation) {
             case S3PresignedOperationTypeEnum.Get:

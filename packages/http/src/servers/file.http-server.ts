@@ -32,13 +32,13 @@ export class FileHttpServer {
         return new Promise<void>((resolve, reject) => {
             this.server = http.createServer( (req: IncomingMessage, res) => {
                 if(req.url === undefined)  {
-                    this.logHandler.error("URL undefined, skipping.", {req, directory, port, address})
+                    this.logHandler.error("FileHttpServer: URL undefined, skipping.", {extra: {req, directory, port, address}})
                     return;
                 }
 
                 requestCallback?.(req);
 
-                this.logHandler.info("Request received: " + req.url, {req, directory, port, address});
+                this.logHandler.info("FileHttpServer: Request received: " + req.url, {extra: {req, directory, port, address}});
 
                 // parse URL
                 const parsedUrl = url.parse(req.url);
@@ -157,7 +157,7 @@ export class FileHttpServer {
                 });
 
             }).listen(port, address, () => {
-                this.logHandler.info("Server started on port: " + port);
+                this.logHandler.info("FileHttpServer: Server started on port: " + port);
 
                 listeningCallback?.(port, address);
             }).on('close', () =>{
@@ -170,7 +170,7 @@ export class FileHttpServer {
         return new Promise<void>((resolve, reject) => {
             if(this.server) {
                 this.server.close(() => {
-                    this.logHandler.info("Server stopped.");
+                    this.logHandler.info("FileHttpServer: Server stopped.");
                     return resolve();
                 });
             }

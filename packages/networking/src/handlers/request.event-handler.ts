@@ -39,15 +39,19 @@ export class RequestEventHandler implements EventHandlerInterface<Request, Respo
         //todo add tracing to calculate request execution
         // todo catch if the method throws even though it should never throw.
 
-        this.logHandler.debug("RequestEventHandler - Execute request using Router - Start", {
-            event,
+        this.logHandler.debug("RequestEventHandler: Executing request using router.", {
+            extra: {
+                event,
+            }
         })
 
         const response = await this.router.execute(event.payload, this.dependencyContainer);
 
-        this.logHandler.debug("RequestEventHandler - Execute request using Router - End", {
-            event,
-            response,
+        this.logHandler.debug("RequestEventHandler: Executed request using router.", {
+            extra: {
+                event,
+                response,
+            }
         })
 
         //previous code:
