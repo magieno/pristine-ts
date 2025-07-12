@@ -80,7 +80,7 @@ describe("Request Body Converter Interceptor", () => {
         request.setHeader("Content-Type", "application/json")
         request.body = 'INVALID_JSON';
 
-        return expect(requestBodyConverterInterceptor.interceptRequest(request)).rejects.toThrow(new InvalidBodyHttpError("This request has the Content-Type header 'application/json', and the body is of type string, but the body contains invalid JSON."));
+        return expect(requestBodyConverterInterceptor.interceptRequest(request)).rejects.toThrow(new InvalidBodyHttpError("RequestBodyConverterInterceptor: This request has the Content-Type header 'application/json', and the body is of type string, but the body contains invalid JSON."));
     })
 
     it("should throw an error if the Content-Type is application/json and the type of the body is 'boolean'", async () => {
@@ -90,7 +90,7 @@ describe("Request Body Converter Interceptor", () => {
         request.setHeader("Content-Type", "application/json")
         request.body = true;
 
-        return expect(requestBodyConverterInterceptor.interceptRequest(request)).rejects.toThrow(new InvalidBodyHttpError("This request has the Content-Type header 'application/json' but the body contains invalid JSON."));
+        return expect(requestBodyConverterInterceptor.interceptRequest(request)).rejects.toThrow(new InvalidBodyHttpError("RequestBodyConverterInterceptor: This request has the Content-Type header 'application/json' but the body contains invalid JSON."));
     })
 
     it("should throw an error if the Content-Type is application/json and the type of the body is 'number'", async () => {
@@ -100,7 +100,7 @@ describe("Request Body Converter Interceptor", () => {
         request.setHeader("Content-Type", "application/json")
         request.body = 8766;
 
-        return expect(requestBodyConverterInterceptor.interceptRequest(request)).rejects.toThrow(new InvalidBodyHttpError("This request has the Content-Type header 'application/json' but the body contains invalid JSON."));
+        return expect(requestBodyConverterInterceptor.interceptRequest(request)).rejects.toThrow(new InvalidBodyHttpError("RequestBodyConverterInterceptor: This request has the Content-Type header 'application/json' but the body contains invalid JSON."));
     })
 
     it("should throw an error if the Content-Type is application/json and the type of the body is 'Date'", async () => {
@@ -110,6 +110,6 @@ describe("Request Body Converter Interceptor", () => {
         request.setHeader("Content-Type", "application/json")
         request.body = new Date();
 
-        return expect(requestBodyConverterInterceptor.interceptRequest(request)).rejects.toThrow(new InvalidBodyHttpError("This request has the Content-Type header 'application/json' but the body is a Date object which is invalid JSON."));
+        return expect(requestBodyConverterInterceptor.interceptRequest(request)).rejects.toThrow(new InvalidBodyHttpError("RequestBodyConverterInterceptor: This request has the Content-Type header 'application/json' but the body is a Date object which is invalid JSON."));
     })
 })
