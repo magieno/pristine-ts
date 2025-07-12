@@ -17,6 +17,8 @@ export * from "./models/models";
 export * from "./utils/utils";
 export * from "./logging.module.keyname";
 export * from "./handlers/handlers";
+export * from "./types/types";
+export * from "./utils/utils";
 
 
 export const LoggingModule: ModuleInterface = {

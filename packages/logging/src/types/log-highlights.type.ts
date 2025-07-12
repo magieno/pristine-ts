@@ -1,0 +1,1 @@
+export type LogHighlights = {[key in (string | number)]: string | Date | number | boolean};
