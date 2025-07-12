@@ -13,7 +13,7 @@ import {
 import {ConfigurationManager, ModuleConfigurationValue} from "@pristine-ts/configuration";
 import {ProviderRegistrationError} from "./errors/provider-registration.error";
 import {Span, SpanKeynameEnum, TracingManagerInterface} from "@pristine-ts/telemetry";
-import {LogHandlerInterface} from "@pristine-ts/logging";
+import {Breadcrumb, BreadcrumbHandlerInterface, LogHandlerInterface} from "@pristine-ts/logging";
 import {CoreModuleKeyname} from "./core.module.keyname";
 import { v4 as uuidv4 } from 'uuid';
 import {ExecutionContextInterface} from "./interfaces/execution-context.interface";
@@ -95,6 +95,8 @@ export class Kernel {
         this.initializationSpan.endDate = Date.now();
 
         const logHandler: LogHandlerInterface = this.container.resolve("LogHandlerInterface");
+        const breadcrumbHandler: BreadcrumbHandlerInterface = this.container.resolve("BreadcrumbHandlerInterface");
+        breadcrumbHandler.add("Kernel started.", {module, moduleConfigurationValues});
 
         logHandler.debug("Kernel: The Kernel was instantiated in '" + ((this.initializationSpan.endDate - this.initializationSpan.startDate) / 1000) + "' seconds.", {extra: {initializationSpan: this.initializationSpan}}, CoreModuleKeyname);
     }
@@ -106,6 +108,8 @@ export class Kernel {
      * @private
      */
     private registerProviderRegistration(providerRegistration: ProviderRegistration) {
+        const breadcrumbHandler: BreadcrumbHandlerInterface = this.container.resolve("BreadcrumbHandlerInterface");
+        breadcrumbHandler.add("Registering provider.", {providerRegistration});
         const args = [
             providerRegistration.token,
             providerRegistration,
@@ -134,6 +138,9 @@ export class Kernel {
      * @private
      */
     private async initModule(module: ModuleInterface): Promise<Span[]> {
+        const breadcrumbHandler: BreadcrumbHandlerInterface = this.container.resolve("BreadcrumbHandlerInterface");
+        breadcrumbHandler.add("Initializing module.", {module: module.keyname});
+
         // If this module is already instantiated, simply return undefined as there's no span to return;
         if (this.instantiatedModules.hasOwnProperty(module.keyname)) {
             return [];
@@ -174,6 +181,7 @@ export class Kernel {
 
         // Run the onInit function for the module.
         if (module.onInit) {
+            breadcrumbHandler.add("Running onInit for module.", {module: module.keyname});
             await module.onInit(this.container);
         }
 
@@ -182,6 +190,8 @@ export class Kernel {
         span.endDate = Date.now();
 
         spans.push(span);
+
+        breadcrumbHandler.add("Finished initializing module.", {module: module.keyname});
 
         return spans;
     }
@@ -192,6 +202,8 @@ export class Kernel {
      * @private
      */
     private async initConfiguration(moduleConfigurationValues?: { [key: string]: ModuleConfigurationValue }) {
+        const breadcrumbHandler: BreadcrumbHandlerInterface = this.container.resolve("BreadcrumbHandlerInterface");
+        breadcrumbHandler.add("Initializing configuration.", {moduleConfigurationValues});
         const configurationManager: ConfigurationManager = this.container.resolve(ConfigurationManager);
 
         // Start by loading the configuration definitions of all the modules
@@ -208,6 +220,8 @@ export class Kernel {
 
         // Load the configuration values passed by the app
         await configurationManager.load(moduleConfigurationValues ?? {}, this.container);
+
+        breadcrumbHandler.add("Finished initializing configuration.", {moduleConfigurationValues});
     }
 
     /**
@@ -218,6 +232,8 @@ export class Kernel {
      * @private
      */
     private async afterInitModule(module: ModuleInterface) {
+        const breadcrumbHandler: BreadcrumbHandlerInterface = this.container.resolve("BreadcrumbHandlerInterface");
+        breadcrumbHandler.add("Running afterInit for module.", {module: module.keyname});
         if (module.importModules) {
             // Start by recursively importing all the packages
             for (const importedModule of module.importModules) {
@@ -235,6 +251,7 @@ export class Kernel {
         }
 
         this.afterInstantiatedModules[module.keyname] = module;
+        breadcrumbHandler.add("Finished running afterInit for module.", {module: module.keyname});
     }
 
     /**
@@ -281,6 +298,8 @@ export class Kernel {
      * @param executionContext
      */
     public async handle<T>(event: any | Request | Event<any>, executionContext: ExecutionContextInterface<T>): Promise<object> {
+        const breadcrumbHandler: BreadcrumbHandlerInterface = this.container.resolve("BreadcrumbHandlerInterface");
+        breadcrumbHandler.addBreadcrumb(new Breadcrumb("Handling event.", {event, executionContext}));
         // Start the tracing
         const tracingManager: TracingManagerInterface = this.container.resolve("TracingManagerInterface");
         tracingManager.startTracing();
@@ -303,6 +322,7 @@ export class Kernel {
 
         tracingManager.endTrace();
 
+        breadcrumbHandler.addBreadcrumb(new Breadcrumb("Finished handling event.", {response}));
         return response;
     }
 

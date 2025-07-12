@@ -4,12 +4,14 @@ import {ModuleConfigurationValue} from "../types/module-configuration.value";
 import {ConfigurationParser} from "../parsers/configuration.parser";
 import {ConfigurationValidationError} from "../errors/configuration-validation.error";
 import {ConfigurationDefinition} from "@pristine-ts/common";
+import {Breadcrumb, BreadcrumbHandlerInterface} from "@pristine-ts/logging";
 
 @injectable()
 export class ConfigurationManager {
     public configurationDefinitions: { [key: string]: ConfigurationDefinition } = {};
 
-    public constructor(private readonly configurationParser: ConfigurationParser) {
+    public constructor(private readonly configurationParser: ConfigurationParser,
+                       @inject("BreadcrumbHandlerInterface") private readonly breadcrumbHandler: BreadcrumbHandlerInterface) {
     }
 
     /**
@@ -19,7 +21,9 @@ export class ConfigurationManager {
      * @param configurationDefinition
      */
     public register(configurationDefinition: ConfigurationDefinition) {
+        this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Registering configuration definition", {configurationDefinition}));
         if (this.configurationDefinitions.hasOwnProperty(configurationDefinition.parameterName)) {
+            this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Configuration definition already exists", {configurationDefinition}));
             throw new ConfigurationDefinitionAlreadyExistsError("There is already a configuration definition registered for this parameter name.", configurationDefinition.parameterName);
         }
 
@@ -37,6 +41,7 @@ export class ConfigurationManager {
      * @param container
      */
     public async load(moduleConfigurationValues: { [key: string]: ModuleConfigurationValue }, container: DependencyContainer) {
+        this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Loading configuration", {moduleConfigurationValues}));
         const validationErrors: string[] = [];
 
         for (const key of Object.keys(moduleConfigurationValues)) {
@@ -46,11 +51,13 @@ export class ConfigurationManager {
 
             if (this.configurationDefinitions.hasOwnProperty(key) === false) {
                 validationErrors.push("There are no ConfigurationDefinition in any of the modules for the following key: '" + key + "'.");
+                this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("No configuration definition found for key", {key}));
                 continue;
             }
 
             const moduleConfigurationValue = moduleConfigurationValues[key];
 
+            this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Resolving configuration value", {key, moduleConfigurationValue}));
             const resolvedConfigurationValue = await this.configurationParser.resolve(moduleConfigurationValue, container);
 
             // Register the configuration in the container
@@ -75,6 +82,7 @@ export class ConfigurationManager {
 
                 for (const defaultResolver of configurationDefinition.defaultResolvers) {
                     try {
+                        this.breadcrumbHandler.add("Resolving configuration value with default resolver", {key, defaultResolver});
                         const resolvedConfigurationValue = await this.configurationParser.resolve(defaultResolver, container);
 
                         this.registerConfigurationValue(key, resolvedConfigurationValue, container);
@@ -91,15 +99,18 @@ export class ConfigurationManager {
                 }
 
                 if(isConfigurationResolvedByDefaultResolver) {
+                    this.breadcrumbHandler.add("Configuration value resolved by default resolver", {key});
                     continue;
                 }
             }
 
             if (configurationDefinition.isRequired === true) {
                 validationErrors.push("The Configuration with key: '" + key + "' is required and must be defined.");
+                this.breadcrumbHandler.add("Required configuration not defined", {key});
                 continue;
             }
 
+            this.breadcrumbHandler.add("Resolving configuration value with default value", {key, defaultValue: configurationDefinition.defaultValue});
             const resolvedConfigurationValue = await this.configurationParser.resolve(configurationDefinition.defaultValue, container);
 
             // Register the configuration in the container
@@ -121,6 +132,7 @@ export class ConfigurationManager {
      * @param container
      */
     public registerConfigurationValue(configurationKey: string, value: boolean | number | string, container: DependencyContainer) {
+        this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Registering configuration value", {configurationKey, value}));
         // Register the configuration in the container
         container.registerInstance("%" + configurationKey + "%", value);
     }

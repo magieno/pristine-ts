@@ -21,7 +21,7 @@ import {
     MetadataEnum,
 } from "@pristine-ts/common";
 import {AuthenticationManagerInterface, AuthorizerManagerInterface} from "@pristine-ts/security";
-import {LogHandlerInterface} from "@pristine-ts/logging";
+import {Breadcrumb, BreadcrumbHandlerInterface, LogHandlerInterface} from "@pristine-ts/logging";
 import {NetworkingModuleKeyname} from "./networking.module.keyname";
 import {Span, SpanKeynameEnum, TracingManagerInterface} from "@pristine-ts/telemetry";
 import {controllerRegistry} from "./decorators/controller.decorator";
@@ -59,7 +59,8 @@ export class Router implements RouterInterface {
                        private readonly controllerMethodParameterDecoratorResolver: ControllerMethodParameterDecoratorResolver,
                        @inject("AuthorizerManagerInterface") private readonly authorizerManager: AuthorizerManagerInterface,
                        @inject("AuthenticationManagerInterface") private readonly authenticationManager: AuthenticationManagerInterface,
-                       private readonly cache: RouterCache) {
+                       private readonly cache: RouterCache,
+                       @inject("BreadcrumbHandlerInterface") private readonly breadcrumbHandler: BreadcrumbHandlerInterface) {
     }
 
     /**
@@ -102,6 +103,7 @@ export class Router implements RouterInterface {
      * @param route
      */
     public register(path: string, method: HttpMethod | string, route: Route) {
+        this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Registering route", {path, method, route}));
         const splitPaths = UrlUtil.splitPath(path);
 
         this.root.add(splitPaths, method, route, 0);
@@ -118,8 +120,11 @@ export class Router implements RouterInterface {
             return;
         }
 
+        this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Setting up router"));
+
         // Loop over all the controllers and control the Route Tree
         controllerRegistry.forEach(controller => {
+            this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Processing controller", {controller: controller.name}));
             let basePath: string = ClassMetadata.getMetadata(controller, MetadataEnum.ControllerBasePath) ?? "";
 
             // Clean the base path by removing trailing slashes.
@@ -133,6 +138,7 @@ export class Router implements RouterInterface {
                 if (MethodMetadata.hasMetadata(controller.prototype, methodPropertyKey, MetadataEnum.Route) === false) {
                     return;
                 }
+                this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Processing method", {controller: controller.name, method: methodPropertyKey}));
 
                 // Retrieve the "RouteMethodDecorator" object assigned by the @route decorator at .route
                 const routeMethodDecorator: RouteMethodDecorator = MethodMetadata.getMetadata(controller.prototype, methodPropertyKey, MetadataEnum.Route);
@@ -167,6 +173,7 @@ export class Router implements RouterInterface {
         })
 
         this.setupCompleted = true;
+        this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Router setup completed"));
         this.loghandler.debug("Route tree: \n" + this.getRouteTree())
     }
 
@@ -179,6 +186,7 @@ export class Router implements RouterInterface {
      * @param container
      */
     public execute(request: Request, container: DependencyContainer): Promise<Response> {
+        this.breadcrumbHandler.add("Executing request in router", {request});
         // todo: remove all the rejects and replace it with a response that contains an error.
         // This method cannot throw.
 
@@ -205,6 +213,7 @@ export class Router implements RouterInterface {
             let methodNode: MethodRouterNode | undefined = cachedRouterRoute?.methodNode;
 
             if (methodNode === undefined) {
+                this.breadcrumbHandler.add("Method node not found in cache, finding it.", {cacheKeyname});
                 const methodNodeSpan = tracingManager.startSpan(SpanKeynameEnum.RouterFindMethodRouterNode, SpanKeynameEnum.RouterRequestExecution);
                 // Retrieve the node to have information about the controller
                 methodNode = this.root.find(splitPath, request.httpMethod) as MethodRouterNode;
@@ -260,10 +269,12 @@ export class Router implements RouterInterface {
 
             // Authenticate the request
             try {
+                this.breadcrumbHandler.add("Authenticating request", {request, context: methodNode.route.context});
                 const routerRequestAuthenticationSpan = tracingManager.startSpan(SpanKeynameEnum.RouterRequestAuthentication, SpanKeynameEnum.RouterRequestExecution);
                 identity = await this.authenticationManager.authenticate(request, methodNode.route.context, container);
                 routerRequestAuthenticationSpan.end();
 
+                this.breadcrumbHandler.add("Request authenticated", {identity});
                 this.loghandler.debug("Router - Found identity.", {
                     identity
                 }, NetworkingModuleKeyname);
@@ -274,6 +285,7 @@ export class Router implements RouterInterface {
                     context: methodNode.route.context,
                     container
                 }, NetworkingModuleKeyname);
+                this.breadcrumbHandler.add("Authentication error", {error});
 
                 // Todo: check if the error is an UnauthorizedHttpError, else create one.
                 if (error instanceof ForbiddenHttpError === false) {
@@ -286,7 +298,7 @@ export class Router implements RouterInterface {
 
             // Call the controller with the resolved Method arguments
             try {
-
+                this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Authorizing request", {request, context: methodNode.route.context, identity}));
                 // Verify that the identity making the request is authorized to make such a request
                 if (await this.authorizerManager.isAuthorized(request, methodNode.route.context, container, identity) === false) {
                     this.loghandler.error("User not authorized to access this url.", {
@@ -296,9 +308,11 @@ export class Router implements RouterInterface {
                         identity
                     }, NetworkingModuleKeyname);
 
+                    this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Request not authorized", {request, context: methodNode.route.context, identity}));
                     routerRequestExecutionSpan.end();
                     return resolve(this.executeErrorResponseInterceptors(new ForbiddenHttpError("You are not allowed to access this."), request, container, methodNode));
                 }
+                this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Request authorized", {request, context: methodNode.route.context, identity}));
 
                 // Execute all the interceptors
                 const requestInterceptorsSpan = tracingManager.startSpan(SpanKeynameEnum.RequestInterceptors, SpanKeynameEnum.RouterRequestExecution);
@@ -315,6 +329,7 @@ export class Router implements RouterInterface {
 
                 // If the cache did not contain the cached controller method arguments
                 if (resolvedMethodArguments === undefined) {
+                    this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Resolved method arguments not found in cache, resolving them.", {cacheKeyname, interceptedRequest}));
                     this.loghandler.debug("Resolved method arguments were not cached, currently resolving", {
                         request,
                         interceptedRequest,
@@ -333,6 +348,7 @@ export class Router implements RouterInterface {
                         resolvedMethodArguments,
                     }, NetworkingModuleKeyname);
                 } else {
+                    this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Resolved method arguments found in cache.", {cacheKeyname, interceptedRequest, resolvedMethodArguments}));
                     this.loghandler.debug("Method arguments were successfully cached and will be used.", {
                         request,
                         interceptedRequest,
@@ -340,11 +356,13 @@ export class Router implements RouterInterface {
                     }, NetworkingModuleKeyname);
                 }
 
+                this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Executing controller method", {controller: controller.constructor.name, method: methodNode.route.methodPropertyKey, resolvedMethodArguments}));
                 const controllerResponse = controller[methodNode.route.methodPropertyKey](...resolvedMethodArguments);
 
                 // This resolves the promise if it's a promise or promisifies the value
                 // https://stackoverflow.com/a/27760489/684101
                 const response = await Promise.resolve(controllerResponse);
+                this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Controller method executed", {response}));
 
                 this.loghandler.debug("Router - The response returned by the controller", {
                     response
@@ -409,6 +427,7 @@ export class Router implements RouterInterface {
             request,
             methodNode,
         }, NetworkingModuleKeyname)
+        this.breadcrumbHandler.add("Executing request interceptors", {request, methodNode});
 
         // Execute all the request interceptors
         let interceptedRequest = request;
@@ -435,6 +454,7 @@ export class Router implements RouterInterface {
                 }
 
                 try {
+                    this.breadcrumbHandler.add("Executing request interceptor", {interceptor: interceptor.constructor.name, interceptedRequest, methodNode});
                     // https://stackoverflow.com/a/27760489/684101
                     interceptedRequest = await (interceptor as RequestInterceptorInterface).interceptRequest?.(interceptedRequest, methodNode) ?? interceptedRequest;
                 } catch (e) {
@@ -449,6 +469,8 @@ export class Router implements RouterInterface {
             interceptedRequest,
             methodNode,
         }, NetworkingModuleKeyname)
+
+        this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Finished executing request interceptors", {interceptedRequest, methodNode}));
 
         return interceptedRequest;
     }
@@ -469,6 +491,7 @@ export class Router implements RouterInterface {
             request,
             methodNode,
         }, NetworkingModuleKeyname)
+        this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Executing response interceptors", {response, request, methodNode}));
 
         // Execute all the request interceptors
         let interceptedResponse = response;
@@ -495,6 +518,7 @@ export class Router implements RouterInterface {
                 }
 
                 try {
+                    this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Executing response interceptor", {interceptor: interceptor.constructor.name, interceptedResponse, request, methodNode}));
                     interceptedResponse = await (interceptor as RequestInterceptorInterface).interceptResponse?.(interceptedResponse, request, methodNode) ?? interceptedResponse;
                 } catch (e) {
                     this.loghandler.error("Router - There was an exception thrown while executing the 'interceptResponse' method of the RequestInterceptor named: '" + interceptor.constructor.name + "'.", {e}, NetworkingModuleKeyname);
@@ -509,6 +533,7 @@ export class Router implements RouterInterface {
             request,
             methodNode,
         }, NetworkingModuleKeyname)
+        this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Finished executing response interceptors", {interceptedResponse, request, methodNode}));
 
         return interceptedResponse;
     }
@@ -529,6 +554,7 @@ export class Router implements RouterInterface {
             request,
             methodNode,
         }, NetworkingModuleKeyname)
+        this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Executing error response interceptors", {error, request, methodNode}));
 
         // Execute all the request interceptors
         let interceptedResponse = new Response();
@@ -570,6 +596,7 @@ export class Router implements RouterInterface {
                 }
 
                 try {
+                    this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Executing error response interceptor", {interceptor: interceptor.constructor.name, error, interceptedResponse, request, methodNode}));
                     interceptedResponse = await (interceptor as RequestInterceptorInterface).interceptError?.(error, interceptedResponse, request, methodNode) ?? interceptedResponse;
                 } catch (e) {
                     this.loghandler.error("There was an exception thrown while executing the 'interceptError' method of the RequestInterceptor named: '" + interceptor.constructor.name + "'.", {e}, NetworkingModuleKeyname);
@@ -586,6 +613,7 @@ export class Router implements RouterInterface {
             request,
             methodNode,
         }, NetworkingModuleKeyname)
+        this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Finished executing error response interceptors", {interceptedResponse, request, methodNode}));
 
         return interceptedResponse;
     }

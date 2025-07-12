@@ -3,7 +3,7 @@ import {ExecutionContextInterface} from "../interfaces/execution-context.interfa
 import {EventInterceptorInterface} from "../interfaces/event-interceptor.interface";
 import {EventMapperInterface} from "../interfaces/event-mapper.interface";
 import {Event} from "../models/event";
-import {LogHandlerInterface} from "@pristine-ts/logging";
+import {Breadcrumb, BreadcrumbHandlerInterface, LogHandlerInterface} from "@pristine-ts/logging";
 import {EventsExecutionOptionsInterface} from "../interfaces/events-execution-options.interface";
 import {EventResponse} from "../models/event.response";
 import {EventDispatcher} from "../dispatchers/event.dispatcher";
@@ -25,6 +25,7 @@ export class EventPipeline {
         @injectAll(ServiceDefinitionTagEnum.EventMapper) private readonly eventMappers: EventMapperInterface<any, any>[],
         @inject('LogHandlerInterface') private readonly logHandler: LogHandlerInterface,
         @inject("TracingManagerInterface") private readonly tracingManager: TracingManagerInterface,
+        @inject("BreadcrumbHandlerInterface") private readonly breadcrumbHandler: BreadcrumbHandlerInterface,
     ) {
     }
 
@@ -37,6 +38,7 @@ export class EventPipeline {
      * @private
      */
     private async preMappingIntercept(event: object, executionContext: ExecutionContextInterface<any>): Promise<object> {
+        this.breadcrumbHandler.add("Executing pre-mapping interceptors.", {event, executionContext})
         let interceptedEvent = event;
 
         const span = this.tracingManager.startSpan(SpanKeynameEnum.EventPreMappingInterception);
@@ -51,6 +53,8 @@ export class EventPipeline {
 
         span.end();
 
+        this.breadcrumbHandler.add("Finished executing pre-mapping interceptors.", {interceptedEvent, executionContext})
+
         return interceptedEvent;
     }
 
@@ -62,6 +66,7 @@ export class EventPipeline {
      * @private
      */
     private async postMappingIntercept(event: Event<any>): Promise<Event<any>> {
+        this.breadcrumbHandler.add("Executing post-mapping interceptors.", {event})
         let interceptedEvent = event;
 
         const span = this.tracingManager.startSpan(SpanKeynameEnum.EventPostMappingInterception);
@@ -76,6 +81,8 @@ export class EventPipeline {
 
         span.end();
 
+        this.breadcrumbHandler.add("Finished executing post-mapping interceptors.", {interceptedEvent})
+
         return interceptedEvent;
     }
 
@@ -87,6 +94,7 @@ export class EventPipeline {
      * @private
      */
     private async preResponseMappingIntercept(eventResponse: EventResponse<any, any>): Promise<EventResponse<any, any>> {
+        this.breadcrumbHandler.add("Executing pre-response mapping interceptors.", {eventResponse})
         let interceptedEventResponse = eventResponse;
 
         const span = this.tracingManager.startSpan(SpanKeynameEnum.EventPreResponseMappingInterception);
@@ -101,6 +109,8 @@ export class EventPipeline {
 
         span.end();
 
+        this.breadcrumbHandler.add("Finished executing pre-response mapping interceptors.", {interceptedEventResponse})
+
         return interceptedEventResponse;
     }
 
@@ -112,6 +122,7 @@ export class EventPipeline {
      * @private
      */
     private async postResponseMappingIntercept(eventResponse: object): Promise<object> {
+        this.breadcrumbHandler.add("Executing post-response mapping interceptors.", {eventResponse})
         let interceptedEventResponse = eventResponse;
 
         const span = this.tracingManager.startSpan(SpanKeynameEnum.EventPostResponseMappingInterception);
@@ -126,6 +137,8 @@ export class EventPipeline {
 
         span.end();
 
+        this.breadcrumbHandler.add("Finished executing post-response mapping interceptors.", {interceptedEventResponse})
+
         return interceptedEventResponse;
     }
 
@@ -137,6 +150,7 @@ export class EventPipeline {
      * @private
      */
     private async executeEvent(event: Event<any>, eventDispatcher: EventDispatcherInterface): Promise<EventResponse<any, any>> {
+        this.breadcrumbHandler.add("Executing event.", {event})
         // 1 - Run the post mapped interceptors on every single event before they get executed.
         const interceptedEvent = await this.postMappingIntercept(event)
 
@@ -147,6 +161,7 @@ export class EventPipeline {
             const response = await eventDispatcher.dispatch(interceptedEvent);
 
             eventExecutionSpan.end();
+            this.breadcrumbHandler.add("Finished executing event.", {event, response})
 
             return response;
         } catch (error) {
@@ -167,10 +182,12 @@ export class EventPipeline {
      * @param container
      */
     async execute(event: object, executionContext: ExecutionContextInterface<any>, container: DependencyContainer): Promise<any> {
+        this.breadcrumbHandler.add("Starting event pipeline execution", {event, executionContext});
         const eventExecutions: EventsExecutionOptionsInterface<any>[] = [];
 
         // If the event passed is already properly typed, we simply execute it, without mapping and without calling the pre-mapping interceptors
         if(event instanceof Event) {
+            this.breadcrumbHandler.add("Event is already an instance of Event, skipping mapping.", {event, executionContext});
             eventExecutions.push({
                 events: [event],
                 executionOrder: "sequential",
@@ -186,10 +203,12 @@ export class EventPipeline {
             let numberOfEventMappers = 0;
 
             try {
+                this.breadcrumbHandler.add("Mapping event.", {interceptedEvent, executionContext});
                 const span = this.tracingManager.startSpan(SpanKeynameEnum.EventMapping);
 
                 this.eventMappers.forEach(eventMapper => {
                     if (eventMapper.supportsMapping(interceptedEvent, executionContext)) {
+                        this.breadcrumbHandler.add("Event mapper supports mapping.", {eventMapper: eventMapper.constructor.name, interceptedEvent, executionContext});
                         eventExecutions.push(eventMapper.map(interceptedEvent, executionContext));
                         numberOfEventMappers++;
                     }
@@ -199,6 +218,7 @@ export class EventPipeline {
             } catch (error) {
                 throw new EventMappingError("There was an error mapping the event into an Event object", event, interceptedEvent, executionContext, error as Error)
             }
+            this.breadcrumbHandler.add("Finished mapping event.", {eventExecutions, executionContext});
 
             if (numberOfEventMappers === 0) {
                 throw new EventMappingError("There are no Event Mappers that support the event", event, interceptedEvent, executionContext);
@@ -213,6 +233,7 @@ export class EventPipeline {
 
 
 
+        this.breadcrumbHandler.add("Executing events.", {eventExecutions, executionContext});
         const eventsExecutionPromises: Promise<EventResponse<any, any> | EventResponse<any, any>[]>[] = [];
 
         // 3- Loop over the EventExecutionOptions array and start executing the events
@@ -281,6 +302,7 @@ export class EventPipeline {
 
         // 4- For each event, call the PreResponseMapping Interceptors
         const eventResponses: EventResponse<any, any>[] = await Promise.all((await Promise.all(eventsExecutionPromises)).flat().map(async eventResponse => await this.preResponseMappingIntercept(eventResponse)));
+        this.breadcrumbHandler.add("Reverse mapping event responses.", {eventResponses, executionContext});
 
         let finalResponse = {};
 
@@ -289,12 +311,19 @@ export class EventPipeline {
         eventResponses.forEach(eventResponse => {
             this.eventMappers.forEach(eventMapper => {
                 if (eventMapper.supportsReverseMapping(eventResponse, finalResponse, executionContext)) {
+                    this.breadcrumbHandler.add("Event mapper supports reverse mapping.", {eventMapper: eventMapper.constructor.name, eventResponse, finalResponse, executionContext});
                     finalResponse = eventMapper.reverseMap(eventResponse, finalResponse, executionContext);
                 }
             })
         })
 
+        this.breadcrumbHandler.add("Finished reverse mapping event responses.", {finalResponse, executionContext});
+
         // 6 - Call the PostResponseMapping interceptors and return the final intercepted response.
-        return this.postResponseMappingIntercept(finalResponse);
+        const postResponseMappingInterceptedResponse = await this.postResponseMappingIntercept(finalResponse);
+
+        this.breadcrumbHandler.add("Finished event pipeline execution.", {postResponseMappingInterceptedResponse, executionContext});
+
+        return postResponseMappingInterceptedResponse;
     }
 }

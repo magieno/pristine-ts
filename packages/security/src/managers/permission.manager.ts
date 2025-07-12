@@ -1,7 +1,7 @@
 import {inject, injectable, injectAll} from "tsyringe";
 import {VoterInterface} from "../interfaces/voter.interface";
 import {VotingStrategyEnum} from "../enums/voting-strategy.enum";
-import {LogHandlerInterface} from "@pristine-ts/logging";
+import {Breadcrumb, BreadcrumbHandlerInterface, LogHandlerInterface} from "@pristine-ts/logging";
 import {VoteEnum} from "../enums/vote.enum";
 import {IdentityInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {SecurityModuleKeyname} from "../security.module.keyname";
@@ -19,7 +19,8 @@ export class PermissionManager {
      * @param logHandler The log handler to output logs.
      */
     public constructor(@injectAll(ServiceDefinitionTagEnum.Voter) private readonly voters: VoterInterface[],
-                       @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface) {
+                       @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
+                       @inject("BreadcrumbHandlerInterface") private readonly breadcrumbHandler: BreadcrumbHandlerInterface) {
     }
 
     /**
@@ -30,6 +31,7 @@ export class PermissionManager {
      * @param votingStrategy The voting strategy that defines how to merge the votes. Default is DenyOnUnanimousAbstention.
      */
     async hasAccessToResource(identity: IdentityInterface, action: string, resource: object, votingStrategy: VotingStrategyEnum = VotingStrategyEnum.DenyOnUnanimousAbstention): Promise<boolean>{
+        this.breadcrumbHandler.add("Checking access to resource", {identity, action, resource, votingStrategy});
 
         if(this.voters.length === 0){
             this.logHandler.warning("PermissionManager: No voters were found, this could lead to unexpected behavior. Make sure that you have registered voters in your application.", {
@@ -39,6 +41,7 @@ export class PermissionManager {
                     resource,
                 }
             }, SecurityModuleKeyname);
+            this.breadcrumbHandler.add("No voters found, denying access.", {identity, action, resource, votingStrategy});
         }
 
         const votes: VoteEnum[] = [];
@@ -46,11 +49,14 @@ export class PermissionManager {
         for(const voter of this.voters) {
             if(voter.supports(resource) === false) {
                 this.logHandler.debug("PermissionManager: voter does not support this resource.", {extra: {identity, action, resource, voter: voter.constructor.name}}, SecurityModuleKeyname );
+                this.breadcrumbHandler.add("Voter does not support this resource.", {voter: voter.constructor.name, resource});
                 continue;
             }
 
             try {
+                this.breadcrumbHandler.add("Calling 'vote' on voter", {voter: voter.constructor.name});
                 const vote = await voter.vote(identity, action, resource);
+                this.breadcrumbHandler.add("Voter returned vote", {vote});
 
                 const message = "PermissionManager: Voter " + voter.constructor.name + " voted: " + vote;
 
@@ -64,6 +70,7 @@ export class PermissionManager {
                 votes.push(vote);
             } catch (error) {
                 this.logHandler.error("PermissionManager: Error while voting, please check the logs for more details.", {extra: {error, resource, voter: voter.constructor.name}}, SecurityModuleKeyname);
+                this.breadcrumbHandler.add("Error while voting.", {error, resource, voter: voter.constructor.name});
                 throw error;
             }
 
@@ -78,6 +85,7 @@ export class PermissionManager {
         }
 
         this.logHandler.info("PermissionManager: Access to resource " + resource.constructor.name + " was " + (shouldGrantAccess ? "GRANTED" : "DENIED"), {extra: {identity, action, resource}}, SecurityModuleKeyname);
+        this.breadcrumbHandler.add("Finished checking access to resource", {shouldGrantAccess});
 
         return shouldGrantAccess;
     }
