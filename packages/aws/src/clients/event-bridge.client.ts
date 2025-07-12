@@ -55,10 +55,12 @@ export class EventBridgeClient implements EventBridgeClientInterface {
                 Entries: []
             });
 
-            this.logHandler.debug("Sending a message to the EventBridge", {
-                eventBridgeMessages,
-                eventBusName,
-                endpoint,
+            this.logHandler.debug("EventBridgeClient: Sending a message to the EventBridge.", {
+                extra: {
+                    eventBridgeMessages,
+                    eventBusName,
+                    endpoint,
+                }
             }, AwsModuleKeyname)
 
             if (Array.isArray(eventBridgeMessages)) {
@@ -83,18 +85,22 @@ export class EventBridgeClient implements EventBridgeClientInterface {
 
             const response = await client.send(putEventsCommand, options);
 
-            this.logHandler.debug("Message successfully sent to the EventBridge", {
-                eventBridgeMessages,
-                eventBusName,
-                endpoint,
-                response,
+            this.logHandler.debug("EventBridgeClient: Message successfully sent to the EventBridge.", {
+                extra: {
+                    eventBridgeMessages,
+                    eventBusName,
+                    endpoint,
+                    response,
+                }
             }, AwsModuleKeyname)
         } catch (error) {
-            this.logHandler.error("There was an error sending the message to the Event Bus", {
-                error,
-                eventBridgeMessages,
-                eventBusName,
-                endpoint,
+            this.logHandler.error("EventBridgeClient: There was an error sending the message to the Event Bus.", {
+                extra: {
+                    error,
+                    eventBridgeMessages,
+                    eventBusName,
+                    endpoint,
+                }
             }, AwsModuleKeyname);
 
             throw new EventBridgeSendMessageError(error);

@@ -75,7 +75,7 @@ export class OpenSearchClient {
             try {
                 const client = this.getClient();
 
-                await this.logHandler.debug("OpenSearch CLIENT - Searching for query.", {query}, OpenSearchModuleKeyname);
+                await this.logHandler.debug("OpenSearchClient: Searching for documents.", {extra: {query}}, OpenSearchModuleKeyname);
 
                 const startIndex = (query.page ? query.page - 1 : 0) * query.maximumNumberOfResultsPerPage;
 
@@ -145,15 +145,15 @@ export class OpenSearchClient {
                     });
                 }
 
-                await this.logHandler.debug("ELASTIC SEARCH CLIENT - Querying OpenSearch with params.", {params}, OpenSearchModuleKeyname);
+                await this.logHandler.debug("OpenSearchClient: Querying OpenSearch with parameters.", {extra: {params}}, OpenSearchModuleKeyname);
 
                 const response = await client.search(params);
 
-                await this.logHandler.debug("ELASTIC SEARCH CLIENT - Received response", {response, indexName, OpenSearchQuery: query}, OpenSearchModuleKeyname);
+                await this.logHandler.debug("OpenSearchClient: Received response from OpenSearch.", {extra: {response, indexName, query}}, OpenSearchModuleKeyname);
 
                 return await this.parseResponse(response, query.page, query.maximumNumberOfResultsPerPage);
             } catch (e) {
-                await this.logHandler.error("ELASTIC SEARCH CLIENT", {error: e, indexName, OpenSearchQuery: query}, OpenSearchModuleKeyname);
+                await this.logHandler.error("OpenSearchClient: Error while searching for documents.", {extra: {error: e, indexName, query}}, OpenSearchModuleKeyname);
 
                 throw e;
             }
@@ -165,7 +165,7 @@ export class OpenSearchClient {
             index: name,
         });
 
-        this.logHandler.debug("Index creation response", {name, response}, OpenSearchModuleKeyname)
+        this.logHandler.debug("OpenSearchClient: Index creation response.", {extra: {name, response}}, OpenSearchModuleKeyname)
     }
 
 
@@ -174,7 +174,7 @@ export class OpenSearchClient {
             index: name,
         });
 
-        this.logHandler.debug("Index deletion response", {name, response}, OpenSearchModuleKeyname)
+        this.logHandler.debug("OpenSearchClient: Index deletion response.", {extra: {name, response}}, OpenSearchModuleKeyname)
     }
 
     async createDocument(indexName: string, id: string, document: any): Promise<void> {
@@ -184,7 +184,7 @@ export class OpenSearchClient {
             body: document,
         });
 
-        this.logHandler.debug("Create document response", {indexName, id, document, response}, OpenSearchModuleKeyname)
+        this.logHandler.debug("OpenSearchClient: Create document response.", {extra: {indexName, id, document, response}}, OpenSearchModuleKeyname)
     }
 
     async indexDocument(indexName: string, id: string, document: any): Promise<void> {
@@ -194,7 +194,7 @@ export class OpenSearchClient {
             body: document,
         })
 
-        this.logHandler.debug("Index document response", {indexName, id, document, response}, OpenSearchModuleKeyname)
+        this.logHandler.debug("OpenSearchClient: Index document response.", {extra: {indexName, id, document, response}}, OpenSearchModuleKeyname)
     }
 
     async updateDocument(indexName: string, id: string, document: any): Promise<void> {
@@ -204,7 +204,7 @@ export class OpenSearchClient {
             body: document,
         })
 
-        this.logHandler.debug("Update document response", {indexName, id, document, response}, OpenSearchModuleKeyname)
+        this.logHandler.debug("OpenSearchClient: Update document response.", {extra: {indexName, id, document, response}}, OpenSearchModuleKeyname)
     }
 
     async deleteDocument(indexName: string, id: string): Promise<void>  {
@@ -213,7 +213,7 @@ export class OpenSearchClient {
             id,
         })
 
-        this.logHandler.debug("Delete document response", {indexName, id, response}, OpenSearchModuleKeyname)
+        this.logHandler.debug("OpenSearchClient: Delete document response.", {extra: {indexName, id, response}}, OpenSearchModuleKeyname)
     }
 
 }

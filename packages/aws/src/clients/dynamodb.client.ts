@@ -86,15 +86,15 @@ export class DynamodbClient implements DynamodbClientInterface{
         try {
             let item = this.createItemOfClassWithPrimaryKey(classType, primaryKeyAndValue);
             item = await (await this.getMapperClient()).get(item);
-            this.logHandler.debug("DYNAMODB CLIENT - Got item", {item}, AwsModuleKeyname);
+            this.logHandler.debug("DynamodbClient: Got item from dynamodb.", {extra: {item}}, AwsModuleKeyname);
             return item;
         } catch (error) {
             error = this.convertError(error, this.getTableName(classType.prototype), Object.keys(primaryKeyAndValue)[0]);
             if (error instanceof DynamodbItemNotFoundError) {
-                this.logHandler.warning("DYNAMODB CLIENT - Error getting", {error, classType, primaryKeyAndValue}, AwsModuleKeyname);
+                this.logHandler.warning("DynamodbClient: Error getting item from dynamodb.", {extra: {error, classType, primaryKeyAndValue}}, AwsModuleKeyname);
                 return null;
             } else {
-                this.logHandler.error("DYNAMODB CLIENT - Error getting", {error, classType, primaryKeyAndValue}, AwsModuleKeyname);
+                this.logHandler.error("DynamodbClient: Error getting item from dynamodb.", {extra: {error, classType, primaryKeyAndValue}}, AwsModuleKeyname);
             }
             throw error;
         }
@@ -125,7 +125,7 @@ export class DynamodbClient implements DynamodbClientInterface{
                 }
             }
 
-            this.logHandler.debug("DYNAMODB CLIENT - List items", {items}, AwsModuleKeyname);
+            this.logHandler.debug("DynamodbClient: List items from dynamodb.", {extra: {items}}, AwsModuleKeyname);
 
             const paginationResult = {
                 count: paginator.count,
@@ -135,7 +135,7 @@ export class DynamodbClient implements DynamodbClientInterface{
             return new ListResult<T>(items, paginationResult);
         } catch (error) {
             error = this.convertError(error, this.getTableName(options.classType.prototype));
-            this.logHandler.error("DYNAMODB CLIENT - Error listing", {error, options, AwsModuleKeyname});
+            this.logHandler.error("DynamodbClient: Error listing items from dynamodb.", {extra: {error, options}}, AwsModuleKeyname);
             throw error;
         }
     }
@@ -154,12 +154,12 @@ export class DynamodbClient implements DynamodbClientInterface{
             if (error instanceof DynamodbItemNotFoundError) {
                 try {
                     item = await (await this.getMapperClient()).put(item);
-                    this.logHandler.debug("DYNAMODB CLIENT - Created item", {item}, AwsModuleKeyname);
+                    this.logHandler.debug("DynamodbClient: Created item in dynamodb.", {extra: {item}}, AwsModuleKeyname);
 
                     return item;
                 } catch (e) {
                     e = this.convertError(e, this.getTableName(item.constructor.prototype));
-                    this.logHandler.error("DYNAMODB CLIENT - Error creating", {e, item}, AwsModuleKeyname);
+                    this.logHandler.error("DynamodbClient: Error creating item in dynamodb.", {extra: {e, item}}, AwsModuleKeyname);
                     throw e;
                 }
             }
@@ -175,13 +175,13 @@ export class DynamodbClient implements DynamodbClientInterface{
     public async update<T extends StringToAnyObjectMap>(item: T): Promise<T> {
         try {
             item = await (await this.getMapperClient()).update(item);
-            this.logHandler.debug("DYNAMODB CLIENT - Updated item", {item}, AwsModuleKeyname);
+            this.logHandler.debug("DynamodbClient: Updated item in dynamodb.", {extra: {item}}, AwsModuleKeyname);
 
             return item;
         } catch (error) {
             //TODO: Get the primary key.
             error = this.convertError(error, this.getTableName(item.constructor.prototype));
-            this.logHandler.error("DYNAMODB CLIENT - Error updating", {error, item}, AwsModuleKeyname)
+            this.logHandler.error("DynamodbClient: Error updating item in dynamodb.", {extra: {error, item}}, AwsModuleKeyname)
             throw error;
         }
     }
@@ -193,12 +193,12 @@ export class DynamodbClient implements DynamodbClientInterface{
     public async put<T extends StringToAnyObjectMap>(item: T): Promise<T> {
         try {
             item = await (await this.getMapperClient()).put(item);
-            this.logHandler.debug("DYNAMODB CLIENT - Put item", {item}, AwsModuleKeyname);
+            this.logHandler.debug("DynamodbClient: Put item in dynamodb.", {extra: {item}}, AwsModuleKeyname);
 
             return item;
         } catch (error) {
             error = this.convertError(error, this.getTableName(item.constructor.prototype));
-            this.logHandler.error("DYNAMODB CLIENT - Error putting", {error, item}, AwsModuleKeyname)
+            this.logHandler.error("DynamodbClient: Error putting item in dynamodb.", {extra: {error, item}}, AwsModuleKeyname)
             throw error;
         }
     }
@@ -212,12 +212,12 @@ export class DynamodbClient implements DynamodbClientInterface{
         try {
             const item = this.createItemOfClassWithPrimaryKey(classType, primaryKeyAndValue);
             await (await this.getMapperClient()).delete(item);
-            this.logHandler.debug("DYNAMODB CLIENT - Deleted item", {item}, AwsModuleKeyname);
+            this.logHandler.debug("DynamodbClient: Deleted item from dynamodb.", {extra: {item}}, AwsModuleKeyname);
 
             return;
         } catch (error) {
             error = this.convertError(error, this.getTableName(classType.prototype), Object.keys(primaryKeyAndValue)[0]);
-            this.logHandler.error("DYNAMODB CLIENT - Error deleting", {error, classType, primaryKeyAndValue}, AwsModuleKeyname)
+            this.logHandler.error("DynamodbClient: Error deleting item from dynamodb.", {extra: {error, classType, primaryKeyAndValue}}, AwsModuleKeyname)
             throw error;
         }
     }
@@ -239,7 +239,7 @@ export class DynamodbClient implements DynamodbClientInterface{
             // Makes the default scanIndexForward = false so that most recent come first.
             queryOptions.scanIndexForward = options?.pagination?.order === DynamodbSortOrderEnum.Asc;
 
-            this.logHandler.debug("DYNAMODB CLIENT - Querying with options", {queryOptions, options}, AwsModuleKeyname);
+            this.logHandler.debug("DynamodbClient: Querying with options.", {extra: {queryOptions, options}}, AwsModuleKeyname);
             const iterator = (await this.getMapperClient()).query(options.classType, options.keyCondition, queryOptions);
             const paginator = iterator.pages();
 
@@ -252,7 +252,7 @@ export class DynamodbClient implements DynamodbClientInterface{
                 }
             }
 
-            this.logHandler.debug("DYNAMODB CLIENT - Found items", {items}, AwsModuleKeyname);
+            this.logHandler.debug("DynamodbClient: Found items.", {extra: {items}}, AwsModuleKeyname);
 
             const paginationResult = {
                 count: paginator.count,
@@ -261,7 +261,7 @@ export class DynamodbClient implements DynamodbClientInterface{
             return new ListResult<T>(items, paginationResult);
         } catch (error) {
             error = this.convertError(error, this.getTableName(options.classType.prototype));
-            this.logHandler.error("DYNAMODB CLIENT - Error finding by secondary index", {error, options}, AwsModuleKeyname)
+            this.logHandler.error("DynamodbClient: Error finding by secondary index.", {extra: {error, options}}, AwsModuleKeyname)
             throw error;
         }
     }
@@ -359,7 +359,7 @@ export class DynamodbClient implements DynamodbClientInterface{
      * @private
      */
     private convertError(error: Error, tableName?: string, primaryKey?: string): Error {
-        this.logHandler.debug("Converting error to dynamodb error.", {error, tableName, primaryKey}, AwsModuleKeyname);
+        this.logHandler.debug("DynamodbClient: Converting error to dynamodb error.", {extra: {error, tableName, primaryKey}}, AwsModuleKeyname);
         if(error instanceof DynamodbError){
             return error;
         }

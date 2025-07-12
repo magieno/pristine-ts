@@ -36,7 +36,7 @@ export class SchedulerManager implements SchedulerInterface {
      * This method runs all the tasks that were registered.
      */
     async runTasks(): Promise<void> {
-        this.logHandler.debug("Starting the execution of the tasks.", {scheduledTasks: this.scheduledTasks}, SchedulingModuleKeyname);
+        this.logHandler.debug("SchedulerManager: Starting the execution of the tasks.", {extra: {scheduledTasks: this.scheduledTasks}}, SchedulingModuleKeyname);
 
         return new Promise(resolve => {
             const promises: Promise<void>[] = [];
@@ -45,18 +45,20 @@ export class SchedulerManager implements SchedulerInterface {
                 promises.push(scheduledTask.run());
             });
 
-            this.logHandler.debug("Completed triggering all the tasks.", {scheduledTasks: this.scheduledTasks}, SchedulingModuleKeyname);
+            this.logHandler.debug("SchedulerManager: Completed triggering all the tasks.", {extra: {scheduledTasks: this.scheduledTasks}}, SchedulingModuleKeyname);
 
             Promise.allSettled(promises).then(results => {
                 results.forEach(result => {
                     if(result.status === 'fulfilled') {
-                        this.logHandler.debug("Scheduled Task Fulfilled", {result}, SchedulingModuleKeyname)
+                        this.logHandler.debug("SchedulerManager: Scheduled Task Fulfilled.", {extra: {result}}, SchedulingModuleKeyname)
                     }
                     else {
-                        this.logHandler.error("Scheduled Task Error", {
-                            result: {
-                                status: result.status,
-                                reason: result.reason + "",
+                        this.logHandler.error("SchedulerManager: Scheduled Task Error.", {
+                            extra: {
+                                result: {
+                                    status: result.status,
+                                    reason: result.reason + "",
+                                }
                             }
                         }, SchedulingModuleKeyname)
                     }

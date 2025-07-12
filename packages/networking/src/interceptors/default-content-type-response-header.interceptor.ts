@@ -44,7 +44,7 @@ export class DefaultContentTypeResponseHeaderInterceptor implements RequestInter
         }
 
         response.setHeader("content-type", this.defaultContentTypeResponseHeader);
-        this.logHandler.debug("Set the default content type response header.", {response})
+        this.logHandler.debug("DefaultContentTypeResponseHeaderInterceptor: Set the default content type response header.", {extra: {response}})
 
         return response;
     }

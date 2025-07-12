@@ -80,8 +80,10 @@ export class AwsCognitoAuthenticator implements AuthenticatorInterface{
 
         const claim = this.getAndVerifyClaims(token, key);
 
-        this.logHandler.debug("Claim confirmed", {
-            claim,
+        this.logHandler.debug("AwsCognitoAuthenticator: Claim confirmed.", {
+            extra: {
+                claim,
+            }
         }, AwsCognitoModuleKeyname);
 
         return {

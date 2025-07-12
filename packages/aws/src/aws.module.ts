@@ -57,12 +57,12 @@ const registerDynamicTableNames = async (container: DependencyContainer) => {
         if(container.isRegistered(dynamicTableName.tokenName) === false) {
             const logHandler: LogHandlerInterface = container.resolve("LogHandlerInterface");
             try {
-                logHandler.debug("The table token name was not registered, trying to load default.", {tokenName: dynamicTableName.tokenName}, AwsModuleKeyname)
+                logHandler.debug("AwsModule: The table token name was not registered, trying to load default.", {extra: {tokenName: dynamicTableName.tokenName}}, AwsModuleKeyname)
                 const value = await new EnvironmentVariableResolver(dynamicTableName.tokenName).resolve();
                 container.registerInstance(dynamicTableName.tokenName, value);
-                logHandler.debug("Successfully registered table name.", {tokenName: dynamicTableName.tokenName, value}, AwsModuleKeyname)
+                logHandler.debug("AwsModule: Successfully registered table name.", {extra: {tokenName: dynamicTableName.tokenName, value}}, AwsModuleKeyname)
             } catch (e) {
-                logHandler.warning("The table token name does not exist in the container.", {tokenName: dynamicTableName.tokenName}, AwsModuleKeyname);
+                logHandler.warning("AwsModule: The table token name does not exist in the container.", {extra: {tokenName: dynamicTableName.tokenName}}, AwsModuleKeyname);
                 continue;
             }
         }
@@ -71,7 +71,7 @@ const registerDynamicTableNames = async (container: DependencyContainer) => {
             dynamicTableName.classConstructor.prototype[DynamoDbTable] = container.resolve(dynamicTableName.tokenName);
         } catch (error){
             const logHandler: LogHandlerInterface = container.resolve("LogHandlerInterface");
-            logHandler.error("Error resolving the dynamic table token name", {error, tokenName: dynamicTableName.tokenName}, AwsModuleKeyname);
+            logHandler.error("AwsModule: Error resolving the dynamic table token name.", {extra: {error, tokenName: dynamicTableName.tokenName}}, AwsModuleKeyname);
             continue;
         }
     }

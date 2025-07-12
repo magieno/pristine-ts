@@ -65,7 +65,7 @@ export class AuthenticationManager implements AuthenticationManagerInterface {
             }
 
         } catch (e) {
-            this.logHandler.error((e as Error).message, {e}, SecurityModuleKeyname);
+            this.logHandler.error("AuthenticationManager: Error authenticating the request.", {extra: {error: e}}, SecurityModuleKeyname);
             throw e;
         }
 

@@ -38,10 +38,12 @@ export class EventDispatcher implements EventDispatcherInterface {
      * @param event
      */
     async dispatch(event: Event<any>): Promise<EventResponse<any, any>> {
-        this.logHandler.debug("EventDispatcher - Dispatch the event - Start", {
-            event,
-            eventHandlers: this.eventHandlers,
-            eventHandlerNames: this.eventHandlers.map(eventHandler => eventHandler.constructor.name),
+        this.logHandler.debug("EventDispatcher: Dispatching event.", {
+            extra: {
+                event,
+                eventHandlers: this.eventHandlers,
+                eventHandlerNames: this.eventHandlers.map(eventHandler => eventHandler.constructor.name),
+            }
         }, CoreModuleKeyname);
 
         // Notify the EventListeners that an event exists. The difference between a Handler and a Listener, is that a handler is
@@ -59,20 +61,24 @@ export class EventDispatcher implements EventDispatcherInterface {
 
         for (const eventHandler of this.eventHandlers) {
             if(eventHandler.supports(event)) {
-                this.logHandler.debug("EventDispatcher - The EventHandler supports the event", {
-                    event,
-                    eventHandler: eventHandler,
-                    eventHandlerName: eventHandler.constructor.name,
+                this.logHandler.debug("EventDispatcher: The EventHandler supports the event.", {
+                    extra: {
+                        event,
+                        eventHandler: eventHandler,
+                        eventHandlerName: eventHandler.constructor.name,
+                    }
                 }, CoreModuleKeyname)
 
                 supportingEventHandlers.push(eventHandler);
                 break;
             }
             else {
-                this.logHandler.debug("EventDispatcher - The EventHandler doesn't support the event", {
-                    event,
-                    eventHandler: eventHandler,
-                    eventHandlerName: eventHandler.constructor.name,
+                this.logHandler.debug("EventDispatcher: The EventHandler doesn't support the event.", {
+                    extra: {
+                        event,
+                        eventHandler: eventHandler,
+                        eventHandlerName: eventHandler.constructor.name,
+                    }
                 }, CoreModuleKeyname)
             }
         }
@@ -80,19 +86,23 @@ export class EventDispatcher implements EventDispatcherInterface {
         if(supportingEventHandlers.length === 0) {
             throw new EventDispatcherNoEventHandlersError("There are no EventHandlers that support this event.", event);
         } else if (supportingEventHandlers.length > 1) {
-            this.logHandler.warning("EventDispatcher - There are more than one EventHandler that support this event. The first one will be used.")
+            this.logHandler.warning("EventDispatcher: There are more than one EventHandler that support this event. The first one will be used.")
         }
 
-        this.logHandler.debug("EventDispatcher - Calling EventHandler - Start", {
-            event,
+        this.logHandler.debug("EventDispatcher: Calling event handler.", {
+            extra: {
+                event,
+            }
         })
 
         // We only support executing the handler with the highest priority.
         const eventResponse = await supportingEventHandlers[0].handle(event);
 
-        this.logHandler.debug("EventDispatcher - Calling EventHandler - End", {
-            event,
-            eventResponse,
+        this.logHandler.debug("EventDispatcher: Called event handler.", {
+            extra: {
+                event,
+                eventResponse,
+            }
         })
 
         await Promise.allSettled(eventListenerPromises);

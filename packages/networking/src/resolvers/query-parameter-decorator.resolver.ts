@@ -39,7 +39,7 @@ export class QueryParameterDecoratorResolver implements ControllerMethodParamete
 
         return Promise.resolve(url.searchParams.get(methodArgument.queryParameterName) ?? null);
     } catch (e) {
-        this.logHandler.error("There was an error resolving the query parameter", {methodArgument, request, routeParameters, identity})
+        this.logHandler.error("QueryParameterDecoratorResolver: There was an error resolving the query parameter.", {extra: {methodArgument, request, routeParameters, identity}})
         return Promise.resolve(null)
     }
     }

@@ -28,7 +28,7 @@ export class HttpRequestLoggingInterceptor implements HttpRequestInterceptorInte
      */
     async interceptRequest(request: HttpRequestInterface, options: HttpRequestOptions): Promise<HttpRequestInterface> {
         if(this.loggingEnabled) {
-            this.logHandler.info("Outgoing http request", {request, options}, HttpModuleKeyname);
+            this.logHandler.info("HttpRequestLoggingInterceptor: Outgoing http request.", {extra: {request, options}}, HttpModuleKeyname);
         }
 
         return request;
