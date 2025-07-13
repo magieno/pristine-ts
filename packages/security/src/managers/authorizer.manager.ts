@@ -20,6 +20,7 @@ export class AuthorizerManager implements AuthorizerManagerInterface {
      * The authorizer manager provides authorization by authorizing the action.
      * @param logHandler The log handler to output logs.
      * @param guardFactory The factory to create the guard.
+     * @param breadcrumbHandler
      */
     public constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
                        private readonly guardFactory: GuardFactory,
