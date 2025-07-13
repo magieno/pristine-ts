@@ -68,7 +68,7 @@ export class AuthorizerManager implements AuthorizerManagerInterface {
                         request,
                         identity,
                     }
-                }, SecurityModuleKeyname);
+                });
                 isAuthorized = false;
             }
         }

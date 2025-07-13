@@ -47,7 +47,7 @@ export class EventDispatcher implements EventDispatcherInterface {
                 eventHandlers: this.eventHandlers,
                 eventHandlerNames: this.eventHandlers.map(eventHandler => eventHandler.constructor.name),
             }
-        }, CoreModuleKeyname);
+        });
 
         // Notify the EventListeners that an event exists. The difference between a Handler and a Listener, is that a handler is
         // expected to return an EventResponse, while a listener doesn't return anything. An EventListener simply does passive listening.
@@ -73,7 +73,7 @@ export class EventDispatcher implements EventDispatcherInterface {
                         event,
                         eventHandler: eventHandler,
                     }
-                }, CoreModuleKeyname)
+                })
 
                 supportingEventHandlers.push(eventHandler);
                 break;
@@ -88,7 +88,7 @@ export class EventDispatcher implements EventDispatcherInterface {
                         event,
                         eventHandler: eventHandler,
                     }
-                }, CoreModuleKeyname)
+                })
             }
         }
 

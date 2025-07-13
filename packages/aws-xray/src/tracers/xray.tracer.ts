@@ -44,7 +44,7 @@ export class XrayTracer implements TracerInterface{
             this.loghandler.error("The RootSpance of the trace is undefined, there's nothing we can do", {
                 segment,
                 trace,
-            }, AwsXrayModuleKeyname)
+            })
 
             return;
         }
@@ -58,7 +58,7 @@ export class XrayTracer implements TracerInterface{
                 segment,
                 subsegment,
                 trace,
-            }, AwsXrayModuleKeyname)
+            })
         }
     }
 
@@ -119,7 +119,7 @@ export class XrayTracer implements TracerInterface{
                 span,
                 segment,
                 subsegment,
-            }, AwsXrayModuleKeyname)
+            })
         }
 
         return subsegment;

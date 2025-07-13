@@ -61,7 +61,7 @@ export class EventBridgeClient implements EventBridgeClientInterface {
                     eventBusName,
                     endpoint,
                 }
-            }, AwsModuleKeyname)
+            })
 
             if (Array.isArray(eventBridgeMessages)) {
                 putEventsCommand.input.Entries = eventBridgeMessages.map(eventBridgeMessage => {
@@ -92,7 +92,7 @@ export class EventBridgeClient implements EventBridgeClientInterface {
                     endpoint,
                     response,
                 }
-            }, AwsModuleKeyname)
+            })
         } catch (error) {
             this.logHandler.error("EventBridgeClient: There was an error sending the message to the Event Bus.", {
                 extra: {
@@ -101,7 +101,7 @@ export class EventBridgeClient implements EventBridgeClientInterface {
                     eventBusName,
                     endpoint,
                 }
-            }, AwsModuleKeyname);
+            });
 
             throw new EventBridgeSendMessageError(error);
         }

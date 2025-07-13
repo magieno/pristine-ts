@@ -46,7 +46,7 @@ export class StripeWebhooksManager {
                     request,
                     event,
                 }
-            }, StripeModuleKeyname);
+            });
             throw new Error("Event is not a subscription");
         }
 
@@ -91,7 +91,7 @@ export class StripeWebhooksManager {
                     request,
                     event,
                   }
-                }, StripeModuleKeyname);
+                });
                 return Promise.resolve();
         }
 

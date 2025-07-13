@@ -66,7 +66,7 @@ export class SesClient implements SesClientInterface {
                     email,
                     endpoint,
                 }
-            }, AwsModuleKeyname);
+            });
 
             throw new SesSendError(error, email);
         }
@@ -114,7 +114,7 @@ export class SesClient implements SesClientInterface {
                     email,
                     endpoint,
                 }
-            }, AwsModuleKeyname);
+            });
 
             throw new SesSendError(error, email);
         }

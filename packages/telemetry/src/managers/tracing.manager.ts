@@ -72,7 +72,7 @@ export class TracingManager implements TracingManagerInterface {
                 context,
                 trace: this.trace,
                 span,
-            }, TelemetryModuleKeyname)
+            })
         }
 
         // Call the tracers and push the trace that was just started
@@ -184,7 +184,7 @@ export class TracingManager implements TracingManagerInterface {
                 keyname: span.keyname,
                 trace: this.trace,
                 span,
-            }, TelemetryModuleKeyname)
+            })
         }
 
         // Notify the Tracers that a new span was started.
@@ -239,7 +239,7 @@ export class TracingManager implements TracingManagerInterface {
             this.loghandler.debug(`[span:end] - ${span.keyname}`, {
                 trace: this.trace,
                 span,
-            }, TelemetryModuleKeyname)
+            })
         }
 
         // Notify the TraceListeners that the span was ended.
@@ -291,6 +291,6 @@ export class TracingManager implements TracingManagerInterface {
             "Top 5 longest spans: \n" + longestSpans.map(span => "\t" + span.getDuration() + " ms - " + span.keyname).join("\n")
             , {
             trace: this.trace,
-        }, TelemetryModuleKeyname)
+        })
     }
 }

@@ -43,7 +43,7 @@ export class BodyMappingRequestInterceptor implements RequestInterceptorInterfac
             request,
             methodNode,
             routeContext: methodNode.route.context,
-        }, NetworkingModuleKeyname)
+        })
 
         switch (bodyMapping.type) {
             case "classType":
@@ -63,7 +63,7 @@ export class BodyMappingRequestInterceptor implements RequestInterceptorInterfac
             request,
             methodNode,
             routeContext: methodNode.route.context,
-        }, NetworkingModuleKeyname)
+        })
 
         return request;
     }

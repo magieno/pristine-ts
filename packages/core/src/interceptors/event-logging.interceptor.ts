@@ -24,7 +24,7 @@ export class EventLoggingInterceptor implements EventInterceptorInterface{
                 event,
                 executionContextInterface
             }
-        }, CoreModuleKeyname)
+        })
 
         return Promise.resolve(event);
     }
@@ -34,7 +34,7 @@ export class EventLoggingInterceptor implements EventInterceptorInterface{
             extra: {
                 event,
             }
-        }, CoreModuleKeyname)
+        })
 
         return Promise.resolve(event);
     }
@@ -44,7 +44,7 @@ export class EventLoggingInterceptor implements EventInterceptorInterface{
             extra: {
                 eventResponse,
             }
-        }, CoreModuleKeyname)
+        })
 
         return Promise.resolve(eventResponse);
     }
@@ -54,7 +54,7 @@ export class EventLoggingInterceptor implements EventInterceptorInterface{
             extra: {
                 eventResponse,
             }
-        }, CoreModuleKeyname)
+        })
 
         return Promise.resolve(eventResponse);
     }
