@@ -55,7 +55,7 @@ export class BodyValidationRequestInterceptor implements RequestInterceptorInter
             request,
             methodNode,
             routeContext: methodNode.route.context,
-        }, ValidationModuleKeyname)
+        })
 
         // Validates that the body can be mapped to the expected type
         const mappedBody = await this.dataMapper.autoMap(request.body, bodyValidator.classType);
@@ -73,7 +73,7 @@ export class BodyValidationRequestInterceptor implements RequestInterceptorInter
             routeContext: methodNode.route.context,
             errors,
             mappedBody,
-        }, ValidationModuleKeyname)
+        })
 
         // If we received some error while validating we reject by throwing an error.
         throw new BadRequestHttpError("Validation error", errors);

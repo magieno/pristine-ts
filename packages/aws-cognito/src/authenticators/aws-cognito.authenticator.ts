@@ -84,7 +84,7 @@ export class AwsCognitoAuthenticator implements AuthenticatorInterface{
             extra: {
                 claim,
             }
-        }, AwsCognitoModuleKeyname);
+        });
 
         return {
             id: claim["cognito:username"],

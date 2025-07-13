@@ -60,7 +60,7 @@ export class SchedulerManager implements SchedulerInterface {
                                     reason: result.reason + "",
                                 }
                             }
-                        }, SchedulingModuleKeyname)
+                        })
                     }
                 });
 

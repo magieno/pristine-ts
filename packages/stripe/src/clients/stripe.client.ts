@@ -66,7 +66,7 @@ export class StripeClient implements StripeClientInterface{
                     request,
                     error,
                 }
-            }, StripeModuleKeyname);
+            });
             throw new StripeAuthenticationError(400, 'Raw body does not match stripe signature');
         }
     }

@@ -69,7 +69,7 @@ export class SqsClient implements SqsClientInterface {
                     delaySeconds,
                     messageDeduplicationId,
                 }
-            }, AwsModuleKeyname)
+            })
 
             const response = await client.send(command, options);
 
@@ -82,7 +82,7 @@ export class SqsClient implements SqsClientInterface {
                     response,
                     messageDeduplicationId
                 }
-            }, AwsModuleKeyname)
+            })
 
             return {
                 messageId: response.MessageId,
@@ -98,7 +98,7 @@ export class SqsClient implements SqsClientInterface {
                     delaySeconds,
                     messageDeduplicationId,
                 }
-            }, AwsModuleKeyname);
+            });
 
             throw new SqsSendMessageError(error, queueUrl, body, messageGroupId, delaySeconds);
         }

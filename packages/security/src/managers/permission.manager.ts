@@ -41,7 +41,7 @@ export class PermissionManager {
                     resource,
                     votingStrategy,
                 }
-            }, SecurityModuleKeyname);
+            });
         }
 
         const votes: VoteEnum[] = [];
@@ -60,7 +60,7 @@ export class PermissionManager {
                         resource,
                         votingStrategy,
                     }
-                }, SecurityModuleKeyname );
+                } );
                 continue;
             }
 
@@ -82,7 +82,7 @@ export class PermissionManager {
                         resource,
                         votingStrategy,
                       }
-                    }, SecurityModuleKeyname)
+                    })
                 }
                  else {
                     this.logHandler.debug(message, {
@@ -98,7 +98,7 @@ export class PermissionManager {
                         resource,
                         votingStrategy,
                       }
-                    }, SecurityModuleKeyname );
+                    } );
                 }
 
                 votes.push(vote);
@@ -117,7 +117,7 @@ export class PermissionManager {
                     resource,
                     votingStrategy,
                   }
-                }, SecurityModuleKeyname);
+                });
                 throw error;
             }
 
@@ -142,7 +142,7 @@ export class PermissionManager {
                 resource,
                 votingStrategy,
           }
-        }, SecurityModuleKeyname);
+        });
 
         return shouldGrantAccess;
     }

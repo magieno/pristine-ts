@@ -153,7 +153,7 @@ export class HttpApiEventMapper extends BaseApiEventMapper implements EventMappe
                         extra: {
                             error: e,
                         }
-                    }, AwsApiGatewayModuleKeyname)
+                    })
                 }
             }
 

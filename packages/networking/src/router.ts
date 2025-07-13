@@ -383,7 +383,7 @@ export class Router implements RouterInterface {
             } catch (error) {
                 this.loghandler.error("Router - There was an error trying to execute the request in the router", {
                     error,
-                }, NetworkingModuleKeyname)
+                })
 
                 // Execute router interceptors for the error response;
 
@@ -407,7 +407,7 @@ export class Router implements RouterInterface {
         this.loghandler.debug("Router - Request Interceptors - Start", {
             request,
             methodNode,
-        }, NetworkingModuleKeyname)
+        })
 
         // Execute all the request interceptors
         let interceptedRequest = request;
@@ -447,7 +447,7 @@ export class Router implements RouterInterface {
             request,
             interceptedRequest,
             methodNode,
-        }, NetworkingModuleKeyname)
+        })
 
         return interceptedRequest;
     }
@@ -467,7 +467,7 @@ export class Router implements RouterInterface {
             response,
             request,
             methodNode,
-        }, NetworkingModuleKeyname)
+        })
 
         // Execute all the request interceptors
         let interceptedResponse = response;
@@ -489,7 +489,7 @@ export class Router implements RouterInterface {
                     this.loghandler.debug("Router - The Request Interceptor doesn't implement the interceptResponse method.", {
                         name: interceptor.constructor.name,
                         interceptor
-                    }, NetworkingModuleKeyname);
+                    });
                     continue;
                 }
 
@@ -507,7 +507,7 @@ export class Router implements RouterInterface {
             interceptedResponse,
             request,
             methodNode,
-        }, NetworkingModuleKeyname)
+        })
 
         return interceptedResponse;
     }
@@ -527,7 +527,7 @@ export class Router implements RouterInterface {
             error,
             request,
             methodNode,
-        }, NetworkingModuleKeyname)
+        })
 
         // Execute all the request interceptors
         let interceptedResponse = new Response();
@@ -584,7 +584,7 @@ export class Router implements RouterInterface {
             interceptedResponse,
             request,
             methodNode,
-        }, NetworkingModuleKeyname)
+        })
 
         return interceptedResponse;
     }
