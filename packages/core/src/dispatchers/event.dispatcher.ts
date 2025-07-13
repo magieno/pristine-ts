@@ -39,6 +39,9 @@ export class EventDispatcher implements EventDispatcherInterface {
      */
     async dispatch(event: Event<any>): Promise<EventResponse<any, any>> {
         this.logHandler.debug("EventDispatcher: Dispatching event.", {
+            highlights: {
+                eventType: event.type,
+            },
             extra: {
                 event,
                 eventHandlers: this.eventHandlers,
@@ -62,10 +65,13 @@ export class EventDispatcher implements EventDispatcherInterface {
         for (const eventHandler of this.eventHandlers) {
             if(eventHandler.supports(event)) {
                 this.logHandler.debug("EventDispatcher: The EventHandler supports the event.", {
+                    highlights: {
+                        eventType: event.type,
+                        eventHandlerName: eventHandler.constructor.name,
+                    },
                     extra: {
                         event,
                         eventHandler: eventHandler,
-                        eventHandlerName: eventHandler.constructor.name,
                     }
                 }, CoreModuleKeyname)
 
@@ -74,10 +80,13 @@ export class EventDispatcher implements EventDispatcherInterface {
             }
             else {
                 this.logHandler.debug("EventDispatcher: The EventHandler doesn't support the event.", {
+                    highlights: {
+                        eventType: event.type,
+                        eventHandlerName: eventHandler.constructor.name,
+                    },
                     extra: {
                         event,
                         eventHandler: eventHandler,
-                        eventHandlerName: eventHandler.constructor.name,
                     }
                 }, CoreModuleKeyname)
             }
@@ -90,15 +99,21 @@ export class EventDispatcher implements EventDispatcherInterface {
         }
 
         this.logHandler.debug("EventDispatcher: Calling event handler.", {
+            highlights: {
+                eventType: event.type,
+            },
             extra: {
                 event,
-            }
+          }
         })
 
         // We only support executing the handler with the highest priority.
         const eventResponse = await supportingEventHandlers[0].handle(event);
 
         this.logHandler.debug("EventDispatcher: Called event handler.", {
+            highlights: {
+              eventType: event.type,
+            },
             extra: {
                 event,
                 eventResponse,

@@ -95,7 +95,14 @@ export class Kernel {
 
         const logHandler: LogHandlerInterface = this.container.resolve("LogHandlerInterface");
 
-        logHandler.debug("Kernel: The Kernel was instantiated in '" + ((this.initializationSpan.endDate - this.initializationSpan.startDate) / 1000) + "' seconds.", {extra: {initializationSpan: this.initializationSpan}}, CoreModuleKeyname);
+        logHandler.debug("Kernel: The Kernel was instantiated in '" + ((this.initializationSpan.endDate - this.initializationSpan.startDate) / 1000) + "' seconds.", {
+            highlights: {
+                initializationTime: ((this.initializationSpan.endDate - this.initializationSpan.startDate) / 1000),
+            },
+            extra: {
+                initializationSpan: this.initializationSpan
+            }
+        }, CoreModuleKeyname);
     }
 
 
