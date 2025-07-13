@@ -19,7 +19,7 @@ export class EventLoggingInterceptor implements EventInterceptorInterface{
     }
 
     preMappingIntercept(event: object, executionContextInterface: ExecutionContextInterface<any>): Promise<object> {
-        this.logHandler.info("EventLoggingInterceptor: Event just before the EventMapping into an Event object.", {
+        this.logHandler.debug("EventLoggingInterceptor: Event just before the EventMapping into an Event object.", {
             extra: {
                 event,
                 executionContextInterface
@@ -30,7 +30,7 @@ export class EventLoggingInterceptor implements EventInterceptorInterface{
     }
 
     postMappingIntercept(event: Event<any>): Promise<Event<any>> {
-        this.logHandler.info("EventLoggingInterceptor: Event just after being mapped into an Event object.", {
+        this.logHandler.debug("EventLoggingInterceptor: Event just after being mapped into an Event object.", {
             extra: {
                 event,
             }
@@ -40,7 +40,7 @@ export class EventLoggingInterceptor implements EventInterceptorInterface{
     }
 
     preResponseMappingIntercept(eventResponse: EventResponse<any, any>): Promise<EventResponse<any, any>> {
-        this.logHandler.info("EventLoggingInterceptor: Event response just after being dispatched to the Event Listeners.", {
+        this.logHandler.debug("EventLoggingInterceptor: Event response just after being dispatched to the Event Listeners.", {
             extra: {
                 eventResponse,
             }
@@ -50,7 +50,7 @@ export class EventLoggingInterceptor implements EventInterceptorInterface{
     }
 
     postResponseMappingIntercept(eventResponse: object): Promise<object> {
-        this.logHandler.info("EventLoggingInterceptor: Final event response that will be returned.", {
+        this.logHandler.debug("EventLoggingInterceptor: Final event response that will be returned.", {
             extra: {
                 eventResponse,
             }

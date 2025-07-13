@@ -139,7 +139,8 @@ export class EventPipeline {
      * @private
      */
     private async executeEvent(event: Event<any>, eventDispatcher: EventDispatcherInterface): Promise<EventResponse<any, any>> {
-        this.breadcrumbHandler.add(`${CoreModuleKeyname}:event.pipeline:executeEvent`, {event})
+      this.breadcrumbHandler.reset();
+        this.breadcrumbHandler.add(`${CoreModuleKeyname}:event.pipeline:executeEvent:enter`, {event})
         // 1 - Run the post mapped interceptors on every single event before they get executed.
         const interceptedEvent = await this.postMappingIntercept(event)
 
