@@ -131,7 +131,7 @@ export class PermissionManager {
             }
         }
 
-        this.logHandler.info("PermissionManager: Access to resource " + resource.constructor.name + " was " + (shouldGrantAccess ? "GRANTED" : "DENIED"), {
+        this.logHandler.debug("PermissionManager: Access to resource " + resource.constructor.name + " was " + (shouldGrantAccess ? "GRANTED" : "DENIED"), {
             highlights: {
                 resourceName: resource.constructor.name,
                 access: shouldGrantAccess ? "GRANTED" : "DENIED",
