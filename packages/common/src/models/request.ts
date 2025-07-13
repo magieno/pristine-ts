@@ -6,6 +6,11 @@ import {values} from "lodash";
 
 export class Request {
     /**
+     * The id of the request to track it across services.
+     */
+    id?: string;
+
+    /**
      * The http method of the request.
      */
     httpMethod: HttpMethod | string;

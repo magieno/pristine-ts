@@ -68,9 +68,14 @@ export class HttpApiEventMapper extends BaseApiEventMapper implements EventMappe
                 request.body = rawEvent.body;
                 request.rawBody = rawEvent.body;
 
+                const requestId = request.getHeader("x-pristine-request-id")
+                if (requestId) {
+                  request.id = requestId;
+                }
+
                 return {
                     executionOrder: "sequential",
-                    events: [new Event<Request>(ApiGatewayEventTypeEnum.HttpApiEvent, request)],
+                    events: [new Event<Request>(ApiGatewayEventTypeEnum.HttpApiEvent, request, request.id)],
                 };
             }
 
@@ -112,7 +117,7 @@ export class HttpApiEventMapper extends BaseApiEventMapper implements EventMappe
 
                 return {
                     executionOrder: "sequential",
-                    events: [new Event<HttpApiEventPayload>(ApiGatewayEventTypeEnum.HttpApiEvent, httpRequestEventPayload)],
+                    events: [new Event<HttpApiEventPayload>(ApiGatewayEventTypeEnum.HttpApiEvent, httpRequestEventPayload, httpRequestEventPayload.headers["x-pristine-request-id"])],
                 };
             }
         }

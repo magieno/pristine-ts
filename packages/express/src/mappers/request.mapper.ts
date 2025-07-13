@@ -20,6 +20,10 @@ export class RequestMapper {
         request.setHeaders(this.httpHeadersMapper.map(expressRequest.headers));
         request.body = expressRequest.body;
         request.rawBody = expressRequest.body;
+        const requestId = expressRequest.header("x-pristine-request-id")
+        if (requestId) {
+            request.id = requestId;
+        }
 
         return request;
     }
