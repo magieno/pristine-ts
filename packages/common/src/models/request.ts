@@ -2,13 +2,12 @@
  * This Request object represents the class used internally that represents a Request.
  */
 import {HttpMethod} from "../enums/http-method.enum";
-import {values} from "lodash";
 
 export class Request {
     /**
      * The id of the request to track it across services.
      */
-    id?: string;
+    id: string;
 
     /**
      * The http method of the request.
@@ -40,9 +39,10 @@ export class Request {
      */
     host?: string;
 
-    constructor(httpMethod: HttpMethod | string, url: string) {
+    constructor(httpMethod: HttpMethod | string, url: string, id:string) {
         this.httpMethod = httpMethod;
         this.url = url;
+        this.id = id;
     }
 
     /**
