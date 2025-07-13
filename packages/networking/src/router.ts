@@ -219,7 +219,7 @@ export class Router implements RouterInterface {
                 request,
                 url,
                 methodNode,
-            }, NetworkingModuleKeyname);
+            });
 
             // If node doesn't exist, throw a 404 error
             if (methodNode === null) {
@@ -227,7 +227,7 @@ export class Router implements RouterInterface {
                     rootNode: this.root,
                     request,
                     url,
-                }, NetworkingModuleKeyname);
+                });
 
                 routerRequestExecutionSpan.end();
                 return resolve(this.executeErrorResponseInterceptors(new NotFoundHttpError("No route found for method: '" + request.httpMethod + "' and path: '" + url.pathname + "'."), request, container));
@@ -244,17 +244,17 @@ export class Router implements RouterInterface {
             const routerControllerResolverSpan = tracingManager.startSpan(SpanKeynameEnum.RouterControllerResolver, SpanKeynameEnum.RouterRequestExecution);
             this.loghandler.debug("Router - Will resolve the controller from the container", {
                 routeParameters
-            }, NetworkingModuleKeyname);
+            });
             const controller: any = container.resolve(methodNode.route.controllerInstantiationToken);
             this.loghandler.debug("Router - Controller resolved from the container", {
                 routeParameters
-            }, NetworkingModuleKeyname);
+            });
             routerControllerResolverSpan.end();
 
             this.loghandler.debug("Router - Before calling the authenticationManager", {
                 controller,
                 routeParameters
-            }, NetworkingModuleKeyname);
+            });
 
             let identity: IdentityInterface | undefined;
 
@@ -266,14 +266,14 @@ export class Router implements RouterInterface {
 
                 this.loghandler.debug("Router - Found identity.", {
                     identity
-                }, NetworkingModuleKeyname);
+                });
             } catch (error) {
                 this.loghandler.error("Authentication error", {
                     error,
                     request,
                     context: methodNode.route.context,
                     container
-                }, NetworkingModuleKeyname);
+                });
 
                 // Todo: check if the error is an UnauthorizedHttpError, else create one.
                 if (error instanceof ForbiddenHttpError === false) {
@@ -293,7 +293,7 @@ export class Router implements RouterInterface {
                         context: methodNode.route.context,
                         container,
                         identity
-                    }, NetworkingModuleKeyname);
+                    });
 
                     routerRequestExecutionSpan.end();
                     return resolve(this.executeErrorResponseInterceptors(new ForbiddenHttpError("You are not allowed to access this."), request, container, methodNode));
@@ -307,7 +307,7 @@ export class Router implements RouterInterface {
                 this.loghandler.debug("Intercepted Request", {
                     request,
                     interceptedRequest,
-                }, NetworkingModuleKeyname)
+                })
 
                 // Resolve the value to inject in the method arguments that have a decorator resolver
                 let resolvedMethodArguments: any[] | undefined = this.cache.getCachedControllerMethodArguments(cacheKeyname, interceptedRequest);
@@ -317,7 +317,7 @@ export class Router implements RouterInterface {
                     this.loghandler.debug("Resolved method arguments were not cached, currently resolving", {
                         request,
                         interceptedRequest,
-                    }, NetworkingModuleKeyname);
+                    });
                     resolvedMethodArguments = [];
 
                     for (const methodArgument of methodNode.route.methodArguments) {
@@ -330,13 +330,13 @@ export class Router implements RouterInterface {
                         request,
                         interceptedRequest,
                         resolvedMethodArguments,
-                    }, NetworkingModuleKeyname);
+                    });
                 } else {
                     this.loghandler.debug("Method arguments were successfully cached and will be used.", {
                         request,
                         interceptedRequest,
                         resolvedMethodArguments,
-                    }, NetworkingModuleKeyname);
+                    });
                 }
 
                 const controllerResponse = controller[methodNode.route.methodPropertyKey](...resolvedMethodArguments);
@@ -347,14 +347,14 @@ export class Router implements RouterInterface {
 
                 this.loghandler.debug("Router - The response returned by the controller", {
                     response
-                }, NetworkingModuleKeyname)
+                })
 
                 let returnedResponse: Response;
                 // If the response is already a Response object, return the response
                 if (response instanceof Response) {
                     this.loghandler.debug("Router - Response returned by the controller is a Response object", {
                         response,
-                    }, NetworkingModuleKeyname)
+                    })
                     returnedResponse = response;
                 } else {
                     // If the response is not a response object, but the method hasn't thrown an error, assume the
@@ -366,13 +366,13 @@ export class Router implements RouterInterface {
                     this.loghandler.debug("Router - Response returned by the controller is NOT a Response object", {
                         response,
                         returnedResponse,
-                    }, NetworkingModuleKeyname)
+                    })
                 }
 
                 this.loghandler.debug("Router - The response before calling the response interceptors ", {
                     response,
                     returnedResponse,
-                }, NetworkingModuleKeyname)
+                })
 
                 const responseInterceptorsSpan = tracingManager.startSpan(SpanKeynameEnum.ResponseInterceptors, SpanKeynameEnum.RouterRequestExecution);
                 const interceptedResponse = await this.executeResponseInterceptors(returnedResponse, request, container, methodNode);

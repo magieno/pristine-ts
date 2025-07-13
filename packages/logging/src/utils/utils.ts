@@ -142,7 +142,7 @@ export class Utils {
 
                 return JSON.stringify(truncatedLog, jsonSortOrders, spaceNumber);
             case OutputModeEnum.Simple:
-                const base = format(log.date, "yyyy-MM-dd HH:mm:ss") + " - " + " [" + this.getSeverityText(log.severity) + "] - " + log.message;
+                const base = "\n" + format(log.date, "yyyy-MM-dd HH:mm:ss.SSS") + " - " + " [" + this.getSeverityText(log.severity) + "] - " + log.message;
 
                 let highlights = "";
                 if (log.highlights) {
@@ -157,7 +157,7 @@ export class Utils {
                     breadcrumbs += "\n- " + log.breadcrumbs.map(breadcrumb => breadcrumb.message).join("\n- ");
                 }
 
-                return base + highlights + breadcrumbs + "\n";
+                return base + highlights + breadcrumbs;
         }
     }
 
