@@ -4,7 +4,7 @@ import {RouterInterface} from "../interfaces/router.interface";
 import {moduleScoped, Request, Response, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {TracingManagerInterface} from "@pristine-ts/telemetry";
 import {NetworkingModuleKeyname} from "../networking.module.keyname";
-import {LogHandlerInterface} from "@pristine-ts/logging";
+import {LogHandlerInterface, BreadcrumbHandlerInterface} from "@pristine-ts/logging";
 
 @moduleScoped(NetworkingModuleKeyname)
 @tag(ServiceDefinitionTagEnum.EventHandler)

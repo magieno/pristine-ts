@@ -20,6 +20,7 @@ import {
     MetadataUtil,
     MetadataEnum,
 } from "@pristine-ts/common";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 import {AuthenticationManagerInterface, AuthorizerManagerInterface} from "@pristine-ts/security";
 import {NetworkingModuleKeyname} from "./networking.module.keyname";
 import {Span, SpanKeynameEnum, TracingManagerInterface} from "@pristine-ts/telemetry";
