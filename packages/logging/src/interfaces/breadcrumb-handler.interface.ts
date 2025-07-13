@@ -13,4 +13,9 @@ export interface BreadcrumbHandlerInterface {
    * @param extra
    */
   add(message: string, extra?:any): void;
+
+  /**
+   * Resets all the breadcrumbs.
+   */
+  reset(): void;
 }

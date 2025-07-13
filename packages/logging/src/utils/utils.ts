@@ -157,7 +157,7 @@ export class Utils {
                     breadcrumbs += "\n- " + log.breadcrumbs.map(breadcrumb => breadcrumb.message).join("\n- ");
                 }
 
-                return base + highlights + breadcrumbs;
+                return base + highlights + breadcrumbs + "\n";
         }
     }
 
