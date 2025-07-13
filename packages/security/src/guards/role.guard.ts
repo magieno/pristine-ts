@@ -36,7 +36,7 @@ export class RoleGuard implements GuardInterface {
     async setContext(context: any): Promise<void> {
         this.guardContext = context;
 
-        this.logHandler.debug("RoleGuard: Setting context for the guard.", {extra: {context}}, SecurityModuleKeyname);
+        this.logHandler.debug("RoleGuard: Setting context for the guard.", {extra: {context}});
 
         return Promise.resolve();
     }
@@ -63,14 +63,14 @@ export class RoleGuard implements GuardInterface {
 
         // If the identity does not have a roles claim, we deny.
         if(neededRoles.length > 0 && (identity?.claims?.hasOwnProperty(this.rolesClaimKey) === false || !Array.isArray(identity?.claims[this.rolesClaimKey]))){
-            this.logHandler.debug("RoleGuard: Identity doesn't have a roles claim, denying access.", {extra: {request, identity, neededRoles}}, SecurityModuleKeyname);
+            this.logHandler.debug("RoleGuard: Identity doesn't have a roles claim, denying access.", {extra: {request, identity, neededRoles}});
             return false;
         }
 
         // If the identity is missing one of the needed roles, we deny.
         for(const role of neededRoles) {
             if(!identity?.claims[this.rolesClaimKey].includes(role)){
-                this.logHandler.debug("RoleGuard: Role not found in claims, denying access.", {extra: {request, identity, neededRoles, role}}, SecurityModuleKeyname);
+                this.logHandler.debug("RoleGuard: Role not found in claims, denying access.", {extra: {request, identity, neededRoles, role}});
                 return false;
             }
         }

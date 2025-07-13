@@ -437,7 +437,7 @@ export class Router implements RouterInterface {
                     // https://stackoverflow.com/a/27760489/684101
                     interceptedRequest = await (interceptor as RequestInterceptorInterface).interceptRequest?.(interceptedRequest, methodNode) ?? interceptedRequest;
                 } catch (e) {
-                    this.loghandler.error("There was an exception thrown while executing the 'interceptedRequest' method of the RequestInterceptor named: '" + interceptor.constructor.name + "'.", {e}, NetworkingModuleKeyname);
+                    this.loghandler.error("There was an exception thrown while executing the 'interceptedRequest' method of the RequestInterceptor named: '" + interceptor.constructor.name + "'.", {e});
                     throw e;
                 }
             }
@@ -496,7 +496,7 @@ export class Router implements RouterInterface {
                 try {
                     interceptedResponse = await (interceptor as RequestInterceptorInterface).interceptResponse?.(interceptedResponse, request, methodNode) ?? interceptedResponse;
                 } catch (e) {
-                    this.loghandler.error("Router - There was an exception thrown while executing the 'interceptResponse' method of the RequestInterceptor named: '" + interceptor.constructor.name + "'.", {e}, NetworkingModuleKeyname);
+                    this.loghandler.error("Router - There was an exception thrown while executing the 'interceptResponse' method of the RequestInterceptor named: '" + interceptor.constructor.name + "'.", {e});
                     throw e;
                 }
             }
@@ -571,7 +571,7 @@ export class Router implements RouterInterface {
                 try {
                     interceptedResponse = await (interceptor as RequestInterceptorInterface).interceptError?.(error, interceptedResponse, request, methodNode) ?? interceptedResponse;
                 } catch (e) {
-                    this.loghandler.error("There was an exception thrown while executing the 'interceptError' method of the RequestInterceptor named: '" + interceptor.constructor.name + "'.", {e}, NetworkingModuleKeyname);
+                    this.loghandler.error("There was an exception thrown while executing the 'interceptError' method of the RequestInterceptor named: '" + interceptor.constructor.name + "'.", {e});
                     throw e;
                 }
             }

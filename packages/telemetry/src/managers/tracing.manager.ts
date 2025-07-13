@@ -151,7 +151,7 @@ export class TracingManager implements TracingManagerInterface {
     public addSpan(span: Span): Span  {
         // Check if there's an active trace. If not, log an error and return;
         if(this.trace === undefined) {
-            this.loghandler.error("You cannot call 'addSpan' without having an existing Trace.", {span}, TelemetryModuleKeyname);
+            this.loghandler.error("You cannot call 'addSpan' without having an existing Trace.", {span});
 
             return span;
         }

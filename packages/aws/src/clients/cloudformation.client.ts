@@ -93,7 +93,7 @@ export class CloudformationClient implements CloudformationClientInterface {
      * @param options
      */
     async getStackDescription(stackName: string, options?: Partial<ClientOptionsInterface>): Promise<Stack | undefined> {
-        this.logHandler.debug("CloudformationClient: Getting stack information.", {extra: {stackName}}, AwsModuleKeyname);
+        this.logHandler.debug("CloudformationClient: Getting stack information.", {extra: {stackName}});
         const command = new DescribeStacksCommand({
             StackName: stackName,
         })
@@ -109,7 +109,7 @@ export class CloudformationClient implements CloudformationClientInterface {
             }
             return response.Stacks[0];
         } catch (e) {
-            this.logHandler.error("CloudformationClient: Error getting stack description from cloudformation.", {extra: {error: e, stackName}}, AwsModuleKeyname);
+            this.logHandler.error("CloudformationClient: Error getting stack description from cloudformation.", {extra: {error: e, stackName}});
             if (e.message.match("(.*)" + stackName + "(.*)does not exist(.*)")) {
                 return undefined;
             } else {
@@ -123,13 +123,13 @@ export class CloudformationClient implements CloudformationClientInterface {
      * Gets the description and all its details from all the CloudFormation stacks.
      */
     async listStacks(options?: Partial<ClientOptionsInterface>): Promise<Stack[]> {
-        this.logHandler.debug("CloudformationClient: Getting list of stacks.", {extra: {}}, AwsModuleKeyname);
+        this.logHandler.debug("CloudformationClient: Getting list of stacks.", {extra: {}});
         const command = new DescribeStacksCommand({})
         try {
             const response: DescribeStacksCommandOutput = await this.getClient().send(command, options);
             return response.Stacks ?? [];
         } catch (e) {
-            this.logHandler.error("CloudformationClient: Error getting stack description from cloudformation.", {extra: {error: e}}, AwsModuleKeyname);
+            this.logHandler.error("CloudformationClient: Error getting stack description from cloudformation.", {extra: {error: e}});
             throw e;
         }
     }
@@ -140,12 +140,12 @@ export class CloudformationClient implements CloudformationClientInterface {
      * @param options
      */
     async createStack(input: CreateStackCommandInput, options?: Partial<ClientOptionsInterface>): Promise<CreateStackCommandOutput> {
-        this.logHandler.debug("CloudformationClient: Creating new stack.", {extra: {input}}, AwsModuleKeyname);
+        this.logHandler.debug("CloudformationClient: Creating new stack.", {extra: {input}});
         const command = new CreateStackCommand(input)
         try {
             return await this.getClient().send(command, options);
         } catch (e) {
-            this.logHandler.error("CloudformationClient: Error creating stack in cloudformation.", {extra: {error: e, input}}, AwsModuleKeyname);
+            this.logHandler.error("CloudformationClient: Error creating stack in cloudformation.", {extra: {error: e, input}});
             throw e;
         }
     }
@@ -156,7 +156,7 @@ export class CloudformationClient implements CloudformationClientInterface {
      * @param options
      */
     async updateStack(input: UpdateStackCommandInput, options?: Partial<ClientOptionsInterface>): Promise<UpdateStackCommandOutput> {
-        this.logHandler.debug("CloudformationClient: Updating stack.", {extra: {input}}, AwsModuleKeyname);
+        this.logHandler.debug("CloudformationClient: Updating stack.", {extra: {input}});
         const command = new UpdateStackCommand(input)
         try {
             return await this.getClient().send(command, options);
@@ -168,7 +168,7 @@ export class CloudformationClient implements CloudformationClientInterface {
                     }
                 }
             }
-            this.logHandler.error("CloudformationClient: Error updating stack in cloudformation.", {extra: {error: e, input}}, AwsModuleKeyname);
+            this.logHandler.error("CloudformationClient: Error updating stack in cloudformation.", {extra: {error: e, input}});
             throw e;
         }
     }
@@ -179,12 +179,12 @@ export class CloudformationClient implements CloudformationClientInterface {
      * @param options
      */
     async deleteStack(input: DeleteStackCommandInput, options?: Partial<ClientOptionsInterface>): Promise<DeleteStackCommandOutput> {
-        this.logHandler.debug("CloudformationClient: Deleting stack.", {extra: {input}}, AwsModuleKeyname);
+        this.logHandler.debug("CloudformationClient: Deleting stack.", {extra: {input}});
         const command = new DeleteStackCommand(input)
         try {
             return await this.getClient().send(command, options);
         } catch (e) {
-            this.logHandler.error("CloudformationClient: Error deleting stack in cloudformation.", {extra: {error: e, input}}, AwsModuleKeyname);
+            this.logHandler.error("CloudformationClient: Error deleting stack in cloudformation.", {extra: {error: e, input}});
             throw e;
         }
     }
@@ -195,16 +195,16 @@ export class CloudformationClient implements CloudformationClientInterface {
      * @param options
      */
     async createChangeSet(input: CreateChangeSetCommandInput, options?: Partial<ClientOptionsInterface>): Promise<CreateChangeSetCommandOutput> {
-        this.logHandler.debug("CloudformationClient: Creating change set.", {extra: {input}}, AwsModuleKeyname);
+        this.logHandler.debug("CloudformationClient: Creating change set.", {extra: {input}});
         const command = new CreateChangeSetCommand(input)
         try {
             const response = await this.getClient().send(command, options);
 
-            this.logHandler.debug("CloudformationClient: Create change set response.", {extra: {input, response}}, AwsModuleKeyname)
+            this.logHandler.debug("CloudformationClient: Create change set response.", {extra: {input, response}})
 
             return response;
         } catch (e) {
-            this.logHandler.error("CloudformationClient: Error creating change set in cloudformation.", {extra: {error: e, input}}, AwsModuleKeyname);
+            this.logHandler.error("CloudformationClient: Error creating change set in cloudformation.", {extra: {error: e, input}});
             throw e;
         }
     }
@@ -215,16 +215,16 @@ export class CloudformationClient implements CloudformationClientInterface {
      * @param options
      */
     async deleteChangeSet(input: DeleteChangeSetCommandInput, options?: Partial<ClientOptionsInterface>): Promise<DeleteChangeSetCommandOutput> {
-        this.logHandler.debug("CloudformationClient: Deleting change set.", {extra: {input}}, AwsModuleKeyname);
+        this.logHandler.debug("CloudformationClient: Deleting change set.", {extra: {input}});
         const command = new DeleteChangeSetCommand(input)
         try {
             const response = await this.getClient().send(command, options);
 
-            this.logHandler.debug("CloudformationClient: Delete change set response.", {extra: {input, response}}, AwsModuleKeyname)
+            this.logHandler.debug("CloudformationClient: Delete change set response.", {extra: {input, response}})
 
             return response;
         } catch (e) {
-            this.logHandler.error("CloudformationClient: Error deleting change set in cloudformation.", {extra: {error: e, input}}, AwsModuleKeyname);
+            this.logHandler.error("CloudformationClient: Error deleting change set in cloudformation.", {extra: {error: e, input}});
             throw e;
         }
     }
@@ -235,17 +235,17 @@ export class CloudformationClient implements CloudformationClientInterface {
      * @param options
      */
     async describeChangeSet(input: DescribeChangeSetCommandInput, options?: Partial<ClientOptionsInterface>): Promise<DescribeChangeSetCommandOutput> {
-        this.logHandler.debug("CloudformationClient: Describing change set.", {extra: {input}}, AwsModuleKeyname);
+        this.logHandler.debug("CloudformationClient: Describing change set.", {extra: {input}});
         const command = new DescribeChangeSetCommand(input)
         try {
 
             const response = await this.getClient().send(command, options);
 
-            this.logHandler.debug("CloudformationClient: Describe change set response.", {extra: {input, response}}, AwsModuleKeyname)
+            this.logHandler.debug("CloudformationClient: Describe change set response.", {extra: {input, response}})
 
             return response;
         } catch (e) {
-            this.logHandler.error("CloudformationClient: Error describing change set in cloudformation.", {extra: {error: e, input}}, AwsModuleKeyname);
+            this.logHandler.error("CloudformationClient: Error describing change set in cloudformation.", {extra: {error: e, input}});
             throw e;
         }
     }
@@ -256,16 +256,16 @@ export class CloudformationClient implements CloudformationClientInterface {
      * @param options
      */
     async executeChangeSet(input: ExecuteChangeSetCommandInput, options?: Partial<ClientOptionsInterface>): Promise<ExecuteChangeSetCommandOutput> {
-        this.logHandler.debug("CloudformationClient: Executing change set.", {extra: {input}}, AwsModuleKeyname);
+        this.logHandler.debug("CloudformationClient: Executing change set.", {extra: {input}});
         const command = new ExecuteChangeSetCommand(input)
         try {
             const response = await this.getClient().send(command, options);
 
-            this.logHandler.debug("CloudformationClient: Execute change set response.", {extra: {input, response}}, AwsModuleKeyname)
+            this.logHandler.debug("CloudformationClient: Execute change set response.", {extra: {input, response}})
 
             return response;
         } catch (e) {
-            this.logHandler.error("CloudformationClient: Error executing change set in cloudformation.", {extra: {error: e, input}}, AwsModuleKeyname);
+            this.logHandler.error("CloudformationClient: Error executing change set in cloudformation.", {extra: {error: e, input}});
             throw e;
         }
     }
@@ -276,16 +276,16 @@ export class CloudformationClient implements CloudformationClientInterface {
      * @param options
      */
     async listChangeSets(input: ListChangeSetsCommandInput, options?: Partial<ClientOptionsInterface>): Promise<ListChangeSetsCommandOutput> {
-        this.logHandler.debug("CloudformationClient: Listing change sets.", {extra: {input}}, AwsModuleKeyname);
+        this.logHandler.debug("CloudformationClient: Listing change sets.", {extra: {input}});
         const command = new ListChangeSetsCommand(input)
         try {
             const response = await this.getClient().send(command, options);
 
-            this.logHandler.debug("CloudformationClient: List change set response.", {extra: {input, response}}, AwsModuleKeyname)
+            this.logHandler.debug("CloudformationClient: List change set response.", {extra: {input, response}})
 
             return response;
         } catch (e) {
-            this.logHandler.error("CloudformationClient: Error listing change sets in cloudformation.", {extra: {error: e, input}}, AwsModuleKeyname);
+            this.logHandler.error("CloudformationClient: Error listing change sets in cloudformation.", {extra: {error: e, input}});
             throw e;
         }
     }
@@ -335,7 +335,7 @@ export class CloudformationClient implements CloudformationClientInterface {
             }, options
         );
 
-        this.logHandler.debug("CloudformationClient: After calling createChangeSet.", {extra: {stack, response, changeSetName, stackName}}, AwsModuleKeyname)
+        this.logHandler.debug("CloudformationClient: After calling createChangeSet.", {extra: {stack, response, changeSetName, stackName}})
 
         const status = await this.monitorChangeSet(stackName, changeSetName, undefined, options);
 
@@ -344,7 +344,7 @@ export class CloudformationClient implements CloudformationClientInterface {
             case CloudformationDeploymentStatusEnum.NoChangesToPerform:
                 return status;
             case CloudformationDeploymentStatusEnum.InProgress:
-                this.logHandler.error("CloudformationClient: The returned status of 'monitorStack' should never be 'InProgress'.", {extra: {}}, AwsModuleKeyname)
+                this.logHandler.error("CloudformationClient: The returned status of 'monitorStack' should never be 'InProgress'.", {extra: {}})
             default:
                 break;
         }
@@ -365,7 +365,7 @@ export class CloudformationClient implements CloudformationClientInterface {
                 ChangeSetName: changeSetName,
             }, options);
 
-            this.logHandler.debug("CloudformationClient: Describe ChangeSet result.", {extra: {response}}, AwsModuleKeyname)
+            this.logHandler.debug("CloudformationClient: Describe ChangeSet result.", {extra: {response}})
 
             const status = response.Status;
 
@@ -397,7 +397,7 @@ export class CloudformationClient implements CloudformationClientInterface {
                             return CloudformationDeploymentStatusEnum.Failed;
                     }
                 case ChangeSetStatus.DELETE_FAILED:
-                    this.logHandler.error("CloudformationClient: Error with the ChangeSet.", {extra: {response}}, AwsModuleKeyname)
+                    this.logHandler.error("CloudformationClient: Error with the ChangeSet.", {extra: {response}})
                     return CloudformationDeploymentStatusEnum.Failed;
             }
 
@@ -408,7 +408,7 @@ export class CloudformationClient implements CloudformationClientInterface {
         while (true) {
             const response = await this.getStackDescription(stackName, options);
 
-            this.logHandler.debug("CloudformationClient: Stack Description result.", {extra: {response}}, AwsModuleKeyname)
+            this.logHandler.debug("CloudformationClient: Stack Description result.", {extra: {response}})
 
             if(response === undefined) {
                 const message = `Stack '${stackName}' wasn't found.`;
