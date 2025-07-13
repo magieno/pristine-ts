@@ -52,14 +52,18 @@ export class AuthorizerManager implements AuthorizerManagerInterface {
                 const didAuthorize= await instantiatedGuard.isAuthorized(request, identity);
                 isAuthorized = isAuthorized && didAuthorize;
             }
-            catch (e) {
+            catch (e: any) {
                 this.logHandler.error("AuthorizerManager: Error while authorizing the request.", {
                     highlights: {
-                        request,
-                        identity,
+                        errorMessage: e?.message ?? "Unknown error",
+                        requestUrl: `${request.httpMethod} ${request.url}`,
+                        identityId: identity?.id ?? "No Identity Id found",
+                        identityClaims: identity?.claims ?? "No claims found",
                     },
                     extra: {
-                        error: e
+                        error: e,
+                        request,
+                        identity,
                     }
                 }, SecurityModuleKeyname);
                 isAuthorized = false;

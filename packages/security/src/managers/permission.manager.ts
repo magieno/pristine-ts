@@ -34,9 +34,14 @@ export class PermissionManager {
         if(this.voters.length === 0){
             this.logHandler.warning("PermissionManager: No voters were found, this could lead to unexpected behavior. Make sure that you have registered voters in your application.", {
                 highlights: {
-                    identity,
+                    identityId: identity?.id ?? "No Identity Id found",
+                    identityClaims: identity?.claims ?? "No claims found",
                     action,
+                },
+                extra: {
+                    identity,
                     resource,
+                    votingStrategy,
                 }
             }, SecurityModuleKeyname);
         }
@@ -47,11 +52,15 @@ export class PermissionManager {
             if(voter.supports(resource) === false) {
                 this.logHandler.debug("PermissionManager: voter does not support this resource.", {
                     highlights: {
-                        resource,
+                        identityId: identity?.id ?? "No Identity Id found",
+                        identityClaims: identity?.claims ?? "No claims found",
+                        action,
                         voter: voter.constructor.name,
                     },
                     extra: {
-                        identity, action,
+                        identity,
+                        resource,
+                        votingStrategy,
                     }
                 }, SecurityModuleKeyname );
                 continue;
@@ -64,29 +73,53 @@ export class PermissionManager {
 
                 if(vote === VoteEnum.Deny) { // When it's being denied, it usually mean that something is important to be noticed.
                     this.logHandler.info(message, {
-                        highlights: {
-                            identity, action, resource, voter: voter.constructor.name
-                        }
+                      highlights: {
+                        identityId: identity?.id ?? "No Identity Id found",
+                        identityClaims: identity?.claims ?? "No claims found",
+                        action,
+                        voter: voter.constructor.name,
+                        vote,
+                      },
+                      extra: {
+                        identity,
+                        resource,
+                        votingStrategy,
+                      }
                     }, SecurityModuleKeyname)
                 }
                  else {
                     this.logHandler.debug(message, {
-                        highlights: {
-                            identity, action, resource, voter: voter.constructor.name
-                        }
+                      highlights: {
+                        identityId: identity?.id ?? "No Identity Id found",
+                        identityClaims: identity?.claims ?? "No claims found",
+                        action,
+                        voter: voter.constructor.name,
+                        vote,
+                      },
+                      extra: {
+                        identity,
+                        resource,
+                        votingStrategy,
+                      }
                     }, SecurityModuleKeyname );
                 }
 
                 votes.push(vote);
-            } catch (error) {
+            } catch (error: any) {
                 this.logHandler.error("PermissionManager: Error while voting, please check the logs for more details.", {
-                    highlights: {
-                        resource,
-                        voter: voter.constructor.name,
-                    },
-                    extra: {
-                        error,
-                    }
+                  highlights: {
+                    errorMessage: error.message ?? "Unknown error",
+                    identityId: identity?.id ?? "No Identity Id found",
+                    identityClaims: identity?.claims ?? "No claims found",
+                    action,
+                    voter: voter.constructor.name,
+                  },
+                  extra: {
+                    error,
+                    identity,
+                    resource,
+                    votingStrategy,
+                  }
                 }, SecurityModuleKeyname);
                 throw error;
             }
@@ -103,11 +136,15 @@ export class PermissionManager {
 
         this.logHandler.info("PermissionManager: Access to resource " + resource.constructor.name + " was " + (shouldGrantAccess ? "GRANTED" : "DENIED"), {
             highlights: {
-                identity,
-                action,
-                resource,
+                resourceName: resource.constructor.name,
                 access: shouldGrantAccess ? "GRANTED" : "DENIED",
-            }
+                identityId: identity?.id ?? "No Identity Id found",
+                identityClaims: identity?.claims ?? "No claims found",
+            }, extra: {
+                identity,
+                resource,
+                votingStrategy,
+          }
         }, SecurityModuleKeyname);
 
         return shouldGrantAccess;

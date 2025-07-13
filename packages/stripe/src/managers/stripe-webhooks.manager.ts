@@ -38,10 +38,13 @@ export class StripeWebhooksManager {
         if(!event.type.startsWith('customer.subscription')) {
             this.logHandler.error("StripeWebhooksManager: Stripe event is not a subscription, make sure to only send subscription events to this webhook.", {
                 highlights: {
-                    event,
+                    stripeEventId: event.id,
+                    requestUrl: `${request.httpMethod} ${request.url}`,
                 },
                 extra: {
-                    className: StripeWebhooksManager.name
+                    className: StripeWebhooksManager.name,
+                    request,
+                    event,
                 }
             }, StripeModuleKeyname);
             throw new Error("Event is not a subscription");
@@ -79,12 +82,15 @@ export class StripeWebhooksManager {
                 break;
             default:
                 await this.logHandler.debug("StripeWebhooksManager: This event type is not supported.", {
-                    highlights: {
-                        event,
-                    },
-                    extra: {
-                        className: StripeWebhooksManager.name
-                    }
+                  highlights: {
+                    stripeEventId: event.id,
+                    requestUrl: `${request.httpMethod} ${request.url}`,
+                  },
+                  extra: {
+                    className: StripeWebhooksManager.name,
+                    request,
+                    event,
+                  }
                 }, StripeModuleKeyname);
                 return Promise.resolve();
         }

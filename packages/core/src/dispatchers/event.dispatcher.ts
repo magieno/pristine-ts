@@ -40,9 +40,10 @@ export class EventDispatcher implements EventDispatcherInterface {
     async dispatch(event: Event<any>): Promise<EventResponse<any, any>> {
         this.logHandler.debug("EventDispatcher: Dispatching event.", {
             highlights: {
-                event,
+                eventType: event.type,
             },
             extra: {
+                event,
                 eventHandlers: this.eventHandlers,
                 eventHandlerNames: this.eventHandlers.map(eventHandler => eventHandler.constructor.name),
             }
@@ -65,10 +66,11 @@ export class EventDispatcher implements EventDispatcherInterface {
             if(eventHandler.supports(event)) {
                 this.logHandler.debug("EventDispatcher: The EventHandler supports the event.", {
                     highlights: {
-                        event,
+                        eventType: event.type,
                         eventHandlerName: eventHandler.constructor.name,
                     },
                     extra: {
+                        event,
                         eventHandler: eventHandler,
                     }
                 }, CoreModuleKeyname)
@@ -79,10 +81,11 @@ export class EventDispatcher implements EventDispatcherInterface {
             else {
                 this.logHandler.debug("EventDispatcher: The EventHandler doesn't support the event.", {
                     highlights: {
-                        event,
+                        eventType: event.type,
                         eventHandlerName: eventHandler.constructor.name,
                     },
                     extra: {
+                        event,
                         eventHandler: eventHandler,
                     }
                 }, CoreModuleKeyname)
@@ -97,8 +100,11 @@ export class EventDispatcher implements EventDispatcherInterface {
 
         this.logHandler.debug("EventDispatcher: Calling event handler.", {
             highlights: {
+                eventType: event.type,
+            },
+            extra: {
                 event,
-            }
+          }
         })
 
         // We only support executing the handler with the highest priority.
@@ -106,6 +112,9 @@ export class EventDispatcher implements EventDispatcherInterface {
 
         this.logHandler.debug("EventDispatcher: Called event handler.", {
             highlights: {
+              eventType: event.type,
+            },
+            extra: {
                 event,
                 eventResponse,
             }

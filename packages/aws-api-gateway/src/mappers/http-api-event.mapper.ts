@@ -144,10 +144,11 @@ export class HttpApiEventMapper extends BaseApiEventMapper implements EventMappe
                 try {
                     body = JSON.stringify(body);
                 }
-                catch (e) {
+                catch (e: any) {
                     this.logHandler.error("HttpApiEventMapper: Could not convert the response body into a string by stringifying it as a JSON.", {
                         highlights: {
-                            body,
+                          errorMessage: e?.message ?? "Unknown error",
+                          body,
                         },
                         extra: {
                             error: e,
