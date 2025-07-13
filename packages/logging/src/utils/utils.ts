@@ -144,9 +144,18 @@ export class Utils {
             case OutputModeEnum.Simple:
                 const base = format(log.date, "yyyy-MM-dd HH:mm:ss") + " - " + " [" + this.getSeverityText(log.severity) + "] - " + log.message;
 
-                const highlights = log.highlights ? " - " + JSON.stringify(Utils.truncate(log.highlights, 2)) : "";
+                let highlights = "";
+                if (log.highlights) {
+                    for (const key in log.highlights) {
+                        highlights += `\n- ${key}: ${JSON.stringify(Utils.truncate(log.highlights[key], 2))}`;
+                    }
+                }
 
-                const breadcrumbs = log.breadcrumbs && log.breadcrumbs.length > 0 ? "\\n\\t" + log.breadcrumbs.map(breadcrumb => breadcrumb.message).join("\\n\\t") : "";
+                let breadcrumbs = "";
+                if (log.breadcrumbs && log.breadcrumbs.length > 0) {
+                    breadcrumbs += "\nBreadcrumbs:";
+                    breadcrumbs += "\n- " + log.breadcrumbs.map(breadcrumb => breadcrumb.message).join("\n- ");
+                }
 
                 return base + highlights + breadcrumbs;
         }
