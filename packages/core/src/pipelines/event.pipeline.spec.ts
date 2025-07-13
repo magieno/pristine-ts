@@ -28,6 +28,7 @@ describe("Event Pipeline", () => {
   const breadcrumbHandlerMock: BreadcrumbHandlerInterface = {
     breadcrumbs: [],
     add(message: string, extra?:any): void {},
+    reset(): void {},
   }
     const tracingManagerMock = new TracingManagerMock();
 

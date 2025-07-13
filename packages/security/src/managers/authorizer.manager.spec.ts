@@ -21,6 +21,7 @@ describe("AuthorizerManager", () => {
     const breadcrumbHandlerMock: BreadcrumbHandlerInterface = {
       breadcrumbs: [],
       add(message: string, extra?:any): void {},
+      reset(): void {},
     }
 
     const requestMock: Request = new Request("", "");

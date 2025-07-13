@@ -102,7 +102,7 @@ export class Kernel {
             extra: {
                 initializationSpan: this.initializationSpan
             }
-        }, CoreModuleKeyname);
+        });
     }
 
 
