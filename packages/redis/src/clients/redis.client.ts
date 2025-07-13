@@ -67,7 +67,7 @@ export class RedisClient implements RedisClientInterface {
                 response = client.SET(redisKey, value);
             }
 
-            this.logHandler.debug("RedisClient: 'set' command successful.", {extra: {response, table, key, value, ttl}}, RedisModuleKeyname)
+            this.logHandler.debug("RedisClient: 'set' command successful.", {extra: {response, table, key, value, ttl}})
         } catch (error) {
             throw new RedisError("Error setting in redis", error as Error, table, key, redisKey);
         }
@@ -86,7 +86,7 @@ export class RedisClient implements RedisClientInterface {
         try {
             const response = await client.RPUSH(redisKey, ...value);
 
-            this.logHandler.debug("RedisClient: 'setList' command successful.", {extra: {response, table, key, value, ttl}}, RedisModuleKeyname)
+            this.logHandler.debug("RedisClient: 'setList' command successful.", {extra: {response, table, key, value, ttl}})
         } catch (error) {
             throw new RedisError("Error setting in redis", error as Error, table, key, redisKey);
         }
@@ -104,7 +104,7 @@ export class RedisClient implements RedisClientInterface {
         try {
             const response = await client.GET(redisKey);
 
-            this.logHandler.debug("RedisClient: 'get' command successful.", {extra: {response, table, key}}, RedisModuleKeyname)
+            this.logHandler.debug("RedisClient: 'get' command successful.", {extra: {response, table, key}})
 
             return response;
         } catch (error) {
@@ -126,7 +126,7 @@ export class RedisClient implements RedisClientInterface {
         try {
             const response = await client.LRANGE(redisKey, start, stop);
 
-            this.logHandler.debug("RedisClient: 'getList' command successful.", {extra: {response, table, key, start, stop}}, RedisModuleKeyname)
+            this.logHandler.debug("RedisClient: 'getList' command successful.", {extra: {response, table, key, start, stop}})
 
             return response;
         } catch (error) {
@@ -146,7 +146,7 @@ export class RedisClient implements RedisClientInterface {
         try {
             const response = await client.DEL(redisKey);
 
-            this.logHandler.debug("RedisClient: 'remove' command successful.", {extra: {response, table, key}}, RedisModuleKeyname)
+            this.logHandler.debug("RedisClient: 'remove' command successful.", {extra: {response, table, key}})
 
         } catch (error) {
             throw new RedisError("Error removing in redis", error as Error, table, key, redisKey);
@@ -162,7 +162,7 @@ export class RedisClient implements RedisClientInterface {
         try {
             const response = await client.FLUSHALL();
 
-            this.logHandler.debug("RedisClient: 'clearAll' command successful.", {extra: {response}}, RedisModuleKeyname)
+            this.logHandler.debug("RedisClient: 'clearAll' command successful.", {extra: {response}})
 
         } catch (error) {
             throw new RedisError("Error clearing redis", error as Error);

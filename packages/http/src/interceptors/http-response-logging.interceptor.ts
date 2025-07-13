@@ -30,7 +30,7 @@ export class HttpResponseLoggingInterceptor implements HttpResponseInterceptorIn
      */
     async interceptResponse(request: HttpRequestInterface, options: HttpRequestOptions, response: HttpResponseInterface): Promise<HttpResponseInterface> {
         if(this.loggingEnabled) {
-            this.logHandler.info("HttpResponseLoggingInterceptor: Receiving http response.", {extra: {response, options}}, HttpModuleKeyname);
+            this.logHandler.info("HttpResponseLoggingInterceptor: Receiving http response.", {extra: {response, options}});
         }
 
         return response;

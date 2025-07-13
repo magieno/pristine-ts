@@ -36,7 +36,7 @@ export class SchedulerManager implements SchedulerInterface {
      * This method runs all the tasks that were registered.
      */
     async runTasks(): Promise<void> {
-        this.logHandler.debug("SchedulerManager: Starting the execution of the tasks.", {extra: {scheduledTasks: this.scheduledTasks}}, SchedulingModuleKeyname);
+        this.logHandler.info("SchedulerManager: Starting the execution of the tasks.", {extra: {scheduledTasks: this.scheduledTasks}}, `${SchedulingModuleKeyname}:scheduler.manager:enter`);
 
         return new Promise(resolve => {
             const promises: Promise<void>[] = [];
@@ -45,12 +45,12 @@ export class SchedulerManager implements SchedulerInterface {
                 promises.push(scheduledTask.run());
             });
 
-            this.logHandler.debug("SchedulerManager: Completed triggering all the tasks.", {extra: {scheduledTasks: this.scheduledTasks}}, SchedulingModuleKeyname);
+            this.logHandler.info("SchedulerManager: Completed triggering all the tasks.", {extra: {scheduledTasks: this.scheduledTasks}}, `${SchedulingModuleKeyname}:scheduler.manager:return`);
 
             Promise.allSettled(promises).then(results => {
                 results.forEach(result => {
                     if(result.status === 'fulfilled') {
-                        this.logHandler.debug("SchedulerManager: Scheduled Task Fulfilled.", {extra: {result}}, SchedulingModuleKeyname)
+                        this.logHandler.debug("SchedulerManager: Scheduled Task Fulfilled.", {extra: {result}})
                     }
                     else {
                         this.logHandler.error("SchedulerManager: Scheduled Task Error.", {
