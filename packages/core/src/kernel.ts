@@ -19,7 +19,7 @@ import {ExecutionContextInterface} from "./interfaces/execution-context.interfac
 import {EventPipeline} from "./pipelines/event.pipeline";
 import {Event} from "./models/event";
 import {KernelInitializationError} from "./errors/kernel-initialization.error";
-
+import {LogHandlerInterface} from "@pristine-ts/logging";
 
 /**
  * This is the central class that manages the lifecyle of this library.
