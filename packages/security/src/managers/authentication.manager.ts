@@ -3,7 +3,7 @@ import {AuthenticationManagerInterface} from "../interfaces/authentication-manag
 import {IdentityInterface, moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {AuthenticatorInterface} from "../interfaces/authenticator.interface";
 import {AuthenticatorContextInterface} from "../interfaces/authenticator-context.interface";
-import {Breadcrumb, BreadcrumbHandlerInterface, LogHandlerInterface} from "@pristine-ts/logging";
+import {BreadcrumbHandlerInterface, LogHandlerInterface} from "@pristine-ts/logging";
 import {AuthenticatorFactory} from "../factories/authenticator.factory";
 import {SecurityModuleKeyname} from "../security.module.keyname";
 import {IdentityProviderInterface} from "../interfaces/identity-provider.interface";
@@ -39,9 +39,8 @@ export class AuthenticationManager implements AuthenticationManagerInterface {
      * @param container The dependency container from which to resolve the authenticator.
      */
     public async authenticate(request: Request, routeContext: any, container: DependencyContainer): Promise<IdentityInterface | undefined> {
-        this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Authenticating request", {request, routeContext}));
+        this.breadcrumbHandler.add(`${SecurityModuleKeyname}:authentication.manager:authenticate:enter`, {request, routeContext});
         if(!routeContext || routeContext[authenticatorMetadataKeyname] === undefined) {
-            this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("No authenticator defined for this route.", {routeContext}));
             return undefined;
         }
 
@@ -52,34 +51,35 @@ export class AuthenticationManager implements AuthenticationManagerInterface {
         const authenticatorContext: AuthenticatorContextInterface = authenticator;
 
         try {
-            this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Instantiating authenticator", {authenticatorContext}));
             const instantiatedAuthenticator: AuthenticatorInterface = this.authenticatorFactory.fromContext(authenticatorContext, container);
 
             await instantiatedAuthenticator.setContext(authenticatorContext);
 
-            this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Calling 'authenticate' on authenticator", {authenticator: instantiatedAuthenticator.constructor.name}));
             identity = await instantiatedAuthenticator.authenticate(request);
-            this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Authenticator returned identity", {identity}));
 
             if(identity == undefined) {
-                this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Identity is undefined, skipping identity providers.", {identity}));
                 return identity;
             }
 
             // Loop over the identity providers
             for (const identityProvider of this.identityProviders) {
-                this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Calling identity provider", {identityProvider: identityProvider.constructor.name}));
                 identity = await identityProvider.provide(identity);
-                this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Identity provider returned identity", {identity}));
             }
 
         } catch (e) {
             this.logHandler.error("AuthenticationManager: Error authenticating the request.", {extra: {error: e}}, SecurityModuleKeyname);
-            this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Error authenticating the request.", {error: e}));
             throw e;
         }
 
-        this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Finished authenticating request", {identity}));
+        this.logHandler.info(`User successfully authenticated.`, {
+          highlights: {
+            identity,
+          },
+          extra: {
+            request,
+            routeContext,
+          },
+        },`${SecurityModuleKeyname}:authentication.manager:authenticate:return`)
         return identity;
     }
 }

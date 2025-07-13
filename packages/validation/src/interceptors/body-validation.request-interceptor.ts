@@ -25,6 +25,8 @@ export class BodyValidationRequestInterceptor implements RequestInterceptorInter
      * It is module scoped to the Validation module so that it is only registered if the validation module is imported.
      * @param loghandler The log handler to output logs.
      * @param validator The validator that validates objects.
+     * @param dataMapper
+     * @param breadcrumbHandler
      */
     constructor(@inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface,
                 private readonly validator: Validator,
@@ -42,11 +44,10 @@ export class BodyValidationRequestInterceptor implements RequestInterceptorInter
      * @param methodNode The method node.
      */
     async interceptRequest(request: Request, methodNode: MethodRouterNode): Promise<Request> {
-        this.breadcrumbHandler.add("Validating body", {request, methodNode});
+        this.breadcrumbHandler.add(`${ValidationModuleKeyname}:body-validation.request-interceptor:enter`, {request, methodNode});
         const bodyValidator = methodNode.route.context[bodyValidationMetadataKeyname];
 
         if(bodyValidator === undefined || bodyValidator.classType === undefined) {
-            this.breadcrumbHandler.add("No body validator defined for this route.", {routeContext: methodNode.route.context});
             return request;
         }
 
@@ -60,11 +61,9 @@ export class BodyValidationRequestInterceptor implements RequestInterceptorInter
         const mappedBody = await this.dataMapper.autoMap(request.body, bodyValidator.classType);
 
         // Validates if all the conditions are respected in the expected type.
-        this.breadcrumbHandler.add("Validating mapped body", {mappedBody});
         const errors = await this.validator.validate(mappedBody);
 
         if(errors.length == 0) {
-            this.breadcrumbHandler.add("Validation successful", {mappedBody});
             return request;
         }
 
@@ -75,7 +74,6 @@ export class BodyValidationRequestInterceptor implements RequestInterceptorInter
             errors,
             mappedBody,
         }, ValidationModuleKeyname)
-        this.breadcrumbHandler.add("Validation failed", {errors, mappedBody});
 
         // If we received some error while validating we reject by throwing an error.
         throw new BadRequestHttpError("Validation error", errors);

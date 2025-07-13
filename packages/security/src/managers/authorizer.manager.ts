@@ -1,5 +1,5 @@
 import {DependencyContainer, inject, injectable} from "tsyringe";
-import {Breadcrumb, BreadcrumbHandlerInterface, LogHandlerInterface} from "@pristine-ts/logging";
+import {BreadcrumbHandlerInterface, LogHandlerInterface} from "@pristine-ts/logging";
 import {IdentityInterface, moduleScoped, tag} from "@pristine-ts/common";
 import {AuthorizerManagerInterface} from "../interfaces/authorizer-manager.interface";
 import {GuardFactory} from "../factories/guard.factory";
@@ -34,11 +34,10 @@ export class AuthorizerManager implements AuthorizerManagerInterface {
      * @param identity The identity making the request.
      */
     public async isAuthorized(request: Request, routeContext: any, container: DependencyContainer, identity?: IdentityInterface): Promise<boolean> {
-        this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Authorizing request", {request, routeContext, identity}));
         // If there are no guards defined, we simply return that it is authorized.
+      this.breadcrumbHandler.add(`${SecurityModuleKeyname}:authorizer.manager:isAuthorized:enter`, {request, routeContext});
 
         if(!routeContext || routeContext[guardMetadataKeyname] === undefined || Array.isArray(routeContext[guardMetadataKeyname]) === false) {
-            this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("No guards defined for this route.", {routeContext}));
             return true;
         }
 
@@ -48,24 +47,25 @@ export class AuthorizerManager implements AuthorizerManagerInterface {
 
         for (const guardContext of guards) {
             try {
-                this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Instantiating guard", {guardContext}));
                 const instantiatedGuard = this.guardFactory.fromContext(guardContext, container);
 
                 await instantiatedGuard.setContext(guardContext);
 
-                this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Calling 'isAuthorized' on guard", {guard: instantiatedGuard.constructor.name}));
                 const didAuthorize= await instantiatedGuard.isAuthorized(request, identity);
-                this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Guard returned authorization", {didAuthorize}));
                 isAuthorized = isAuthorized && didAuthorize;
             }
             catch (e) {
                 this.logHandler.error("AuthorizerManager: Error while authorizing the request.", {extra: {error: e}}, SecurityModuleKeyname);
-                this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Error while authorizing the request.", {error: e}));
                 isAuthorized = false;
             }
         }
 
-        this.breadcrumbHandler.addBreadcrumb(new Breadcrumb("Finished authorizing request", {isAuthorized}));
+        if(isAuthorized) {
+          this.logHandler.info(`User authorized`, {headlights: {isAuthorized}, extra: {request, routeContext}}, `${SecurityModuleKeyname}:authorizer.manager:isAuthorized:return`);
+        } else {
+          this.logHandler.info(`User authorized`, {headlights: {isAuthorized}, extra: {request, routeContext}}, `${SecurityModuleKeyname}:authorizer.manager:isAuthorized:return`);
+        }
+
         return isAuthorized;
     }
 }
