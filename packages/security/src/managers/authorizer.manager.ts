@@ -1,5 +1,5 @@
 import {DependencyContainer, inject, injectable} from "tsyringe";
-import {LogHandlerInterface} from "@pristine-ts/logging";
+import {BreadcrumbHandlerInterface, LogHandlerInterface} from "@pristine-ts/logging";
 import {IdentityInterface, moduleScoped, tag} from "@pristine-ts/common";
 import {AuthorizerManagerInterface} from "../interfaces/authorizer-manager.interface";
 import {GuardFactory} from "../factories/guard.factory";
@@ -20,9 +20,11 @@ export class AuthorizerManager implements AuthorizerManagerInterface {
      * The authorizer manager provides authorization by authorizing the action.
      * @param logHandler The log handler to output logs.
      * @param guardFactory The factory to create the guard.
+     * @param breadcrumbHandler
      */
     public constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-                       private readonly guardFactory: GuardFactory) {
+                       private readonly guardFactory: GuardFactory,
+                       @inject("BreadcrumbHandlerInterface") private readonly breadcrumbHandler: BreadcrumbHandlerInterface) {
     }
 
     /**
@@ -34,6 +36,7 @@ export class AuthorizerManager implements AuthorizerManagerInterface {
      */
     public async isAuthorized(request: Request, routeContext: any, container: DependencyContainer, identity?: IdentityInterface): Promise<boolean> {
         // If there are no guards defined, we simply return that it is authorized.
+      this.breadcrumbHandler.add(`${SecurityModuleKeyname}:authorizer.manager:isAuthorized:enter`, {request, routeContext});
 
         if(!routeContext || routeContext[guardMetadataKeyname] === undefined || Array.isArray(routeContext[guardMetadataKeyname]) === false) {
             return true;
@@ -68,6 +71,12 @@ export class AuthorizerManager implements AuthorizerManagerInterface {
                 }, SecurityModuleKeyname);
                 isAuthorized = false;
             }
+        }
+
+        if(isAuthorized) {
+          this.logHandler.info(`User authorized`, {headlights: {isAuthorized}, extra: {request, routeContext}}, `${SecurityModuleKeyname}:authorizer.manager:isAuthorized:return`);
+        } else {
+          this.logHandler.info(`User authorized`, {headlights: {isAuthorized}, extra: {request, routeContext}}, `${SecurityModuleKeyname}:authorizer.manager:isAuthorized:return`);
         }
 
         return isAuthorized;

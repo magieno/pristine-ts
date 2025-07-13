@@ -13,14 +13,13 @@ import {
 import {ConfigurationManager, ModuleConfigurationValue} from "@pristine-ts/configuration";
 import {ProviderRegistrationError} from "./errors/provider-registration.error";
 import {Span, SpanKeynameEnum, TracingManagerInterface} from "@pristine-ts/telemetry";
-import {LogHandlerInterface} from "@pristine-ts/logging";
 import {CoreModuleKeyname} from "./core.module.keyname";
 import { v4 as uuidv4 } from 'uuid';
 import {ExecutionContextInterface} from "./interfaces/execution-context.interface";
 import {EventPipeline} from "./pipelines/event.pipeline";
 import {Event} from "./models/event";
 import {KernelInitializationError} from "./errors/kernel-initialization.error";
-
+import {LogHandlerInterface} from "@pristine-ts/logging";
 
 /**
  * This is the central class that manages the lifecyle of this library.

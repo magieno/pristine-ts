@@ -5,7 +5,7 @@ import {moduleScoped, ServiceDefinitionTagEnum, tag, Request} from "@pristine-ts
 import {ValidationModuleKeyname} from "../validation.module.keyname";
 import {injectable, inject} from "tsyringe";
 import { plainToInstance } from 'class-transformer';
-import {LogHandlerInterface} from "@pristine-ts/logging";
+import {BreadcrumbHandlerInterface, LogHandlerInterface} from "@pristine-ts/logging";
 import {bodyValidationMetadataKeyname} from "../decorators/body-validation.decorator";
 import {DataMapper} from "@pristine-ts/data-mapping-common";
 
@@ -25,10 +25,13 @@ export class BodyValidationRequestInterceptor implements RequestInterceptorInter
      * It is module scoped to the Validation module so that it is only registered if the validation module is imported.
      * @param loghandler The log handler to output logs.
      * @param validator The validator that validates objects.
+     * @param dataMapper
+     * @param breadcrumbHandler
      */
     constructor(@inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface,
                 private readonly validator: Validator,
                 private readonly dataMapper: DataMapper,
+                @inject("BreadcrumbHandlerInterface") private readonly breadcrumbHandler: BreadcrumbHandlerInterface,
                 ) {
     }
 
@@ -41,6 +44,7 @@ export class BodyValidationRequestInterceptor implements RequestInterceptorInter
      * @param methodNode The method node.
      */
     async interceptRequest(request: Request, methodNode: MethodRouterNode): Promise<Request> {
+        this.breadcrumbHandler.add(`${ValidationModuleKeyname}:body-validation.request-interceptor:enter`, {request, methodNode});
         const bodyValidator = methodNode.route.context[bodyValidationMetadataKeyname];
 
         if(bodyValidator === undefined || bodyValidator.classType === undefined) {

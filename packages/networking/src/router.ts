@@ -20,8 +20,8 @@ import {
     MetadataUtil,
     MetadataEnum,
 } from "@pristine-ts/common";
-import {AuthenticationManagerInterface, AuthorizerManagerInterface} from "@pristine-ts/security";
 import {LogHandlerInterface} from "@pristine-ts/logging";
+import {AuthenticationManagerInterface, AuthorizerManagerInterface} from "@pristine-ts/security";
 import {NetworkingModuleKeyname} from "./networking.module.keyname";
 import {Span, SpanKeynameEnum, TracingManagerInterface} from "@pristine-ts/telemetry";
 import {controllerRegistry} from "./decorators/controller.decorator";
@@ -286,7 +286,6 @@ export class Router implements RouterInterface {
 
             // Call the controller with the resolved Method arguments
             try {
-
                 // Verify that the identity making the request is authorized to make such a request
                 if (await this.authorizerManager.isAuthorized(request, methodNode.route.context, container, identity) === false) {
                     this.loghandler.error("User not authorized to access this url.", {

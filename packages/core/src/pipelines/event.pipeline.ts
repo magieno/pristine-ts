@@ -3,7 +3,7 @@ import {ExecutionContextInterface} from "../interfaces/execution-context.interfa
 import {EventInterceptorInterface} from "../interfaces/event-interceptor.interface";
 import {EventMapperInterface} from "../interfaces/event-mapper.interface";
 import {Event} from "../models/event";
-import {LogHandlerInterface} from "@pristine-ts/logging";
+import {BreadcrumbHandlerInterface, LogHandlerInterface} from "@pristine-ts/logging";
 import {EventsExecutionOptionsInterface} from "../interfaces/events-execution-options.interface";
 import {EventResponse} from "../models/event.response";
 import {EventDispatcher} from "../dispatchers/event.dispatcher";
@@ -16,6 +16,7 @@ import {EventDispatchingError} from "../errors/event-dispatching.error";
 import {EventPreResponseMappingInterceptionError} from "../errors/event-pre-response-mapping-interception.error";
 import {EventPostResponseMappingInterceptionError} from "../errors/event-post-response-mapping-interception.error";
 import {SpanKeynameEnum, TracingManagerInterface} from "@pristine-ts/telemetry";
+import {CoreModuleKeyname} from "../core.module.keyname";
 
 @injectable()
 export class EventPipeline {
@@ -25,6 +26,7 @@ export class EventPipeline {
         @injectAll(ServiceDefinitionTagEnum.EventMapper) private readonly eventMappers: EventMapperInterface<any, any>[],
         @inject('LogHandlerInterface') private readonly logHandler: LogHandlerInterface,
         @inject("TracingManagerInterface") private readonly tracingManager: TracingManagerInterface,
+        @inject("BreadcrumbHandlerInterface") private readonly breadcrumbHandler: BreadcrumbHandlerInterface,
     ) {
     }
 
@@ -137,6 +139,7 @@ export class EventPipeline {
      * @private
      */
     private async executeEvent(event: Event<any>, eventDispatcher: EventDispatcherInterface): Promise<EventResponse<any, any>> {
+        this.breadcrumbHandler.add(`${CoreModuleKeyname}:event.pipeline:executeEvent`, {event})
         // 1 - Run the post mapped interceptors on every single event before they get executed.
         const interceptedEvent = await this.postMappingIntercept(event)
 
@@ -210,8 +213,6 @@ export class EventPipeline {
                 throw new EventMappingError("There are no events to execute.", event, interceptedEvent, executionContext)
             }
         }
-
-
 
         const eventsExecutionPromises: Promise<EventResponse<any, any> | EventResponse<any, any>[]>[] = [];
 
@@ -295,6 +296,8 @@ export class EventPipeline {
         })
 
         // 6 - Call the PostResponseMapping interceptors and return the final intercepted response.
-        return this.postResponseMappingIntercept(finalResponse);
+        const postResponseMappingInterceptedResponse = await this.postResponseMappingIntercept(finalResponse);
+
+        return postResponseMappingInterceptedResponse;
     }
 }

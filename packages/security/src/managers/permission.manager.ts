@@ -1,11 +1,10 @@
 import {inject, injectable, injectAll} from "tsyringe";
 import {VoterInterface} from "../interfaces/voter.interface";
 import {VotingStrategyEnum} from "../enums/voting-strategy.enum";
-import {LogHandlerInterface} from "@pristine-ts/logging";
 import {VoteEnum} from "../enums/vote.enum";
 import {IdentityInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {SecurityModuleKeyname} from "../security.module.keyname";
-
+import {LogHandlerInterface} from "@pristine-ts/logging";
 /**
  * The permission manager verifies if the correct permission are there to access and take an action on a resource.
  */
@@ -30,7 +29,6 @@ export class PermissionManager {
      * @param votingStrategy The voting strategy that defines how to merge the votes. Default is DenyOnUnanimousAbstention.
      */
     async hasAccessToResource(identity: IdentityInterface, action: string, resource: object, votingStrategy: VotingStrategyEnum = VotingStrategyEnum.DenyOnUnanimousAbstention): Promise<boolean>{
-
         if(this.voters.length === 0){
             this.logHandler.warning("PermissionManager: No voters were found, this could lead to unexpected behavior. Make sure that you have registered voters in your application.", {
                 highlights: {
@@ -68,7 +66,6 @@ export class PermissionManager {
 
             try {
                 const vote = await voter.vote(identity, action, resource);
-
                 const message = "PermissionManager: Voter " + voter.constructor.name + " voted: " + vote;
 
                 if(vote === VoteEnum.Deny) { // When it's being denied, it usually mean that something is important to be noticed.
