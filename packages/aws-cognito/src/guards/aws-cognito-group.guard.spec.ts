@@ -13,7 +13,7 @@ describe("AWS Cognito group Guard", () => {
             }
         })
 
-        const request = new Request(HttpMethod.Get, "https://url");
+        const request = new Request(HttpMethod.Get, "https://url", "uuid");
 
         expect(await cognitoGroupGuard.isAuthorized(request, {
             id: "id",
@@ -33,7 +33,7 @@ describe("AWS Cognito group Guard", () => {
             }
         })
 
-        const request = new Request(HttpMethod.Get, "https://url");
+        const request = new Request(HttpMethod.Get, "https://url", "uuid");
 
         expect(await cognitoGroupGuard.isAuthorized(request, {
             id: "id",
@@ -52,7 +52,7 @@ describe("AWS Cognito group Guard", () => {
             }
         })
 
-        const request = new Request(HttpMethod.Get, "https://url");
+        const request = new Request(HttpMethod.Get, "https://url", "uuid");
 
         expect(await cognitoGroupGuard.isAuthorized(request, {
             id: "id",
@@ -72,7 +72,7 @@ describe("AWS Cognito group Guard", () => {
             }
         })
 
-        const request = new Request(HttpMethod.Get, "https://url");
+        const request = new Request(HttpMethod.Get, "https://url", "uuid");
 
         expect(await cognitoGroupGuard.isAuthorized(request, {
             id: "id",
@@ -92,7 +92,7 @@ describe("AWS Cognito group Guard", () => {
             }
         })
 
-        const request = new Request(HttpMethod.Get, "https://url");
+        const request = new Request(HttpMethod.Get, "https://url", "uuid");
 
         expect(await cognitoGroupGuard.isAuthorized(request, {
             id: "id",

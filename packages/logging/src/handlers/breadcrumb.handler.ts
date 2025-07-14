@@ -15,17 +15,21 @@ import {BreadcrumbModel} from "../models/breadcrumb.model";
 @injectable()
 @scoped(Lifecycle.ContainerScoped)
 export class BreadcrumbHandler implements BreadcrumbHandlerInterface {
-  public breadcrumbs: BreadcrumbModel[] = [];
+  public breadcrumbs: {[eventId in string]: BreadcrumbModel[]} = {};
 
-  add(message: string, extra?:any) {
-    this.addBreadcrumb(new BreadcrumbModel(message, extra));
+  add(eventId: string, message: string, extra?:any) {
+    this.addBreadcrumb(eventId, new BreadcrumbModel(message, extra));
   }
 
-  reset() {
-    this.breadcrumbs = [];
+  reset(eventId: string) {
+    delete this.breadcrumbs[eventId];
   }
 
-  addBreadcrumb(breadcrumb: BreadcrumbModel) {
-    this.breadcrumbs.push(breadcrumb);
+  addBreadcrumb(eventId: string, breadcrumb: BreadcrumbModel) {
+    if(!this.breadcrumbs.hasOwnProperty(eventId)) {
+      this.breadcrumbs[eventId] = [];
+    }
+
+    this.breadcrumbs[eventId].push(breadcrumb);
   }
 }

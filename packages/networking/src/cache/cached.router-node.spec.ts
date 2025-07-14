@@ -5,7 +5,7 @@ describe("Request Util", () => {
     it("should hash the same request twice", () => {
         const rawBody = {};
 
-        const request: Request = new Request(HttpMethod.Get, "http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink");
+        const request: Request = new Request(HttpMethod.Get, "http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink", "uuid");
         request.rawBody = rawBody;
         request.setHeaders({
             "header1": "value1",
@@ -13,7 +13,7 @@ describe("Request Util", () => {
             "header3": "value3",
         });
 
-        const request2: Request = new Request(HttpMethod.Get, "http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?sort=ASC&query=searchTerm#anchorLink");;
+        const request2: Request = new Request(HttpMethod.Get, "http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?sort=ASC&query=searchTerm#anchorLink", "uuid");
         request2.rawBody = rawBody;
         request2.setHeaders({
             "header3": "value3",
@@ -30,7 +30,7 @@ describe("Request Util", () => {
     it("should not hash different requests to the same value", () => {
         const rawBody = {};
 
-        const request: Request = new Request(HttpMethod.Get, "http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink");
+        const request: Request = new Request(HttpMethod.Get, "http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink", "uuid");
         request.rawBody = rawBody;
         request.setHeaders({
             "header1": "value1",
@@ -38,7 +38,7 @@ describe("Request Util", () => {
             "header3": "value3",
         });
 
-        const request2: Request = new Request(HttpMethod.Get, "http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?sort=ASC&query=searchTermXXXXX#anchorLink");;
+        const request2: Request = new Request(HttpMethod.Get, "http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?sort=ASC&query=searchTermXXXXX#anchorLink", "uuid");
         request2.rawBody = rawBody;
         request2.setHeaders({
             "header3": "value3",
@@ -46,7 +46,7 @@ describe("Request Util", () => {
             "header1": "value1",
         });
 
-        const request3: Request = new Request(HttpMethod.Get, "http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?sort=ASC&query=searchTerm");
+        const request3: Request = new Request(HttpMethod.Get, "http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?sort=ASC&query=searchTerm", "uuid");
         request2.rawBody = rawBody;
         request2.setHeaders({
             "header3": "value3",

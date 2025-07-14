@@ -25,7 +25,7 @@ export class SqsEventMapper implements EventMapperInterface<SqsEventPayload, voi
     map(rawEvent: any, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<SqsEventPayload> {
         const parsedEvents: Event<SqsEventPayload>[] = [];
         for(const record of rawEvent.Records) {
-            const event = new Event<SqsEventPayload>(SqsEventType.SqsEvent, new SqsEventPayload());
+            const event = new Event<SqsEventPayload>(SqsEventType.SqsEvent, new SqsEventPayload(), record.messageId);
 
             event.payload.eventSource = record.eventSource;
             event.payload.awsRegion = record.awsRegion;

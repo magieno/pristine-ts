@@ -36,7 +36,7 @@ export class AuthorizerManager implements AuthorizerManagerInterface {
      */
     public async isAuthorized(request: Request, routeContext: any, container: DependencyContainer, identity?: IdentityInterface): Promise<boolean> {
         // If there are no guards defined, we simply return that it is authorized.
-      this.breadcrumbHandler.add(`${SecurityModuleKeyname}:authorizer.manager:isAuthorized:enter`, {request, routeContext});
+      this.breadcrumbHandler.add(request.id, `${SecurityModuleKeyname}:authorizer.manager:isAuthorized:enter`, {request, routeContext});
 
         if(!routeContext || routeContext[guardMetadataKeyname] === undefined || Array.isArray(routeContext[guardMetadataKeyname]) === false) {
             return true;
@@ -74,9 +74,9 @@ export class AuthorizerManager implements AuthorizerManagerInterface {
         }
 
         if(isAuthorized) {
-          this.logHandler.info(`User authorized`, {headlights: {isAuthorized}, extra: {request, routeContext}}, `${SecurityModuleKeyname}:authorizer.manager:isAuthorized:return`);
+          this.logHandler.info(`User authorized`, {headlights: {isAuthorized}, extra: {request, routeContext}, eventId: request.id, breadcrumb: `${SecurityModuleKeyname}:authorizer.manager:isAuthorized:return`});
         } else {
-          this.logHandler.info(`User authorized`, {headlights: {isAuthorized}, extra: {request, routeContext}}, `${SecurityModuleKeyname}:authorizer.manager:isAuthorized:return`);
+          this.logHandler.info(`User authorized`, {headlights: {isAuthorized}, extra: {request, routeContext}, eventId: request.id, breadcrumb: `${SecurityModuleKeyname}:authorizer.manager:isAuthorized:return`});
         }
 
         return isAuthorized;

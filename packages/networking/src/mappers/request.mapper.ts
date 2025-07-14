@@ -17,10 +17,10 @@ export class RequestMapper implements EventMapperInterface<Request, Response>{
         return rawEvent instanceof Request;
     }
 
-    map(rawEvent: any, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<Request> {
+    map(request: Request, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<Request> {
         return {
             executionOrder: "sequential",
-            events: [new Event<Request>("Request", rawEvent)],
+            events: [new Event<Request>("Request", request, request.id)],
         };
     }
 

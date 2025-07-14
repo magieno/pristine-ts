@@ -43,7 +43,7 @@ describe("Request Mapper scenarios", () => {
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/test");
+        const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/test", "uuid");
 
         let requestMapperSupportsSpy;
         let requestMapperMapSpy;
@@ -92,7 +92,7 @@ describe("Request Mapper scenarios", () => {
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/test");
+        const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/test", "uuid");
 
         let requestMapperSupportsReverseMappingSpy;
         let requestMapperReverseMapSpy;

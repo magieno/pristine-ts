@@ -45,7 +45,8 @@ describe("Event Dispatcher", () => {
             type: "type",
             payload: {
                 type: "type"
-            }
+            },
+            id: "uuid",
         }
 
         eventDispatcher.dispatch(event);
@@ -89,7 +90,8 @@ describe("Event Dispatcher", () => {
             type: "type",
             payload: {
                 type: "type"
-            }
+            },
+            id: "uuid",
         }
 
         await eventDispatcher.dispatch(event);
@@ -144,7 +146,8 @@ describe("Event Dispatcher", () => {
             type: "type",
             payload: {
                 type: "type"
-            }
+            },
+            id: "uuid",
         }
 
         await eventDispatcher.dispatch(event);
@@ -191,7 +194,8 @@ describe("Event Dispatcher", () => {
             type: "type",
             payload: {
                 type: "type"
-            }
+            },
+            id: "uuid",
         }
 
         return expect(eventDispatcher.dispatch(event)).rejects.toThrow(new EventDispatcherNoEventHandlersError("There are no EventHandlers that support this event.", event));

@@ -46,7 +46,7 @@ describe("Response header interception", () => {
             "pristine.networking.defaultContentTypeResponseHeader.isActive": true,
         });
 
-        const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/test");
+        const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/test", "uuid");
 
         const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
 
@@ -65,7 +65,7 @@ describe("Response header interception", () => {
             "pristine.networking.defaultContentTypeResponseHeader.isActive": false,
         });
 
-        const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/test");
+        const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/test", "uuid");
 
         const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
 
@@ -84,7 +84,7 @@ describe("Response header interception", () => {
             "pristine.networking.defaultContentTypeResponseHeader.isActive": true,
         });
 
-        const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/textPlain");
+        const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/textPlain", "uuid");
 
         const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
 

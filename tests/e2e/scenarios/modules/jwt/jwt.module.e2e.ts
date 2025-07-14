@@ -41,7 +41,7 @@ describe("JWT Module instantiation in the Kernel", () => {
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        const request: Request = new Request(HttpMethod.Get, "http://localhost:8080/api/2.0/jwt/services");
+        const request: Request = new Request(HttpMethod.Get, "http://localhost:8080/api/2.0/jwt/services", "uuid");
         request.setHeaders({
             "Authorization": "Bearer " + JWTKeys.token.valid,
         });
@@ -88,7 +88,7 @@ describe("JWT Module instantiation in the Kernel", () => {
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        const request: Request = new Request(HttpMethod.Get, "http://localhost:8080/api/2.0/jwt/services");
+        const request: Request = new Request(HttpMethod.Get, "http://localhost:8080/api/2.0/jwt/services", "uuid");
         request.setHeaders({
             "Authorization": "Bearer dfsadfdsafdsfdsafds",
         });

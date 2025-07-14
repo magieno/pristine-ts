@@ -126,7 +126,7 @@ describe("Auth0 authenticator ", () => {
     it("should validateRequestAndReturnToken", async () => {
         const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
 
-        const request: Request = new Request(HttpMethod.Get, "");
+        const request: Request = new Request(HttpMethod.Get, "", "uuid");
         request.setHeaders({
             "Authorization": "Bearer " + "token",
         });
@@ -137,7 +137,7 @@ describe("Auth0 authenticator ", () => {
     it("should not validateRequestAndReturnToken if not headers", async () => {
         const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
 
-        const request: Request = new Request(HttpMethod.Get, "");
+        const request: Request = new Request(HttpMethod.Get, "", "uuid");
 
         expect(() => auth0Authenticator["validateRequestAndReturnToken"](request)).toThrow(new Error("The Authorization header wasn't found in the Request."));
     });
@@ -145,7 +145,7 @@ describe("Auth0 authenticator ", () => {
     it("should not validateRequestAndReturnToken if no authorization header", async () => {
         const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
 
-        const request: Request = new Request(HttpMethod.Get, "");
+        const request: Request = new Request(HttpMethod.Get, "", "uuid");
         request.setHeaders({
             hello: "string"
         });
@@ -156,7 +156,7 @@ describe("Auth0 authenticator ", () => {
     it("should not validateRequestAndReturnToken if authorization header undefined", async () => {
         const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
 
-        const request: Request = new Request(HttpMethod.Get, "");
+        const request: Request = new Request(HttpMethod.Get, "", "uuid");
         request.setHeaders({
             "Authorization": undefined
         });
@@ -167,7 +167,7 @@ describe("Auth0 authenticator ", () => {
     it("should not validateRequestAndReturnToken if authorization header does not start with Bearer", async () => {
         const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
 
-        const request: Request = new Request(HttpMethod.Get, "");
+        const request: Request = new Request(HttpMethod.Get, "", "uuid");
         request.setHeaders({
             "Authorization": "token"
         });
@@ -278,7 +278,7 @@ describe("Auth0 authenticator ", () => {
         }
 
         await auth0Authenticator.setContext(context);
-        const request: Request = new Request(HttpMethod.Get, "");
+        const request: Request = new Request(HttpMethod.Get, "", "uuid");
         request.setHeaders({
             "Authorization": "Bearer " + jwt.sign(payload, privateKey, { algorithm: 'RS256', keyid: tokenHeader.kid})
         });

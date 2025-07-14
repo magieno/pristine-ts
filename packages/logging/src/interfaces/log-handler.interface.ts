@@ -1,4 +1,5 @@
 import {LogHighlights} from "../types/log-highlights.type";
+import {LogData} from "../types/log-data.type";
 
 /**
  * This interface defines what functions should be implemented by a LogHandler.
@@ -9,41 +10,36 @@ export interface LogHandlerInterface {
    * Logs the message if the severity is set to critical or above.
    * @param message The message to log.
    * @param data The data being passed to the log
-   * @param breadcrumb The breadcrumb passed to the log to identify where the error originated from.
    */
-  critical(message: string, data?: {highlights?: LogHighlights, extra?:any} | any, breadcrumb?: string): void;
+  critical(message: string, data?: LogData): void;
 
   /**
    * Logs the message if the severity is set to error or above.
    * @param message The message to log.
    * @param data The data being passed to the log
-   * @param breadcrumb The breadcrumb passed to the log to identify where the error originated from.
    */
-  error(message: string, data?: {highlights?: LogHighlights, extra?:any} | any, breadcrumb?: string): void;
+  error(message: string, data?: LogData): void;
 
   /**
    * Logs the message if the severity is set to warning or above.
    * @param message The message to log.
    * @param data The data being passed to the log
-   * @param breadcrumb The breadcrumb passed to the log to identify where the error originated from.
    */
-  warning(message: string, data?: {highlights?: LogHighlights, extra?:any} | any, breadcrumb?: string): void;
+  warning(message: string, data?: LogData): void;
 
   /**
    * Logs the message if the severity is set to info or above.
    * @param message The message to log.
    * @param data The data being passed to the log
-   * @param breadcrumb The breadcrumb passed to the log to identify where the error originated from.
    */
-  info(message: string, data?: {highlights?: LogHighlights, extra?:any} | any, breadcrumb?: string): void;
+  info(message: string, data?: LogData): void;
 
   /**
    * Logs the message if the severity is set to debug or above.
    * @param message The message to log.
    * @param data The data being passed to the log
-   * @param breadcrumb The breadcrumb passed to the log to identify where the error originated from.
    */
-  debug(message: string, data?: {highlights?: LogHighlights, extra?:any} | any, breadcrumb?: string): void;
+  debug(message: string, data?: LogData): void;
 
   /**
    * This is called when the log handler is to terminate

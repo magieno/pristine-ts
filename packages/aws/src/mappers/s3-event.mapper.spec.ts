@@ -58,6 +58,7 @@ describe("S3 event mapper", () => {
 
         const s3Event: Event<S3EventPayload> = {
             type: S3EventType.ObjectCreatedPut,
+            id: "C3D13FE58DE4C810",
             payload: {
                 eventVersion:"2.1",
                 eventSource:"aws:s3",

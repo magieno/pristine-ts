@@ -55,6 +55,7 @@ describe("Event Bridge event parser", () => {
 
         const eventBridgePayloadEvent: Event<EventBridgePayload> = {
             type: EventBridgeEventTypeEnum.Event,
+            id: '63f83c49-95f4-122c-0d0e-f4c2fe052ac6',
             payload: {
                 version: '0',
                 id: '63f83c49-95f4-122c-0d0e-f4c2fe052ac6',
@@ -81,6 +82,7 @@ describe("Event Bridge event parser", () => {
 
         const eventBridgePayloadEvent: Event<EventBridgePayload> = {
             type: EventBridgeEventTypeEnum.ScheduledEvent,
+            id: '63f83c49-95f4-122c-0d0e-f4c2fe052ac6',
             payload: {
                 version: '0',
                 id: '63f83c49-95f4-122c-0d0e-f4c2fe052ac6',

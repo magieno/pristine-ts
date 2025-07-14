@@ -165,7 +165,7 @@ describe("Router.spec", () => {
 
 
     it("should call the correct methods for the routers", async () => {
-        const request = new Request(HttpMethod.Put, "");
+        const request = new Request(HttpMethod.Put, "", "uuid");
         request.body = {name: "name"};
 
         const requestUrls: { url: string, expectedArguments: any[] }[] = [
@@ -429,7 +429,7 @@ describe("Router.spec", () => {
 
     it("Call twice (with caching) - PUT - http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink", async () => {
         const router = getRouter(true)
-        const request = new Request(HttpMethod.Put, "");
+        const request = new Request(HttpMethod.Put, "", "uuid");
         request.url = "http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink";
 
         await router.execute(request, mockContainer);

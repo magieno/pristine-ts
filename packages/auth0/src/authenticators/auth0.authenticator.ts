@@ -81,8 +81,10 @@ export class Auth0Authenticator implements AuthenticatorInterface {
         this.logHandler.debug("Auth0Authenticator: Claim confirmed.", {
             extra: {
                 claim,
-            }
-        }, Auth0ModuleKeyname);
+            },
+          eventId: request.id,
+          breadcrumb: `${Auth0ModuleKeyname}:auth0.authenticator:authenticate:success`
+        });
 
         return {
             id: claim.sub,

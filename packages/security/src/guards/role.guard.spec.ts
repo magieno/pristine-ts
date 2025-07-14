@@ -35,7 +35,7 @@ describe("Auth0 roles Guard", () => {
             }
         })
 
-        const request = new Request(HttpMethod.Get, "https://url");
+        const request = new Request(HttpMethod.Get, "https://url", "uuid");
 
         expect(await roleGuard.isAuthorized(request, {
             id: "id",
@@ -54,7 +54,7 @@ describe("Auth0 roles Guard", () => {
             }
         })
 
-        const request = new Request(HttpMethod.Get, "https://url");
+        const request = new Request(HttpMethod.Get, "https://url", "uuid");
 
         expect(await roleGuard.isAuthorized(request, {
             id: "id",
@@ -73,7 +73,7 @@ describe("Auth0 roles Guard", () => {
             }
         })
 
-        const request = new Request(HttpMethod.Get, "https://url");
+        const request = new Request(HttpMethod.Get, "https://url", "uuid");
 
         expect(await roleGuard.isAuthorized(request, {
             id: "id",
@@ -93,7 +93,7 @@ describe("Auth0 roles Guard", () => {
             }
         })
 
-        const request = new Request(HttpMethod.Get, "https://url");
+        const request = new Request(HttpMethod.Get, "https://url", "uuid");
 
         expect(await roleGuard.isAuthorized(request, {
             id: "id",
@@ -113,7 +113,7 @@ describe("Auth0 roles Guard", () => {
             }
         })
 
-        const request = new Request(HttpMethod.Get, "https://url");
+        const request = new Request(HttpMethod.Get, "https://url", "uuid");
 
         expect(await roleGuard.isAuthorized(request, {
             id: "id",
@@ -133,7 +133,7 @@ describe("Auth0 roles Guard", () => {
             }
         })
 
-        const request = new Request(HttpMethod.Get, "https://url");
+        const request = new Request(HttpMethod.Get, "https://url", "uuid");
 
         expect(await roleGuard.isAuthorized(request, {
             id: "id",

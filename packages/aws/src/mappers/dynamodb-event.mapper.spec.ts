@@ -58,6 +58,7 @@ describe("Dynamodb event parser", () => {
 
         const dynamodbEvent: Event<DynamodbEventPayload> = {
             type: DynamodbEventType.Insert,
+            id: "1",
             payload: {
                 "eventId":"1",
                 "eventName":"INSERT",

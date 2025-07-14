@@ -15,6 +15,7 @@ import {BreadcrumbHandlerInterface} from "../interfaces/breadcrumb-handler.inter
 import {Utils} from "../utils/utils";
 import {LoggingModuleKeyname} from "../logging.module";
 import {LogHighlights} from "../types/log-highlights.type";
+import {LogData} from "../types/log-data.type";
 
 /**
  * The LogHandler to use when we want to output some logs.
@@ -57,50 +58,45 @@ export class LogHandler implements LogHandlerInterface {
    * Logs the message if the severity is set to critical or above.
    * @param message The message to log.
    * @param data The data being passed to the log
-   * @param breadcrumb The breadcrumb passed to the log to identify where the error originated from.
    */
-  public critical(message: string, data?: {highlights?: LogHighlights, extra?:any} | any, breadcrumb?: string): void {
-    return this.log(message, SeverityEnum.Critical, data, breadcrumb);
+  public critical(message: string, data?: LogData): void {
+    return this.log(message, SeverityEnum.Critical, data);
   }
 
   /**
    * Logs the message if the severity is set to error or above.
    * @param message The message to log.
    * @param data The data being passed to the log
-   * @param breadcrumb The breadcrumb passed to the log to identify where the error originated from.
    */
-  public error(message: string, data?: {highlights?: LogHighlights, extra?:any} | any, breadcrumb?: string): void {
-    return this.log(message, SeverityEnum.Error, data, breadcrumb);
+  public error(message: string, data?: LogData): void {
+    return this.log(message, SeverityEnum.Error, data);
   }
 
   /**
    * Logs the message if the severity is set to warning or above.
    * @param message The message to log.
    * @param data The data being passed to the log
-   * @param breadcrumb The breadcrumb passed to the log to identify where the error originated from.
    */
-  public warning(message: string, data?: {highlights?: LogHighlights, extra?:any} | any, breadcrumb?: string): void {
-    return this.log(message, SeverityEnum.Warning, data, breadcrumb);
+  public warning(message: string, data?: LogData): void {
+    return this.log(message, SeverityEnum.Warning, data);
   }
 
   /**
    * Logs the message if the severity is set to info or above.
    * @param message The message to log.
    * @param data The data being passed to the log
-   * @param breadcrumb The breadcrumb passed to the log to identify where the error originated from.
    */
-  public info(message: string, data?: {highlights?: LogHighlights, extra?:any} | any, breadcrumb?: string): void {
-    return this.log(message, SeverityEnum.Info, data, breadcrumb);
+  public info(message: string, data?: LogData): void {
+    return this.log(message, SeverityEnum.Info, data);
   }
 
   /**
    * Logs the message if the severity is set to debug or above.
    * @param message The message to log.
    * @param data The data being passed to the log
-   * @param breadcrumb The breadcrumb passed to the log to identify where the error originated from.
    */
-  public debug(message: string, data?: {highlights?: LogHighlights, extra?:any} | any, breadcrumb?: string): void {
-    return this.log(message, SeverityEnum.Debug, data, breadcrumb);
+  public debug(message: string, data?: LogData): void {
+    return this.log(message, SeverityEnum.Debug, data);
   }
 
   /**
@@ -108,19 +104,12 @@ export class LogHandler implements LogHandlerInterface {
    * @param message The message to log.
    * @param severity The minimum severity to log.
    * @param data The data being passed to the log
-   * @param breadcrumb The breadcrumb passed to the log to identify where the error originated from.
    */
-  private log(message: string, severity: SeverityEnum, data?: {highlights?: LogHighlights, extra?:any} | any, breadcrumb?: string): void {
+  private log(message: string, severity: SeverityEnum, data?: LogData): void {
     const log = new LogModel(severity, message);
     log.kernelInstantiationId = this.kernelInstantiationId;
     log.traceId = this.tracingContext.traceId;
     log.date = new Date();
-
-    if(breadcrumb) {
-      this.breadcrumbHandler.add(breadcrumb)
-    }
-
-    log.breadcrumbs = this.breadcrumbHandler.breadcrumbs;
 
     // Handle the data parameter to extract highlights and extra information.
     if (data) {
@@ -128,11 +117,22 @@ export class LogHandler implements LogHandlerInterface {
       if (typeof data === 'object' && data !== null && !Array.isArray(data) && (data.hasOwnProperty('highlights') || data.hasOwnProperty('extra'))) {
         log.highlights = data.highlights ?? {};
         log.extra = data.extra;
+        log.eventId = data.eventId;
       } else {
         // Otherwise, treat the entire data object as 'extra'
         log.extra = data;
       }
+
+      if(data.breadcrumb) {
+        this.breadcrumbHandler.add(data.eventId, data.breadcrumb);
+      }
+
+      if(data.eventId) {
+        log.breadcrumbs = this.breadcrumbHandler.breadcrumbs[data.eventId];
+      }
     }
+
+
 
     // If the activateDiagnostics configuration is set to true, we will include additional information into a __diagnostics path into extra.
     // This is an intensive process so be careful, it will dramatically slow down your calls.

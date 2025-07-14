@@ -98,7 +98,7 @@ export class StripeWebhooksManager {
 
         // Because we check before and resolve before getting here.
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const parsedEvent = new Event(type!, stripeSubscription)
+        const parsedEvent = new Event(type!, stripeSubscription, request.id)
 
         // Dispatch the event.
         await this.eventDispatcher.dispatch(parsedEvent)

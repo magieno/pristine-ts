@@ -14,6 +14,7 @@ import {AwsApiGatewayModuleKeyname} from "../aws-api-gateway.module.keyname";
 import {ApiGatewayEventTypeEnum} from "../enums/api-gateway-event-type.enum";
 import {BaseApiEventMapper} from "./base-api-event.mapper";
 import {LogHandlerInterface} from "@pristine-ts/logging";
+import {v4 as uuidv4} from "uuid";
 
 /**
  * The Http api event mapper maps a raw event to EventsExecutionOptionsInterface with either an HttpApiEventPayload or a Request
@@ -62,16 +63,13 @@ export class HttpApiEventMapper extends BaseApiEventMapper implements EventMappe
             case ApiGatewayEventsHandlingStrategyEnum.Request: {
                 const request = new Request(
                     this.mapHttpMethod(rawEvent.requestContext.http.method),
-                    rawEvent.requestContext.http.path + (rawEvent.rawQueryString ? "?" + rawEvent.rawQueryString : "")
+                    rawEvent.requestContext.http.path + (rawEvent.rawQueryString ? "?" + rawEvent.rawQueryString : ""),
+                    uuidv4(),
                 );
                 request.setHeaders(rawEvent.headers);
                 request.body = rawEvent.body;
                 request.rawBody = rawEvent.body;
-
-                const requestId = request.getHeader("x-pristine-request-id")
-                if (requestId) {
-                  request.id = requestId;
-                }
+                request.id = request.getHeader("x-pristine-request-id") ?? request.id;
 
                 return {
                     executionOrder: "sequential",

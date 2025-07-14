@@ -10,7 +10,7 @@ describe("Default Content Type response header Interceptor", () => {
         const defaultContentTypeResponseHeaderInterceptor: DefaultContentTypeResponseHeaderInterceptor = new DefaultContentTypeResponseHeaderInterceptor("application/json", false, logHandlerMock);
 
         const response = new Response();
-        const request = new Request(HttpMethod.Get, "http://localhost");
+        const request = new Request(HttpMethod.Get, "http://localhost", "uuid");
 
         expect((await defaultContentTypeResponseHeaderInterceptor.interceptResponse(response, request)).hasHeader("Content-Type")).toBeFalsy();
     })
@@ -19,7 +19,7 @@ describe("Default Content Type response header Interceptor", () => {
         const defaultContentTypeResponseHeaderInterceptor: DefaultContentTypeResponseHeaderInterceptor = new DefaultContentTypeResponseHeaderInterceptor("application/json", true, logHandlerMock);
 
         const response = new Response();
-        const request = new Request(HttpMethod.Get, "http://localhost");
+        const request = new Request(HttpMethod.Get, "http://localhost", "uuid");
         response.setHeader("Content-Type", "text/plain")
 
         expect((await defaultContentTypeResponseHeaderInterceptor.interceptResponse(response, request)).getHeader("Content-Type")).toBe("text/plain");
@@ -29,7 +29,7 @@ describe("Default Content Type response header Interceptor", () => {
         const defaultContentTypeResponseHeaderInterceptor: DefaultContentTypeResponseHeaderInterceptor = new DefaultContentTypeResponseHeaderInterceptor("application/json", true, logHandlerMock);
 
         const response = new Response();
-        const request = new Request(HttpMethod.Get, "http://localhost");
+        const request = new Request(HttpMethod.Get, "http://localhost", "uuid");
 
         expect((await defaultContentTypeResponseHeaderInterceptor.interceptResponse(response, request)).getHeader("Content-Type")).toBe("application/json");
     })

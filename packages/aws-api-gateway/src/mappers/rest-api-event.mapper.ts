@@ -15,7 +15,7 @@ import {ApiGatewayEventsHandlingStrategyEnum} from "../enums/api-gateway-events-
 import {AwsApiGatewayModuleKeyname} from "../aws-api-gateway.module.keyname";
 import {BaseApiEventMapper} from "./base-api-event.mapper";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-
+import {v4 as uuidv4} from "uuid";
 /**
  * The Rest api event mapper maps a raw event to EventsExecutionOptionsInterface with either an RestApiEventResponsePayload or a Request
  * depending on the handling strategy defined in the environment configs.
@@ -62,19 +62,15 @@ export class RestApiEventMapper extends BaseApiEventMapper implements EventMappe
     map(rawEvent: any, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<RestApiEventPayload | Request> {
         switch (this.restApiEventsHandlingStrategy) {
             case ApiGatewayEventsHandlingStrategyEnum.Request:
-                const request = new Request(this.mapHttpMethod(rawEvent.httpMethod), rawEvent.path);
+                const request = new Request(this.mapHttpMethod(rawEvent.httpMethod), rawEvent.path, uuidv4());
                 request.setHeaders(rawEvent.headers);
                 request.body = rawEvent.body;
                 request.rawBody = rawEvent.body;
-
-                const requestId = request.getHeader("x-pristine-request-id")
-                if (requestId) {
-                  request.id = requestId;
-                }
+                request.id = request.getHeader("x-pristine-request-id") ?? request.id;
 
                 return {
                     executionOrder: "sequential",
-                    events: [new Event<Request>(ApiGatewayEventTypeEnum.RestApiEvent, request)],
+                    events: [new Event<Request>(ApiGatewayEventTypeEnum.RestApiEvent, request, request.id)],
                 };
 
             case ApiGatewayEventsHandlingStrategyEnum.Event:
@@ -125,7 +121,7 @@ export class RestApiEventMapper extends BaseApiEventMapper implements EventMappe
 
                 return {
                     executionOrder: "sequential",
-                    events: [new Event<RestApiEventPayload>(ApiGatewayEventTypeEnum.RestApiEvent, restApiEventPayload)],
+                    events: [new Event<RestApiEventPayload>(ApiGatewayEventTypeEnum.RestApiEvent, restApiEventPayload, rawEvent.requestContext.requestId ?? uuidv4())],
                 };
         }
 

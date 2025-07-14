@@ -18,7 +18,7 @@ export class EventBridgeCronEventHandler implements EventHandlerInterface<any, a
      * @param event
      */
     async handle(event: Event<any>): Promise<EventResponse<any, any>> {
-        await this.scheduler.runTasks();
+        await this.scheduler.runTasks(event.id);
 
         return new EventResponse<any, any>(event, {});
     }

@@ -3,7 +3,6 @@ import {OutputModeEnum} from "../enums/output-mode.enum";
 import {SeverityEnum} from "../enums/severity.enum";
 import format from "date-fns/format";
 import {DiagnosticsModel} from "../models/diagnostics.model";
-import {last} from "lodash";
 
 /**
  * This class provides some utility functions to help with the logging.
@@ -142,17 +141,17 @@ export class Utils {
 
                 return JSON.stringify(truncatedLog, jsonSortOrders, spaceNumber);
             case OutputModeEnum.Simple:
-                const base = "\n" + format(log.date, "yyyy-MM-dd HH:mm:ss.SSS") + " - " + " [" + this.getSeverityText(log.severity) + "] - " + log.message;
+                const base = "\n" + log.eventId + " - " + format(log.date, "yyyy-MM-dd HH:mm:ss.SSS") + " - " + " [" + this.getSeverityText(log.severity) + "] - " + log.message;
 
                 let highlights = "";
                 if (log.highlights) {
                     for (const key in log.highlights) {
-                        highlights += `\n- ${key}: ${JSON.stringify(Utils.truncate(log.highlights[key], 2))}`;
+                        highlights += `\n- ${key}: ${JSON.stringify(Utils.truncate(log.highlights[key], 4))}`;
                     }
                 }
 
                 let breadcrumbs = "";
-                if (log.breadcrumbs && log.breadcrumbs.length > 0) {
+                if (log.breadcrumbs && log.breadcrumbs.length > 0 && (log.outputHints.outputBreadcrumbs || log.severity >= SeverityEnum.Warning)) {
                     breadcrumbs += "\nBreadcrumbs:";
                     breadcrumbs += "\n- " + log.breadcrumbs.map(breadcrumb => breadcrumb.message).join("\n- ");
                 }

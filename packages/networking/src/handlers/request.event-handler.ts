@@ -50,8 +50,10 @@ export class RequestEventHandler implements EventHandlerInterface<Request, Respo
           },
           extra: {
             event,
-          }
-        }, `${NetworkingModuleKeyname}:request.event-handler:handle`)
+          },
+          eventId: event.id,
+          breadcrumb: `${NetworkingModuleKeyname}:request.event-handler:handle`,
+        }, )
 
         const response = await this.router.execute(event.payload, this.dependencyContainer);
 
