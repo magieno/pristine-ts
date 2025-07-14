@@ -141,7 +141,7 @@ export class Utils {
 
                 return JSON.stringify(truncatedLog, jsonSortOrders, spaceNumber);
             case OutputModeEnum.Simple:
-                const base = "\n\n" + log.eventId + " - " + format(log.date, "yyyy-MM-dd HH:mm:ss.SSS") + " - " + " [" + this.getSeverityText(log.severity) + "] - " + log.message;
+                const base = "\n" + log.eventId + " - " + format(log.date, "yyyy-MM-dd HH:mm:ss.SSS") + " - " + " [" + this.getSeverityText(log.severity) + "] - " + log.message;
 
                 let highlights = "";
                 if (log.highlights) {
