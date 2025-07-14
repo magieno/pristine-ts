@@ -146,14 +146,14 @@ export class Utils {
                 let highlights = "";
                 if (log.highlights) {
                     for (const key in log.highlights) {
-                        highlights += `\n\t\t- ${key}: ${JSON.stringify(Utils.truncate(log.highlights[key], 4))}`;
+                        highlights += `\n\t- ${key}: ${JSON.stringify(Utils.truncate(log.highlights[key], 4))}`;
                     }
                 }
 
                 let breadcrumbs = "";
                 if (log.breadcrumbs && log.breadcrumbs.length > 0 && (log.outputHints.outputBreadcrumbs || log.severity >= SeverityEnum.Warning)) {
-                    breadcrumbs += "\n\t\tBreadcrumbs:";
-                    breadcrumbs += "\n\t\t\t- " + log.breadcrumbs.map(breadcrumb => breadcrumb.message).join("\n- ");
+                    breadcrumbs += "\n\tBreadcrumbs:";
+                    breadcrumbs += "\n\t\t- " + log.breadcrumbs.map(breadcrumb => breadcrumb.message).join("\n- ");
                 }
 
                 return base + highlights + breadcrumbs;
