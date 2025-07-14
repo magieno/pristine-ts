@@ -110,7 +110,6 @@ export class LogHandler implements LogHandlerInterface {
     log.kernelInstantiationId = this.kernelInstantiationId;
     log.traceId = this.tracingContext.traceId;
     log.date = new Date();
-    log.outputHints = data.outputHints;
 
     // Handle the data parameter to extract highlights and extra information.
     if (data) {
@@ -130,6 +129,10 @@ export class LogHandler implements LogHandlerInterface {
 
       if(data.eventId) {
         log.breadcrumbs = this.breadcrumbHandler.breadcrumbs[data.eventId];
+      }
+
+      if(data.outputHints) {
+        log.outputHints = data.outputHints;
       }
     }
 
