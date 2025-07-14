@@ -52,7 +52,7 @@ export class RequestBodyConverterInterceptor implements RequestInterceptorInterf
                     case "object":
                         if(request.body.constructor === Date) {
                             const errorMessage = "RequestBodyConverterInterceptor: This request has the Content-Type header 'application/json' but the body is a Date object which is invalid JSON.";
-                            this.logHandler.error(errorMessage);
+                            this.logHandler.error(errorMessage, {eventId: request.id, });
 
                             throw new InvalidBodyHttpError(errorMessage);
                         }
@@ -66,7 +66,7 @@ export class RequestBodyConverterInterceptor implements RequestInterceptorInterf
                         }
                         catch (e) {
                             const errorMessage = "RequestBodyConverterInterceptor: This request has the Content-Type header 'application/json', and the body is of type string, but the body contains invalid JSON.";
-                            this.logHandler.error(errorMessage);
+                            this.logHandler.error(errorMessage, {eventId: request.id, });
 
                             throw new InvalidBodyHttpError(errorMessage);
                         }
@@ -74,7 +74,7 @@ export class RequestBodyConverterInterceptor implements RequestInterceptorInterf
 
                     default:
                         const errorMessage = "RequestBodyConverterInterceptor: This request has the Content-Type header 'application/json' but the body contains invalid JSON.";
-                        this.logHandler.error(errorMessage);
+                        this.logHandler.error(errorMessage, {eventId: request.id, });
 
                         throw new InvalidBodyHttpError(errorMessage);
                 }

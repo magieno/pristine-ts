@@ -155,7 +155,8 @@ export class HttpApiEventMapper extends BaseApiEventMapper implements EventMappe
                         },
                         extra: {
                             error: e,
-                        }
+                        },
+                        eventId: eventResponse.event.id,
                     })
                 }
             }

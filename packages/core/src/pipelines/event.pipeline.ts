@@ -168,7 +168,8 @@ export class EventPipeline {
                 extra: {
                     error,
                     interceptedEvent,
-                }
+                },
+                eventId: event.id,
             })
             throw new EventDispatchingError(`There was an error while dispatching the event: '${error}'`, error as Error, interceptedEvent);
         }

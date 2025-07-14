@@ -116,7 +116,7 @@ export class PermissionManager {
                     identity,
                     resource,
                     votingStrategy,
-                  }
+                  },
                 });
                 throw error;
             }
