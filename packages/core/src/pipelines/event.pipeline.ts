@@ -162,7 +162,8 @@ export class EventPipeline {
                 outputBreadcrumbs: true,
               }
             })
-            //this.breadcrumbHandler.reset(event.id);
+
+            this.breadcrumbHandler.reset(event.id);
 
             return response;
         } catch (error) {
