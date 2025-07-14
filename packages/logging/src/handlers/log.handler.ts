@@ -131,7 +131,9 @@ export class LogHandler implements LogHandlerInterface {
         log.breadcrumbs = this.breadcrumbHandler.breadcrumbs[data.eventId];
       }
 
-      log.outputHints = data.outputHints;
+      if(data.outputHints) {
+        log.outputHints = data.outputHints;
+      }
     }
 
 
