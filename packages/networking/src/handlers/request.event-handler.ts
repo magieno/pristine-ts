@@ -62,6 +62,7 @@ export class RequestEventHandler implements EventHandlerInterface<Request, Respo
             body: response.body,
             headers: response.headers,
           },
+          eventId: event.id,
             extra: {
                 event,
                 response,
