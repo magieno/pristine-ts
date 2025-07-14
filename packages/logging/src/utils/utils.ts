@@ -152,8 +152,8 @@ export class Utils {
 
                 let breadcrumbs = "";
                 if (log.breadcrumbs && log.breadcrumbs.length > 0 && (log.outputHints.outputBreadcrumbs || log.severity >= SeverityEnum.Warning)) {
-                    breadcrumbs += "\n\tBreadcrumbs:";
-                    breadcrumbs += "\n\t\t- " + log.breadcrumbs.map(breadcrumb => breadcrumb.message).join("\n- ");
+                    breadcrumbs += "\n  Breadcrumbs:";
+                    breadcrumbs += "\n\t- " + log.breadcrumbs.map(breadcrumb => breadcrumb.message).join("\n\t- ");
                 }
 
                 return base + highlights + breadcrumbs;
