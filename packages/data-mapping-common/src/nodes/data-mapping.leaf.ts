@@ -161,6 +161,9 @@ export class DataMappingLeaf {
             for (let value of array) {
                 normalizers.forEach(element => {
                     const normalizer = normalizersMap[element.key];
+
+                    if(normalizer)
+
                     value = normalizer.normalize(value, element.options);
                 })
 

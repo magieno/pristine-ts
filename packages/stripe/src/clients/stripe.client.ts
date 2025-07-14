@@ -58,6 +58,7 @@ export class StripeClient implements StripeClientInterface{
             return this.getStripeClient().webhooks.constructEvent(request.rawBody, stripeSignature, stripeSigningEndpointSecret);
         } catch (error: any) {
             this.logHandler.error("StripeClient: Error with stripe signature.", {
+                eventId: request.id,
                 highlights: {
                     errorMessage: error.message ?? "Unknown error",
                     requestUrl: `${request.httpMethod} ${request.url}`,

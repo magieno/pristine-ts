@@ -290,7 +290,10 @@ export class TracingManager implements TracingManagerInterface {
             "Trace duration: " + this.trace.getDuration() + " ms \n" +
             "Top 5 longest spans: \n" + longestSpans.map(span => "\t" + span.getDuration() + " ms - " + span.keyname).join("\n")
             , {
+          extra: {
             trace: this.trace,
+          },
+          eventId: this.trace.id,
         })
     }
 }

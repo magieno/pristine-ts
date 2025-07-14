@@ -63,7 +63,8 @@ export class AuthorizerManager implements AuthorizerManagerInterface {
                         identityId: identity?.id ?? "No Identity Id found",
                         identityClaims: identity?.claims ?? "No claims found",
                     },
-                    extra: {
+                  eventId: request.id,
+                  extra: {
                         error: e,
                         request,
                         identity,

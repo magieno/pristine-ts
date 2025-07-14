@@ -149,7 +149,8 @@ export class RestApiEventMapper extends BaseApiEventMapper implements EventMappe
                         },
                         extra: {
                             error: e,
-                        }
+                        },
+                      eventId: eventResponse.event.id,
                     })
                 }
             }

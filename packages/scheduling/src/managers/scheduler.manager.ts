@@ -50,10 +50,11 @@ export class SchedulerManager implements SchedulerInterface {
             Promise.allSettled(promises).then(results => {
                 results.forEach(result => {
                     if(result.status === 'fulfilled') {
-                        this.logHandler.debug("SchedulerManager: Scheduled Task Fulfilled.", {extra: {result}})
+                        this.logHandler.debug("SchedulerManager: Scheduled Task Fulfilled.", {eventId, extra: {result}})
                     }
                     else {
                         this.logHandler.error("SchedulerManager: Scheduled Task Error.", {
+                          eventId,
                             extra: {
                                 result: {
                                     status: result.status,

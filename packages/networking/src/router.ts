@@ -224,9 +224,14 @@ export class Router implements RouterInterface {
             // If node doesn't exist, throw a 404 error
             if (methodNode === null) {
                 this.loghandler.error("Cannot find the path", {
+                    highlights: {
+                      url,
+                    },
+                  extra: {
                     rootNode: this.root,
                     request,
-                    url,
+                  },
+                  eventId: request.id,
                 });
 
                 routerRequestExecutionSpan.end();
@@ -265,14 +270,25 @@ export class Router implements RouterInterface {
                 routerRequestAuthenticationSpan.end();
 
                 this.loghandler.debug("Router - Found identity.", {
-                    identity
+                  highlights: {
+                    identityId: identity?.id ?? "None",
+                  }, extra: {
+                    identity,
+                  },
+                  eventId: request.id,
                 });
-            } catch (error) {
+            } catch (error: any) {
                 this.loghandler.error("Authentication error", {
+                  highlights: {
+                    errorMessage: error.message ?? "Unknown error"
+                  },
+                  extra: {
                     error,
                     request,
                     context: methodNode.route.context,
                     container
+                  },
+                  eventId: request.id,
                 });
 
                 // Todo: check if the error is an UnauthorizedHttpError, else create one.
@@ -305,8 +321,11 @@ export class Router implements RouterInterface {
                 requestInterceptorsSpan.end();
 
                 this.loghandler.debug("Intercepted Request", {
+                  extra: {
                     request,
                     interceptedRequest,
+                  },
+                  eventId: request.id,
                 })
 
                 // Resolve the value to inject in the method arguments that have a decorator resolver
@@ -315,8 +334,11 @@ export class Router implements RouterInterface {
                 // If the cache did not contain the cached controller method arguments
                 if (resolvedMethodArguments === undefined) {
                     this.loghandler.debug("Resolved method arguments were not cached, currently resolving", {
+                      extra: {
                         request,
                         interceptedRequest,
+                      },
+                      eventId: request.id,
                     });
                     resolvedMethodArguments = [];
 
@@ -346,14 +368,16 @@ export class Router implements RouterInterface {
                 const response = await Promise.resolve(controllerResponse);
 
                 this.loghandler.debug("Router - The response returned by the controller", {
-                    response
+                    extra: {response},
+                    eventId: request.id,
                 })
 
                 let returnedResponse: Response;
                 // If the response is already a Response object, return the response
                 if (response instanceof Response) {
                     this.loghandler.debug("Router - Response returned by the controller is a Response object", {
-                        response,
+                      extra: {response},
+                      eventId: request.id,
                     })
                     returnedResponse = response;
                 } else {
@@ -364,14 +388,20 @@ export class Router implements RouterInterface {
                     returnedResponse.body = response;
 
                     this.loghandler.debug("Router - Response returned by the controller is NOT a Response object", {
+                      extra: {
                         response,
                         returnedResponse,
+                      },
+                      eventId: request.id,
                     })
                 }
 
                 this.loghandler.debug("Router - The response before calling the response interceptors ", {
-                    response,
-                    returnedResponse,
+                    extra: {
+                      response,
+                      returnedResponse,
+                    },
+                    eventId: request.id,
                 })
 
                 const responseInterceptorsSpan = tracingManager.startSpan(SpanKeynameEnum.ResponseInterceptors, SpanKeynameEnum.RouterRequestExecution);
@@ -380,9 +410,15 @@ export class Router implements RouterInterface {
 
                 routerRequestExecutionSpan.end();
                 return resolve(interceptedResponse);
-            } catch (error) {
+            } catch (error: any) {
                 this.loghandler.error("Router - There was an error trying to execute the request in the router", {
+                  highlights: {
+                    errorMessage: error.message ?? "Unknown error",
+                  },
+                  extra: {
                     error,
+                  },
+                    eventId: request.id,
                 })
 
                 // Execute router interceptors for the error response;
@@ -405,8 +441,11 @@ export class Router implements RouterInterface {
      */
     private async executeRequestInterceptors(request: Request, container: DependencyContainer, methodNode: MethodRouterNode): Promise<Request> {
         this.loghandler.debug("Router - Request Interceptors - Start", {
+          extra: {
             request,
             methodNode,
+          },
+          eventId: request.id,
         })
 
         // Execute all the request interceptors
@@ -427,8 +466,14 @@ export class Router implements RouterInterface {
                 if (typeof interceptor.interceptRequest === "undefined") {
                     // Simply log a message for now that the interceptors doesn't implement the 'interceptRequest' method.
                     this.loghandler.debug("The Request Interceptor doesn't implement the interceptRequest method.", {
+                      highlights: {
                         name: interceptor.constructor.name,
+                      },
+                      extra: {
                         interceptor
+                      },
+                      eventId: request.id,
+
                     });
                     continue;
                 }
@@ -436,17 +481,30 @@ export class Router implements RouterInterface {
                 try {
                     // https://stackoverflow.com/a/27760489/684101
                     interceptedRequest = await (interceptor as RequestInterceptorInterface).interceptRequest?.(interceptedRequest, methodNode) ?? interceptedRequest;
-                } catch (e) {
-                    this.loghandler.error("There was an exception thrown while executing the 'interceptedRequest' method of the RequestInterceptor named: '" + interceptor.constructor.name + "'.", {e});
-                    throw e;
+                } catch (error: any) {
+                    this.loghandler.error("There was an exception thrown while executing the 'interceptedRequest' method of the RequestInterceptor named: '" + interceptor.constructor.name + "'.", {
+                      highlights: {
+                        errorMessage: error.message ?? "Unknown error",
+                        interceptorName: interceptor.constructor.name,
+                      },
+                      extra: {
+                        error,
+                        interceptor,
+                      },
+                      eventId: request.id,
+                    });
+                    throw error;
                 }
             }
         }
 
         this.loghandler.debug("Router - Request Interceptors - End", {
+          extra: {
             request,
             interceptedRequest,
             methodNode,
+          },
+          eventId: request.id,
         })
 
         return interceptedRequest;
@@ -464,9 +522,12 @@ export class Router implements RouterInterface {
      */
     private async executeResponseInterceptors(response: Response, request: Request, container: DependencyContainer, methodNode?: MethodRouterNode): Promise<Response> {
         this.loghandler.debug("Router - Response Interceptors - Start", {
+          extra: {
             response,
             request,
             methodNode,
+          },
+          eventId: request.id,
         })
 
         // Execute all the request interceptors
@@ -487,26 +548,43 @@ export class Router implements RouterInterface {
                 if (typeof interceptor.interceptResponse === "undefined") {
                     // Simply log a message for now that the interceptors doesn't implement the 'interceptResponse' method.
                     this.loghandler.debug("Router - The Request Interceptor doesn't implement the interceptResponse method.", {
+                      highlights: {
                         name: interceptor.constructor.name,
+                      },
+                      extra: {
                         interceptor
+                      },
+                      eventId: request.id,
                     });
                     continue;
                 }
 
                 try {
                     interceptedResponse = await (interceptor as RequestInterceptorInterface).interceptResponse?.(interceptedResponse, request, methodNode) ?? interceptedResponse;
-                } catch (e) {
-                    this.loghandler.error("Router - There was an exception thrown while executing the 'interceptResponse' method of the RequestInterceptor named: '" + interceptor.constructor.name + "'.", {e});
-                    throw e;
+                } catch (error: any) {
+                    this.loghandler.error("Router - There was an exception thrown while executing the 'interceptResponse' method of the RequestInterceptor named: '" + interceptor.constructor.name + "'.", {
+                      highlights: {
+                        name: interceptor.constructor.name,
+                      },
+                      extra: {
+                        error,
+                        interceptor,
+                      },
+                      eventId: request.id,
+                    });
+                    throw error;
                 }
             }
         }
 
         this.loghandler.debug("Router - Response Interceptors - End", {
-            response,
-            interceptedResponse,
-            request,
-            methodNode,
+            extra: {
+              response,
+              interceptedResponse,
+              request,
+              methodNode,
+            },
+          eventId: request.id,
         })
 
         return interceptedResponse;
@@ -562,17 +640,29 @@ export class Router implements RouterInterface {
                 if (typeof interceptor.interceptError === "undefined") {
                     // Simply log a message for now that the interceptors doesn't implement the 'interceptError' method.
                     this.loghandler.debug("The Request Interceptor doesn't implement the interceptError method.", {
-                        name: interceptor.constructor.name,
-                        interceptor
+                        highlights: {
+                          interceptorName: interceptor.constructor.name,
+                        },
+                        extra: {
+                          interceptor
+                        },
+                        eventId: request.id,
                     });
                     continue;
                 }
 
                 try {
                     interceptedResponse = await (interceptor as RequestInterceptorInterface).interceptError?.(error, interceptedResponse, request, methodNode) ?? interceptedResponse;
-                } catch (e) {
-                    this.loghandler.error("There was an exception thrown while executing the 'interceptError' method of the RequestInterceptor named: '" + interceptor.constructor.name + "'.", {e});
-                    throw e;
+                } catch (error: any) {
+                    this.loghandler.error("There was an exception thrown while executing the 'interceptError' method of the RequestInterceptor named: '" + interceptor.constructor.name + "'.", {
+                      highlights: {
+                        errorMessage: error.message ?? "",
+                        interceptorName: interceptor.constructor.name,
+                      },
+                      extra: {error},
+                      eventId: request.id,
+                    });
+                    throw error;
                 }
             }
         }
@@ -580,10 +670,13 @@ export class Router implements RouterInterface {
         interceptedResponse = await this.executeResponseInterceptors(interceptedResponse, request, container, methodNode);
 
         this.loghandler.debug("Router - Error Response Interceptors - End", {
+          extra: {
             error,
             interceptedResponse,
             request,
             methodNode,
+          },
+          eventId: request.id,
         })
 
         return interceptedResponse;
