@@ -1,11 +1,17 @@
 import {SeverityEnum} from "../enums/severity.enum";
 import {BreadcrumbModel} from "./breadcrumb.model";
 import {LogHighlights} from "../types/log-highlights.type";
+import {OutputHints} from "../types/output-hints.type";
 
 /**
  * The model that represents a log
  */
 export class LogModel {
+  /**
+   * The eventId associated with the log.
+   */
+  eventId?: string
+
   /**
    * The trace id from which the log originated.
    */
@@ -43,6 +49,14 @@ export class LogModel {
    * you choose to highlight to avoid showing to many useless things.
    */
   highlights: LogHighlights = {};
+
+  /**
+   * Define output hints that can be overriden. It's not authoritative. For example, even though outputBreadcrumbs might
+   * be false, if there's an error, the logger might decide to show them anyway.
+   */
+  outputHints: OutputHints = {
+    outputBreadcrumbs: false,
+  }
 
   /**
    * The model that represents a log

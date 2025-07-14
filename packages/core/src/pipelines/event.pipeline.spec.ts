@@ -26,7 +26,7 @@ describe("Event Pipeline", () => {
     const logHandlerMock = new LogHandlerMock();
 
   const breadcrumbHandlerMock: BreadcrumbHandlerInterface = {
-    breadcrumbs: [],
+    breadcrumbs: {},
     add(message: string, extra?:any): void {},
     reset(): void {},
   }
@@ -53,7 +53,7 @@ describe("Event Pipeline", () => {
                 return {
                     executionOrder: "sequential",
                     events: [
-                        new Event<any>("", event),
+                        new Event<any>("", event, "uuid"),
                     ]
                 }
             },
@@ -74,7 +74,7 @@ describe("Event Pipeline", () => {
         // @ts-ignore
         dependencyContainerMock.resolve = (token) => {
             if(token === "EventDispatcherInterface") {
-                return new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}), {}));
+                return new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}, "uuid"), {}));
             }
         }
 
@@ -111,7 +111,7 @@ describe("Event Pipeline", () => {
             }
         }
 
-        const mappedEvent = new Event<any>("", interceptedEvent);
+        const mappedEvent = new Event<any>("", interceptedEvent, "uuid");
 
         const eventMapper: EventMapperInterface<any, any> = {
             supportsMapping(event: object, executionContext: ExecutionContextInterface<any>): boolean {
@@ -142,12 +142,12 @@ describe("Event Pipeline", () => {
         // @ts-ignore
         dependencyContainerMock.resolve = (token) => {
             if(token === "EventDispatcherInterface") {
-                const eventDispatcher = new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}), {}));
+                const eventDispatcher = new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}, "uuid"), {}));
 
                 eventDispatcher.dispatch = (event: Event<any>): Promise<EventResponse<any, any>> => {
                     expect(event).toBe(mappedEvent);
 
-                    return Promise.resolve(new EventResponse<any, any>(new Event<any>("", {}), {}));
+                    return Promise.resolve(new EventResponse<any, any>(new Event<any>("", {}, "uuid"), {}));
                 }
 
                 return eventDispatcher;
@@ -170,8 +170,8 @@ describe("Event Pipeline", () => {
             "interceptedEvent": true,
         }
 
-        const mappedEvent1 = new Event<any>("event1", interceptedEvent);
-        const mappedEvent2 = new Event<any>("event2", interceptedEvent);
+        const mappedEvent1 = new Event<any>("event1", interceptedEvent, "uuid");
+        const mappedEvent2 = new Event<any>("event2", interceptedEvent, "uuid");
 
         const eventMapper: EventMapperInterface<any, any> = {
             supportsMapping(event: object, executionContext: ExecutionContextInterface<any>): boolean {
@@ -204,7 +204,7 @@ describe("Event Pipeline", () => {
         // @ts-ignore
         dependencyContainerMock.resolve = (token) => {
             if(token === "EventDispatcherInterface") {
-                const eventDispatcher = new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}), {}));
+                const eventDispatcher = new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}, "uuid"), {}));
 
                 eventDispatcher.dispatch = (event: Event<any>): Promise<EventResponse<any, any>> => {
                     executionOrder++;
@@ -216,7 +216,7 @@ describe("Event Pipeline", () => {
                         expect(event.type).toBe("event2");
                     }
 
-                    return Promise.resolve(new EventResponse<any, any>(new Event<any>("", {}), {}));
+                    return Promise.resolve(new EventResponse<any, any>(new Event<any>("", {}, "uuid"), {}));
                 }
 
                 return eventDispatcher;
@@ -239,17 +239,17 @@ describe("Event Pipeline", () => {
             "interceptedEvent": true,
         }
 
-        const mappedEvent0 = new Event<any>("event0", interceptedEvent);
-        const mappedEvent1 = new Event<any>("event1", interceptedEvent);
-        const mappedEvent2 = new Event<any>("event2", interceptedEvent);
-        const mappedEvent3 = new Event<any>("event3", interceptedEvent);
-        const mappedEvent4 = new Event<any>("event4", interceptedEvent);
-        const mappedEvent5 = new Event<any>("event5", interceptedEvent);
-        const mappedEvent6 = new Event<any>("event6", interceptedEvent);
-        const mappedEvent7 = new Event<any>("event7", interceptedEvent);
-        const mappedEvent8 = new Event<any>("event8", interceptedEvent);
-        const mappedEvent9 = new Event<any>("event9", interceptedEvent);
-        const mappedEvent10 = new Event<any>("event10", interceptedEvent);
+        const mappedEvent0 = new Event<any>("event0", interceptedEvent, "uuid");
+        const mappedEvent1 = new Event<any>("event1", interceptedEvent, "uuid");
+        const mappedEvent2 = new Event<any>("event2", interceptedEvent, "uuid");
+        const mappedEvent3 = new Event<any>("event3", interceptedEvent, "uuid");
+        const mappedEvent4 = new Event<any>("event4", interceptedEvent, "uuid");
+        const mappedEvent5 = new Event<any>("event5", interceptedEvent, "uuid");
+        const mappedEvent6 = new Event<any>("event6", interceptedEvent, "uuid");
+        const mappedEvent7 = new Event<any>("event7", interceptedEvent, "uuid");
+        const mappedEvent8 = new Event<any>("event8", interceptedEvent, "uuid");
+        const mappedEvent9 = new Event<any>("event9", interceptedEvent, "uuid");
+        const mappedEvent10 = new Event<any>("event10", interceptedEvent, "uuid");
 
         const eventMapper: EventMapperInterface<any, any> = {
             supportsMapping(event: object, executionContext: ExecutionContextInterface<any>): boolean {
@@ -293,7 +293,7 @@ describe("Event Pipeline", () => {
         // @ts-ignore
         dependencyContainerMock.resolve = (token) => {
             if(token === "EventDispatcherInterface") {
-                const eventDispatcher = new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}), {}));
+                const eventDispatcher = new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}, "uuid"), {}));
 
                 eventDispatcher.dispatch = async (event: Event<any>): Promise<EventResponse<any, any>> => {
                     executionOrder++;
@@ -305,7 +305,7 @@ describe("Event Pipeline", () => {
 
                     executionOrders.push(event);
 
-                    return Promise.resolve(new EventResponse<any, any>(new Event<any>("", {}), {}));
+                    return Promise.resolve(new EventResponse<any, any>(new Event<any>("", {}, "uuid"), {}));
                 }
 
                 return eventDispatcher;
@@ -333,7 +333,7 @@ describe("Event Pipeline", () => {
     })
 
     it("should call the preResponseMapping Interceptors, and pass the intercepted EventResponse to the Event Mappers", async () => {
-        const returnedEventResponse = new EventResponse<any, any>(new Event<any>("", {}), {});
+        const returnedEventResponse = new EventResponse<any, any>(new Event<any>("", {}, "uuid"), {});
 
         const eventInterceptor: EventInterceptorInterface = {
             preResponseMappingIntercept(eventResponse: EventResponse<any, any>): Promise<EventResponse<any, any>> {
@@ -343,7 +343,7 @@ describe("Event Pipeline", () => {
             }
         }
 
-        const mappedEvent = new Event<any>("", {});
+        const mappedEvent = new Event<any>("", {}, "uuid");
 
         const eventMapper: EventMapperInterface<any, any> = {
             supportsMapping(event: object, executionContext: ExecutionContextInterface<any>): boolean {
@@ -375,7 +375,7 @@ describe("Event Pipeline", () => {
         // @ts-ignore
         dependencyContainerMock.resolve = (token) => {
             if(token === "EventDispatcherInterface") {
-                const eventDispatcher = new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}), {}));
+                const eventDispatcher = new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}, "uuid"), {}));
 
                 eventDispatcher.dispatch = (event: Event<any>): Promise<EventResponse<any, any>> => {
                     return Promise.resolve(returnedEventResponse);
@@ -397,7 +397,7 @@ describe("Event Pipeline", () => {
     })
 
     it("should call the postResponseMapping Interceptors before returning the final response", async () => {
-        const returnedEventResponse = new EventResponse<any, any>(new Event<any>("", {}), {});
+        const returnedEventResponse = new EventResponse<any, any>(new Event<any>("", {}, "uuid"), {});
 
         const eventInterceptor: EventInterceptorInterface = {
             postResponseMappingIntercept(eventResponse: object): Promise<object> {
@@ -405,7 +405,7 @@ describe("Event Pipeline", () => {
             }
         }
 
-        const mappedEvent = new Event<any>("", {});
+        const mappedEvent = new Event<any>("", {}, "uuid");
 
         const eventMapper: EventMapperInterface<any, any> = {
             supportsMapping(event: object, executionContext: ExecutionContextInterface<any>): boolean {
@@ -438,7 +438,7 @@ describe("Event Pipeline", () => {
         // @ts-ignore
         dependencyContainerMock.resolve = (token) => {
             if(token === "EventDispatcherInterface") {
-                const eventDispatcher = new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}), {}));
+                const eventDispatcher = new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}, "uuid"), {}));
 
                 eventDispatcher.dispatch = (event: Event<any>): Promise<EventResponse<any, any>> => {
                     return Promise.resolve(returnedEventResponse);
@@ -577,7 +577,7 @@ describe("Event Pipeline", () => {
                 return {
                     executionOrder: "sequential",
                     events: [
-                        new Event<any>("", event),
+                        new Event<any>("", event, "uuid"),
                     ]
                 }
             },
@@ -598,7 +598,7 @@ describe("Event Pipeline", () => {
         // @ts-ignore
         dependencyContainerMock.resolve = (token) => {
             if(token === "EventDispatcherInterface") {
-                return new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}), {}));
+                return new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}, "uuid"), {}));
             }
         }
 
@@ -620,7 +620,7 @@ describe("Event Pipeline", () => {
             }
         }
 
-        const mappedEvent = new Event<any>("", {});
+        const mappedEvent = new Event<any>("", {}, "uuid");
 
         const eventMapper: EventMapperInterface<any, any> = {
             supportsMapping(event: object, executionContext: ExecutionContextInterface<any>): boolean {
@@ -651,12 +651,12 @@ describe("Event Pipeline", () => {
         // @ts-ignore
         dependencyContainerMock.resolve = (token) => {
             if(token === "EventDispatcherInterface") {
-                const eventDispatcher = new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}), {}));
+                const eventDispatcher = new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}, "uuid"), {}));
 
                 eventDispatcher.dispatch = (event: Event<any>): Promise<EventResponse<any, any>> => {
                     expect(event).toBe(mappedEvent);
 
-                    return Promise.resolve(new EventResponse<any, any>(new Event<any>("", {}), {}));
+                    return Promise.resolve(new EventResponse<any, any>(new Event<any>("", {}, "uuid"), {}));
                 }
 
                 return eventDispatcher;
@@ -681,7 +681,7 @@ describe("Event Pipeline", () => {
             }
         }
 
-        const mappedEvent = new Event<any>("", {});
+        const mappedEvent = new Event<any>("", {}, "uuid");
 
         const eventMapper: EventMapperInterface<any, any> = {
             supportsMapping(event: object, executionContext: ExecutionContextInterface<any>): boolean {
@@ -712,12 +712,12 @@ describe("Event Pipeline", () => {
         // @ts-ignore
         dependencyContainerMock.resolve = (token) => {
             if(token === "EventDispatcherInterface") {
-                const eventDispatcher = new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}), {}));
+                const eventDispatcher = new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}, "uuid"), {}));
 
                 eventDispatcher.dispatch = (event: Event<any>): Promise<EventResponse<any, any>> => {
                     expect(event).toBe(mappedEvent);
 
-                    return Promise.resolve(new EventResponse<any, any>(new Event<any>("", {}), {}));
+                    return Promise.resolve(new EventResponse<any, any>(new Event<any>("", {}, "uuid"), {}));
                 }
 
                 return eventDispatcher;
@@ -736,7 +736,7 @@ describe("Event Pipeline", () => {
     it("should return a proper error if a preResponseMapping Interceptors throws", async () => {
         const thrownError = new Error("Very bad error");
 
-        const returnedEventResponse = new EventResponse<any, any>(new Event<any>("", {}), {});
+        const returnedEventResponse = new EventResponse<any, any>(new Event<any>("", {}, "uuid"), {});
 
         const eventInterceptor: EventInterceptorInterface = {
             preResponseMappingIntercept(eventResponse: EventResponse<any, any>): Promise<EventResponse<any, any>> {
@@ -744,7 +744,7 @@ describe("Event Pipeline", () => {
             }
         }
 
-        const mappedEvent = new Event<any>("", {});
+        const mappedEvent = new Event<any>("", {}, "uuid");
 
         const eventMapper: EventMapperInterface<any, any> = {
             supportsMapping(event: object, executionContext: ExecutionContextInterface<any>): boolean {
@@ -776,7 +776,7 @@ describe("Event Pipeline", () => {
         // @ts-ignore
         dependencyContainerMock.resolve = (token) => {
             if(token === "EventDispatcherInterface") {
-                const eventDispatcher = new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}), {}));
+                const eventDispatcher = new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}, "uuid"), {}));
 
                 eventDispatcher.dispatch = (event: Event<any>): Promise<EventResponse<any, any>> => {
                     return Promise.resolve(returnedEventResponse);
@@ -798,7 +798,7 @@ describe("Event Pipeline", () => {
     it("should return a proper error if a postResponseMapping Interceptors throws", async () => {
         const thrownError = new Error("Very bad error");
 
-        const returnedEventResponse = new EventResponse<any, any>(new Event<any>("", {}), {});
+        const returnedEventResponse = new EventResponse<any, any>(new Event<any>("", {}, "uuid"), {});
 
         const eventInterceptor: EventInterceptorInterface = {
             postResponseMappingIntercept(eventResponse: object): Promise<object> {
@@ -806,7 +806,7 @@ describe("Event Pipeline", () => {
             }
         }
 
-        const mappedEvent = new Event<any>("", {});
+        const mappedEvent = new Event<any>("", {}, "uuid");
 
         const eventMapper: EventMapperInterface<any, any> = {
             supportsMapping(event: object, executionContext: ExecutionContextInterface<any>): boolean {
@@ -839,7 +839,7 @@ describe("Event Pipeline", () => {
         // @ts-ignore
         dependencyContainerMock.resolve = (token) => {
             if(token === "EventDispatcherInterface") {
-                const eventDispatcher = new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}), {}));
+                const eventDispatcher = new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}, "uuid"), {}));
 
                 eventDispatcher.dispatch = (event: Event<any>): Promise<EventResponse<any, any>> => {
                     return Promise.resolve(returnedEventResponse);
@@ -865,7 +865,7 @@ describe("Event Pipeline", () => {
             "interceptedEvent": true,
         }
 
-        const mappedEvent1 = new Event<any>("event1", interceptedEvent);
+        const mappedEvent1 = new Event<any>("event1", interceptedEvent, "uuid");
 
         const eventMapper: EventMapperInterface<any, any> = {
             supportsMapping(event: object, executionContext: ExecutionContextInterface<any>): boolean {
@@ -897,7 +897,7 @@ describe("Event Pipeline", () => {
         // @ts-ignore
         dependencyContainerMock.resolve = (token) => {
             if(token === "EventDispatcherInterface") {
-                const eventDispatcher = new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}), {}));
+                const eventDispatcher = new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}, "uuid"), {}));
 
                 eventDispatcher.dispatch = (event: Event<any>): Promise<EventResponse<any, any>> => {
                     throw thrownError;

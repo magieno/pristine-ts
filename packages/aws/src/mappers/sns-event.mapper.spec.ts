@@ -50,6 +50,7 @@ describe("Sns event mapper", () => {
 
         const snsEvent: Event<SnsEventPayload> = {
             type: SnsEventType.Notification,
+            id: "95df01b4-ee98-5cb9-9903-4c221d41eb5e",
             payload: {
                 eventSource:"aws:sns",
                 eventVersion: "1.0",

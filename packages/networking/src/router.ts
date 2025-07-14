@@ -561,7 +561,7 @@ export class Router implements RouterInterface {
                 // So, we have to verify that the method exists, and if it doesn't we throw
                 if (typeof interceptor.interceptError === "undefined") {
                     // Simply log a message for now that the interceptors doesn't implement the 'interceptError' method.
-                    this.loghandler.info("The Request Interceptor doesn't implement the interceptError method.", {
+                    this.loghandler.debug("The Request Interceptor doesn't implement the interceptError method.", {
                         name: interceptor.constructor.name,
                         interceptor
                     });

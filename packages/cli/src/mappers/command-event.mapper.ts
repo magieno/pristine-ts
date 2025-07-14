@@ -10,6 +10,7 @@ import {injectable} from "tsyringe";
 import {CommandEventPayload} from "../event-payloads/command.event-payload";
 import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {CliModuleKeyname} from "../cli.module.keyname";
+import {v4 as uuidv4} from "uuid";
 
 @tag(ServiceDefinitionTagEnum.EventMapper)
 @moduleScoped(CliModuleKeyname)
@@ -108,7 +109,7 @@ export class CommandEventMapper implements EventMapperInterface<CommandEventPayl
         }
 
         return {
-            events: [new Event<CommandEventPayload>("command", command)],
+            events: [new Event<CommandEventPayload>("command", command, uuidv4())],
             executionOrder: "sequential",
         };
     }

@@ -27,7 +27,7 @@ describe("Scheduler Manager tests", () => {
             scheduledTask,
         ], logHandlerMock);
 
-        await schedulerManager.runTasks();
+        await schedulerManager.runTasks("uuid");
 
         expect(spy).toHaveBeenCalled();
     })

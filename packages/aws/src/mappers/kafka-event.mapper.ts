@@ -5,6 +5,7 @@ import {KafkaEventPayload} from "../event-payloads/kafka.event-payload";
 import {KafkaEventType} from "../enums/kafka-event-type.enum";
 import {KafkaMessageModel} from "../models/kafka-message.model";
 import { AwsModuleKeyname } from "../aws.module.keyname";
+import {v4 as uuidv4} from "uuid";
 
 /**
  * Mapper to map the Kafka event from the AWS kafka connector into a Pristine event.
@@ -26,7 +27,7 @@ export class KafkaEventMapper implements EventMapperInterface<KafkaEventPayload,
         const parsedEvents: Event<KafkaEventPayload>[] = [];
 
         for(const key in rawEvent.records) {
-            const event = new Event<KafkaEventPayload>(KafkaEventType.KafkaEvent, new KafkaEventPayload());
+            const event = new Event<KafkaEventPayload>(KafkaEventType.KafkaEvent, new KafkaEventPayload(), "kafka");
             event.payload.eventSource = rawEvent.eventSource;
             event.payload.eventSourceArn = rawEvent.eventSourceArn;
 

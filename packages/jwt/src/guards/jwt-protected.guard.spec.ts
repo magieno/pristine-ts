@@ -11,7 +11,7 @@ describe("JWT Protected Guard", () => {
             }
         })
 
-        const request = new Request( HttpMethod.Get, "https://url")
+        const request = new Request( HttpMethod.Get, "https://url", "uuid")
 
         expect(await jwtProtectedGuard.isAuthorized(request)).toBeTruthy()
     })
@@ -23,7 +23,7 @@ describe("JWT Protected Guard", () => {
             }
         })
 
-        const request = new Request( HttpMethod.Get, "https://url")
+        const request = new Request( HttpMethod.Get, "https://url", "uuid")
 
         expect(await jwtProtectedGuard.isAuthorized(request)).toBeFalsy()
     })

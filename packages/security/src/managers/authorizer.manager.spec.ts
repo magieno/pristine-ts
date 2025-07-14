@@ -19,12 +19,12 @@ describe("AuthorizerManager", () => {
         }
     }
     const breadcrumbHandlerMock: BreadcrumbHandlerInterface = {
-      breadcrumbs: [],
+      breadcrumbs: {},
       add(message: string, extra?:any): void {},
       reset(): void {},
     }
 
-    const requestMock: Request = new Request("", "");
+    const requestMock: Request = new Request("", "", "uuid");
     requestMock.body = {};
 
     @injectable()

@@ -26,7 +26,7 @@ describe("Body Validation Request Enricher", () => {
         }
     }
   const breadcrumbHandlerMock: BreadcrumbHandlerInterface = {
-    breadcrumbs: [],
+    breadcrumbs: {},
     add(message: string, extra?:any): void {},
     reset(): void {},
   }
@@ -44,7 +44,7 @@ describe("Body Validation Request Enricher", () => {
     it("should simply return the request if the bodyValidator is undefined", async () => {
         const bodyValidationRequestInterceptor = new BodyValidationRequestInterceptor(logHandlerMock, new Validator(), dataMapper, breadcrumbHandlerMock);
 
-        const request: Request = new Request(HttpMethod.Get, "url");
+        const request: Request = new Request(HttpMethod.Get, "url", "uuid");
 
         const route: Route = new Route(null, "method");
         route.context = {}
@@ -60,7 +60,7 @@ describe("Body Validation Request Enricher", () => {
     it("should simply return the request if the classType is undefined", async () => {
         const bodyValidationRequestEnricher = new BodyValidationRequestInterceptor(logHandlerMock, new Validator(), dataMapper, breadcrumbHandlerMock);
 
-        const request: Request = new Request(HttpMethod.Get, "url");
+        const request: Request = new Request(HttpMethod.Get, "url", "uuid");
 
         const route: Route = new Route(null, "method");
         route.context = {};
@@ -77,7 +77,7 @@ describe("Body Validation Request Enricher", () => {
     it("should return the request if there are no errors with the classType", async () => {
         const bodyValidationRequestEnricher = new BodyValidationRequestInterceptor(logHandlerMock, new Validator(), dataMapper, breadcrumbHandlerMock);
 
-        const request: Request = new Request(HttpMethod.Get, "url");
+        const request: Request = new Request(HttpMethod.Get, "url", "uuid");
 
         request.body = {
             minimumValue: 40,
@@ -99,7 +99,7 @@ describe("Body Validation Request Enricher", () => {
     it("should reject if there are validation errors. ", async () => {
         const bodyValidationRequestEnricher = new BodyValidationRequestInterceptor(logHandlerMock, new Validator(), dataMapper, breadcrumbHandlerMock);
 
-        const request: Request = new Request(HttpMethod.Get, "url");
+        const request: Request = new Request(HttpMethod.Get, "url", "uuid");
         request.body = {
             minimumValue: -2,
             maximumValue:50,

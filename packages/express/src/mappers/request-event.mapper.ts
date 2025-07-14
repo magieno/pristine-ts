@@ -25,10 +25,11 @@ export class RequestEventMapper implements EventMapperInterface<ExpressRequest, 
     }
 
     map(rawEvent: any, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<any> {
+        const request = this.requestMapper.map(rawEvent as ExpressRequest);
         return {
             executionOrder: "sequential",
             events: [
-                new Event<any>("EXPRESS_REQUEST", this.requestMapper.map(rawEvent as ExpressRequest))
+                new Event<any>("EXPRESS_REQUEST", request, request.id)
             ]
         }
     }

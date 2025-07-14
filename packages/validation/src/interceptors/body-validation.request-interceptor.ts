@@ -44,7 +44,7 @@ export class BodyValidationRequestInterceptor implements RequestInterceptorInter
      * @param methodNode The method node.
      */
     async interceptRequest(request: Request, methodNode: MethodRouterNode): Promise<Request> {
-        this.breadcrumbHandler.add(`${ValidationModuleKeyname}:body-validation.request-interceptor:enter`, {request, methodNode});
+        this.breadcrumbHandler.add(request.id, `${ValidationModuleKeyname}:body-validation.request-interceptor:enter`, {request, methodNode});
         const bodyValidator = methodNode.route.context[bodyValidationMetadataKeyname];
 
         if(bodyValidator === undefined || bodyValidator.classType === undefined) {

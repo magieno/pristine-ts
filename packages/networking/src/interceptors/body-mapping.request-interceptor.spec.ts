@@ -45,7 +45,7 @@ describe("Body Mapping Request Interceptor", () => {
             date: Date;
         }
 
-        const request: Request = new Request(HttpMethod.Get, "");
+        const request: Request = new Request(HttpMethod.Get, "", "uuid");
         request.body = {
             "nested": {
                 "nestedProperty": "nested",
@@ -77,7 +77,7 @@ describe("Body Mapping Request Interceptor", () => {
             return new Date();
         }
 
-        const request: Request = new Request(HttpMethod.Get, "");
+        const request: Request = new Request(HttpMethod.Get, "", "uuid");
         request.body = {
             "nested": {
                 "nestedProperty": "nested",
@@ -108,7 +108,7 @@ describe("Body Mapping Request Interceptor", () => {
             position: number;
         }
 
-        const request: Request = new Request(HttpMethod.Get, "");
+        const request: Request = new Request(HttpMethod.Get, "", "uuid");
         request.body = {
             "title": "The Title",
             "rank": 2,

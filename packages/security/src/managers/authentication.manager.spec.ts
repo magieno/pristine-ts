@@ -19,12 +19,12 @@ describe("AuthenticationManager", () => {
         }
     }
   const breadcrumbHandlerMock: BreadcrumbHandlerInterface = {
-    breadcrumbs: [],
+    breadcrumbs: {},
     add(message: string, extra?:any): void {},
     reset(): void {},
   }
 
-    const requestMock: Request = new Request("", "");
+    const requestMock: Request = new Request("", "", "");
     requestMock.body = {};
 
 

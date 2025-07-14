@@ -31,7 +31,8 @@
     "@pristine-ts/file": "file:../file",
     "@pristine-ts/logging": "file:../logging",
     "@pristine-ts/validation": "file:../validation",
-    "class-transformer": "^0.5.1"
+    "class-transformer": "^0.5.1",
+    "uuid": "^9.0.1"
   },
   "jest": {
     "transform": {

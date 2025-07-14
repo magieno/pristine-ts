@@ -11,6 +11,7 @@ import {SnsEventType} from "../enums/sns-event-type.enum";
 import {SnsModel} from "../models/sns.model";
 import {SnsMessageAttributeModel} from "../models/sns-message-attribute.model";
 import { AwsModuleKeyname } from "../aws.module.keyname";
+import {v4 as uuidv4} from "uuid";
 
 /**
  * Mapper to map the Sns event into a Pristine event.
@@ -46,7 +47,7 @@ export class SnsEventMapper implements EventMapperInterface<SnsEventPayload, voi
     map(rawEvent: any, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<SnsEventPayload> {
         const parsedEvents: Event<SnsEventPayload>[] = [];
         for(const record of rawEvent.Records) {
-            const event = new Event<SnsEventPayload>(this.findEnum(record.Sns.Type), new SnsEventPayload());
+            const event = new Event<SnsEventPayload>(this.findEnum(record.Sns.Type), new SnsEventPayload(), record.Sns.MessageId);
 
             event.payload.eventSource = record.EventSource;
             event.payload.eventSubscriptionArn = record.EventSubscriptionArn;

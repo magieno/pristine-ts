@@ -61,7 +61,7 @@ export class DynamodbEventMapper implements EventMapperInterface<DynamodbEventPa
         const parsedEvents: Event<DynamodbEventPayload>[] = [];
 
         for(const record of rawEvent.Records) {
-            const event = new Event<DynamodbEventPayload>(this.findEnum(record.eventName), new DynamodbEventPayload());
+            const event = new Event<DynamodbEventPayload>(this.findEnum(record.eventName), new DynamodbEventPayload(), record.eventID);
             event.payload.eventVersion = record.eventVersion;
             event.payload.eventSource = record.eventSource;
             if (record.dynamodb.ApproximateCreationDateTime) {

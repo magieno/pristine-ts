@@ -50,7 +50,7 @@ describe("Request Body Validation", () => {
     })
 
     it("should validate the instance passed as a request body and return success when there are no validation errors", async () => {
-        const request: Request = new Request(HttpMethod.Get, "http://localhost:8080/test");
+        const request: Request = new Request(HttpMethod.Get, "http://localhost:8080/test", "uuid");
         request.body = {
             minimumValue: 10,
             maximumValue: 5,
@@ -63,7 +63,7 @@ describe("Request Body Validation", () => {
     })
 
     it("should validate the instance passed as a request body and return a response error when there are validation errors", async () => {
-        const request: Request = new Request(HttpMethod.Get, "http://localhost:8080/test");
+        const request: Request = new Request(HttpMethod.Get, "http://localhost:8080/test", "uuid");
         request.body = {
             minimumValue: 10,
             maximumValue: 15,

@@ -3,6 +3,6 @@
  * Once an event parsed, this should be the only object that will be handle inside the library.
  */
 export class Event<Payload> {
-    constructor(public type: string, public payload: Payload) {
+    constructor(public type: string, public payload: Payload, public readonly id: string) {
     }
 }

@@ -32,7 +32,7 @@ export class EventBridgeEventMapper implements EventMapperInterface<EventBridgeP
             eventType = EventBridgeEventTypeEnum.Event
         }
 
-        const event = new Event<EventBridgePayload>(eventType, new EventBridgePayload());
+        const event = new Event<EventBridgePayload>(eventType, new EventBridgePayload(), rawEvent.id);
 
         event.payload = new EventBridgePayload();
         event.payload.id = rawEvent.id;

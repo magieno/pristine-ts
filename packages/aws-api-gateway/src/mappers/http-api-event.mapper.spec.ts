@@ -22,7 +22,8 @@ describe("Http request mapper", () => {
         ],
         "headers": {
             "header1": "value1",
-            "header2": "value2"
+            "header2": "value2",
+            "x-pristine-request-id": "uuid"
         },
         "queryStringParameters": {
             "parameter1": "value1,value2",
@@ -86,12 +87,13 @@ describe("Http request mapper", () => {
 
         expect(httpApiEventMapper.supportsMapping(rawEvent, executionContext));
 
-        const expectedRequest: Request = new Request(HttpMethod.Post, "/my/path?parameter1=value1&parameter1=value2&parameter2=value");
+        const expectedRequest: Request = new Request(HttpMethod.Post, "/my/path?parameter1=value1&parameter1=value2&parameter2=value", "uuid");
         expectedRequest.body = rawEvent.body;
         expectedRequest.rawBody = rawEvent.body,
         expectedRequest.setHeaders({
             "header1": "value1",
-            "header2": "value2"
+            "header2": "value2",
+            "x-pristine-request-id": "uuid"
         });
 
         const mappedEvent = httpApiEventMapper.map(rawEvent, executionContext);
@@ -137,7 +139,8 @@ describe("Http request mapper", () => {
         ];
         expectedEventPayload.headers = {
             "header1": "value1",
-            "header2": "value2"
+            "header2": "value2",
+            "x-pristine-request-id": "uuid"
         };
         expectedEventPayload.queryStringParameters = {
             "parameter1": "value1,value2",

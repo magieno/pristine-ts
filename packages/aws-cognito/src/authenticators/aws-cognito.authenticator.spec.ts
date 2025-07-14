@@ -126,7 +126,7 @@ describe("AWS Cognito authenticator ", () => {
     it("should validateRequestAndReturnToken", async () => {
         const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
 
-        const request: Request = new Request(HttpMethod.Get, "");
+        const request: Request = new Request(HttpMethod.Get, "", "uuid");
         request.setHeaders({
             "Authorization": "Bearer " + "token",
         })
@@ -136,7 +136,7 @@ describe("AWS Cognito authenticator ", () => {
     it("should not validateRequestAndReturnToken if not headers", async () => {
         const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
 
-        const request: Request = new Request(HttpMethod.Get, "");
+        const request: Request = new Request(HttpMethod.Get, "", "uuid");
 
         expect(() => cognitoAuthenticator["validateRequestAndReturnToken"](request)).toThrow(new Error("The Authorization header wasn't found in the Request."));
     });
@@ -144,7 +144,7 @@ describe("AWS Cognito authenticator ", () => {
     it("should not validateRequestAndReturnToken if no authorization header", async () => {
         const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
 
-        const request: Request = new Request(HttpMethod.Get, "");
+        const request: Request = new Request(HttpMethod.Get, "", "uuid");
         request.setHeaders({
             hello: "string"
         })
@@ -155,7 +155,7 @@ describe("AWS Cognito authenticator ", () => {
     it("should not validateRequestAndReturnToken if authorization header undefined", async () => {
         const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
 
-        const request: Request = new Request(HttpMethod.Get, "");
+        const request: Request = new Request(HttpMethod.Get, "", "uuid");
         request.setHeaders({
             // @ts-ignore
             "Authorization": undefined
@@ -167,7 +167,7 @@ describe("AWS Cognito authenticator ", () => {
     it("should not validateRequestAndReturnToken if authorization header does not start with Bearer", async () => {
         const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
 
-        const request: Request = new Request(HttpMethod.Get, "");
+        const request: Request = new Request(HttpMethod.Get, "", "uuid");
         request.setHeaders({
             // @ts-ignore
             "Authorization": "token"
@@ -236,7 +236,7 @@ describe("AWS Cognito authenticator ", () => {
     it("should authenticate", async () => {
         const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
 
-        const request: Request = new Request(HttpMethod.Get, "");
+        const request: Request = new Request(HttpMethod.Get, "", "uuid");
         request.setHeaders({
             "Authorization": "Bearer " + jwt.sign(payload, privateKey, { algorithm: 'RS256', keyid: tokenHeader.kid})
         })

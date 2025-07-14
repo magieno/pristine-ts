@@ -15,6 +15,7 @@ import {S3Model} from "../models/s3.model";
 import {S3BucketModel} from "../models/s3-bucket.model";
 import {S3ObjectModel} from "../models/s3-object.model";
 import {AwsModuleKeyname} from "../aws.module.keyname";
+import {v4 as uuidv4} from "uuid";
 
 /**
  * Mapper to map the S3 event into a Pristine event.
@@ -50,7 +51,7 @@ export class S3EventMapper implements EventMapperInterface<S3EventPayload, void>
     map(rawEvent: any, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<S3EventPayload> {
         const parsedEvents: Event<S3EventPayload>[] = [];
         for(const record of rawEvent.Records) {
-            const event = new Event<S3EventPayload>(this.findEnum(record.eventName), new S3EventPayload());
+            const event = new Event<S3EventPayload>(this.findEnum(record.eventName), new S3EventPayload(), record.responseElements?.["x-amz-request-id"] ?? uuidv4());
 
             event.payload.eventVersion = record.eventVersion;
             event.payload.eventSource = record.eventSource;

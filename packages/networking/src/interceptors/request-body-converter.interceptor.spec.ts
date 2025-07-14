@@ -10,7 +10,7 @@ describe("Request Body Converter Interceptor", () => {
     it("should return the unmodified request if the interceptor is not active", async () => {
         const requestBodyConverterInterceptor: RequestBodyConverterInterceptor = new RequestBodyConverterInterceptor(false, logHandlerMock);
 
-        const request = new Request(HttpMethod.Get, "http://localhost")
+        const request = new Request(HttpMethod.Get, "http://localhost", "uuid")
         const stringifiedRequest = JSON.stringify(request);
 
         expect(JSON.stringify(await requestBodyConverterInterceptor.interceptRequest(request))).toStrictEqual(stringifiedRequest);
@@ -19,7 +19,7 @@ describe("Request Body Converter Interceptor", () => {
     it("should return the unmodified request if the Content-Type is not present in the Request", async () => {
         const requestBodyConverterInterceptor: RequestBodyConverterInterceptor = new RequestBodyConverterInterceptor(true, logHandlerMock);
 
-        const request = new Request(HttpMethod.Get, "http://localhost")
+        const request = new Request(HttpMethod.Get, "http://localhost", "uuid")
         const stringifiedRequest = JSON.stringify(request);
 
         expect(JSON.stringify(await requestBodyConverterInterceptor.interceptRequest(request))).toStrictEqual(stringifiedRequest);
@@ -28,7 +28,7 @@ describe("Request Body Converter Interceptor", () => {
     it("should return the unmodified request if the Content-Type is application/json and the type of the body is 'undefined'", async () => {
         const requestBodyConverterInterceptor: RequestBodyConverterInterceptor = new RequestBodyConverterInterceptor(true, logHandlerMock);
 
-        const request = new Request(HttpMethod.Get, "http://localhost")
+        const request = new Request(HttpMethod.Get, "http://localhost", "uuid")
         request.setHeader("Content-Type", "application/json")
         request.body = undefined;
 
@@ -43,7 +43,7 @@ describe("Request Body Converter Interceptor", () => {
     it("should return the unmodified request if the Content-Type is application/json and the type of the body is an object", async () => {
         const requestBodyConverterInterceptor: RequestBodyConverterInterceptor = new RequestBodyConverterInterceptor(true, logHandlerMock);
 
-        const request = new Request(HttpMethod.Get, "http://localhost")
+        const request = new Request(HttpMethod.Get, "http://localhost", "uuid")
         request.setHeader("Content-Type", "application/json")
         request.body = {
             allo: true,
@@ -60,7 +60,7 @@ describe("Request Body Converter Interceptor", () => {
     it("should parse the request body if the Content-Type is application/json and the type of the body is 'string'", async () => {
         const requestBodyConverterInterceptor: RequestBodyConverterInterceptor = new RequestBodyConverterInterceptor(true, logHandlerMock);
 
-        const request = new Request(HttpMethod.Get, "http://localhost")
+        const request = new Request(HttpMethod.Get, "http://localhost", "uuid")
         request.setHeader("Content-Type", "application/json")
         request.body = '{"allo": true}';
 
@@ -76,7 +76,7 @@ describe("Request Body Converter Interceptor", () => {
     it("should throw an error if the Content-Type is application/json and the type of the body is 'string' but the string is not valid JSON", async () => {
         const requestBodyConverterInterceptor: RequestBodyConverterInterceptor = new RequestBodyConverterInterceptor(true, logHandlerMock);
 
-        const request = new Request(HttpMethod.Get, "http://localhost")
+        const request = new Request(HttpMethod.Get, "http://localhost", "uuid")
         request.setHeader("Content-Type", "application/json")
         request.body = 'INVALID_JSON';
 
@@ -86,7 +86,7 @@ describe("Request Body Converter Interceptor", () => {
     it("should throw an error if the Content-Type is application/json and the type of the body is 'boolean'", async () => {
         const requestBodyConverterInterceptor: RequestBodyConverterInterceptor = new RequestBodyConverterInterceptor(true, logHandlerMock);
 
-        const request = new Request(HttpMethod.Get, "http://localhost")
+        const request = new Request(HttpMethod.Get, "http://localhost", "uuid")
         request.setHeader("Content-Type", "application/json")
         request.body = true;
 
@@ -96,7 +96,7 @@ describe("Request Body Converter Interceptor", () => {
     it("should throw an error if the Content-Type is application/json and the type of the body is 'number'", async () => {
         const requestBodyConverterInterceptor: RequestBodyConverterInterceptor = new RequestBodyConverterInterceptor(true, logHandlerMock);
 
-        const request = new Request(HttpMethod.Get, "http://localhost")
+        const request = new Request(HttpMethod.Get, "http://localhost", "uuid")
         request.setHeader("Content-Type", "application/json")
         request.body = 8766;
 
@@ -106,7 +106,7 @@ describe("Request Body Converter Interceptor", () => {
     it("should throw an error if the Content-Type is application/json and the type of the body is 'Date'", async () => {
         const requestBodyConverterInterceptor: RequestBodyConverterInterceptor = new RequestBodyConverterInterceptor(true, logHandlerMock);
 
-        const request = new Request(HttpMethod.Get, "http://localhost")
+        const request = new Request(HttpMethod.Get, "http://localhost", "uuid")
         request.setHeader("Content-Type", "application/json")
         request.body = new Date();
 

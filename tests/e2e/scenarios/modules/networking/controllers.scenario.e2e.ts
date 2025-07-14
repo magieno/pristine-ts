@@ -10,7 +10,7 @@ describe("Networking - Controllers", () => {
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        const request = new Request(HttpMethod.Put, "https://localhost:8080/api/2.0/services/0a931a57-c238-4d07-ab5e-e51b10320997");
+        const request = new Request(HttpMethod.Put, "https://localhost:8080/api/2.0/services/0a931a57-c238-4d07-ab5e-e51b10320997", "uuid");
         request.body = {
             specialBody: "body"
         };

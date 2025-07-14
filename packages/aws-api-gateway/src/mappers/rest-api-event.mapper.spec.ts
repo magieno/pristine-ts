@@ -17,7 +17,8 @@ describe("Rest API Event (Api Gateway 1.0)", () => {
         "httpMethod": "GET",
         "headers": {
             "header1": "value1",
-            "header2": "value2"
+            "header2": "value2",
+            "x-pristine-request-id": "uuid"
         },
         "multiValueHeaders": {
             "header1": [
@@ -96,12 +97,13 @@ describe("Rest API Event (Api Gateway 1.0)", () => {
 
         expect(restApiRequestMapper.supportsMapping(rawEvent, executionContext));
 
-        const expectedRequest: Request = new Request(HttpMethod.Get, "/my/path");
+        const expectedRequest: Request = new Request(HttpMethod.Get, "/my/path", "uuid");
         expectedRequest.body = rawEvent.body;
         expectedRequest.rawBody = rawEvent.body,
         expectedRequest.setHeaders({
             "header1": "value1",
-            "header2": "value2"
+            "header2": "value2",
+            "x-pristine-request-id": "uuid",
         });
 
         const mappedEvent = restApiRequestMapper.map(rawEvent, executionContext);
@@ -143,7 +145,8 @@ describe("Rest API Event (Api Gateway 1.0)", () => {
 
         expectedEvent.headers = {
             "header1": "value1",
-                "header2": "value2"
+            "header2": "value2",
+            "x-pristine-request-id": "uuid",
         };
         expectedEvent.multiValueHeaders = {
             "header1": [

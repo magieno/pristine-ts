@@ -35,7 +35,7 @@ describe("Request Body Converter", () => {
     })
 
     it("should throw an error if the header Content-Type contains 'application/json' and the body contains invalid JSON.", async () => {
-        const request: Request = new Request(HttpMethod.Get, "http://localhost:8080/test");
+        const request: Request = new Request(HttpMethod.Get, "http://localhost:8080/test", "uuid");
         request.body = "{allo:fdfsa,}";
         request.setHeaders({
             "Content-Type": "application/json",
@@ -50,7 +50,7 @@ describe("Request Body Converter", () => {
 
     it("should not throw an error if the header Content-Type contains 'application/json'', and the body is of type string, and the body contains valid JSON.", async () => {
 
-        let request = new Request(HttpMethod.Get, "http://localhost:8080/test")
+        let request = new Request(HttpMethod.Get, "http://localhost:8080/test", "uuid")
         request.setHeaders({
             "Content-Type": "application/json",
         });
@@ -77,7 +77,7 @@ describe("Request Body Converter", () => {
             "pristine.core.requestBodyConverterActive": true,
         });
 
-        const request: Request = new Request(HttpMethod.Get, "http://localhost:8080/test");
+        const request: Request = new Request(HttpMethod.Get, "http://localhost:8080/test", "uuid");
         request.body = "{allo:fdfsa,}";
 
         const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
