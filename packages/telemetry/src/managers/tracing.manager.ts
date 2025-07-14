@@ -286,7 +286,7 @@ export class TracingManager implements TracingManagerInterface {
         const longestSpans = Object.values(this.spans).flat(2).sort( (a, b) => b.getDuration() - a.getDuration());
         longestSpans.splice(5);
 
-        this.loghandler.info("Ending the trace. \n" +
+        this.loghandler.debug("Ending the trace. \n" +
             "Trace duration: " + this.trace.getDuration() + " ms \n" +
             "Top 5 longest spans: \n" + longestSpans.map(span => "\t" + span.getDuration() + " ms - " + span.keyname).join("\n")
             , {
