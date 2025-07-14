@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/cloudflare",
-  "version": "0.0.384",
+  "version": "0.0.385",
   "description": "",
   "module": "dist/lib/esm/cloudflare.module.js",
   "main": "dist/lib/cjs/cloudflare.module.js",
