@@ -30,7 +30,7 @@ describe("Sequential request execution", () => {
             instantiationExecutionTimes.push(instantiationTimeElapsedInMiliseconds);
 
             start = process.hrtime();
-            const response = await kernel.handle(new Request(HttpMethod.Get, "/api/1.0/dogs"), {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
+            const response = await kernel.handle(new Request(HttpMethod.Get, "/api/1.0/dogs", "uuid"), {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
 
             const requestExecutionTimeElapsedInMiliseconds = process.hrtime(start)[1] / 1000000;
             requestExecutionTimes.push(requestExecutionTimeElapsedInMiliseconds);
@@ -70,7 +70,7 @@ describe("Sequential request execution", () => {
         for (let i = 0; i < 1000; i++) {
             let start = process.hrtime();
 
-            const response = await kernel.handle(new Request(HttpMethod.Get, "/api/1.0/dogs"), {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
+            const response = await kernel.handle(new Request(HttpMethod.Get, "/api/1.0/dogs", "uuid"), {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
 
             const requestExecutionTimeElapsedInMiliseconds = process.hrtime(start)[1] / 1000000;
             requestExecutionTimes.push(requestExecutionTimeElapsedInMiliseconds);

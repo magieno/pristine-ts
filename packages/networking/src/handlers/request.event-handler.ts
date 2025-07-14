@@ -65,6 +65,9 @@ export class RequestEventHandler implements EventHandlerInterface<Request, Respo
             extra: {
                 event,
                 response,
+            },
+            outputHints: {
+              outputBreadcrumbs: true,
             }
         })
 

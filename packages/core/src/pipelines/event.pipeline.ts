@@ -151,16 +151,13 @@ export class EventPipeline {
 
             eventExecutionSpan.end();
 
-            this.logHandler.info("EventPipeline: Event dispatched successfully.", {
+            this.logHandler.debug("EventPipeline: Event dispatched successfully.", {
               eventId: event.id,
               breadcrumb: `${CoreModuleKeyname}:event.pipeline:executeEvent:return`,
               extra: {
                 event,
                 response,
               },
-              outputHints: {
-                outputBreadcrumbs: true,
-              }
             })
 
             this.breadcrumbHandler.reset(event.id);
