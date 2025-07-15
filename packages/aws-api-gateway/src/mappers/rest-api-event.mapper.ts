@@ -67,6 +67,7 @@ export class RestApiEventMapper extends BaseApiEventMapper implements EventMappe
                 request.body = rawEvent.body;
                 request.rawBody = rawEvent.body;
                 request.id = request.getHeader("x-pristine-request-id") ?? request.id;
+                request.groupId = request.getHeader("x-pristine-event-group-id") ?? request.groupId;
 
                 return {
                     executionOrder: "sequential",

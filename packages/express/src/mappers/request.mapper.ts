@@ -16,9 +16,11 @@ export class RequestMapper {
      * @param expressRequest The http expressRequest from express.
      */
     map(expressRequest: ExpressRequest): Request {
-      const requestId = expressRequest.header("x-pristine-request-id")
+        const requestId = expressRequest.header("x-pristine-request-id")
+        const requestGroupId = expressRequest.header("x-pristine-event-group-id")
 
         const request = new Request(this.methodMapper.map(expressRequest.method), expressRequest.url, requestId ?? uuidv4());
+        request.groupId = requestGroupId;
         request.setHeaders(this.httpHeadersMapper.map(expressRequest.headers));
         request.body = expressRequest.body;
         request.rawBody = expressRequest.body;
