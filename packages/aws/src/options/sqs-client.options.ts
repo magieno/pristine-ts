@@ -6,7 +6,7 @@ export class SqsClientOptions {
    * The id of the Event this operation was triggered BY. Used for logging purposes.
    * WARNING: It will NOT be added to the MessageAttributes.
    */
-  eventId: string;
+  eventId?: string;
 
   /**
    * Event Group Id that groups all the events in a similar operation. Will be added to MessageAttributes.
