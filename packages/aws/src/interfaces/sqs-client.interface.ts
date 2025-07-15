@@ -1,6 +1,7 @@
 import {SqsMessageSentConfirmationModel} from "../models/sqs-message-sent-confirmation.model";
 import {SQSClient, SQSClientConfig} from "@aws-sdk/client-sqs";
 import {ClientOptionsInterface} from "./client-options.interface";
+import {SqsClientOptions} from "../options/sqs-client.options";
 
 /**
  * The S3Client Interface defines the methods that an S3 client must implement.
@@ -17,12 +18,7 @@ export interface SqsClientInterface {
      * Sends a message to the specified Queue URL.
      * @param queueUrl The queue url where to send the message.
      * @param body The body of the message to send in the queue.
-     * @param messageGroupId The message group id for FIFO queues.
-     * @param delaySeconds The length of time, in seconds, for which to delay a specific message.
-     * @param endpoint The endpoint for SQS.
-     * @param messageDeduplicationId
-     * @param options
-     * @param configs The configs for which the SQS client is created.
+     * @param options The options to customize the request.
      */
-    send(queueUrl: string, body: string, messageGroupId?: string, delaySeconds?: number, messageDeduplicationId?: string, options?: Partial<ClientOptionsInterface>, configs?: Partial<SQSClientConfig>): Promise<SqsMessageSentConfirmationModel>;
+    send(queueUrl: string, body: string, options: SqsClientOptions): Promise<SqsMessageSentConfirmationModel>;
 }

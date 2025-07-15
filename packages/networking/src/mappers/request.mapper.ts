@@ -20,7 +20,7 @@ export class RequestMapper implements EventMapperInterface<Request, Response>{
     map(request: Request, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<Request> {
         return {
             executionOrder: "sequential",
-            events: [new Event<Request>("Request", request, request.id)],
+            events: [new Event<Request>("Request", request, request.id, request.groupId)],
         };
     }
 
@@ -31,5 +31,4 @@ export class RequestMapper implements EventMapperInterface<Request, Response>{
     reverseMap(eventResponse: EventResponse<Request, Response>, response: any, executionContext: ExecutionContextInterface<any>): any {
         return eventResponse.response;
     }
-
 }

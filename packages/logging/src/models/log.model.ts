@@ -13,6 +13,11 @@ export class LogModel {
   eventId?: string
 
   /**
+   * The Event Group that all the events are a part of.
+   */
+  eventGroupId?: string;
+
+  /**
    * The trace id from which the log originated.
    */
   traceId?: string;

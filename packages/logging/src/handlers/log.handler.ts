@@ -134,6 +134,10 @@ export class LogHandler implements LogHandlerInterface {
       if(data.outputHints) {
         log.outputHints = data.outputHints;
       }
+
+      if(data.eventGroupId) {
+        log.eventGroupId = data.eventGroupId;
+      }
     }
 
 
