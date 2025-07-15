@@ -46,13 +46,13 @@ export class SqsClient implements SqsClientInterface {
      * @param body The body of the message to send in the queue.
      * @param options The options to customize the request.
      */
-    async send(queueUrl: string, body: string, options: SqsClientOptions): Promise<SqsMessageSentConfirmationModel> {
+    async send(queueUrl: string, body: string, options?: SqsClientOptions): Promise<SqsMessageSentConfirmationModel> {
         try {
-            const client = this.getClient(options.clientConfigs);
+            const client = this.getClient(options?.clientConfigs);
 
             const MessageAttributes: Record<string, MessageAttributeValue> = {};
 
-            if(options.eventGroupId) {
+            if(options?.eventGroupId) {
               MessageAttributes["eventGroupId"] = {
                 DataType: "String",
                 StringValue: options.eventGroupId,
@@ -62,9 +62,9 @@ export class SqsClient implements SqsClientInterface {
             const command = new SendMessageCommand({
                 QueueUrl: queueUrl,
                 MessageBody: body,
-                MessageGroupId: options.messageGroupId,
-                DelaySeconds: options.delaySeconds,
-                MessageDeduplicationId: options.messageDeduplicationId,
+                MessageGroupId: options?.messageGroupId,
+                DelaySeconds: options?.delaySeconds,
+                MessageDeduplicationId: options?.messageDeduplicationId,
                 MessageAttributes,
             });
 
@@ -73,22 +73,22 @@ export class SqsClient implements SqsClientInterface {
                   queueUrl,
                   body,
                 },
-                eventId: options.eventId,
-                eventGroupId: options.eventGroupId,
+                eventId: options?.eventId,
+                eventGroupId: options?.eventGroupId,
                 extra: {
                     options
                 }
             })
 
-            const response = await client.send(command, options.clientOptions);
+            const response = await client.send(command, options?.clientOptions);
 
             this.logHandler.debug("SqsClient: Message successfully sent to the queue.", {
               highlights: {
                 queueUrl,
                 body,
               },
-              eventId: options.eventId,
-              eventGroupId: options.eventGroupId,
+              eventId: options?.eventId,
+              eventGroupId: options?.eventGroupId,
               extra: {
                 options
               }
@@ -105,15 +105,15 @@ export class SqsClient implements SqsClientInterface {
                 body,
                 errorMessage: error.message ?? "Unknown error",
               },
-              eventId: options.eventId,
-              eventGroupId: options.eventGroupId,
+              eventId: options?.eventId,
+              eventGroupId: options?.eventGroupId,
               extra: {
                 options,
                 error,
               }
             });
 
-            throw new SqsSendMessageError(error, queueUrl, body, options.messageGroupId, options.delaySeconds);
+            throw new SqsSendMessageError(error, queueUrl, body, options?.messageGroupId, options?.delaySeconds);
         }
     }
 }

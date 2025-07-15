@@ -20,5 +20,5 @@ export interface SqsClientInterface {
      * @param body The body of the message to send in the queue.
      * @param options The options to customize the request.
      */
-    send(queueUrl: string, body: string, options: SqsClientOptions): Promise<SqsMessageSentConfirmationModel>;
+    send(queueUrl: string, body: string, options?: SqsClientOptions): Promise<SqsMessageSentConfirmationModel>;
 }
