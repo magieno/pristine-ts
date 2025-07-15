@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/auth0",
-  "version": "0.0.390",
+  "version": "0.0.391",
   "description": "",
   "module": "dist/lib/esm/auth0.module.js",
   "main": "dist/lib/cjs/auth0.module.js",
