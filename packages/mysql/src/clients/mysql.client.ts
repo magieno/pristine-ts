@@ -205,11 +205,11 @@ export class MysqlClient implements MysqlClientInterface {
             return result[0];
         } catch (error) {
             this.logHandler.error("MysqlClient: There was an error executing the SQL statement.", {
-                extra: {
-                    sqlStatement,
-                    values,
-                    error,
-                }
+              highlights: {
+                sqlStatement,
+                values,
+                error,
+              }
             });
 
             throw error;
@@ -235,7 +235,7 @@ export class MysqlClient implements MysqlClientInterface {
             return result[0];
         } catch (error) {
             this.logHandler.error("MysqlClient: There was an error executing the SQL statement.", {
-                extra: {
+                highlights: {
                     sqlStatement,
                     values,
                     error,
@@ -271,7 +271,7 @@ export class MysqlClient implements MysqlClientInterface {
                         try {
                             result[newKey] = JSON.parse(result[key]);
                         } catch (e) {
-                            this.logHandler.warning("MysqlClient: Could not parse the JSON blob. It will be returned as is.", {extra: {error: e, key, newKey, result}});
+                            this.logHandler.warning("MysqlClient: Could not parse the JSON blob. It will be returned as is.", {highlights: {error: e, key, newKey, result}});
                         }
 
                     } else {
