@@ -67,13 +67,20 @@ export class BodyValidationRequestInterceptor implements RequestInterceptorInter
             return request;
         }
 
-        this.loghandler.debug("BodyValidationRequestInterceptor - validation complete.", {
-            request,
-            methodNode,
-            routeContext: methodNode.route.context,
-            errors,
-            mappedBody,
-        })
+
+      this.loghandler.error(`Error validating body of request.`, {
+        eventId: request.id,
+        eventGroupId: request.groupId,
+        highlights: {
+          errors,
+          mappedBody,
+        },
+        extra: {
+          request,
+          methodNode,
+          routeContext: methodNode.route.context,
+        },
+      })
 
         // If we received some error while validating we reject by throwing an error.
         throw new BadRequestHttpError("Validation error", errors);
