@@ -1,6 +1,6 @@
 import {ModuleInterface, taggedProviderRegistrationsRegistry} from "@pristine-ts/common";
 import {DataMappingModuleKeyname} from "./data-mapping.module.keyname";
-import {AutoDataMappingBuilder, DataMapper, StringNormalizer, NumberNormalizer, DateNormalizer} from "@pristine-ts/data-mapping-common"
+import {AutoDataMappingBuilder, DataMapper, StringNormalizer, NumberNormalizer, DateNormalizer, BooleanNormalizer, LowercaseNormalizer} from "@pristine-ts/data-mapping-common"
 import {DependencyContainer} from "tsyringe";
 
 export * from "./interceptors/interceptors";
@@ -13,6 +13,8 @@ const normalizers = [
     StringNormalizer,
     NumberNormalizer,
     DateNormalizer,
+    BooleanNormalizer,
+    LowercaseNormalizer,
 ]
 
 normalizers.forEach( (normalizer: any) => {

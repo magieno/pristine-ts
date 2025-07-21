@@ -35,7 +35,8 @@ describe("Data Mapping", () => {
         const dataMapper = kernel.container.resolve(DataMapper)
 
         expect(dataMapper).toBeInstanceOf(DataMapper);
-        expect(dataMapper["dataNormalizers"].length).toBe(3);
+
+        expect(dataMapper["dataNormalizers"].length).toBe(5);
         expect(dataMapper["dataTransformerInterceptors"].length).toBe(1);
     })
 })
