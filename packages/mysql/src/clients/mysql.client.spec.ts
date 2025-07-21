@@ -181,6 +181,7 @@ describe('MySQL Client', () => {
             "pristine",
             "INSERT INTO users (unique_id, first_name, last_name, extra_fields) VALUES (?, ?, ?, ?)",
             ["1", "John", "Smith"],
+            undefined
         );
     })
 
@@ -208,6 +209,7 @@ describe('MySQL Client', () => {
             "pristine",
             "UPDATE users SET first_name = ?, last_name = ?, extra_fields = ? WHERE unique_id = ?",
             ["John", "Smith", undefined, "1"],
+            undefined
         );
     })
 
@@ -230,6 +232,7 @@ describe('MySQL Client', () => {
             "pristine",
             "DELETE FROM users WHERE unique_id = ?",
             ["1"],
+            undefined
         );
     })
 
@@ -321,7 +324,7 @@ describe('MySQL Client', () => {
             {"unique_id": "1", "first_name": "John", "last_name": "Smith", "extra_fields": {"a": 1}},
             {"unique_id": "2", "first_name": "Rick", "last_name": "Sanchez", "extra_fields": {"a": 1}},
             {"unique_id": "3", "first_name": "Peter", "last_name": "Ricardo", "extra_fields": {"a": 1}},
-        ], ["extraFields"]);
+        ], {excludeFields: ["extraFields"]});
 
         expect(users).toBeDefined();
         expect(Array.isArray(users)).toBeTruthy()
