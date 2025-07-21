@@ -416,7 +416,7 @@ export class MysqlClient implements MysqlClientInterface {
    */
   async search<T extends { [key: string]: any; }>(configUniqueKeyname: string, classType: {
     new(): T;
-  }, query: SearchQuery, options?: {eventId?: string, eventGroupId?: string, logMappingErrors?: boolean, excludeFieldsFromResponse: string[]} ): Promise<SearchResult<T>> {
+  }, query: SearchQuery, options?: {eventId?: string, eventGroupId?: string, logMappingErrors?: boolean, excludeFieldsFromResponse?: string[]} ): Promise<SearchResult<T>> {
     let sql = "";
     const columns = this.getColumnsMetadata(classType);
     const defaultSearchableFields = Object.keys(columns).filter(column => columns[column].isSearchable).map(column => this.getColumnName(classType, column));

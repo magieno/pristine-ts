@@ -109,5 +109,5 @@ export interface MysqlClientInterface {
      * @param classType
      * @param query
      */
-    search<T extends { [key: string]: any; }>(configUniqueKeyname: string, classType: { new(): T; }, query: SearchQuery, options?: {eventId?: string, eventGroupId?: string, logMappingErrors?: boolean, excludeFieldsFromResponse: string[]}): Promise<SearchResult<T>>
+    search<T extends { [key: string]: any; }>(configUniqueKeyname: string, classType: { new(): T; }, query: SearchQuery, options?: {eventId?: string, eventGroupId?: string, logMappingErrors?: boolean, excludeFieldsFromResponse?: string[]}): Promise<SearchResult<T>>
 }
