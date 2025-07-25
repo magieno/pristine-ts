@@ -76,6 +76,18 @@ export const NetworkingModule: ModuleInterface = {
             defaultResolvers: [
                 new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_NETWORKING_ROUTER_CACHE_IS_ACTIVE")),
             ],
-        }
+        },
+
+        /**
+         * Activates or deactivates whether the Router Cache is on or off.
+         */
+        {
+            parameterName: NetworkingModuleKeyname + ".error_response_sanitizer.is_active",
+            isRequired: false,
+            defaultValue: true,
+            defaultResolvers: [
+                new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_NETWORKING_ERROR_RESPONSE_SANITIZER_IS_ACTIVE")),
+            ],
+        },
     ],
 }
