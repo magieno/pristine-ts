@@ -295,6 +295,8 @@ export class MysqlClient implements MysqlClientInterface {
                   result
                 }
               });
+
+              result[newKey] = result[key];
             }
 
           } else {
