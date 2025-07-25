@@ -24,7 +24,6 @@ export class ErrorResponseSanitizerRequestInterceptor implements RequestIntercep
 
     delete response.body.stack;
     delete response.body.extra;
-    delete response.body.errors;
 
     return response;
   }
