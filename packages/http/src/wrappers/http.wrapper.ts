@@ -77,6 +77,10 @@ export class HttpWrapper implements HttpWrapperInterface {
                     req.write(request.body);
                 }
 
+              req.on("error", (e: any) => {
+                reject(new HttpClientRequestError(`Error making the HTTP Request. Code: ${e.code}, Message:${e.message}`, request, url));
+              })
+
                 return req.end();
             } else if (url.protocol === "https://" || url.protocol === "https:" || url.protocol === "https") {
                 options.port = options.port ?? 443;
@@ -86,6 +90,10 @@ export class HttpWrapper implements HttpWrapperInterface {
                 if (request.body) {
                     req.write(request.body);
                 }
+
+              req.on("error", (e: any) => {
+                reject(new HttpClientRequestError(`Error making the HTTP Request. Code: ${e.code}, Message:${e.message}`, request, url));
+              })
 
                 return req.end();
             }

@@ -389,6 +389,21 @@ describe("Http Client", () => {
                 expect.assertions(1)
             });
 
+          it("should handle properly a not found address error", async () => {
+            const httpClient = new HttpClient(new HttpWrapper())
+
+            expect(httpClient.request({
+              // @ts-ignore
+              url: `${protocolName}://invalidaddress.invaliddomain.com`,
+              httpMethod: HttpMethod.Get,
+              headers: {
+                "Content-Type": "application/json",
+                "X-Token": "AuthorizationToken",
+                "Unique-Id": uuidv4(),
+              },
+            })).rejects.toThrow()
+
+          })
 
             it("should call all the request and response interceptors", async () => {
                 class TestHttpRequestInterceptor implements HttpRequestInterceptorInterface, HttpResponseInterceptorInterface {
