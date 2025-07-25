@@ -561,9 +561,11 @@ describe("Data Mapper", () => {
 
     const dataMapper = new DataMapper(new AutoDataMappingBuilder(), [new LowercaseNormalizer(), new DateNormalizer(), new StringNormalizer(), new NumberNormalizer(), new BooleanNormalizer()], []);
 
-    const mapped = await dataMapper.autoMap(source, Source, new AutoDataMappingBuilderOptions({throwOnErrors: true}))
+    const mapped = await dataMapper.autoMap(source, Source, new AutoDataMappingBuilderOptions({throwOnErrors: true})) as Source;
 
     expect(mapped).toBeInstanceOf(Source);
+    expect(mapped.date).toBeDate();
+    expect(mapped.date.getFullYear()).toBe(1990);
   })
 
   it("should automap an object without a type", async () => {

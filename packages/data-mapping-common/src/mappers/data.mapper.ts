@@ -133,7 +133,7 @@ export class DataMapper {
   public async map(builder: DataMappingBuilder, source: any, destinationType?: ClassConstructor<any>, options?: DataMapperOptions): Promise<any> {
     let destination: any = {};
 
-    if (options?.excludeExtraneousValues === false) {
+    if (options?.excludeExtraneousValues === false && source) {
       Object.keys(source).forEach(property => {
         destination[property] = source[property];
       })
