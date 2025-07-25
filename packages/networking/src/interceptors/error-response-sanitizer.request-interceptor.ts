@@ -18,7 +18,7 @@ export class ErrorResponseSanitizerRequestInterceptor implements RequestIntercep
   }
 
   async interceptError(error: Error,  response: Response, request: Request, methodNode?: MethodRouterNode): Promise<Response> {
-    if(typeof response.body !== "object" && !Array.isArray(response.body)) {
+    if(!this.isActive || (typeof response.body !== "object" && !Array.isArray(response.body))) {
       return response;
     }
 

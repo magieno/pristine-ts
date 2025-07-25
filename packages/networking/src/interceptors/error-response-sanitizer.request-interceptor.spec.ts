@@ -19,6 +19,7 @@ describe('ErrorResponseSanitizerRequestInterceptor', () => {
 
     expect(newResponse.body).toEqual({
       message: 'An error occurred',
+      errors: ['Error 1', 'Error 2'],
     });
   });
 

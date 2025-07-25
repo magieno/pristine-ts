@@ -1,51 +1,33 @@
-import {
-    Controller,
-    Get,
-    Request,
-    Response,
-    HttpMethod,
-    Route,
-    RequestInterface,
-    ResponseInterface
-} from "@pristine-ts/networking";
-import { AppModule, Kernel } from "@pristine-ts/core";
+import {HttpMethod, Request, Response} from "@pristine-ts/common";
 import { inject, injectable } from "tsyringe";
+import {controller, NetworkingModule, route} from "@pristine-ts/networking";
+import {ValidationModule} from "@pristine-ts/validation";
+import {CoreModule, ExecutionContextKeynameEnum, Kernel} from "@pristine-ts/core";
 
-@Controller("/api/2.0")
+@controller("/api/2.0")
 @injectable()
 export class TestController {
-    @Get("/error")
-    public error(): Response {
-        const response = new Response();
-        try {
-            throw new Error("This is a test error");
-        } catch (e) {
-            response.status = 500;
-            response.body = {
-                message: e.message,
-                stack: e.stack,
-            };
-
-            return response;
-        }
+  @route(HttpMethod.Get, "/error")
+    public error() {
+      throw new Error("This is a test error");
     }
 }
-
-@AppModule({
-    importServices: [TestController],
-})
-export class TestModule {}
 
 describe("Networking - Error Response Sanitizer", () => {
     it("should remove the stack trace from the error response", async () => {
         const kernel = new Kernel();
-        await kernel.start(TestModule, {
+        await kernel.start({
+          keyname: "pristine.validation.test",
+          importModules: [CoreModule, NetworkingModule, ValidationModule],
+          providerRegistrations: [],
+          importServices: [],
+        }, {
             "pristine.logging.consoleLoggerActivated": false,
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        const request: RequestInterface = new Request(HttpMethod.Get, "/api/2.0/error");
-        const response: ResponseInterface = await kernel.handle(request);
+        const request = new Request(HttpMethod.Get, "/api/2.0/error", "uuid");
+        const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
 
         expect(response.status).toBe(500);
         expect(response.body).toBeDefined();
@@ -55,14 +37,19 @@ describe("Networking - Error Response Sanitizer", () => {
 
     it("should not remove the stack trace from the error response when the sanitizer is deactivated", async () => {
         const kernel = new Kernel();
-        await kernel.start(TestModule, {
+        await kernel.start({
+          keyname: "pristine.validation.test",
+          importModules: [CoreModule, NetworkingModule, ValidationModule],
+          providerRegistrations: [],
+          importServices: [],
+        }, {
             "pristine.logging.consoleLoggerActivated": false,
             "pristine.logging.fileLoggerActivated": false,
             "pristine.networking.error_response_sanitizer.is_active": false,
         });
 
-        const request: RequestInterface = new Request(HttpMethod.Get, "/api/2.0/error");
-        const response: ResponseInterface = await kernel.handle(request);
+        const request = new Request(HttpMethod.Get, "/api/2.0/error", "uuid");
+        const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
 
         expect(response.status).toBe(500);
         expect(response.body).toBeDefined();
