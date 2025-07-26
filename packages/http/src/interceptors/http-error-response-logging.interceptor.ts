@@ -30,7 +30,7 @@ export class HttpErrorResponseLoggingInterceptor implements HttpErrorResponseInt
      */
     async interceptErrorResponse(request: HttpRequestInterface, options: HttpRequestOptions, response: HttpResponseInterface): Promise<HttpResponseInterface> {
         if(this.loggingEnabled) {
-            this.logHandler.error("HttpErrorResponseLoggingInterceptor: Receiving http response that has an error.", {extra: {response, options}});
+            this.logHandler.error("HttpErrorResponseLoggingInterceptor: Receiving http response that has an error.", {highlights: {status: response.status, body: response.body, headers: response.headers }, eventId: options.eventId, extra: {response, options}});
         }
 
         return response;

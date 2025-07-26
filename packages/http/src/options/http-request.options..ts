@@ -30,4 +30,9 @@ export interface HttpRequestOptions {
      * The maximum number of time a request can be retried.
      */
     maximumNumberOfRetries?: number;
+
+    /**
+     * The EventId to identify to whom this request is belong to.
+     */
+    eventId?: string;
 }
