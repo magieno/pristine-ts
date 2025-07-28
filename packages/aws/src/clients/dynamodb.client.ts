@@ -81,20 +81,44 @@ export class DynamodbClient implements DynamodbClientInterface{
      * Gets an object from Dynamodb. Returns null if the item was not found.
      * @param classType The class type of the object to be retrieved.
      * @param primaryKeyAndValue An object containing the primary key and the value of the object to get. (ie: {id: value})
+     * @param additionalOptions
      */
-    public async get<T extends StringToAnyObjectMap>(classType: ZeroArgumentsConstructor<T>, primaryKeyAndValue: {[key: string]: string}): Promise<T | null> {
+    public async get<T extends StringToAnyObjectMap>(classType: ZeroArgumentsConstructor<T>, primaryKeyAndValue: {[key: string]: string}, additionalOptions?: {eventId?: string, eventGroupId?: string}): Promise<T | null> {
         try {
             let item = this.createItemOfClassWithPrimaryKey(classType, primaryKeyAndValue);
             item = await (await this.getMapperClient()).get(item);
-            this.logHandler.debug("DynamodbClient: Got item from dynamodb.", {extra: {item}});
+            this.logHandler.debug("DynamodbClient: Got item from dynamodb.", {
+                highlights: {
+                    id: primaryKeyAndValue,
+                },
+                extra: {item},
+                eventId: additionalOptions?.eventId,
+                eventGroupId: additionalOptions?.eventGroupId,
+            });
             return item;
-        } catch (error) {
+        } catch (error: any) {
             error = this.convertError(error, this.getTableName(classType.prototype), Object.keys(primaryKeyAndValue)[0]);
             if (error instanceof DynamodbItemNotFoundError) {
-                this.logHandler.warning("DynamodbClient: Error getting item from dynamodb.", {extra: {error, classType, primaryKeyAndValue}});
+                this.logHandler.warning("DynamodbClient: Error getting item from dynamodb.", {
+                    highlights: {
+                        id: primaryKeyAndValue,
+                        errorMessage: error.message,
+                    },
+                    extra: {error, classType, primaryKeyAndValue},
+                    eventId: additionalOptions?.eventId,
+                    eventGroupId: additionalOptions?.eventGroupId,
+                });
                 return null;
             } else {
-                this.logHandler.error("DynamodbClient: Error getting item from dynamodb.", {extra: {error, classType, primaryKeyAndValue}});
+                this.logHandler.error("DynamodbClient: Error getting item from dynamodb.", {
+                    highlights: {
+                        id: primaryKeyAndValue,
+                        errorMessage: error.message,
+                    },
+                    extra: {error, classType, primaryKeyAndValue},
+                    eventId: additionalOptions?.eventId,
+                    eventGroupId: additionalOptions?.eventGroupId,
+                });
             }
             throw error;
         }
@@ -103,8 +127,9 @@ export class DynamodbClient implements DynamodbClientInterface{
     /**
      * Lists all the objects of a type (table).
      * @param options The options to use to list.
+     * @param additionalOptions
      */
-    public async list<T extends StringToAnyObjectMap>(options: ListOptions<T>): Promise<ListResult<T>> {
+    public async list<T extends StringToAnyObjectMap>(options: ListOptions<T>, additionalOptions?: {eventId?: string, eventGroupId?: string}): Promise<ListResult<T>> {
         try {
             let scanOptions: ScanOptions | undefined;
             if(options.pagination) {
@@ -125,7 +150,14 @@ export class DynamodbClient implements DynamodbClientInterface{
                 }
             }
 
-            this.logHandler.debug("DynamodbClient: List items from dynamodb.", {extra: {items}});
+            this.logHandler.debug("DynamodbClient: List items from dynamodb.", {
+                highlights: {
+                    count: items.length,
+                },
+                extra: {items},
+                eventId: additionalOptions?.eventId,
+                eventGroupId: additionalOptions?.eventGroupId,
+            });
 
             const paginationResult = {
                 count: paginator.count,
@@ -133,9 +165,16 @@ export class DynamodbClient implements DynamodbClientInterface{
             }
 
             return new ListResult<T>(items, paginationResult);
-        } catch (error) {
+        } catch (error: any) {
             error = this.convertError(error, this.getTableName(options.classType.prototype));
-            this.logHandler.error("DynamodbClient: Error listing items from dynamodb.", {extra: {error, options}});
+            this.logHandler.error("DynamodbClient: Error listing items from dynamodb.", {
+                highlights: {
+                    errorMessage: error.message,
+                },
+                extra: {error, options},
+                eventId: additionalOptions?.eventId,
+                eventGroupId: additionalOptions?.eventGroupId,
+            });
             throw error;
         }
     }
@@ -143,24 +182,42 @@ export class DynamodbClient implements DynamodbClientInterface{
     /**
      * Creates an entry in DynamoDb if this id does not already exist.
      * @param item The item to create.
+     * @param additionalOptions
      */
-    public async create<T extends StringToAnyObjectMap>(item: T): Promise<T> {
+    public async create<T extends StringToAnyObjectMap>(item: T, additionalOptions?: {eventId?: string, eventGroupId?: string}): Promise<T> {
         try {
             const fetchedItem = await (await this.getMapperClient()).get(item);
             // If we get here without throwing then we found an item.
             throw new DynamodbItemAlreadyExistsError();
-        } catch (error) {
+        } catch (error: any) {
             error = this.convertError(error, this.getTableName(item.constructor.prototype));
             if (error instanceof DynamodbItemNotFoundError) {
                 try {
                     item = await (await this.getMapperClient()).put(item);
-                    this.logHandler.debug("DynamodbClient: Created item in dynamodb.", {extra: {item}});
+                    this.logHandler.debug("DynamodbClient: Created item in dynamodb.", {
+                        highlights: {
+                            // @ts-ignore
+                            id: item.id,
+                        },
+                        extra: {item},
+                        eventId: additionalOptions?.eventId,
+                        eventGroupId: additionalOptions?.eventGroupId,
+                    });
 
                     return item;
-                } catch (e) {
-                    e = this.convertError(e, this.getTableName(item.constructor.prototype));
-                    this.logHandler.error("DynamodbClient: Error creating item in dynamodb.", {extra: {e, item}});
-                    throw e;
+                } catch (error: any) {
+                    error = this.convertError(error, this.getTableName(item.constructor.prototype));
+                    this.logHandler.error("DynamodbClient: Error creating item in dynamodb.", {
+                        highlights: {
+                            // @ts-ignore
+                            id: item.id,
+                            errorMessage: error.message,
+                        },
+                        extra: {error, item},
+                        eventId: additionalOptions?.eventId,
+                        eventGroupId: additionalOptions?.eventGroupId,
+                    });
+                    throw error;
                 }
             }
 
@@ -171,17 +228,35 @@ export class DynamodbClient implements DynamodbClientInterface{
     /**
      * Updates an item based on the hashkey.
      * @param item The item to update.
+     * @param additionalOptions
      */
-    public async update<T extends StringToAnyObjectMap>(item: T): Promise<T> {
+    public async update<T extends StringToAnyObjectMap>(item: T, additionalOptions?: {eventId?: string, eventGroupId?: string}): Promise<T> {
         try {
             item = await (await this.getMapperClient()).update(item);
-            this.logHandler.debug("DynamodbClient: Updated item in dynamodb.", {extra: {item}});
+            this.logHandler.debug("DynamodbClient: Updated item in dynamodb.", {
+                highlights: {
+                    // @ts-ignore
+                    id: item.id,
+                },
+                extra: {item},
+                eventId: additionalOptions?.eventId,
+                eventGroupId: additionalOptions?.eventGroupId,
+            });
 
             return item;
-        } catch (error) {
+        } catch (error: any) {
             //TODO: Get the primary key.
             error = this.convertError(error, this.getTableName(item.constructor.prototype));
-            this.logHandler.error("DynamodbClient: Error updating item in dynamodb.", {extra: {error, item}})
+            this.logHandler.error("DynamodbClient: Error updating item in dynamodb.", {
+                highlights: {
+                    // @ts-ignore
+                    id: item.id,
+                    errorMessage: error.message,
+                },
+                extra: {error, item},
+                eventId: additionalOptions?.eventId,
+                eventGroupId: additionalOptions?.eventGroupId,
+            })
             throw error;
         }
     }
@@ -189,16 +264,34 @@ export class DynamodbClient implements DynamodbClientInterface{
     /**
      * Puts (create or replace) item.
      * @param item The item.
+     * @param additionalOptions
      */
-    public async put<T extends StringToAnyObjectMap>(item: T): Promise<T> {
+    public async put<T extends StringToAnyObjectMap>(item: T, additionalOptions?: {eventId?: string, eventGroupId?: string}): Promise<T> {
         try {
             item = await (await this.getMapperClient()).put(item);
-            this.logHandler.debug("DynamodbClient: Put item in dynamodb.", {extra: {item}});
+            this.logHandler.debug("DynamodbClient: Put item in dynamodb.", {
+                highlights: {
+                    // @ts-ignore
+                    id: item.id,
+                },
+                extra: {item},
+                eventId: additionalOptions?.eventId,
+                eventGroupId: additionalOptions?.eventGroupId,
+            });
 
             return item;
-        } catch (error) {
+        } catch (error: any) {
             error = this.convertError(error, this.getTableName(item.constructor.prototype));
-            this.logHandler.error("DynamodbClient: Error putting item in dynamodb.", {extra: {error, item}})
+            this.logHandler.error("DynamodbClient: Error putting item in dynamodb.", {
+                highlights: {
+                    // @ts-ignore
+                    id: item.id,
+                    errorMessage: error.message,
+                },
+                extra: {error, item},
+                eventId: additionalOptions?.eventId,
+                eventGroupId: additionalOptions?.eventGroupId,
+            })
             throw error;
         }
     }
@@ -207,17 +300,33 @@ export class DynamodbClient implements DynamodbClientInterface{
      * Deletes an item.
      * @param classType The class type of the item to delete.
      * @param primaryKeyAndValue An object containing the primary key and the value of this key of the object to delete. (ie: {id: value})
+     * @param additionalOptions
      */
-    public async delete<T extends StringToAnyObjectMap>(classType: ZeroArgumentsConstructor<T>, primaryKeyAndValue: {[key: string]: string}): Promise<void> {
+    public async delete<T extends StringToAnyObjectMap>(classType: ZeroArgumentsConstructor<T>, primaryKeyAndValue: {[key: string]: string}, additionalOptions?: {eventId?: string, eventGroupId?: string}): Promise<void> {
         try {
             const item = this.createItemOfClassWithPrimaryKey(classType, primaryKeyAndValue);
             await (await this.getMapperClient()).delete(item);
-            this.logHandler.debug("DynamodbClient: Deleted item from dynamodb.", {extra: {item}});
+            this.logHandler.debug("DynamodbClient: Deleted item from dynamodb.", {
+                highlights: {
+                    id: primaryKeyAndValue,
+                },
+                extra: {item},
+                eventId: additionalOptions?.eventId,
+                eventGroupId: additionalOptions?.eventGroupId,
+            });
 
             return;
-        } catch (error) {
+        } catch (error: any) {
             error = this.convertError(error, this.getTableName(classType.prototype), Object.keys(primaryKeyAndValue)[0]);
-            this.logHandler.error("DynamodbClient: Error deleting item from dynamodb.", {extra: {error, classType, primaryKeyAndValue}})
+            this.logHandler.error("DynamodbClient: Error deleting item from dynamodb.", {
+                highlights: {
+                    id: primaryKeyAndValue,
+                    errorMessage: error.message,
+                },
+                extra: {error, classType, primaryKeyAndValue},
+                eventId: additionalOptions?.eventId,
+                eventGroupId: additionalOptions?.eventGroupId,
+            })
             throw error;
         }
     }
@@ -225,8 +334,9 @@ export class DynamodbClient implements DynamodbClientInterface{
     /**
      * Lists the item by secondary index.
      * @param options The options to use.
+     * @param additionalOptions
      */
-    public async findBySecondaryIndex<T extends StringToAnyObjectMap>(options: FindBySecondaryIndexOptions<T>): Promise<ListResult<T>> {
+    public async findBySecondaryIndex<T extends StringToAnyObjectMap>(options: FindBySecondaryIndexOptions<T>, additionalOptions?: {eventId?: string, eventGroupId?: string}): Promise<ListResult<T>> {
         try {
             const filterExpression = this.createFilterExpression(options.filterKeysAndValues, options.expiresAtFilter);
 
@@ -239,7 +349,15 @@ export class DynamodbClient implements DynamodbClientInterface{
             // Makes the default scanIndexForward = false so that most recent come first.
             queryOptions.scanIndexForward = options?.pagination?.order === DynamodbSortOrderEnum.Asc;
 
-            this.logHandler.debug("DynamodbClient: Querying with options.", {extra: {queryOptions, options}});
+            this.logHandler.debug("DynamodbClient: Querying with options.", {
+                highlights: {
+                    secondaryIndexName: options.secondaryIndexName,
+                    keyCondition: options.keyCondition,
+                },
+                extra: {queryOptions, options},
+                eventId: additionalOptions?.eventId,
+                eventGroupId: additionalOptions?.eventGroupId,
+            });
             const iterator = (await this.getMapperClient()).query(options.classType, options.keyCondition, queryOptions);
             const paginator = iterator.pages();
 
@@ -252,16 +370,32 @@ export class DynamodbClient implements DynamodbClientInterface{
                 }
             }
 
-            this.logHandler.debug("DynamodbClient: Found items.", {extra: {items}});
+            this.logHandler.debug("DynamodbClient: Found items.", {
+                highlights: {
+                    count: items.length,
+                },
+                extra: {items},
+                eventId: additionalOptions?.eventId,
+                eventGroupId: additionalOptions?.eventGroupId,
+            });
 
             const paginationResult = {
                 count: paginator.count,
                 lastEvaluatedKey: paginator.lastEvaluatedKey,
             }
             return new ListResult<T>(items, paginationResult);
-        } catch (error) {
+        } catch (error: any) {
             error = this.convertError(error, this.getTableName(options.classType.prototype));
-            this.logHandler.error("DynamodbClient: Error finding by secondary index.", {extra: {error, options}})
+            this.logHandler.error("DynamodbClient: Error finding by secondary index.", {
+                highlights: {
+                    secondaryIndexName: options.secondaryIndexName,
+                    keyCondition: options.keyCondition,
+                    errorMessage: error.message,
+                },
+                extra: {error, options},
+                eventId: additionalOptions?.eventId,
+                eventGroupId: additionalOptions?.eventGroupId,
+            })
             throw error;
         }
     }
@@ -359,7 +493,14 @@ export class DynamodbClient implements DynamodbClientInterface{
      * @private
      */
     private convertError(error: Error, tableName?: string, primaryKey?: string): Error {
-        this.logHandler.debug("DynamodbClient: Converting error to dynamodb error.", {extra: {error, tableName, primaryKey}});
+        this.logHandler.debug("DynamodbClient: Converting error to dynamodb error.", {
+            highlights: {
+                tableName,
+                primaryKey,
+                errorMessage: error.message,
+            },
+            extra: {error, tableName, primaryKey}
+        });
         if(error instanceof DynamodbError){
             return error;
         }

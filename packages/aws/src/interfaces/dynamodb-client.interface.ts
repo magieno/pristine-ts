@@ -24,43 +24,50 @@ export interface DynamodbClientInterface {
      * Gets an object from Dynamodb.
      * @param classType The class type of the object to be retrieved.
      * @param primaryKeyAndValue An object containing the primary key and the value of the object to get. (ie: {id: value})
+     * @param additionalOptions The object containing additionalOptions for the query
      */
-    get<T extends StringToAnyObjectMap>(classType: ZeroArgumentsConstructor<T>, primaryKeyAndValue: { [key: string]: string }): Promise<T | null>
+    get<T extends StringToAnyObjectMap>(classType: ZeroArgumentsConstructor<T>, primaryKeyAndValue: { [key: string]: string }, additionalOptions?: {eventId?: string, eventGroupId?: string}): Promise<T | null>
 
     /**
      * Lists all the objects of a type (table).
      * @param options The options to use to list.
+     * @param additionalOptions
      */
-    list<T extends StringToAnyObjectMap>(options: ListOptions<T>): Promise<ListResult<T>>
+    list<T extends StringToAnyObjectMap>(options: ListOptions<T>, additionalOptions?: {eventId?: string, eventGroupId?: string}): Promise<ListResult<T>>
 
     /**
      * Creates an entry in DynamoDb if this id does not already exist.
      * @param item The item to create.
+     * @param additionalOptions
      */
-    create<T extends StringToAnyObjectMap>(item: T): Promise<T>
+    create<T extends StringToAnyObjectMap>(item: T, additionalOptions?: {eventId?: string, eventGroupId?: string}): Promise<T>
 
     /**
      * Updates an item based on the hashkey.
      * @param item The item to update.
+     * @param additionalOptions
      */
-    update<T extends StringToAnyObjectMap>(item: T): Promise<T>
+    update<T extends StringToAnyObjectMap>(item: T, additionalOptions?: {eventId?: string, eventGroupId?: string}): Promise<T>
 
     /**
      * Puts (create or replace) item.
      * @param item The item.
+     * @param additionalOptions
      */
-    put<T extends StringToAnyObjectMap>(item: T): Promise<T>
+    put<T extends StringToAnyObjectMap>(item: T, additionalOptions?: {eventId?: string, eventGroupId?: string}): Promise<T>
 
     /**
      * Deletes an item.
      * @param classType The class type of the item to delete.
      * @param primaryKeyAndValue An object containing the primary key and the value of this key of the object to delete. (ie: {id: value})
+     * @param additionalOptions
      */
-    delete<T extends StringToAnyObjectMap>(classType: ZeroArgumentsConstructor<T>, primaryKeyAndValue: { [key: string]: string }): Promise<void>
+    delete<T extends StringToAnyObjectMap>(classType: ZeroArgumentsConstructor<T>, primaryKeyAndValue: { [key: string]: string }, additionalOptions?: {eventId?: string, eventGroupId?: string}): Promise<void>
 
     /**
      * Lists the item by secondary index.
      * @param options The options to use.
+     * @param additionalOptions
      */
-    findBySecondaryIndex<T extends StringToAnyObjectMap>(options: FindBySecondaryIndexOptions<T>): Promise<ListResult<T>>
+    findBySecondaryIndex<T extends StringToAnyObjectMap>(options: FindBySecondaryIndexOptions<T>, additionalOptions?: {eventId?: string, eventGroupId?: string}): Promise<ListResult<T>>
 }
