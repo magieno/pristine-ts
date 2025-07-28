@@ -1,12 +1,12 @@
-import { inject, injectable, singleton } from "tsyringe";
-import { SeverityEnum } from "../enums/severity.enum";
-import { LogModel } from "../models/log.model";
-import { LoggerInterface } from "../interfaces/logger.interface";
-import { Readable } from "stream";
-import { moduleScoped, ServiceDefinitionTagEnum, tag } from "@pristine-ts/common";
-import { OutputModeEnum } from "../enums/output-mode.enum";
-import { LoggingModuleKeyname } from "../logging.module.keyname";
-import { BaseLogger } from "./base.logger";
+import {inject, injectable, singleton} from "tsyringe";
+import {SeverityEnum} from "../enums/severity.enum";
+import {LogModel} from "../models/log.model";
+import {LoggerInterface} from "../interfaces/logger.interface";
+import {Readable} from "stream";
+import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {OutputModeEnum} from "../enums/output-mode.enum";
+import {LoggingModuleKeyname} from "../logging.module.keyname";
+import {BaseLogger} from "./base.logger";
 
 /**
  * The ConsoleLogger outputs the logs in the console.
@@ -59,16 +59,16 @@ export class ConsoleLogger extends BaseLogger implements LoggerInterface {
                      @inject("%pristine.logging.consoleLoggerActivated%") isActivated: boolean,
                      @inject("%pristine.logging.consoleLoggerOutputMode%") outputMode: OutputModeEnum,
                      @inject("%pristine.logging.maximumLogsPerSecond%") private readonly maximumLogsPerSecond: number,
-                     ) {
+  ) {
     super(numberOfStackedLogs,
-        logSeverityLevelConfiguration,
-        logDebugDepthConfiguration,
-        logInfoDepthConfiguration,
-        logWarningDepthConfiguration,
-        logErrorDepthConfiguration,
-        logCriticalDepthConfiguration,
-        isActivated,
-        outputMode);
+      logSeverityLevelConfiguration,
+      logDebugDepthConfiguration,
+      logInfoDepthConfiguration,
+      logWarningDepthConfiguration,
+      logErrorDepthConfiguration,
+      logCriticalDepthConfiguration,
+      isActivated,
+      outputMode);
 
     this.initialize();
   }
@@ -77,15 +77,15 @@ export class ConsoleLogger extends BaseLogger implements LoggerInterface {
    * This will be called when the logger is to be terminated. It must destroy the readable stream.
    */
   terminate(): void {
-        this.readableStream?.destroy();
-    }
+    this.readableStream?.destroy();
+  }
 
   /**
    * Initializes the console logger.
    * @protected
    */
-  protected initialize(){
-    if(this.isActive()) {
+  protected initialize() {
+    if (this.isActive()) {
       this.readableStream = new Readable({
         objectMode: true,
         read(size: number) {
@@ -98,26 +98,6 @@ export class ConsoleLogger extends BaseLogger implements LoggerInterface {
     }
   }
 
-  private shouldThrottleLogs() {
-    const now = new Date().getSeconds();
-    if (this.currentSecond !== now) {
-      this.currentSecond = now;
-      this.numberOfLogsInThisSecond = 1;
-      this.currentlyThrottlingLogs = false;
-    } else {
-      this.numberOfLogsInThisSecond++;
-      if (this.numberOfLogsInThisSecond > this.maximumLogsPerSecond) {
-        if(!this.currentlyThrottlingLogs) {
-          console.error(`Throttling the logs as we are outputting too many logs (${this.maximumLogsPerSecond}) per second.`);
-        }
-        this.currentlyThrottlingLogs = true;
-
-      }
-    }
-
-    return this.currentlyThrottlingLogs;
-  }
-
   /**
    * Outputs the log in the console.
    * @param log The log to be outputted
@@ -126,7 +106,7 @@ export class ConsoleLogger extends BaseLogger implements LoggerInterface {
   protected log(log: LogModel): void {
     const outputLog = this.getFormattedOutputLog(log);
 
-    if(this.shouldThrottleLogs()) {
+    if (this.shouldThrottleLogs()) {
       return;
     }
 
@@ -151,5 +131,25 @@ export class ConsoleLogger extends BaseLogger implements LoggerInterface {
         console.error(outputLog);
         break;
     }
+  }
+
+  private shouldThrottleLogs() {
+    const now = new Date().getSeconds();
+    if (this.currentSecond !== now) {
+      this.currentSecond = now;
+      this.numberOfLogsInThisSecond = 1;
+      this.currentlyThrottlingLogs = false;
+    } else {
+      this.numberOfLogsInThisSecond++;
+      if (this.numberOfLogsInThisSecond > this.maximumLogsPerSecond) {
+        if (!this.currentlyThrottlingLogs) {
+          console.error(`Throttling the logs as we are outputting too many logs (${this.maximumLogsPerSecond}) per second.`);
+        }
+        this.currentlyThrottlingLogs = true;
+
+      }
+    }
+
+    return this.currentlyThrottlingLogs;
   }
 }

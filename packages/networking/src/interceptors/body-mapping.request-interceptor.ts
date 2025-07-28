@@ -4,8 +4,9 @@ import {LogHandlerInterface} from "@pristine-ts/logging";
 import {NetworkingModuleKeyname} from "../networking.module.keyname";
 import {DataMapper} from "@pristine-ts/data-mapping";
 import {
-    ClassTransformerBodyMappingContextInterface, DataMappingBuilderBodyMappingContextInterface,
-    FunctionBodyMappingContextInterface
+  ClassTransformerBodyMappingContextInterface,
+  DataMappingBuilderBodyMappingContextInterface,
+  FunctionBodyMappingContextInterface
 } from "../interfaces/body-mapping-context.interface";
 import {bodyMappingDecoratorMetadataKeyname} from "../decorators/body-mapping.decorator";
 import {RequestInterceptorInterface} from "../interfaces/request-interceptor.interface";
@@ -21,50 +22,50 @@ import {RequestInterceptorPriorityEnum} from "../enums/request-interceptor-prior
 @tag(ServiceDefinitionTagEnum.RequestInterceptor)
 @injectable()
 export class BodyMappingRequestInterceptor implements RequestInterceptorInterface {
-    constructor(@inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface,
-                private readonly dataMapper: DataMapper) {
+  priority = RequestInterceptorPriorityEnum.BodyMapping;
+
+  constructor(@inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface,
+              private readonly dataMapper: DataMapper) {
+  }
+
+  /**
+   * Intercepts the request and maps that the body to the corresponding argument passed in the `@bodyMapping` validator
+   * @param request The request being intercepted.
+   * @param methodNode The method node.
+   */
+  async interceptRequest(request: Request, methodNode: MethodRouterNode): Promise<Request> {
+    const bodyMapping: ClassTransformerBodyMappingContextInterface | FunctionBodyMappingContextInterface | DataMappingBuilderBodyMappingContextInterface = methodNode.route.context[bodyMappingDecoratorMetadataKeyname];
+
+    if (bodyMapping === undefined) {
+      return request;
     }
 
-    priority = RequestInterceptorPriorityEnum.BodyMapping;
+    this.loghandler.debug("BodyMappingRequestInterceptor", {
+      request,
+      methodNode,
+      routeContext: methodNode.route.context,
+    })
 
-    /**
-     * Intercepts the request and maps that the body to the corresponding argument passed in the `@bodyMapping` validator
-     * @param request The request being intercepted.
-     * @param methodNode The method node.
-     */
-    async interceptRequest(request: Request, methodNode: MethodRouterNode): Promise<Request> {
-        const bodyMapping: ClassTransformerBodyMappingContextInterface | FunctionBodyMappingContextInterface | DataMappingBuilderBodyMappingContextInterface = methodNode.route.context[bodyMappingDecoratorMetadataKeyname];
+    switch (bodyMapping.type) {
+      case "classType":
+        request.body = await this.dataMapper.autoMap(request.body, bodyMapping.classType);
+        break;
 
-        if(bodyMapping === undefined) {
-            return request;
-        }
+      case "DataMappingBuilder":
+        request.body = await this.dataMapper.map(bodyMapping.dataMappingBuilder, request.body, bodyMapping.destination);
+        break;
 
-        this.loghandler.debug("BodyMappingRequestInterceptor", {
-            request,
-            methodNode,
-            routeContext: methodNode.route.context,
-        })
-
-        switch (bodyMapping.type) {
-            case "classType":
-                request.body = await this.dataMapper.autoMap(request.body, bodyMapping.classType);
-                break;
-
-            case "DataMappingBuilder":
-                request.body = await this.dataMapper.map(bodyMapping.dataMappingBuilder, request.body, bodyMapping.destination);
-                break;
-
-            case "function":
-                request.body = await bodyMapping.function(request.body, this.dataMapper);
-                break;
-        }
-
-        this.loghandler.debug("BodyMappingRequestInterceptor - body mapped.", {
-            request,
-            methodNode,
-            routeContext: methodNode.route.context,
-        })
-
-        return request;
+      case "function":
+        request.body = await bodyMapping.function(request.body, this.dataMapper);
+        break;
     }
+
+    this.loghandler.debug("BodyMappingRequestInterceptor - body mapped.", {
+      request,
+      methodNode,
+      routeContext: methodNode.route.context,
+    })
+
+    return request;
+  }
 }

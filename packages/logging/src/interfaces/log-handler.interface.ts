@@ -1,4 +1,3 @@
-import {LogHighlights} from "../types/log-highlights.type";
 import {LogData} from "../types/log-data.type";
 
 /**

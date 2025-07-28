@@ -1,15 +1,14 @@
-import {inject, injectable, singleton, injectAll} from "tsyringe";
+import {inject, injectable, injectAll, singleton} from "tsyringe";
 import {MysqlClientInterface} from "../interfaces/mysql-client.interface";
 import {ClassMetadata, PropertyMetadata} from "@pristine-ts/metadata";
 import {DecoratorMetadataKeynameEnum} from "../enums/decorator-metadata-keyname.enum";
 import {TableDecoratorMetadataInterface} from "../interfaces/table-decorator-metadata.interface";
 import {ColumnDecoratorMetadataInterface} from "../interfaces/column-decorator-metadata.interface";
-import {MysqlModuleKeyname} from "../mysql.module.keyname";
 import {createPool, Pool} from "mysql2/promise";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {DataMapper} from "@pristine-ts/data-mapping-common";
-import {SearchQuery, SearchResult, FilteringOperatorEnum} from "@pristine-ts/mysql-common";
-import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {FilteringOperatorEnum, SearchQuery, SearchResult} from "@pristine-ts/mysql-common";
+import {tag} from "@pristine-ts/common";
 import {MysqlConfig} from "../configs/mysql.config";
 import {MysqlConfigProviderInterface} from "../interfaces/mysql-config-provider.interface";
 
@@ -192,10 +191,17 @@ export class MysqlClient implements MysqlClientInterface {
    * @param sqlStatement
    * @param values
    */
-  async executeSql(configUniqueKeyname: string, sqlStatement: string, values: any[], options?: {eventId?: string, eventGroupId?: string}): Promise<any> {
+  async executeSql(configUniqueKeyname: string, sqlStatement: string, values: any[], options?: {
+    eventId?: string,
+    eventGroupId?: string
+  }): Promise<any> {
     const pool = await this.getPool(configUniqueKeyname);
 
-    this.logHandler.debug("MysqlClient: Executing SQL statement.", {eventId: options?.eventId, eventGroupId: options?.eventGroupId, highlights: {sqlStatement, values}});
+    this.logHandler.debug("MysqlClient: Executing SQL statement.", {
+      eventId: options?.eventId,
+      eventGroupId: options?.eventGroupId,
+      highlights: {sqlStatement, values}
+    });
 
     try {
       const result = await pool.query(sqlStatement, values);
@@ -230,10 +236,17 @@ export class MysqlClient implements MysqlClientInterface {
    * @param sqlStatement
    * @param values
    */
-  async querySql(configUniqueKeyname: string, sqlStatement: string, values: any[], options?: {eventId?: string, eventGroupId?: string}): Promise<any> {
+  async querySql(configUniqueKeyname: string, sqlStatement: string, values: any[], options?: {
+    eventId?: string,
+    eventGroupId?: string
+  }): Promise<any> {
     const pool = await this.getPool(configUniqueKeyname);
 
-    this.logHandler.debug("MysqlClient: Executing SQL statement.", {eventId: options?.eventId, eventGroupId: options?.eventGroupId, highlights: {sqlStatement, values}});
+    this.logHandler.debug("MysqlClient: Executing SQL statement.", {
+      eventId: options?.eventId,
+      eventGroupId: options?.eventGroupId,
+      highlights: {sqlStatement, values}
+    });
 
     try {
       const result = await pool.query(sqlStatement, values);
@@ -266,7 +279,12 @@ export class MysqlClient implements MysqlClientInterface {
    * @param classType
    * @param results
    */
-  async mapResults(classType: { new(): any; }, results: any[], options?: {eventId?: string, eventGroupId?: string, excludeFields?: string[], logMappingErrors?: boolean}) {
+  async mapResults(classType: { new(): any; }, results: any[], options?: {
+    eventId?: string,
+    eventGroupId?: string,
+    excludeFields?: string[],
+    logMappingErrors?: boolean
+  }) {
     // Transform back the column names from the strategy
     const tableMetadata = this.getTableMetadata(classType);
 
@@ -311,7 +329,11 @@ export class MysqlClient implements MysqlClientInterface {
       });
     }
 
-    return this.dataMapper.autoMap(results, classType, {isOptionalDefaultValue: true, excludeExtraneousValues: false, logErrors: options?.logMappingErrors ?? false});
+    return this.dataMapper.autoMap(results, classType, {
+      isOptionalDefaultValue: true,
+      excludeExtraneousValues: false,
+      logErrors: options?.logMappingErrors ?? false
+    });
   }
 
   /**
@@ -322,8 +344,14 @@ export class MysqlClient implements MysqlClientInterface {
    */
   async get<T extends { [key: string]: any; }>(configUniqueKeyname: string, classType: {
     new(): T;
-  }, primaryKey: string | number, options?: {eventId?: string, eventGroupId?: string, logMappingErrors?: boolean}): Promise<T | null> {
-    const sql = `SELECT * FROM ${this.getTableMetadata(classType).tableName} WHERE ${this.getPrimaryKeyColumnName(classType)} = ?`;
+  }, primaryKey: string | number, options?: {
+    eventId?: string,
+    eventGroupId?: string,
+    logMappingErrors?: boolean
+  }): Promise<T | null> {
+    const sql = `SELECT *
+                 FROM ${this.getTableMetadata(classType).tableName}
+                 WHERE ${this.getPrimaryKeyColumnName(classType)} = ?`;
 
     const values = await this.executeSql(configUniqueKeyname, sql, [primaryKey]);
 
@@ -335,7 +363,11 @@ export class MysqlClient implements MysqlClientInterface {
    * @param configUniqueKeyname
    * @param element
    */
-  async create<T extends { [key: string]: any; }>(configUniqueKeyname: string, element: T, options?: {eventId?: string, eventGroupId?: string, logMappingErrors?: boolean}): Promise<void> {
+  async create<T extends { [key: string]: any; }>(configUniqueKeyname: string, element: T, options?: {
+    eventId?: string,
+    eventGroupId?: string,
+    logMappingErrors?: boolean
+  }): Promise<void> {
     const columns = this.getColumnsMetadata(element.constructor as { new(): T; });
 
     const columnNames = Object.keys(columns).map(column => this.getColumnName(element.constructor as {
@@ -356,7 +388,8 @@ export class MysqlClient implements MysqlClientInterface {
     // Generate update SQL statement:
     const sql = `INSERT INTO ${this.getTableMetadata(element.constructor as {
       new(): T;
-    }).tableName} (${columnNames.join(", ")}) VALUES (${columnValues.map(() => "?").join(", ")})`;
+    }).tableName} (${columnNames.join(", ")})
+                 VALUES (${columnValues.map(() => "?").join(", ")})`;
 
     await this.executeSql(configUniqueKeyname, sql, columnValues, options);
   }
@@ -366,7 +399,11 @@ export class MysqlClient implements MysqlClientInterface {
    * @param configUniqueKeyname
    * @param element
    */
-  async update<T extends { [key: string]: any; }>(configUniqueKeyname: string, element: T, options?: {eventId?: string, eventGroupId?: string, logMappingErrors?: boolean}): Promise<void> {
+  async update<T extends { [key: string]: any; }>(configUniqueKeyname: string, element: T, options?: {
+    eventId?: string,
+    eventGroupId?: string,
+    logMappingErrors?: boolean
+  }): Promise<void> {
     const columns = this.getColumnsMetadata(element.constructor as { new(): T; });
 
     const primaryKeyColumnName = this.getPrimaryKeyColumnName(element.constructor as { new(): T; });
@@ -391,7 +428,9 @@ export class MysqlClient implements MysqlClientInterface {
     // Add it since it will be the last element that will tell us which row to update.
     columnValues.push(primaryKeyValue);
 
-    const sql = `UPDATE ${this.getTableMetadata(element.constructor as { new(): T; }).tableName} SET ${columnNames.join(" = ?, ")} = ? WHERE ${primaryKeyColumnName} = ?`;
+    const sql = `UPDATE ${this.getTableMetadata(element.constructor as { new(): T; }).tableName}
+                 SET ${columnNames.join(" = ?, ")} = ?
+                 WHERE ${primaryKeyColumnName} = ?`;
 
     await this.executeSql(configUniqueKeyname, sql, columnValues, options);
   }
@@ -404,8 +443,14 @@ export class MysqlClient implements MysqlClientInterface {
    */
   async delete<T extends { [key: string]: any; }>(configUniqueKeyname: string, classType: {
     new(): T;
-  }, primaryKey: string | number, options?: {eventId?: string, eventGroupId?: string, logMappingErrors?: boolean}): Promise<void> {
-    const sql = `DELETE FROM ${this.getTableMetadata(classType).tableName} WHERE ${this.getPrimaryKeyColumnName(classType)} = ?`;
+  }, primaryKey: string | number, options?: {
+    eventId?: string,
+    eventGroupId?: string,
+    logMappingErrors?: boolean
+  }): Promise<void> {
+    const sql = `DELETE
+                 FROM ${this.getTableMetadata(classType).tableName}
+                 WHERE ${this.getPrimaryKeyColumnName(classType)} = ?`;
 
     await this.executeSql(configUniqueKeyname, sql, [primaryKey], options);
   }
@@ -418,7 +463,12 @@ export class MysqlClient implements MysqlClientInterface {
    */
   async search<T extends { [key: string]: any; }>(configUniqueKeyname: string, classType: {
     new(): T;
-  }, query: SearchQuery, options?: {eventId?: string, eventGroupId?: string, logMappingErrors?: boolean, excludeFieldsFromResponse?: string[]} ): Promise<SearchResult<T>> {
+  }, query: SearchQuery, options?: {
+    eventId?: string,
+    eventGroupId?: string,
+    logMappingErrors?: boolean,
+    excludeFieldsFromResponse?: string[]
+  }): Promise<SearchResult<T>> {
     let sql = "";
     const columns = this.getColumnsMetadata(classType);
     const defaultSearchableFields = Object.keys(columns).filter(column => columns[column].isSearchable).map(column => this.getColumnName(classType, column));

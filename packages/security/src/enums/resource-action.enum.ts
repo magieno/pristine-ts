@@ -4,9 +4,9 @@
  * More actions can be defined in more specified enum based on the resource type.
  */
 export enum ResourceActionEnum {
-    List = "LIST",
-    Read = "READ",
-    Create = "CREATE",
-    Update = "UPDATE",
-    Delete = "DELETE"
+  List = "LIST",
+  Read = "READ",
+  Create = "CREATE",
+  Update = "UPDATE",
+  Delete = "DELETE"
 }

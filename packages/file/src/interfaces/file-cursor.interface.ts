@@ -1,7 +1,7 @@
 export interface FileCursorInterface {
-    line: number;
+  line: number;
 
-    position: number;
+  position: number;
 
-    lineText: string;
+  lineText: string;
 }

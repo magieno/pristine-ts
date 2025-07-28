@@ -1,5 +1,5 @@
 import {inject, injectable} from "tsyringe";
-import { moduleScoped, ServiceDefinitionTagEnum, tag } from "@pristine-ts/common";
+import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {HttpRequestInterface} from "../interfaces/http-request.interface";
 import {HttpRequestOptions} from "../options/http-request.options.";
 import {LogHandlerInterface} from "@pristine-ts/logging";
@@ -16,24 +16,30 @@ import {HttpModuleKeyname} from "../http.module.keyname";
 @moduleScoped(HttpModuleKeyname)
 @injectable()
 export class HttpResponseLoggingInterceptor implements HttpResponseInterceptorInterface {
-    constructor(
-        @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-        @inject("%pristine.http.logging-enabled%") private readonly loggingEnabled: boolean,
-        ) {
+  constructor(
+    @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
+    @inject("%pristine.http.logging-enabled%") private readonly loggingEnabled: boolean,
+  ) {
+  }
+
+  /**
+   * This method intercepts an incoming http response and logs it.
+   * @param request
+   * @param options
+   * @param response
+   */
+  async interceptResponse(request: HttpRequestInterface, options: HttpRequestOptions, response: HttpResponseInterface): Promise<HttpResponseInterface> {
+    if (this.loggingEnabled) {
+      this.logHandler.info("HttpResponseLoggingInterceptor: Receiving http response.", {
+        highlights: {
+          status: response.status,
+          body: response.body,
+          headers: response.headers
+        }, eventId: options.eventId, extra: {response, options}
+      });
     }
 
-    /**
-     * This method intercepts an incoming http response and logs it.
-     * @param request
-     * @param options
-     * @param response
-     */
-    async interceptResponse(request: HttpRequestInterface, options: HttpRequestOptions, response: HttpResponseInterface): Promise<HttpResponseInterface> {
-        if(this.loggingEnabled) {
-            this.logHandler.info("HttpResponseLoggingInterceptor: Receiving http response.", {highlights: {status: response.status, body: response.body, headers: response.headers }, eventId: options.eventId, extra: {response, options}});
-        }
-
-        return response;
-    }
+    return response;
+  }
 
 }

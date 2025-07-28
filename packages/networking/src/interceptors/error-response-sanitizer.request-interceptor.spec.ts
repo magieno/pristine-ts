@@ -1,6 +1,6 @@
 import 'reflect-metadata';
-import { ErrorResponseSanitizerRequestInterceptor } from './error-response-sanitizer.request-interceptor';
-import { Response } from '@pristine-ts/common';
+import {ErrorResponseSanitizerRequestInterceptor} from './error-response-sanitizer.request-interceptor';
+import {Response} from '@pristine-ts/common';
 
 describe('ErrorResponseSanitizerRequestInterceptor', () => {
   it('should remove stack, extra, and errors from the response body', async () => {
@@ -11,7 +11,7 @@ describe('ErrorResponseSanitizerRequestInterceptor', () => {
     response.body = {
       message: 'An error occurred',
       stack: 'Error stack trace',
-      extra: { details: 'Extra details' },
+      extra: {details: 'Extra details'},
       errors: ['Error 1', 'Error 2'],
     };
 
@@ -41,11 +41,11 @@ describe('ErrorResponseSanitizerRequestInterceptor', () => {
     const error = new Error('Test error');
     const response = new Response();
     const body = {
-        message: 'An error occurred',
-        stack: 'Error stack trace',
-        extra: { details: 'Extra details' },
-        errors: ['Error 1', 'Error 2'],
-      };
+      message: 'An error occurred',
+      stack: 'Error stack trace',
+      extra: {details: 'Extra details'},
+      errors: ['Error 1', 'Error 2'],
+    };
     response.body = body;
 
     const newResponse = await interceptor.interceptError(error, response, {} as any);

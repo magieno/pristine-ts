@@ -5,8 +5,8 @@ import {FactoryProvider, InjectionToken} from "tsyringe";
  * It's a simple wrapper that provides all the information necessary to register a service in the container.
  */
 export interface FactoryProviderRegistrationInterface<T> extends FactoryProvider<T> {
-    /**
-     * The token to use when registering the service.
-     */
-    token: InjectionToken<T>;
+  /**
+   * The token to use when registering the service.
+   */
+  token: InjectionToken<T>;
 }

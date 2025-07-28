@@ -1,8 +1,8 @@
 import {ColumnNamingStrategyType} from "../types/column-naming-strategy.type";
 
 export interface TableDecoratorMetadataInterface {
-    tableName: string;
+  tableName: string;
 
-    autoColumnNamingStrategy?: ColumnNamingStrategyType;
-    autoColumnNamingStrategyReverse?: ColumnNamingStrategyType;
+  autoColumnNamingStrategy?: ColumnNamingStrategyType;
+  autoColumnNamingStrategyReverse?: ColumnNamingStrategyType;
 }

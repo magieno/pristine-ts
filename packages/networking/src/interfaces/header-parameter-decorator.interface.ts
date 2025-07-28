@@ -5,6 +5,6 @@ import {ParameterDecoratorInterface} from "./parameter-decorator.interface";
  * @headerParameter decorator.
  */
 export interface HeaderParameterDecoratorInterface extends ParameterDecoratorInterface {
-    type: "header";
-    headerName: string;
+  type: "header";
+  headerName: string;
 }

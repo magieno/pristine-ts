@@ -8,5 +8,8 @@
     "outDir": "dist/lib/esm",
     "strict": false
   },
-  "exclude": ["./**/*.spec.ts", "dist"]
+  "exclude": [
+    "./**/*.spec.ts",
+    "dist"
+  ]
 }

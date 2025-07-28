@@ -12,7 +12,7 @@ import {IdentityProviderInterface} from "../interfaces/identity-provider.interfa
 @tag(ServiceDefinitionTagEnum.IdentityProvider)
 @moduleScoped(SecurityModuleKeyname)
 export class DefaultIdentityProvider implements IdentityProviderInterface {
-    provide(identity: IdentityInterface): Promise<IdentityInterface> {
-        return Promise.resolve(identity);
-    }
+  provide(identity: IdentityInterface): Promise<IdentityInterface> {
+    return Promise.resolve(identity);
+  }
 }

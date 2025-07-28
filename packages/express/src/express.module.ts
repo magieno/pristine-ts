@@ -9,11 +9,11 @@ export * from "./mappers/mappers";
 export * from "./express.module.keyname";
 
 export const ExpressModule: ModuleInterface = {
-    keyname: ExpressModuleKeyname,
-    importModules: [
-        CoreModule,
-        NetworkingModule,
-    ]
+  keyname: ExpressModuleKeyname,
+  importModules: [
+    CoreModule,
+    NetworkingModule,
+  ]
 }
 
 

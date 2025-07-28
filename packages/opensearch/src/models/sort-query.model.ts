@@ -1,3 +1,3 @@
 export class SortQuery {
-    order?: "asc" | "desc";
+  order?: "asc" | "desc";
 }

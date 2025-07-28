@@ -20,22 +20,22 @@ export * from "./pipelines/pipelines";
 
 export * from "./core.module.keyname";
 
-export const CoreModule: ModuleInterface =  {
-    keyname: CoreModuleKeyname,
-    importModules: [
-        ConfigurationModule,
-        TelemetryModule,
-        LoggingModule,
-    ],
-    providerRegistrations: [],
-    configurationDefinitions: [
-        {
-            parameterName: CoreModuleKeyname + ".requestBodyConverterActive",
-            defaultValue: true,
-            isRequired: false,
-            defaultResolvers: [
-                new EnvironmentVariableResolver("PRISTINE_CORE_REQUEST_BODY_CONVERTER_ACTIVE")
-            ]
-        },
-    ],
+export const CoreModule: ModuleInterface = {
+  keyname: CoreModuleKeyname,
+  importModules: [
+    ConfigurationModule,
+    TelemetryModule,
+    LoggingModule,
+  ],
+  providerRegistrations: [],
+  configurationDefinitions: [
+    {
+      parameterName: CoreModuleKeyname + ".requestBodyConverterActive",
+      defaultValue: true,
+      isRequired: false,
+      defaultResolvers: [
+        new EnvironmentVariableResolver("PRISTINE_CORE_REQUEST_BODY_CONVERTER_ACTIVE")
+      ]
+    },
+  ],
 }

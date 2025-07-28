@@ -7,25 +7,23 @@ export const bodyValidationMetadataKeyname = "@bodyValidation";
  * @param classType The class that the request body is expected to fit.
  */
 export const bodyValidation = (classType: Function) => {
-    return (
-        /**
-         * The class on which the decorator is used.
-         */
-        target: any,
-
-        /**
-         * The method on which the decorator is used.
-         */
-        propertyKey: string | symbol,
-
-        /**
-         * The descriptor of the property.
-         */
-        descriptor: PropertyDescriptor
-    ) => {
-        MetadataUtil.setToRouteContext(bodyValidationMetadataKeyname, {
-            classType,
-        }, target, propertyKey);
-    }
+  return (
+    /**
+     * The class on which the decorator is used.
+     */
+    target: any,
+    /**
+     * The method on which the decorator is used.
+     */
+    propertyKey: string | symbol,
+    /**
+     * The descriptor of the property.
+     */
+    descriptor: PropertyDescriptor
+  ) => {
+    MetadataUtil.setToRouteContext(bodyValidationMetadataKeyname, {
+      classType,
+    }, target, propertyKey);
+  }
 }
 

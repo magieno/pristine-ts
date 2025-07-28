@@ -1,20 +1,19 @@
 import "reflect-metadata"
-import {injectable, injectAll, inject, scoped, Lifecycle} from "tsyringe";
+import {inject, injectable, injectAll, Lifecycle, scoped} from "tsyringe";
 import {SeverityEnum} from "../enums/severity.enum";
 import {LogModel} from "../models/log.model";
 import {LoggerInterface} from "../interfaces/logger.interface";
 import {
+  InternalContainerParameterEnum,
+  moduleScoped,
   ServiceDefinitionTagEnum,
   tag,
-  TracingContext,
-  InternalContainerParameterEnum,
-  moduleScoped
+  TracingContext
 } from "@pristine-ts/common";
 import {LogHandlerInterface} from "../interfaces/log-handler.interface";
 import {BreadcrumbHandlerInterface} from "../interfaces/breadcrumb-handler.interface";
 import {Utils} from "../utils/utils";
 import {LoggingModuleKeyname} from "../logging.module";
-import {LogHighlights} from "../types/log-highlights.type";
 import {LogData} from "../types/log-data.type";
 
 /**
@@ -49,7 +48,7 @@ export class LogHandler implements LogHandlerInterface {
    * This method terminates the loggers.
    */
   terminate(): void {
-    this.loggers.forEach( (logger: LoggerInterface) => {
+    this.loggers.forEach((logger: LoggerInterface) => {
       logger.terminate();
     })
   }
@@ -123,34 +122,33 @@ export class LogHandler implements LogHandlerInterface {
         log.extra = data;
       }
 
-      if(data.breadcrumb) {
+      if (data.breadcrumb) {
         this.breadcrumbHandler.add(data.eventId, data.breadcrumb);
       }
 
-      if(data.eventId) {
+      if (data.eventId) {
         log.breadcrumbs = this.breadcrumbHandler.breadcrumbs[data.eventId];
       }
 
-      if(data.outputHints) {
+      if (data.outputHints) {
         log.outputHints = data.outputHints;
       }
 
-      if(data.eventGroupId) {
+      if (data.eventGroupId) {
         log.eventGroupId = data.eventGroupId;
       }
     }
 
 
-
     // If the activateDiagnostics configuration is set to true, we will include additional information into a __diagnostics path into extra.
     // This is an intensive process so be careful, it will dramatically slow down your calls.
-    if(this.activateDiagnostics) {
+    if (this.activateDiagnostics) {
       const diagnostics = Utils.getDiagnostics(new Error());
 
       // Properly define which last stack trace is actually the one we want to report. In this case, it's the stack trace
       // Just before any entries in LogHandler.
       for (const stackTrace of diagnostics.stackTrace) {
-        if(stackTrace.className === undefined || stackTrace.className === "" || stackTrace.className.startsWith("LogHandler") || stackTrace.className.startsWith("Array")) {
+        if (stackTrace.className === undefined || stackTrace.className === "" || stackTrace.className.startsWith("LogHandler") || stackTrace.className.startsWith("Array")) {
           continue;
         }
 
@@ -160,15 +158,15 @@ export class LogHandler implements LogHandlerInterface {
 
       // Ensure log.extra is an object before adding diagnostics
       if (typeof log.extra !== 'object' || log.extra === null) {
-        log.extra = { originalData: log.extra };
+        log.extra = {originalData: log.extra};
       }
 
       log.extra["__diagnostics"] = diagnostics;
     }
 
     // Log in every logger that is activated.
-    for(const logger of this.loggers){
-      if(logger.isActive()) {
+    for (const logger of this.loggers) {
+      if (logger.isActive()) {
         logger.readableStream?.push(log);
       }
     }

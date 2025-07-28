@@ -1,5 +1,5 @@
 import {ClientOptionsInterface} from "../interfaces/client-options.interface";
-import {SQSClient, SQSClientConfig} from "@aws-sdk/client-sqs";
+import {SQSClientConfig} from "@aws-sdk/client-sqs";
 
 export class SqsClientOptions {
   /**

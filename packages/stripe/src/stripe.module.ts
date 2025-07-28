@@ -11,18 +11,18 @@ export * from './managers/managers';
 export * from "./stripe.module.keyname";
 
 export const StripeModule: ModuleInterface = {
-    keyname: StripeModuleKeyname,
-    configurationDefinitions: [
-        /**
-         * The api key to use when contacting Stripe.
-         */
-        {
-            parameterName: StripeModuleKeyname + ".stripeApiKey",
-            isRequired: true,
-        }
-    ],
-    importModules: [
-        LoggingModule,
-        NetworkingModule,
-    ],
+  keyname: StripeModuleKeyname,
+  configurationDefinitions: [
+    /**
+     * The api key to use when contacting Stripe.
+     */
+    {
+      parameterName: StripeModuleKeyname + ".stripeApiKey",
+      isRequired: true,
+    }
+  ],
+  importModules: [
+    LoggingModule,
+    NetworkingModule,
+  ],
 }

@@ -4,7 +4,7 @@ export interface BreadcrumbHandlerInterface {
   /**
    * The list of breadcrumbs that led to this point.
    */
-  breadcrumbs: {[eventId in string]: BreadcrumbModel[]};
+  breadcrumbs: { [eventId in string]: BreadcrumbModel[] };
 
   /**
    * Adds a new breadcrumb to the trail.
@@ -13,7 +13,7 @@ export interface BreadcrumbHandlerInterface {
    * @param message
    * @param extra
    */
-  add(eventId: string, message: string, extra?:any): void;
+  add(eventId: string, message: string, extra?: any): void;
 
   /**
    * Resets all the breadcrumbs.

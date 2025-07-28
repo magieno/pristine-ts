@@ -9,12 +9,12 @@ import {EventResponse} from "../models/event.response";
 @moduleScoped(CoreModuleKeyname)
 @injectable()
 export class DefaultEventHandler implements EventHandlerInterface<any, any> {
-    handle(event: Event<any>): Promise<EventResponse<any, any>> {
-        return Promise.resolve(new EventResponse(event, {}));
-    }
+  handle(event: Event<any>): Promise<EventResponse<any, any>> {
+    return Promise.resolve(new EventResponse(event, {}));
+  }
 
-    supports<T>(event: Event<T>): boolean {
-        return false;
-    }
+  supports<T>(event: Event<T>): boolean {
+    return false;
+  }
 
 }

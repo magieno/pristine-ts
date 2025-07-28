@@ -1,6 +1,6 @@
 import {inject, injectable} from "tsyringe";
 import {HttpRequestInterceptorInterface} from "../interfaces/http-request-interceptor.interface";
-import { moduleScoped, ServiceDefinitionTagEnum, tag } from "@pristine-ts/common";
+import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {HttpRequestInterface} from "../interfaces/http-request.interface";
 import {HttpRequestOptions} from "../options/http-request.options.";
 import {LogHandlerInterface} from "@pristine-ts/logging";
@@ -15,22 +15,28 @@ import {HttpModuleKeyname} from "../http.module.keyname";
 @moduleScoped(HttpModuleKeyname)
 @injectable()
 export class HttpRequestLoggingInterceptor implements HttpRequestInterceptorInterface {
-    constructor(
-        @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-        @inject("%pristine.http.logging-enabled%") private readonly loggingEnabled: boolean,
-        ) {
+  constructor(
+    @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
+    @inject("%pristine.http.logging-enabled%") private readonly loggingEnabled: boolean,
+  ) {
+  }
+
+  /**
+   * This method intercepts an outgoing http request and logs it.
+   * @param request
+   * @param options
+   */
+  async interceptRequest(request: HttpRequestInterface, options: HttpRequestOptions): Promise<HttpRequestInterface> {
+    if (this.loggingEnabled) {
+      this.logHandler.info("HttpRequestLoggingInterceptor: Outgoing http request.", {
+        highlights: {
+          url: `[${request.httpMethod}] ${request.httpMethod}`,
+          body: request.body,
+          headers: request.headers
+        }, eventId: options.eventId, extra: {request, options}
+      });
     }
 
-    /**
-     * This method intercepts an outgoing http request and logs it.
-     * @param request
-     * @param options
-     */
-    async interceptRequest(request: HttpRequestInterface, options: HttpRequestOptions): Promise<HttpRequestInterface> {
-        if(this.loggingEnabled) {
-            this.logHandler.info("HttpRequestLoggingInterceptor: Outgoing http request.", {highlights: {url: `[${request.httpMethod}] ${request.httpMethod}`, body: request.body, headers: request.headers }, eventId: options.eventId, extra: {request, options}});
-        }
-
-        return request;
-    }
+    return request;
+  }
 }

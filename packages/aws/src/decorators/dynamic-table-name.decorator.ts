@@ -12,10 +12,10 @@ export const dynamicTableNameRegistry: DynamicTableNameModel[] = [];
  * @param name The name of the variable in the container containing the name of the table.
  */
 export const dynamicTableName = (name: string) => {
-    return (constructor: any) => {
-        dynamicTableNameRegistry.push({
-            tokenName: name,
-            classConstructor: constructor,
-        });
-    }
+  return (constructor: any) => {
+    dynamicTableNameRegistry.push({
+      tokenName: name,
+      classConstructor: constructor,
+    });
+  }
 }

@@ -6,14 +6,14 @@ import {InjectionToken} from "tsyringe";
  * Beware that the service resolved by the injectionToken needs to be registered in the dependency container before.
  */
 export interface DynamicConfigurationResolverInterface<T> {
-    /**
-     * The injection token for the service that needs to be resolved
-     */
-    injectionToken?: InjectionToken;
+  /**
+   * The injection token for the service that needs to be resolved
+   */
+  injectionToken?: InjectionToken;
 
-    /**
-     * The function that needs to be executed to resolve the value for the configuration.
-     * @param injectedInstance The initialized instance of the service resolved with the injection token.
-     */
-    dynamicResolve: (injectedInstance?: T) => Promise<string | number | boolean | any>;
+  /**
+   * The function that needs to be executed to resolve the value for the configuration.
+   * @param injectedInstance The initialized instance of the service resolved with the injection token.
+   */
+  dynamicResolve: (injectedInstance?: T) => Promise<string | number | boolean | any>;
 }

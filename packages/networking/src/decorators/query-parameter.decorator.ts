@@ -7,29 +7,27 @@ import {MetadataUtil} from "@pristine-ts/common";
  * @param name The name of the query parameter to inject.
  */
 export const queryParameter = (name: string) => {
-    return (
-        /**
-         * The class on which the decorator is used.
-         */
-        target: any,
+  return (
+    /**
+     * The class on which the decorator is used.
+     */
+    target: any,
+    /**
+     * The method on which the decorator is used.
+     */
+    propertyKey: string | symbol,
+    /**
+     * The index of the parameter for which the decorator is used.
+     */
+    parameterIndex: number
+  ) => {
+    // Set the type of method parameter. Each parameter decorator has it's own type.
+    // Set also the name of the query parameter to resolve.
+    const methodParameter: QueryParameterDecoratorInterface = {
+      type: "queryParameter",
+      queryParameterName: name,
+    };
 
-        /**
-         * The method on which the decorator is used.
-         */
-        propertyKey: string | symbol,
-
-        /**
-         * The index of the parameter for which the decorator is used.
-         */
-        parameterIndex: number
-    ) => {
-        // Set the type of method parameter. Each parameter decorator has it's own type.
-        // Set also the name of the query parameter to resolve.
-        const methodParameter: QueryParameterDecoratorInterface = {
-            type: "queryParameter",
-            queryParameterName: name,
-        };
-
-        MetadataUtil.setMethodParameterArgumentMetadata(target, propertyKey, parameterIndex, methodParameter);
-    }
+    MetadataUtil.setMethodParameterArgumentMetadata(target, propertyKey, parameterIndex, methodParameter);
+  }
 }

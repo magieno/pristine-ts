@@ -1,9 +1,3 @@
-import {injectable} from "tsyringe";
-
-import {MethodMapper} from "./method.mapper";
-import {HeadersMapper} from "./headers.mapper";
-import {Request} from "@pristine-ts/common";
-
 // @injectable()
 // export class RequestMapper {
 //     constructor(private readonly methodMapper: MethodMapper, private readonly headersMapper: HeadersMapper) {

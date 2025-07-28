@@ -17,7 +17,6 @@ import {DynamodbError} from "../errors/dynamodb.error";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {tag} from "@pristine-ts/common";
 import {DynamodbClientInterface} from "../interfaces/dynamodb-client.interface";
-import {AwsModuleKeyname} from "../aws.module.keyname";
 import {ListOptions} from "../options/list.options";
 import {FindBySecondaryIndexOptions} from "../options/find-by-secondary-index.options";
 import {ListResult} from "../results/list.result";

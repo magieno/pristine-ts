@@ -7,6 +7,6 @@ import {ClassProviderRegistrationInterface} from "../interfaces/class-provider-r
  * This type regroups all the different interfaces for provider a registration for a service.
  */
 export type ProviderRegistration<T = any> = FactoryProviderRegistrationInterface<T> |
-    TokenProviderRegistrationInterface<T> |
-    ClassProviderRegistrationInterface<T> |
-    ValueProviderRegistrationInterface<T>;
+  TokenProviderRegistrationInterface<T> |
+  ClassProviderRegistrationInterface<T> |
+  ValueProviderRegistrationInterface<T>;

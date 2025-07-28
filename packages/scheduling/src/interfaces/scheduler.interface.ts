@@ -2,8 +2,8 @@
  * This interface defines what a Scheduler should implement.
  */
 export interface SchedulerInterface {
-    /**
-     * This method runs all the tasks that were registered.
-     */
-    runTasks(eventId: string): Promise<void>;
+  /**
+   * This method runs all the tasks that were registered.
+   */
+  runTasks(eventId: string): Promise<void>;
 }

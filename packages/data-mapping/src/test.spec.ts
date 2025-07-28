@@ -1,5 +1,5 @@
 describe("Data Mapping Module", () => {
-    it("should", () => {
-        expect(true).toBeTruthy()
-    })
+  it("should", () => {
+    expect(true).toBeTruthy()
+  })
 })

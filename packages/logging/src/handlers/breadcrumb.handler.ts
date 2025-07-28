@@ -1,13 +1,7 @@
 import {LoggingModuleKeyname} from "../logging.module.keyname";
 import {BreadcrumbHandlerInterface} from "../interfaces/breadcrumb-handler.interface";
-import {injectable, injectAll, singleton, inject, scoped, Lifecycle} from "tsyringe";
-import {
-  ServiceDefinitionTagEnum,
-  tag,
-  TracingContext,
-  InternalContainerParameterEnum,
-  moduleScoped
-} from "@pristine-ts/common";
+import {injectable, Lifecycle, scoped} from "tsyringe";
+import {moduleScoped, tag} from "@pristine-ts/common";
 import {BreadcrumbModel} from "../models/breadcrumb.model";
 
 @moduleScoped(LoggingModuleKeyname)
@@ -15,9 +9,9 @@ import {BreadcrumbModel} from "../models/breadcrumb.model";
 @injectable()
 @scoped(Lifecycle.ContainerScoped)
 export class BreadcrumbHandler implements BreadcrumbHandlerInterface {
-  public breadcrumbs: {[eventId in string]: BreadcrumbModel[]} = {};
+  public breadcrumbs: { [eventId in string]: BreadcrumbModel[] } = {};
 
-  add(eventId: string, message: string, extra?:any) {
+  add(eventId: string, message: string, extra?: any) {
     this.addBreadcrumb(eventId, new BreadcrumbModel(message, extra));
   }
 
@@ -26,7 +20,7 @@ export class BreadcrumbHandler implements BreadcrumbHandlerInterface {
   }
 
   addBreadcrumb(eventId: string, breadcrumb: BreadcrumbModel) {
-    if(!this.breadcrumbs.hasOwnProperty(eventId)) {
+    if (!this.breadcrumbs.hasOwnProperty(eventId)) {
       this.breadcrumbs[eventId] = [];
     }
 

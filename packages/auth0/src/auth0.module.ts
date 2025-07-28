@@ -10,23 +10,23 @@ export * from "./interfaces/interfaces";
 export * from "./auth0.module.keyname";
 
 export const Auth0Module: ModuleInterface = {
-    keyname: Auth0ModuleKeyname,
-    configurationDefinitions: [
-        /**
-         * The auth0 issuer domain (without the http://),
-         * used to retrieve the public key and validate the JWTs.
-         */
-        {
-            parameterName: Auth0ModuleKeyname + ".issuer.domain",
-            isRequired: true,
-            defaultResolvers: [
-                new EnvironmentVariableResolver("PRISTINE_AUTH0_ISSUER_DOMAIN"),
-            ]
-        },
-    ],
-    importModules: [
-        LoggingModule,
-        HttpModule
-    ],
+  keyname: Auth0ModuleKeyname,
+  configurationDefinitions: [
+    /**
+     * The auth0 issuer domain (without the http://),
+     * used to retrieve the public key and validate the JWTs.
+     */
+    {
+      parameterName: Auth0ModuleKeyname + ".issuer.domain",
+      isRequired: true,
+      defaultResolvers: [
+        new EnvironmentVariableResolver("PRISTINE_AUTH0_ISSUER_DOMAIN"),
+      ]
+    },
+  ],
+  importModules: [
+    LoggingModule,
+    HttpModule
+  ],
 }
 

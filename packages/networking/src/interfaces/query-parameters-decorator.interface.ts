@@ -5,5 +5,5 @@ import {ParameterDecoratorInterface} from "./parameter-decorator.interface";
  * @queryParameters decorator.
  */
 export interface QueryParametersDecoratorInterface extends ParameterDecoratorInterface {
-    type: "queryParameters";
+  type: "queryParameters";
 }

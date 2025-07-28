@@ -1,6 +1,6 @@
 import {RequestInterceptorInterface} from "../interfaces/request-interceptor.interface";
 import {NetworkingModuleKeyname} from "../networking.module.keyname";
-import {injectable, inject} from "tsyringe";
+import {inject, injectable} from "tsyringe";
 import {moduleScoped, Request, Response, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {MethodRouterNode} from "../nodes/method-router.node";
 
@@ -17,8 +17,8 @@ export class ErrorResponseSanitizerRequestInterceptor implements RequestIntercep
   ) {
   }
 
-  async interceptError(error: Error,  response: Response, request: Request, methodNode?: MethodRouterNode): Promise<Response> {
-    if(!this.isActive || (typeof response.body !== "object" && !Array.isArray(response.body))) {
+  async interceptError(error: Error, response: Response, request: Request, methodNode?: MethodRouterNode): Promise<Response> {
+    if (!this.isActive || (typeof response.body !== "object" && !Array.isArray(response.body))) {
       return response;
     }
 
