@@ -349,9 +349,7 @@ export class MysqlClient implements MysqlClientInterface {
     eventGroupId?: string,
     logMappingErrors?: boolean
   }): Promise<T | null> {
-    const sql = `SELECT *
-                 FROM ${this.getTableMetadata(classType).tableName}
-                 WHERE ${this.getPrimaryKeyColumnName(classType)} = ?`;
+    const sql = `SELECT * FROM ${this.getTableMetadata(classType).tableName} WHERE ${this.getPrimaryKeyColumnName(classType)} = ?`;
 
     const values = await this.executeSql(configUniqueKeyname, sql, [primaryKey]);
 
@@ -388,8 +386,7 @@ export class MysqlClient implements MysqlClientInterface {
     // Generate update SQL statement:
     const sql = `INSERT INTO ${this.getTableMetadata(element.constructor as {
       new(): T;
-    }).tableName} (${columnNames.join(", ")})
-                 VALUES (${columnValues.map(() => "?").join(", ")})`;
+    }).tableName} (${columnNames.join(", ")}) VALUES (${columnValues.map(() => "?").join(", ")})`;
 
     await this.executeSql(configUniqueKeyname, sql, columnValues, options);
   }
@@ -428,9 +425,7 @@ export class MysqlClient implements MysqlClientInterface {
     // Add it since it will be the last element that will tell us which row to update.
     columnValues.push(primaryKeyValue);
 
-    const sql = `UPDATE ${this.getTableMetadata(element.constructor as { new(): T; }).tableName}
-                 SET ${columnNames.join(" = ?, ")} = ?
-                 WHERE ${primaryKeyColumnName} = ?`;
+    const sql = `UPDATE ${this.getTableMetadata(element.constructor as { new(): T; }).tableName} SET ${columnNames.join(" = ?, ")} = ? WHERE ${primaryKeyColumnName} = ?`;
 
     await this.executeSql(configUniqueKeyname, sql, columnValues, options);
   }
@@ -448,9 +443,7 @@ export class MysqlClient implements MysqlClientInterface {
     eventGroupId?: string,
     logMappingErrors?: boolean
   }): Promise<void> {
-    const sql = `DELETE
-                 FROM ${this.getTableMetadata(classType).tableName}
-                 WHERE ${this.getPrimaryKeyColumnName(classType)} = ?`;
+    const sql = `DELETE FROM ${this.getTableMetadata(classType).tableName} WHERE ${this.getPrimaryKeyColumnName(classType)} = ?`;
 
     await this.executeSql(configUniqueKeyname, sql, [primaryKey], options);
   }
