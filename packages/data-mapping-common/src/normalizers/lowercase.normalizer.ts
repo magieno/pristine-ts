@@ -6,22 +6,22 @@ import {BaseNormalizer} from "./base.normalizer";
 
 export const LowercaseNormalizerUniqueKey = "PRISTINE_LOWERCASE_NORMALIZER";
 
-export class LowercaseNormalizer extends BaseNormalizer<LowercaseNormalizerOptions> implements DataNormalizerInterface<string, LowercaseNormalizerOptions>{
-    getUniqueKey(): DataNormalizerUniqueKey {
-        return LowercaseNormalizerUniqueKey;
+export class LowercaseNormalizer extends BaseNormalizer<LowercaseNormalizerOptions> implements DataNormalizerInterface<string, LowercaseNormalizerOptions> {
+  getUniqueKey(): DataNormalizerUniqueKey {
+    return LowercaseNormalizerUniqueKey;
+  }
+
+  normalize(source: any, options?: LowercaseNormalizerOptions): string {
+    options = this.getOptions(options);
+
+    if (typeof source !== "string") {
+      if (options && options.shouldThrowIfTypeIsNotString) {
+        throw new NormalizerInvalidSourceTypeError("The 'LowercaseNormalizer' expects the source value to be of type 'string'. Type '" + typeof source + "' was received.", this.getUniqueKey(), options, source, typeof source)
+      }
+
+      return source;
     }
 
-    normalize(source: any, options?: LowercaseNormalizerOptions): string {
-        options = this.getOptions(options);
-        
-        if(typeof source !== "string") {
-            if(options && options.shouldThrowIfTypeIsNotString) {
-                throw new NormalizerInvalidSourceTypeError("The 'LowercaseNormalizer' expects the source value to be of type 'string'. Type '" + typeof source+ "' was received.", this.getUniqueKey(), options, source, typeof source)
-            }
-
-            return source;
-        }
-
-        return source.toLowerCase();
-    }
+    return source.toLowerCase();
+  }
 }

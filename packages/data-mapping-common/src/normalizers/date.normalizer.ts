@@ -6,81 +6,81 @@ import {BaseNormalizer} from "./base.normalizer";
 export const DateNormalizerUniqueKey = "PRISTINE_DATE_NORMALIZER";
 
 export class DateNormalizer extends BaseNormalizer<DateNormalizerOptions> implements DataNormalizerInterface<Date | undefined, DateNormalizerOptions> {
-    getUniqueKey(): string {
-        return DateNormalizerUniqueKey;
+  getUniqueKey(): string {
+    return DateNormalizerUniqueKey;
+  }
+
+  normalize(source: any, options?: DateNormalizerOptions): Date | undefined {
+    const typeEnum = TypeUtils.getTypeOfValue(source);
+
+    options = this.getOptions(options);
+
+    if (typeEnum === undefined) {
+      if (options?.returnUndefinedOnInvalidDate === false) {
+        return new Date();
+      }
+
+      return undefined;
     }
 
-    normalize(source: any, options?: DateNormalizerOptions): Date | undefined {
-        const typeEnum = TypeUtils.getTypeOfValue(source);
+    let date: Date;
 
-        options = this.getOptions(options);
-
-        if (typeEnum === undefined) {
-            if (options?.returnUndefinedOnInvalidDate === false) {
-                return new Date();
-            }
-
-            return undefined;
+    switch (typeEnum) {
+      case TypeEnum.Date:
+        if (!isNaN(source.getTime())) {
+          return source;
         }
 
-        let date: Date;
+      case TypeEnum.Number:
+        if (options?.treatNumbers === "seconds") {
+          source = source * 1000;
+        }
+      // We don't break here because the behaviour is that same as with a string.
 
-        switch (typeEnum) {
-            case TypeEnum.Date:
-                if(!isNaN(source.getTime())) {
-                    return source;
-                }
+      case TypeEnum.String:
+        date = new Date(source);
 
-            case TypeEnum.Number:
-                if(options?.treatNumbers === "seconds") {
-                    source = source * 1000;
-                }
-                // We don't break here because the behaviour is that same as with a string.
-
-            case TypeEnum.String:
-                date = new Date(source);
-
-                if(!isNaN(date.getTime())) {
-                    return date;
-                }
-
-                break;
-
-            case TypeEnum.Object:
-                date = new Date();
-
-                // todo: Allow this property to be customizable in the options eventually
-                if(source.hasOwnProperty("year")) {
-                    date.setFullYear(source["year"]);
-                }
-                if(source.hasOwnProperty("month")) {
-                    date.setMonth(source["month"]);
-                }
-                if(source.hasOwnProperty("day")) {
-                    date.setDate(source["day"]);
-                }
-                if(source.hasOwnProperty("hours")) {
-                    date.setHours(source["hours"]);
-                }
-                if(source.hasOwnProperty("minutes")) {
-                    date.setMinutes(source["minutes"]);
-                }
-                if(source.hasOwnProperty("seconds")) {
-                    date.setSeconds(source["seconds"]);
-                }
-
-                if(!isNaN(date.getTime())) {
-                    return date;
-                }
-
-                break;
+        if (!isNaN(date.getTime())) {
+          return date;
         }
 
-        if (options?.returnUndefinedOnInvalidDate === false) {
-            return new Date();
+        break;
+
+      case TypeEnum.Object:
+        date = new Date();
+
+        // todo: Allow this property to be customizable in the options eventually
+        if (source.hasOwnProperty("year")) {
+          date.setFullYear(source["year"]);
+        }
+        if (source.hasOwnProperty("month")) {
+          date.setMonth(source["month"]);
+        }
+        if (source.hasOwnProperty("day")) {
+          date.setDate(source["day"]);
+        }
+        if (source.hasOwnProperty("hours")) {
+          date.setHours(source["hours"]);
+        }
+        if (source.hasOwnProperty("minutes")) {
+          date.setMinutes(source["minutes"]);
+        }
+        if (source.hasOwnProperty("seconds")) {
+          date.setSeconds(source["seconds"]);
         }
 
-        return undefined;
+        if (!isNaN(date.getTime())) {
+          return date;
+        }
+
+        break;
     }
+
+    if (options?.returnUndefinedOnInvalidDate === false) {
+      return new Date();
+    }
+
+    return undefined;
+  }
 
 }

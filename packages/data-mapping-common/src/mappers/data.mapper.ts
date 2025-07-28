@@ -59,7 +59,7 @@ export class DataMapper {
   public async autoMap(source: any | any[], destinationType: ClassConstructor<any> | PrimitiveType, options?: AutoDataMappingBuilderOptions): Promise<any> {
     try {
       // Get the normalizer and automap for primitive values.
-      if(EnumUtil.isValidEnumValue(destinationType, PrimitiveType)) {
+      if (EnumUtil.isValidEnumValue(destinationType, PrimitiveType)) {
         let normalizer: DataNormalizerInterface<any, any> | undefined;
 
         switch (destinationType) {
@@ -77,7 +77,7 @@ export class DataMapper {
             break;
         }
 
-        if(!normalizer) {
+        if (!normalizer) {
           throw new AutoMapPrimitiveTypeNormalizerNotFoundError("Normalizer not found for primitive type: '" + destinationType + "'.", destinationType as PrimitiveType)
         }
 

@@ -1,5 +1,5 @@
 describe("AWS Scheduling", () => {
-    it('should', () => {
-        expect(true).toBeTruthy();
-    })
+  it('should', () => {
+    expect(true).toBeTruthy();
+  })
 })

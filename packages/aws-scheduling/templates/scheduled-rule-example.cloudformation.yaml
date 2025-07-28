@@ -7,6 +7,5 @@ Resources:
       ScheduleExpression: "rate(10 minutes)"
       State: "ENABLED"
       Targets:
-        -
-          Arn: !GetAtt LambdaFunction.Arn
+        - Arn: !GetAtt LambdaFunction.Arn
           Id: "TargetFunctionV1"
