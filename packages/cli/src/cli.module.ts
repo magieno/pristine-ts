@@ -1,4 +1,4 @@
-import {ModuleInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
+import {ModuleInterface} from "@pristine-ts/common";
 import {CliModuleKeyname} from "./cli.module.keyname";
 import {CoreModule} from "@pristine-ts/core";
 import {ValidationModule} from "@pristine-ts/validation";

@@ -1,9 +1,9 @@
 import {ExitCodeEnum} from "../enums/exit-code.enum";
 
 export interface CommandInterface<ArgumentsOptionsType> {
-    name: string;
+  name: string;
 
-    optionsType: ArgumentsOptionsType;
+  optionsType: ArgumentsOptionsType;
 
-    run(args: ArgumentsOptionsType ): Promise<ExitCodeEnum | number>;
+  run(args: ArgumentsOptionsType): Promise<ExitCodeEnum | number>;
 }

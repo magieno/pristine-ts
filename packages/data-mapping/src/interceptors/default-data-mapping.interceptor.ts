@@ -7,15 +7,15 @@ import {DataMappingInterceptorInterface, DataMappingInterceptorUniqueKeyType} fr
 @moduleScoped(DataMappingModuleKeyname)
 @injectable()
 export class DefaultDataMappingInterceptor implements DataMappingInterceptorInterface {
-    async afterMapping(row: any): Promise<any> {
-        return row;
-    }
+  async afterMapping(row: any): Promise<any> {
+    return row;
+  }
 
-    async beforeMapping(row: any): Promise<any> {
-        return row;
-    }
+  async beforeMapping(row: any): Promise<any> {
+    return row;
+  }
 
-    getUniqueKey(): DataMappingInterceptorUniqueKeyType {
-        return DefaultDataMappingInterceptor.name;
-    }
+  getUniqueKey(): DataMappingInterceptorUniqueKeyType {
+    return DefaultDataMappingInterceptor.name;
+  }
 }

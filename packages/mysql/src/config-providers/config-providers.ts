@@ -1,1 +1,1 @@
-export * from "./default-mysql.config-provider";;
+export * from "./default-mysql.config-provider";

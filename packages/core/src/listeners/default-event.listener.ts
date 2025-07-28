@@ -8,11 +8,11 @@ import {Event} from "../models/event";
 @moduleScoped(CoreModuleKeyname)
 @injectable()
 export class DefaultEventListener implements EventListenerInterface {
-    execute<EventPayload>(event: Event<EventPayload>): Promise<void> {
-        return Promise.resolve();
-    }
+  execute<EventPayload>(event: Event<EventPayload>): Promise<void> {
+    return Promise.resolve();
+  }
 
-    supports<T>(event: Event<T>): boolean {
-        return false;
-    }
+  supports<T>(event: Event<T>): boolean {
+    return false;
+  }
 }

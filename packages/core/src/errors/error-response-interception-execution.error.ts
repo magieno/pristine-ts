@@ -1,21 +1,21 @@
-import {LoggableError} from "@pristine-ts/common";
-import {Request} from "@pristine-ts/common";
+import {LoggableError, Request} from "@pristine-ts/common";
 
 /**
  * This Error is thrown when an error happens in the execution of an error response interceptor.
  */
 export class ErrorResponseInterceptionExecutionError extends LoggableError {
 
-    public constructor(message: string, error: Error, request: Request, interceptor: any, previousError?: Error) {
-        super(message, {
-            previousError,
-            error,
-            request,
-            interceptor,
-        });
+  public constructor(message: string, error: Error, request: Request, interceptor: any, previousError?: Error) {
+    super(message, {
+      previousError,
+      error,
+      request,
+      interceptor,
+    });
 
-        // Set the prototype explicitly.
-        // As specified in the documentation in TypeScript
-        // https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
-        Object.setPrototypeOf(this, ErrorResponseInterceptionExecutionError.prototype);    }
+    // Set the prototype explicitly.
+    // As specified in the documentation in TypeScript
+    // https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
+    Object.setPrototypeOf(this, ErrorResponseInterceptionExecutionError.prototype);
+  }
 }

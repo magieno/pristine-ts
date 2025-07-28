@@ -1,5 +1,5 @@
 import {injectable} from "tsyringe";
-import { ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {Readable} from "stream";
 import {TracerInterface} from "../interfaces/tracer.interface";
 
@@ -10,29 +10,29 @@ import {TracerInterface} from "../interfaces/tracer.interface";
 @tag(ServiceDefinitionTagEnum.Tracer)
 @injectable()
 export class XrayTracer implements TracerInterface {
-    spanStartedStream?: Readable = new Readable({
-        objectMode: true,
-        read(size: number) {
-            return true;
-        }
-    });
-    spanEndedStream?: Readable = new Readable({
-        objectMode: true,
-        read(size: number) {
-            return true;
-        }
-    });
-    traceStartedStream?: Readable = new Readable({
-        objectMode: true,
-        read(size: number) {
-            return true;
-        }
-    });
-    traceEndedStream?: Readable = new Readable({
-        objectMode: true,
-        read(size: number) {
-            return true;
-        }
-    });
+  spanStartedStream?: Readable = new Readable({
+    objectMode: true,
+    read(size: number) {
+      return true;
+    }
+  });
+  spanEndedStream?: Readable = new Readable({
+    objectMode: true,
+    read(size: number) {
+      return true;
+    }
+  });
+  traceStartedStream?: Readable = new Readable({
+    objectMode: true,
+    read(size: number) {
+      return true;
+    }
+  });
+  traceEndedStream?: Readable = new Readable({
+    objectMode: true,
+    read(size: number) {
+      return true;
+    }
+  });
 }
 

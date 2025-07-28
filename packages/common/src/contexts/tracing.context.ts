@@ -1,8 +1,8 @@
 import "reflect-metadata";
-import {injectable, scoped, Lifecycle, injectAll, inject} from "tsyringe";
+import {injectable, Lifecycle, scoped} from "tsyringe";
 
 @injectable()
 @scoped(Lifecycle.ContainerScoped)
 export class TracingContext {
-    public traceId?: string
+  public traceId?: string
 }

@@ -60,19 +60,19 @@ export class FileLogger extends BaseLogger implements LoggerInterface {
                      @inject("%pristine.logging.logCriticalDepthConfiguration%") logCriticalDepthConfiguration: number,
                      @inject("%pristine.logging.fileLoggerActivated%") isActivated: boolean,
                      @inject("%pristine.logging.fileLoggerOutputMode%") outputMode: OutputModeEnum,
-                     @inject("%pristine.logging.fileLoggerPretty%")  fileLoggerPretty: boolean,
+                     @inject("%pristine.logging.fileLoggerPretty%") fileLoggerPretty: boolean,
                      @inject("%pristine.logging.filePath%") private readonly filePath: string,
-                     ) {
+  ) {
     super(numberOfStackedLogs,
-        logSeverityLevelConfiguration,
-        logDebugDepthConfiguration,
-        logInfoDepthConfiguration,
-        logWarningDepthConfiguration,
-        logErrorDepthConfiguration,
-        logCriticalDepthConfiguration,
-        isActivated,
-        outputMode,
-        fileLoggerPretty ? 2 : 0);
+      logSeverityLevelConfiguration,
+      logDebugDepthConfiguration,
+      logInfoDepthConfiguration,
+      logWarningDepthConfiguration,
+      logErrorDepthConfiguration,
+      logCriticalDepthConfiguration,
+      isActivated,
+      outputMode,
+      fileLoggerPretty ? 2 : 0);
 
     this.initialize();
   }
@@ -90,7 +90,7 @@ export class FileLogger extends BaseLogger implements LoggerInterface {
    * @protected
    */
   protected initialize() {
-    if(this.isActive()) {
+    if (this.isActive()) {
       this.readableStream = new Readable({
         objectMode: true,
         read(size: number) {
@@ -110,7 +110,7 @@ export class FileLogger extends BaseLogger implements LoggerInterface {
    * @protected
    */
   protected log(log: LogModel): void {
-    if(this.writableStream === undefined) {
+    if (this.writableStream === undefined) {
       return;
     }
 

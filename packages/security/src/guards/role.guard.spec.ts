@@ -4,142 +4,140 @@ import {HttpMethod, Request} from "@pristine-ts/common";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 
 class LogHandlerMock implements LogHandlerInterface {
-    debug(message: string, extra?: any) {
-    }
+  debug(message: string, extra?: any) {
+  }
 
-    info(message: string, extra?: any) {
-    }
+  info(message: string, extra?: any) {
+  }
 
-    error(message: string, extra?: any) {
-    }
+  error(message: string, extra?: any) {
+  }
 
-    critical(message: string, extra?: any) {
-    }
+  critical(message: string, extra?: any) {
+  }
 
-    warning(message: string, extra?: any) {
-    }
+  warning(message: string, extra?: any) {
+  }
 
-    terminate() {
+  terminate() {
 
-    }
+  }
 }
 
 describe("Auth0 roles Guard", () => {
-    it("should return true when no role is needed", async () => {
-        const roleGuard = new RoleGuard("http://pristine.com/roles", new LogHandlerMock());
+  it("should return true when no role is needed", async () => {
+    const roleGuard = new RoleGuard("http://pristine.com/roles", new LogHandlerMock());
 
-        roleGuard.setContext({
-            CognitoGroupGuard: RoleGuard,
-            options: {
-                groups: []
-            }
-        })
-
-        const request = new Request(HttpMethod.Get, "https://url", "uuid");
-
-        expect(await roleGuard.isAuthorized(request, {
-            id: "id",
-            claims: {
-            }
-        })).toBeTruthy()
+    roleGuard.setContext({
+      CognitoGroupGuard: RoleGuard,
+      options: {
+        groups: []
+      }
     })
 
-    it("should return false when groups are needed but identity does not provide groups.", async () => {
-        const roleGuard = new RoleGuard("http://pristine.com/roles", new LogHandlerMock());
+    const request = new Request(HttpMethod.Get, "https://url", "uuid");
 
-        roleGuard.setContext({
-            CognitoGroupGuard: RoleGuard,
-            options: {
-                roles: ["ADMIN"]
-            }
-        })
+    expect(await roleGuard.isAuthorized(request, {
+      id: "id",
+      claims: {}
+    })).toBeTruthy()
+  })
 
-        const request = new Request(HttpMethod.Get, "https://url", "uuid");
+  it("should return false when groups are needed but identity does not provide groups.", async () => {
+    const roleGuard = new RoleGuard("http://pristine.com/roles", new LogHandlerMock());
 
-        expect(await roleGuard.isAuthorized(request, {
-            id: "id",
-            claims: {
-            }
-        })).toBeFalsy()
+    roleGuard.setContext({
+      CognitoGroupGuard: RoleGuard,
+      options: {
+        roles: ["ADMIN"]
+      }
     })
 
-    it("should return false when groups are needed but identity groups is not an array.", async () => {
-        const roleGuard = new RoleGuard("http://pristine.com/roles", new LogHandlerMock());
+    const request = new Request(HttpMethod.Get, "https://url", "uuid");
 
-        roleGuard.setContext({
-            CognitoGroupGuard: RoleGuard,
-            options: {
-                roles: ["ADMIN"]
-            }
-        })
+    expect(await roleGuard.isAuthorized(request, {
+      id: "id",
+      claims: {}
+    })).toBeFalsy()
+  })
 
-        const request = new Request(HttpMethod.Get, "https://url", "uuid");
+  it("should return false when groups are needed but identity groups is not an array.", async () => {
+    const roleGuard = new RoleGuard("http://pristine.com/roles", new LogHandlerMock());
 
-        expect(await roleGuard.isAuthorized(request, {
-            id: "id",
-            claims: {
-                "roles": {}
-            }
-        })).toBeFalsy()
+    roleGuard.setContext({
+      CognitoGroupGuard: RoleGuard,
+      options: {
+        roles: ["ADMIN"]
+      }
     })
 
-    it("should return false when groups are needed that are not in the identity groups.", async () => {
-        const roleGuard = new RoleGuard("http://pristine.com/roles", new LogHandlerMock());
+    const request = new Request(HttpMethod.Get, "https://url", "uuid");
 
-        roleGuard.setContext({
-            CognitoGroupGuard: RoleGuard,
-            options: {
-                roles: ["ADMIN"]
-            }
-        })
+    expect(await roleGuard.isAuthorized(request, {
+      id: "id",
+      claims: {
+        "roles": {}
+      }
+    })).toBeFalsy()
+  })
 
-        const request = new Request(HttpMethod.Get, "https://url", "uuid");
+  it("should return false when groups are needed that are not in the identity groups.", async () => {
+    const roleGuard = new RoleGuard("http://pristine.com/roles", new LogHandlerMock());
 
-        expect(await roleGuard.isAuthorized(request, {
-            id: "id",
-            claims: {
-                "http://pristine.com/roles": ["USER"]
-            }
-        })).toBeFalsy()
+    roleGuard.setContext({
+      CognitoGroupGuard: RoleGuard,
+      options: {
+        roles: ["ADMIN"]
+      }
     })
 
-    it("should return true when all groups needed are in the identity groups.", async () => {
-        const roleGuard = new RoleGuard("http://pristine.com/roles", new LogHandlerMock());
+    const request = new Request(HttpMethod.Get, "https://url", "uuid");
 
-        roleGuard.setContext({
-            CognitoGroupGuard: RoleGuard,
-            options: {
-                roles: ["ADMIN", "USER"]
-            }
-        })
+    expect(await roleGuard.isAuthorized(request, {
+      id: "id",
+      claims: {
+        "http://pristine.com/roles": ["USER"]
+      }
+    })).toBeFalsy()
+  })
 
-        const request = new Request(HttpMethod.Get, "https://url", "uuid");
+  it("should return true when all groups needed are in the identity groups.", async () => {
+    const roleGuard = new RoleGuard("http://pristine.com/roles", new LogHandlerMock());
 
-        expect(await roleGuard.isAuthorized(request, {
-            id: "id",
-            claims: {
-                "http://pristine.com/roles": ["USER", "ADMIN", "DEVELOPER"]
-            }
-        })).toBeTruthy()
+    roleGuard.setContext({
+      CognitoGroupGuard: RoleGuard,
+      options: {
+        roles: ["ADMIN", "USER"]
+      }
     })
 
-    it("should return find the claim when specified in options", async () => {
-        const roleGuard = new RoleGuard("http://pristine.com/roles", new LogHandlerMock());
+    const request = new Request(HttpMethod.Get, "https://url", "uuid");
 
-        roleGuard.setContext({
-            CognitoGroupGuard: RoleGuard,
-            options: {
-                roles: ["ADMIN", "USER"]
-            }
-        })
+    expect(await roleGuard.isAuthorized(request, {
+      id: "id",
+      claims: {
+        "http://pristine.com/roles": ["USER", "ADMIN", "DEVELOPER"]
+      }
+    })).toBeTruthy()
+  })
 
-        const request = new Request(HttpMethod.Get, "https://url", "uuid");
+  it("should return find the claim when specified in options", async () => {
+    const roleGuard = new RoleGuard("http://pristine.com/roles", new LogHandlerMock());
 
-        expect(await roleGuard.isAuthorized(request, {
-            id: "id",
-            claims: {
-                "http://pristine.com/roles": ["USER", "ADMIN", "DEVELOPER"]
-            }
-        })).toBeTruthy()
+    roleGuard.setContext({
+      CognitoGroupGuard: RoleGuard,
+      options: {
+        roles: ["ADMIN", "USER"]
+      }
     })
+
+    const request = new Request(HttpMethod.Get, "https://url", "uuid");
+
+    expect(await roleGuard.isAuthorized(request, {
+      id: "id",
+      claims: {
+        "http://pristine.com/roles": ["USER", "ADMIN", "DEVELOPER"]
+      }
+    })).toBeTruthy()
+  })
 })

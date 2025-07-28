@@ -1,11 +1,11 @@
 import {inject, injectable} from "tsyringe";
-import { moduleScoped, ServiceDefinitionTagEnum, tag } from "@pristine-ts/common";
+import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {HttpRequestInterface} from "../interfaces/http-request.interface";
 import {HttpRequestOptions} from "../options/http-request.options.";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {HttpResponseInterface} from "../interfaces/http-response.interface";
 import {HttpModuleKeyname} from "../http.module.keyname";
-import { HttpErrorResponseInterceptorInterface } from "../interfaces/http-error-response-interceptor.interface";
+import {HttpErrorResponseInterceptorInterface} from "../interfaces/http-error-response-interceptor.interface";
 
 /**
  * This class is an interceptor to log incoming http responses that have errors.
@@ -16,24 +16,30 @@ import { HttpErrorResponseInterceptorInterface } from "../interfaces/http-error-
 @moduleScoped(HttpModuleKeyname)
 @injectable()
 export class HttpErrorResponseLoggingInterceptor implements HttpErrorResponseInterceptorInterface {
-    constructor(
-        @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-        @inject("%pristine.http.logging-enabled%") private readonly loggingEnabled: boolean,
-        ) {
+  constructor(
+    @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
+    @inject("%pristine.http.logging-enabled%") private readonly loggingEnabled: boolean,
+  ) {
+  }
+
+  /**
+   * This method intercepts an incoming http response that has an error and logs it.
+   * @param request
+   * @param options
+   * @param response
+   */
+  async interceptErrorResponse(request: HttpRequestInterface, options: HttpRequestOptions, response: HttpResponseInterface): Promise<HttpResponseInterface> {
+    if (this.loggingEnabled) {
+      this.logHandler.error("HttpErrorResponseLoggingInterceptor: Receiving http response that has an error.", {
+        highlights: {
+          status: response.status,
+          body: response.body,
+          headers: response.headers
+        }, eventId: options.eventId, extra: {response, options}
+      });
     }
 
-    /**
-     * This method intercepts an incoming http response that has an error and logs it.
-     * @param request
-     * @param options
-     * @param response
-     */
-    async interceptErrorResponse(request: HttpRequestInterface, options: HttpRequestOptions, response: HttpResponseInterface): Promise<HttpResponseInterface> {
-        if(this.loggingEnabled) {
-            this.logHandler.error("HttpErrorResponseLoggingInterceptor: Receiving http response that has an error.", {highlights: {status: response.status, body: response.body, headers: response.headers }, eventId: options.eventId, extra: {response, options}});
-        }
-
-        return response;
-    }
+    return response;
+  }
 
 }

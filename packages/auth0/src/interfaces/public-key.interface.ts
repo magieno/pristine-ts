@@ -4,33 +4,33 @@
  * https://auth0.com/docs/secure/tokens/json-web-tokens/json-web-key-set-properties
  */
 export interface PublicKeyInterface {
-    /**
-     * The specific cryptographic algorithm used with the key.
-     */
-    alg: string;
+  /**
+   * The specific cryptographic algorithm used with the key.
+   */
+  alg: string;
 
-    /**
-     * The exponent for the RSA public key.
-     */
-    e: string;
+  /**
+   * The exponent for the RSA public key.
+   */
+  e: string;
 
-    /**
-     * The unique identifier for the key.
-     */
-    kid: string;
+  /**
+   * The unique identifier for the key.
+   */
+  kid: string;
 
-    /**
-     * The family of cryptographic algorithms used with the key.
-     */
-    kty: string;
+  /**
+   * The family of cryptographic algorithms used with the key.
+   */
+  kty: string;
 
-    /**
-     * 	The modulus for the RSA public key.
-     */
-    n: string;
+  /**
+   *  The modulus for the RSA public key.
+   */
+  n: string;
 
-    /**
-     * How the key was meant to be used; sig represents the signature.
-     */
-    use: string;
+  /**
+   * How the key was meant to be used; sig represents the signature.
+   */
+  use: string;
 }

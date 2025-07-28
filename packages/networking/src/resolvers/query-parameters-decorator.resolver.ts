@@ -1,9 +1,7 @@
-import {injectable, inject} from "tsyringe";
+import {inject, injectable} from "tsyringe";
 import {ControllerMethodParameterDecoratorResolverInterface} from "../interfaces/controller-method-parameter-decorator-resolver.interface";
-import {Request} from "@pristine-ts/common";
-import {IdentityInterface, moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {IdentityInterface, moduleScoped, Request, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {NetworkingModuleKeyname} from "../networking.module.keyname";
-import { URL } from 'url';
 import {ParameterDecoratorInterface} from "../interfaces/parameter-decorator.interface";
 import {QueryParametersDecoratorInterface} from "../interfaces/query-parameters-decorator.interface";
 import {LogHandlerInterface} from "@pristine-ts/logging";
@@ -19,45 +17,53 @@ import {UrlUtil} from "../utils/url.util";
 @injectable()
 export class QueryParametersDecoratorResolver implements ControllerMethodParameterDecoratorResolverInterface {
 
-    constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface) {
-    }
-    /**
-     * Resolves the value of all the query parameters of the request.
-     * The router than injects that value into the parameter of the controller method.
-     * @param methodArgument The method argument created by the decorator.
-     * @param request The request
-     * @param routeParameters The router parameters
-     * @param identity The identity making the request
-     */
-    resolve(methodArgument: QueryParametersDecoratorInterface,
-            request: Request,
-            routeParameters: { [p: string]: string },
-            identity?: IdentityInterface):  Promise<any> {
-        try {
-            const url = UrlUtil.getUrlFromRequestWithDefaultHost(request);
+  constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface) {
+  }
 
-            let queryParameters: {[id: string]: string} | undefined = undefined;
+  /**
+   * Resolves the value of all the query parameters of the request.
+   * The router than injects that value into the parameter of the controller method.
+   * @param methodArgument The method argument created by the decorator.
+   * @param request The request
+   * @param routeParameters The router parameters
+   * @param identity The identity making the request
+   */
+  resolve(methodArgument: QueryParametersDecoratorInterface,
+          request: Request,
+          routeParameters: { [p: string]: string },
+          identity?: IdentityInterface): Promise<any> {
+    try {
+      const url = UrlUtil.getUrlFromRequestWithDefaultHost(request);
 
-            for (const [key, value] of url.searchParams.entries()) {
-                if(queryParameters === undefined) {
-                    queryParameters = {};
-                }
+      let queryParameters: { [id: string]: string } | undefined = undefined;
 
-                queryParameters[key] = value;
-            }
-            return Promise.resolve(queryParameters ?? null);
-        } catch (e) {
-            this.logHandler.error("QueryParametersDecoratorResolver: There was an error resolving the query parameters.", {extra: {methodArgument, request, routeParameters, identity}})
-            return Promise.resolve(null)
+      for (const [key, value] of url.searchParams.entries()) {
+        if (queryParameters === undefined) {
+          queryParameters = {};
         }
-    }
 
-    /**
-     * Returns whether or not the resolver support such a method argument.
-     * Usually we will check the methodArgument.type field to determine if it is a supported type.
-     * @param methodArgument
-     */
-    supports(methodArgument: ParameterDecoratorInterface): boolean {
-        return methodArgument && methodArgument.hasOwnProperty("type") && methodArgument.type === "queryParameters";
+        queryParameters[key] = value;
+      }
+      return Promise.resolve(queryParameters ?? null);
+    } catch (e) {
+      this.logHandler.error("QueryParametersDecoratorResolver: There was an error resolving the query parameters.", {
+        extra: {
+          methodArgument,
+          request,
+          routeParameters,
+          identity
+        }
+      })
+      return Promise.resolve(null)
     }
+  }
+
+  /**
+   * Returns whether or not the resolver support such a method argument.
+   * Usually we will check the methodArgument.type field to determine if it is a supported type.
+   * @param methodArgument
+   */
+  supports(methodArgument: ParameterDecoratorInterface): boolean {
+    return methodArgument && methodArgument.hasOwnProperty("type") && methodArgument.type === "queryParameters";
+  }
 }

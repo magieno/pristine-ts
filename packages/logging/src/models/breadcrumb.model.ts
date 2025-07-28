@@ -17,7 +17,7 @@ export class BreadcrumbModel {
   constructor(
     message: string,
     extra?: any,
-    ) {
+  ) {
     this.message = message;
     this.extra = extra;
   }
