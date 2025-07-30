@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/redis",
-  "version": "0.0.404",
+  "version": "1.0.405",
   "description": "",
   "module": "dist/lib/esm/redis.module.js",
   "main": "dist/lib/cjs/redis.module.js",
