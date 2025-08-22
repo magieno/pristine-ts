@@ -134,7 +134,10 @@ export class CloudformationClient implements CloudformationClientInterface {
       const response: DescribeStacksCommandOutput = await this.getClient().send(command, options);
       return response.Stacks ?? [];
     } catch (e) {
-      this.logHandler.error("CloudformationClient: Error getting stack description from cloudformation.", {extra: {error: e}});
+      this.logHandler.error("CloudformationClient: Error getting stack description from cloudformation.", {
+        highlights: {
+          error: e,
+        },extra: {error: e}});
       throw e;
     }
   }
@@ -151,6 +154,9 @@ export class CloudformationClient implements CloudformationClientInterface {
       return await this.getClient().send(command, options);
     } catch (e) {
       this.logHandler.error("CloudformationClient: Error creating stack in cloudformation.", {
+        highlights: {
+          error: e,
+        },
         extra: {
           error: e,
           input
@@ -179,6 +185,9 @@ export class CloudformationClient implements CloudformationClientInterface {
         }
       }
       this.logHandler.error("CloudformationClient: Error updating stack in cloudformation.", {
+        highlights: {
+          error: e,
+        },
         extra: {
           error: e,
           input
@@ -200,6 +209,9 @@ export class CloudformationClient implements CloudformationClientInterface {
       return await this.getClient().send(command, options);
     } catch (e) {
       this.logHandler.error("CloudformationClient: Error deleting stack in cloudformation.", {
+        highlights: {
+          error: e,
+        },
         extra: {
           error: e,
           input
@@ -225,8 +237,10 @@ export class CloudformationClient implements CloudformationClientInterface {
       return response;
     } catch (e) {
       this.logHandler.error("CloudformationClient: Error creating change set in cloudformation.", {
-        extra: {
+        highlights: {
           error: e,
+        },
+        extra: {
           input
         }
       });
@@ -250,6 +264,9 @@ export class CloudformationClient implements CloudformationClientInterface {
       return response;
     } catch (e) {
       this.logHandler.error("CloudformationClient: Error deleting change set in cloudformation.", {
+        highlights: {
+          error: e,
+        },
         extra: {
           error: e,
           input
@@ -276,6 +293,9 @@ export class CloudformationClient implements CloudformationClientInterface {
       return response;
     } catch (e) {
       this.logHandler.error("CloudformationClient: Error describing change set in cloudformation.", {
+        highlights: {
+          error: e,
+        },
         extra: {
           error: e,
           input
@@ -301,6 +321,9 @@ export class CloudformationClient implements CloudformationClientInterface {
       return response;
     } catch (e) {
       this.logHandler.error("CloudformationClient: Error executing change set in cloudformation.", {
+        highlights: {
+          error: e,
+        },
         extra: {
           error: e,
           input
@@ -326,6 +349,9 @@ export class CloudformationClient implements CloudformationClientInterface {
       return response;
     } catch (e) {
       this.logHandler.error("CloudformationClient: Error listing change sets in cloudformation.", {
+        highlights: {
+          error: e,
+        },
         extra: {
           error: e,
           input
