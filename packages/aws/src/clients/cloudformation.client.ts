@@ -109,7 +109,7 @@ export class CloudformationClient implements CloudformationClientInterface {
       }
       return response.Stacks[0];
     } catch (e) {
-      this.logHandler.error("CloudformationClient: Error getting stack description from cloudformation.", {
+      this.logHandler.error("CloudformationClient: Error getting stack description from cloudformation. Error: ${e}", {
         extra: {
           error: e,
           stackName
@@ -134,7 +134,7 @@ export class CloudformationClient implements CloudformationClientInterface {
       const response: DescribeStacksCommandOutput = await this.getClient().send(command, options);
       return response.Stacks ?? [];
     } catch (e) {
-      this.logHandler.error("CloudformationClient: Error getting stack description from cloudformation.", {
+      this.logHandler.error("CloudformationClient: Error getting stack description from cloudformation. Error: ${e}", {
         highlights: {
           error: e,
         },extra: {error: e}});
@@ -153,7 +153,7 @@ export class CloudformationClient implements CloudformationClientInterface {
     try {
       return await this.getClient().send(command, options);
     } catch (e) {
-      this.logHandler.error("CloudformationClient: Error creating stack in cloudformation.", {
+      this.logHandler.error("CloudformationClient: Error creating stack in cloudformation. Error: ${e}", {
         highlights: {
           error: e,
         },
@@ -184,7 +184,7 @@ export class CloudformationClient implements CloudformationClientInterface {
           }
         }
       }
-      this.logHandler.error("CloudformationClient: Error updating stack in cloudformation.", {
+      this.logHandler.error("CloudformationClient: Error updating stack in cloudformation. Error: ${e}", {
         highlights: {
           error: e,
         },
@@ -208,7 +208,7 @@ export class CloudformationClient implements CloudformationClientInterface {
     try {
       return await this.getClient().send(command, options);
     } catch (e) {
-      this.logHandler.error("CloudformationClient: Error deleting stack in cloudformation.", {
+      this.logHandler.error("CloudformationClient: Error deleting stack in cloudformation. Error: ${e}", {
         highlights: {
           error: e,
         },
@@ -236,7 +236,7 @@ export class CloudformationClient implements CloudformationClientInterface {
 
       return response;
     } catch (e) {
-      this.logHandler.error("CloudformationClient: Error creating change set in cloudformation.", {
+      this.logHandler.error(`CloudformationClient: Error creating change set in cloudformation. Error: ${e}`, {
         highlights: {
           error: e,
         },
@@ -263,7 +263,7 @@ export class CloudformationClient implements CloudformationClientInterface {
 
       return response;
     } catch (e) {
-      this.logHandler.error("CloudformationClient: Error deleting change set in cloudformation.", {
+      this.logHandler.error("CloudformationClient: Error deleting change set in cloudformation. Error: ${e}", {
         highlights: {
           error: e,
         },
@@ -292,7 +292,7 @@ export class CloudformationClient implements CloudformationClientInterface {
 
       return response;
     } catch (e) {
-      this.logHandler.error("CloudformationClient: Error describing change set in cloudformation.", {
+      this.logHandler.error("CloudformationClient: Error describing change set in cloudformation. Error: ${e}", {
         highlights: {
           error: e,
         },
@@ -320,7 +320,7 @@ export class CloudformationClient implements CloudformationClientInterface {
 
       return response;
     } catch (e) {
-      this.logHandler.error("CloudformationClient: Error executing change set in cloudformation.", {
+      this.logHandler.error("CloudformationClient: Error executing change set in cloudformation. Error: ${e}", {
         highlights: {
           error: e,
         },
@@ -348,7 +348,7 @@ export class CloudformationClient implements CloudformationClientInterface {
 
       return response;
     } catch (e) {
-      this.logHandler.error("CloudformationClient: Error listing change sets in cloudformation.", {
+      this.logHandler.error("CloudformationClient: Error listing change sets in cloudformation. Error: ${e}", {
         highlights: {
           error: e,
         },
