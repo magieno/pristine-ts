@@ -156,6 +156,7 @@ export class CloudformationClient implements CloudformationClientInterface {
       this.logHandler.error("CloudformationClient: Error creating stack in cloudformation. Error: ${e}", {
         highlights: {
           error: e,
+          input,
         },
         extra: {
           error: e,
@@ -187,6 +188,7 @@ export class CloudformationClient implements CloudformationClientInterface {
       this.logHandler.error("CloudformationClient: Error updating stack in cloudformation. Error: ${e}", {
         highlights: {
           error: e,
+          input,
         },
         extra: {
           error: e,
@@ -211,6 +213,7 @@ export class CloudformationClient implements CloudformationClientInterface {
       this.logHandler.error("CloudformationClient: Error deleting stack in cloudformation. Error: ${e}", {
         highlights: {
           error: e,
+          input,
         },
         extra: {
           error: e,
@@ -239,6 +242,7 @@ export class CloudformationClient implements CloudformationClientInterface {
       this.logHandler.error(`CloudformationClient: Error creating change set in cloudformation. Error: ${e}`, {
         highlights: {
           error: e,
+          input,
         },
         extra: {
           input
@@ -266,6 +270,7 @@ export class CloudformationClient implements CloudformationClientInterface {
       this.logHandler.error("CloudformationClient: Error deleting change set in cloudformation. Error: ${e}", {
         highlights: {
           error: e,
+          input,
         },
         extra: {
           error: e,
@@ -295,6 +300,7 @@ export class CloudformationClient implements CloudformationClientInterface {
       this.logHandler.error("CloudformationClient: Error describing change set in cloudformation. Error: ${e}", {
         highlights: {
           error: e,
+          input,
         },
         extra: {
           error: e,
@@ -323,6 +329,7 @@ export class CloudformationClient implements CloudformationClientInterface {
       this.logHandler.error("CloudformationClient: Error executing change set in cloudformation. Error: ${e}", {
         highlights: {
           error: e,
+          input,
         },
         extra: {
           error: e,
@@ -351,6 +358,7 @@ export class CloudformationClient implements CloudformationClientInterface {
       this.logHandler.error("CloudformationClient: Error listing change sets in cloudformation. Error: ${e}", {
         highlights: {
           error: e,
+          input,
         },
         extra: {
           error: e,
