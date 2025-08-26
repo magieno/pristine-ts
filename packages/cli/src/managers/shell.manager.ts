@@ -25,7 +25,7 @@ export class ShellManager {
       const env = process.env;
       let finalCommand = command;
 
-      const streamStdout = options?.streamStdout ?? false;
+      const streamStdout = options?.streamStdout ?? true;
       const directory = options?.directory;
 
       const outputStdout = options?.outputStdout ?? true;
