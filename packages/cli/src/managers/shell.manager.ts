@@ -64,7 +64,17 @@ export class ShellManager {
         })
 
         child.on("exit", (code) => {
-          outputStdout && this.consoleManager.writeLine(`Exit.`);
+          outputStdout && this.consoleManager.writeLine(`Exit (code: ${code}).`);
+
+          if(code !== 0) {
+            return reject(code);
+          }
+
+          if (outputDuration) {
+            const end = new Date();
+            const duration = end.getTime() - start.getTime();
+            this.consoleManager.writeLine(`Executed in: ${this.dateUtil.formatDuration(duration)}`);
+          }
 
           return resolve(code + "");
         })
