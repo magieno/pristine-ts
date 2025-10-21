@@ -152,9 +152,11 @@ export class DataMappingNode extends BaseDataMappingNode {
       }
 
       if (options?.excludeExtraneousValues === false) {
-        Object.keys(sourceElement).forEach(property => {
-          destination[this.destinationProperty][property] = sourceElement[property];
-        })
+        if(typeof sourceElement === "object" || Array.isArray(sourceElement)) {
+          Object.keys(sourceElement).forEach(property => {
+            destination[this.destinationProperty][property] = sourceElement[property];
+          })
+        }
       }
     }
 

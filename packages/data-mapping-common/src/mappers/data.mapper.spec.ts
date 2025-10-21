@@ -644,4 +644,29 @@ describe("Data Mapper", () => {
 
     expect(mapped).toBe(1750874432766)
   })
+
+  it("shouldn't crash when trying to map a string into an object", async() => {
+    class DateOfBirth {
+      day: number;
+
+      month: number;
+
+      year: number;
+    }
+
+    class Destination {
+      @property()
+      dateOfBirth: DateOfBirth;
+    }
+
+    const dataMapper = new DataMapper(new AutoDataMappingBuilder(), [new LowercaseNormalizer(), new DateNormalizer(), new StringNormalizer(), new NumberNormalizer(), new BooleanNormalizer()], []);
+
+    const source = {
+      dateOfBirth: "20200520",
+    };
+
+    const mapped = await dataMapper.autoMap(source, Destination, new AutoDataMappingBuilderOptions({throwOnErrors: true}))
+
+    expect(mapped).toEqual(source)
+  })
 })
