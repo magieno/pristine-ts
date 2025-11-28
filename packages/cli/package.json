@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/cli",
-  "version": "1.0.412",
+  "version": "1.0.413",
   "description": "",
   "module": "dist/lib/esm/cli.module.js",
   "main": "dist/lib/cjs/cli.module.js",
