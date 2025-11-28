@@ -10,7 +10,7 @@ import {CliModuleKeyname} from "../cli.module.keyname";
 @injectable()
 export class ListCommand implements CommandInterface<null> {
   optionsType = null;
-  name = "list";
+  name = "p:list";
 
   constructor(
     private readonly consoleManager: ConsoleManager,

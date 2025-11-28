@@ -11,7 +11,7 @@ import {CliModuleKeyname} from "../cli.module.keyname";
 export class HelpCommand implements CommandInterface<null> {
   optionsType = null;
 
-  name = "help";
+  name = "p:help";
 
   constructor(private readonly consoleManager: ConsoleManager) {
   }
