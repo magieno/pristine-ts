@@ -5,7 +5,7 @@ export class HeadersMapper {
   map(headers: Headers): { [key: string]: string } {
     const mappedHeaders: { [key: string]: string } = {}
 
-    headers.forEach((key, value) => {
+    headers.forEach((key: string, value: string) => {
       mappedHeaders[key] = value;
     })
 
