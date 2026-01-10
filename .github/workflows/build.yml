@@ -29,15 +29,12 @@ jobs:
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          always-auth: true
           node-version: ${{ matrix.node-version }}
           registry-url: https://registry.npmjs.org
-          scope: '@pristine'
+          scope: '@pristine-ts'
       - run: npm install -g npm@8.19.2
       - run: npm -v
       - run: npm ci
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 #      - run: npm install
 #        env:
 #          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -60,10 +57,9 @@ jobs:
       - name: Use Node.js 22.x
         uses: actions/setup-node@v4
         with:
-          always-auth: true
           node-version: 22.x
           registry-url: https://registry.npmjs.org
-          scope: '@pristine'
+          scope: '@pristine-ts'
       - run: npm install -g npm@latest
       - run: npm ci
 #      - run: npm install
@@ -73,4 +69,4 @@ jobs:
       - run: git config --global user.email 'ima-bot@ima-tech.ca'
       - run: npm run bump-patch
       #- run: npm whoami
-      - run: NODE_AUTH_TOKEN="" npm run publish-ci
+      - run: npm run publish-ci
