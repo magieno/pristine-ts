@@ -73,4 +73,4 @@ jobs:
       - run: git config --global user.email 'ima-bot@ima-tech.ca'
       - run: npm run bump-patch
       - run: npm whoami
-      - run: npm run publish-ci
+      - run: NODE_AUTH_TOKEN="" npm run publish-ci
