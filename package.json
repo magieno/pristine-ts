@@ -10,14 +10,14 @@
     "e2e": "cd tests/e2e && jest && cd ..",
     "perf": "cd tests/perf && jest && cd ..",
     "bump-patch": "lerna version patch --yes",
-    "publish-ci": "lerna publish from-git --yes --no-verify-access",
+    "publish-ci": "lerna publish from-git --yes",
     "prune": "rm -rf `find . -type d -name node_modules` && rm -rf `find . -type d -name dist`",
     "install-all": " for dir in packages/*/; do\n  (cd -- \"$dir\" && echo \"$dir\" && npm install)\ndone",
     "ci-all": " for dir in packages/*/; do\n  (cd -- \"$dir\" && echo \"$dir\" && npm ci)\ndone"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://magieno@github.com/magieno/pristine-ts.git"
+    "url": "https://github.com/magieno/pristine-ts"
   },
   "publishConfig": {
     "access": "public"
