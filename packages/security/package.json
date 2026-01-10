@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/security",
-  "version": "1.0.425",
+  "version": "1.0.426",
   "description": "",
   "module": "dist/lib/esm/security.module.js",
   "main": "dist/lib/cjs/security.module.js",

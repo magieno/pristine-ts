@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/opensearch",
-  "version": "1.0.425",
+  "version": "1.0.426",
   "description": "",
   "module": "dist/lib/esm/open-search.module.js",
   "main": "dist/lib/cjs/open-search.module.js",
