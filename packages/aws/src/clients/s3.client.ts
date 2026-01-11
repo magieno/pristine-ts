@@ -4,10 +4,15 @@ import {moduleScoped, tag} from "@pristine-ts/common";
 import {AwsModuleKeyname} from "../aws.module.keyname";
 import {S3ClientInterface} from "../interfaces/s3-client.interface";
 import {
+  Bucket,
+  DeleteObjectCommand,
   GetObjectCommand,
   GetObjectCommandOutput,
+  ListBucketsCommand,
   ListObjectsCommand,
   ListObjectsCommandOutput,
+  ListObjectsV2Command,
+  ListObjectsV2CommandOutput,
   PutObjectCommand,
   S3Client as AWSS3Client,
   S3ClientConfig
@@ -15,6 +20,7 @@ import {
 import {S3PresignedOperationTypeEnum} from "../enums/s3-presigned-operation-type.enum";
 import {getSignedUrl} from "@aws-sdk/s3-request-presigner";
 import {ClientOptionsInterface} from "../interfaces/client-options.interface";
+import {Readable} from "stream";
 
 /**
  * The client to use to interact with AWS S3. It is a wrapper around the AWSS3Client of @aws-sdk/client-s3.
@@ -122,6 +128,91 @@ export class S3Client implements S3ClientInterface {
       throw e;
     }
     return objects.Contents ?? [];
+  }
+
+  /**
+   * Lists the buckets.
+   * @param options
+   */
+  async listBuckets(options?: Partial<ClientOptionsInterface>): Promise<Bucket[]> {
+    this.logHandler.debug("S3Client: Listing buckets.");
+    const command = new ListBucketsCommand({});
+    try {
+      const response = await this.getClient().send(command, options);
+      return response.Buckets ?? [];
+    } catch (e) {
+      this.logHandler.error("S3Client: Error listing buckets.", {extra: {error: e}});
+      throw e;
+    }
+  }
+
+  /**
+   * Deletes an object from S3.
+   * @param bucketName The name of the bucket.
+   * @param key The key of the object.
+   * @param options
+   */
+  async deleteObject(bucketName: string, key: string, options?: Partial<ClientOptionsInterface>): Promise<void> {
+    this.logHandler.debug("S3Client: Deleting object from S3.", {extra: {bucketName, key}});
+    const command = new DeleteObjectCommand({
+      Bucket: bucketName,
+      Key: key,
+    });
+    try {
+      await this.getClient().send(command, options);
+    } catch (e) {
+      this.logHandler.error("S3Client: Error deleting object from S3.", {extra: {error: e}});
+      throw e;
+    }
+  }
+
+  /**
+   * Downloads an object from S3.
+   * @param bucketName The name of the bucket.
+   * @param key The key of the object.
+   * @param options
+   */
+  async download(bucketName: string, key: string, options?: Partial<ClientOptionsInterface>): Promise<Readable | ReadableStream | Blob> {
+    this.logHandler.debug("S3Client: Downloading object from S3.", {extra: {bucketName, key}});
+    try {
+      const response = await this.get(bucketName, key, options);
+      return response.Body as Readable | ReadableStream | Blob;
+    } catch (e) {
+      this.logHandler.error("S3Client: Error downloading object from S3.", {extra: {error: e}});
+      throw e;
+    }
+  }
+
+  /**
+   * Lists the objects in a bucket with a directory-like structure.
+   * @param bucketName The name of the bucket.
+   * @param prefix The prefix (directory) to list.
+   * @param continuationToken The continuation token for pagination.
+   * @param maxKeys The maximum number of keys to return.
+   * @param options
+   */
+  async listDirectory(bucketName: string, prefix?: string, continuationToken?: string, maxKeys?: number, options?: Partial<ClientOptionsInterface>): Promise<ListObjectsV2CommandOutput> {
+    this.logHandler.debug("S3Client: Listing directory in S3.", {
+      extra: {
+        bucketName,
+        prefix,
+        continuationToken,
+        maxKeys
+      }
+    });
+    const command = new ListObjectsV2Command({
+      Bucket: bucketName,
+      Prefix: prefix,
+      Delimiter: '/',
+      ContinuationToken: continuationToken,
+      MaxKeys: maxKeys,
+    });
+    try {
+      return await this.getClient().send(command, options);
+    } catch (e) {
+      this.logHandler.error("S3Client: Error listing directory in S3.", {extra: {error: e}});
+      throw e;
+    }
   }
 
   /**
