@@ -1,6 +1,13 @@
 import {S3PresignedOperationTypeEnum} from "../enums/s3-presigned-operation-type.enum";
-import {GetObjectCommandOutput, S3Client as AWSS3Client, S3ClientConfig} from "@aws-sdk/client-s3";
+import {
+  Bucket,
+  GetObjectCommandOutput,
+  ListObjectsV2CommandOutput,
+  S3Client as AWSS3Client,
+  S3ClientConfig
+} from "@aws-sdk/client-s3";
 import {ClientOptionsInterface} from "./client-options.interface";
+import {Readable} from "stream";
 
 /**
  * The S3Client Interface defines the methods that an S3 client must implement.
@@ -49,6 +56,26 @@ export interface S3ClientInterface {
   listObjects(bucketName: string, options?: Partial<ClientOptionsInterface>): Promise<any[]>;
 
   /**
+   * Lists the buckets.
+   * @param options
+   */
+  listBuckets(options?: Partial<ClientOptionsInterface>): Promise<Bucket[]>;
+
+  /**
+   * Creates a new bucket.
+   * @param bucketName The name of the bucket.
+   * @param options
+   */
+  createBucket(bucketName: string, options?: Partial<ClientOptionsInterface>): Promise<void>;
+
+  /**
+   * Deletes a bucket.
+   * @param bucketName The name of the bucket.
+   * @param options
+   */
+  deleteBucket(bucketName: string, options?: Partial<ClientOptionsInterface>): Promise<void>;
+
+  /**
    * Uploads an object to a bucket of S3.
    * @param bucketName The name of the bucket.
    * @param key The key for the new object.
@@ -68,4 +95,30 @@ export interface S3ClientInterface {
    * @param expiresIn The amount on time in seconds before the pre signed url expires.
    */
   createSignedUrl(bucketName: string, key: string, operation: S3PresignedOperationTypeEnum, fileName?: string, expiresIn?: number): Promise<string>;
+
+  /**
+   * Deletes an object from S3.
+   * @param bucketName The name of the bucket.
+   * @param key The key of the object.
+   * @param options
+   */
+  deleteObject(bucketName: string, key: string, options?: Partial<ClientOptionsInterface>): Promise<void>;
+
+  /**
+   * Downloads an object from S3.
+   * @param bucketName The name of the bucket.
+   * @param key The key of the object.
+   * @param options
+   */
+  download(bucketName: string, key: string, options?: Partial<ClientOptionsInterface>): Promise<Readable | ReadableStream | Blob>;
+
+  /**
+   * Lists the objects in a bucket with a directory-like structure.
+   * @param bucketName The name of the bucket.
+   * @param prefix The prefix (directory) to list.
+   * @param continuationToken The continuation token for pagination.
+   * @param maxKeys The maximum number of keys to return.
+   * @param options
+   */
+  listDirectory(bucketName: string, prefix?: string, continuationToken?: string, maxKeys?: number, options?: Partial<ClientOptionsInterface>): Promise<ListObjectsV2CommandOutput>;
 }
