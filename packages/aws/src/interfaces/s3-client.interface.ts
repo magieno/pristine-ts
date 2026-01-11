@@ -62,6 +62,20 @@ export interface S3ClientInterface {
   listBuckets(options?: Partial<ClientOptionsInterface>): Promise<Bucket[]>;
 
   /**
+   * Creates a new bucket.
+   * @param bucketName The name of the bucket.
+   * @param options
+   */
+  createBucket(bucketName: string, options?: Partial<ClientOptionsInterface>): Promise<void>;
+
+  /**
+   * Deletes a bucket.
+   * @param bucketName The name of the bucket.
+   * @param options
+   */
+  deleteBucket(bucketName: string, options?: Partial<ClientOptionsInterface>): Promise<void>;
+
+  /**
    * Uploads an object to a bucket of S3.
    * @param bucketName The name of the bucket.
    * @param key The key for the new object.

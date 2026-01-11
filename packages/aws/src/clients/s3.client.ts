@@ -5,6 +5,8 @@ import {AwsModuleKeyname} from "../aws.module.keyname";
 import {S3ClientInterface} from "../interfaces/s3-client.interface";
 import {
   Bucket,
+  CreateBucketCommand,
+  DeleteBucketCommand,
   DeleteObjectCommand,
   GetObjectCommand,
   GetObjectCommandOutput,
@@ -142,6 +144,42 @@ export class S3Client implements S3ClientInterface {
       return response.Buckets ?? [];
     } catch (e) {
       this.logHandler.error("S3Client: Error listing buckets.", {extra: {error: e}});
+      throw e;
+    }
+  }
+
+  /**
+   * Creates a new bucket.
+   * @param bucketName The name of the bucket.
+   * @param options
+   */
+  async createBucket(bucketName: string, options?: Partial<ClientOptionsInterface>): Promise<void> {
+    this.logHandler.debug("S3Client: Creating bucket.", {extra: {bucketName}});
+    const command = new CreateBucketCommand({
+      Bucket: bucketName,
+    });
+    try {
+      await this.getClient().send(command, options);
+    } catch (e) {
+      this.logHandler.error("S3Client: Error creating bucket.", {extra: {error: e}});
+      throw e;
+    }
+  }
+
+  /**
+   * Deletes a bucket.
+   * @param bucketName The name of the bucket.
+   * @param options
+   */
+  async deleteBucket(bucketName: string, options?: Partial<ClientOptionsInterface>): Promise<void> {
+    this.logHandler.debug("S3Client: Deleting bucket.", {extra: {bucketName}});
+    const command = new DeleteBucketCommand({
+      Bucket: bucketName,
+    });
+    try {
+      await this.getClient().send(command, options);
+    } catch (e) {
+      this.logHandler.error("S3Client: Error deleting bucket.", {extra: {error: e}});
       throw e;
     }
   }
