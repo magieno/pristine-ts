@@ -71,6 +71,18 @@ export const LoggingModule: ModuleInterface = {
       ]
     },
     /**
+     * The number of level to go down in an object when printing a log with the Notice severity.
+     * We often do not need to go to the bottom layer of an object, so we can truncate at a certain depth.
+     */
+    {
+      parameterName: LoggingModuleKeyname + ".logNoticeDepthConfiguration",
+      defaultValue: 5,
+      isRequired: false,
+      defaultResolvers: [
+        new NumberResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_LOG_NOTICE_DEPTH_CONFIGURATION")),
+      ]
+    },
+    /**
      * The number of level to go down in an object when printing a log with the Warning severity.
      * We often do not need to go to the bottom layer of an object, so we can truncate at a certain depth.
      */

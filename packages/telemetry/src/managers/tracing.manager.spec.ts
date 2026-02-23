@@ -13,6 +13,7 @@ const logHandlerMock: LogHandlerInterface = {
   }, debug(message: string, extra?: any): void {
   }, error(message: string, extra?: any): void {
   }, info(message: string, extra?: any): void {
+  }, notice(message: string, extra?: any): void {
   }, warning(message: string, extra?: any): void {
   }, terminate() {
   }

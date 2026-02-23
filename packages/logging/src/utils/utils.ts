@@ -109,6 +109,9 @@ export class Utils {
       case SeverityEnum.Info:
         return "INFO";
 
+      case SeverityEnum.Notice:
+        return "NOTICE";
+
       case SeverityEnum.Warning:
         return "WARNING";
 

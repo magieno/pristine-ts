@@ -27,6 +27,8 @@ export abstract class BaseLogger {
    * We often do not need to go to the bottom layer of an object, so we can truncate at a certain depth.
    * @param logInfoDepthConfiguration The number of level to go down in an object when printing a log with the Info severity.
    * We often do not need to go to the bottom layer of an object, so we can truncate at a certain depth.
+   * @param logNoticeDepthConfiguration The number of level to go down in an object when printing a log with the Notice severity.
+   * We often do not need to go to the bottom layer of an object, so we can truncate at a certain depth.
    * @param logWarningDepthConfiguration The number of level to go down in an object when printing a log with the Warning severity.
    * We often do not need to go to the bottom layer of an object, so we can truncate at a certain depth.
    * @param logErrorDepthConfiguration The number of level to go down in an object when printing a log with the Error severity.
@@ -42,6 +44,7 @@ export abstract class BaseLogger {
     protected readonly logSeverityLevelConfiguration: number,
     protected readonly logDebugDepthConfiguration: number,
     protected readonly logInfoDepthConfiguration: number,
+    protected readonly logNoticeDepthConfiguration: number,
     protected readonly logWarningDepthConfiguration: number,
     protected readonly logErrorDepthConfiguration: number,
     protected readonly logCriticalDepthConfiguration: number,
@@ -68,6 +71,9 @@ export abstract class BaseLogger {
 
       case SeverityEnum.Info:
         return Utils.outputLog(log, this.outputMode, this.logInfoDepthConfiguration);
+
+      case SeverityEnum.Notice:
+        return Utils.outputLog(log, this.outputMode, this.logNoticeDepthConfiguration)
 
       case SeverityEnum.Warning:
         return Utils.outputLog(log, this.outputMode, this.logWarningDepthConfiguration)

@@ -28,11 +28,11 @@ export class HttpRequestLoggingInterceptor implements HttpRequestInterceptorInte
    */
   async interceptRequest(request: HttpRequestInterface, options: HttpRequestOptions): Promise<HttpRequestInterface> {
     if (this.loggingEnabled) {
-      this.logHandler.info("HttpRequestLoggingInterceptor: Outgoing http request.", {
+      // Eventually, add the execution time like this: `[OUTBOUND] GET https://api.stripe.com/v1/charges 200 112ms`
+      this.logHandler.debug(`[OUTBOUND-IN-PROGRESS] ${request.httpMethod} ${request.url}`, {
         highlights: {
-          url: `[${request.httpMethod}] ${request.httpMethod}`,
           body: request.body,
-          headers: request.headers
+          headers: request.headers,
         }, eventId: options.eventId, extra: {request, options}
       });
     }
