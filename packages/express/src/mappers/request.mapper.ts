@@ -3,11 +3,13 @@ import {Request as ExpressRequest} from "express";
 import {HttpHeadersMapper} from "./http-headers.mapper";
 import {MethodMapper} from "./method.mapper";
 import {Request} from "@pristine-ts/common";
+import {EventIdManager} from "@pristine-ts/core";
 import {v4 as uuidv4} from "uuid";
 
 @injectable()
 export class RequestMapper {
   constructor(private readonly httpHeadersMapper: HttpHeadersMapper,
+              private readonly eventIdManager: EventIdManager,
               private readonly methodMapper: MethodMapper) {
   }
 
@@ -19,7 +21,7 @@ export class RequestMapper {
     const requestId = expressRequest.header("x-pristine-request-id")
     const requestGroupId = expressRequest.header("x-pristine-event-group-id")
 
-    const request = new Request(this.methodMapper.map(expressRequest.method), expressRequest.url, requestId ?? uuidv4());
+    const request = new Request(this.methodMapper.map(expressRequest.method), expressRequest.url, requestId ?? this.eventIdManager.generateEventId());
     request.groupId = requestGroupId;
     request.setHeaders(this.httpHeadersMapper.map(expressRequest.headers));
     request.body = expressRequest.body;
