@@ -40,7 +40,7 @@ export class EventIdManager {
   ];
 
   constructor(
-    @inject(`${CoreModuleKeyname}.event_id_generation_style`) private readonly eventIdGenerationStyleEnum: EventIdGenerationStyleEnum,
+    @inject(`%${CoreModuleKeyname}.event_id_generation_style%`) private readonly eventIdGenerationStyleEnum: EventIdGenerationStyleEnum,
   ) {
   }
 
