@@ -46,7 +46,7 @@ export class SchedulerManager implements SchedulerInterface {
       const promises: Promise<void>[] = [];
 
       this.scheduledTasks.forEach(scheduledTask => {
-        promises.push(scheduledTask.run());
+        promises.push(scheduledTask.run(eventId));
       });
 
       this.logHandler.info("SchedulerManager: Completed triggering all the tasks.", {
