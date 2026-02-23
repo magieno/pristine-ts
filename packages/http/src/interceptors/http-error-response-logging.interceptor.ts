@@ -30,8 +30,9 @@ export class HttpErrorResponseLoggingInterceptor implements HttpErrorResponseInt
    */
   async interceptErrorResponse(request: HttpRequestInterface, options: HttpRequestOptions, response: HttpResponseInterface): Promise<HttpResponseInterface> {
     if (this.loggingEnabled) {
-      // Eventually, add the execution time like this: `[OUTBOUND] GET https://api.stripe.com/v1/charges 200 112ms`
-      this.logHandler.info(`[OUTBOUND] ${request.httpMethod} ${request.url} ${response.status}`, {
+      const duration = response.responseTime !== undefined ? ` ${Math.trunc(response.responseTime)}ms` : "";
+
+      this.logHandler.info(`[OUTBOUND] ${request.httpMethod} ${request.url} ${response.status}${duration}`, {
         highlights: {
           requestBody: request.body,
           requestHeaders: request.headers,

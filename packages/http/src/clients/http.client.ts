@@ -58,12 +58,27 @@ export class HttpClient implements HttpClientInterface {
     const handledRequest: HttpRequestInterface = await this.handleRequest(request, requestOptions);
 
     try {
-      const response = await this.httpWrapper.executeRequest(handledRequest);
+      const response = await this.executeRequest(handledRequest);
 
       return this.handleResponse(handledRequest, requestOptions, response);
     } catch (e) {
       throw e; // todo, need to improve this
     }
+  }
+
+  /**
+   * This method executes the request and calculates the response time.
+   * @param request
+   * @private
+   */
+  private async executeRequest(request: HttpRequestInterface): Promise<HttpResponseInterface> {
+    const start = performance.now();
+
+    const response = await this.httpWrapper.executeRequest(request);
+
+    response.responseTime = performance.now() - start;
+
+    return response;
   }
 
   /**
@@ -151,7 +166,7 @@ export class HttpClient implements HttpClientInterface {
 
         // Retry the request using an exponential backoff with jitter.
         updatedResponse = await new Promise<HttpResponseInterface>(resolve => setTimeout(async () => {
-          return resolve(await this.httpWrapper.executeRequest(request));
+          return resolve(await this.executeRequest(request));
         }, MathUtils.exponentialBackoffWithJitter(updatedRetryCount)))
 
         return this.handleResponseError(request, requestOptions, updatedResponse, updatedRetryCount);
@@ -191,7 +206,7 @@ export class HttpClient implements HttpClientInterface {
       const updatedRedirectCount = ++currentRedirectCount;
 
       // Retry the request using an exponential backoff with jitter.
-      updatedResponse = await this.httpWrapper.executeRequest(updatedRequest)
+      updatedResponse = await this.executeRequest(updatedRequest)
 
       // This updated response could be an error, check to see if it is and handle it.
       if (this.isResponseError(updatedResponse)) {
