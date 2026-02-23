@@ -59,7 +59,7 @@ export class RequestEventHandler implements EventHandlerInterface<Request, Respo
 
     const duration = performance.now() - start;
 
-    this.logHandler.notice(`[INBOUND RESPONSE COMPLETED] ${event.payload.httpMethod} ${event.payload.url} ${response.status} ${duration}ms `, {
+    this.logHandler.notice(`[INBOUND RESPONSE COMPLETED] ${event.payload.httpMethod} ${event.payload.url} ${response.status} ${Math.trunc(duration)}ms `, {
       highlights: {
         requestBody: event.payload.body,
         requestHeaders: event.payload.headers,
