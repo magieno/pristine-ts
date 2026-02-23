@@ -41,10 +41,8 @@ export class RequestEventHandler implements EventHandlerInterface<Request, Respo
     //todo add tracing to calculate request execution
     // todo catch if the method throws even though it should never throw.
 
-    this.logHandler.info(`[Request] ${event.payload.httpMethod} ${event.payload.url}`, {
+    this.logHandler.info(`[INBOUND REQUEST] ${event.payload.httpMethod} ${event.payload.url}`, {
       highlights: {
-        url: event.payload.url,
-        httpMethod: event.payload.httpMethod,
         body: event.payload.body,
         headers: event.payload.headers,
       },
@@ -55,12 +53,18 @@ export class RequestEventHandler implements EventHandlerInterface<Request, Respo
       breadcrumb: `${NetworkingModuleKeyname}:request.event-handler:handle`,
     },)
 
+    const start = performance.now();
+
     const response = await this.router.execute(event.payload, this.dependencyContainer);
 
-    this.logHandler.info(`[Response] ${response.status}`, {
+    const duration = performance.now() - start;
+
+    this.logHandler.notice(`[INBOUND RESPONSE COMPLETED] ${event.payload.httpMethod} ${event.payload.url} ${response.status} ${duration}ms `, {
       highlights: {
-        body: response.body,
-        headers: response.headers,
+        requestBody: event.payload.body,
+        requestHeaders: event.payload.headers,
+        responseBody: response.body,
+        responseHeaders: response.headers,
       },
       eventId: event.id,
       extra: {
