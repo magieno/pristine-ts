@@ -41,7 +41,7 @@ export class RequestEventHandler implements EventHandlerInterface<Request, Respo
     //todo add tracing to calculate request execution
     // todo catch if the method throws even though it should never throw.
 
-    this.logHandler.info(`[INBOUND REQUEST] ${event.payload.httpMethod} ${event.payload.url}`, {
+    this.logHandler.debug(`[INBOUND REQUEST] ${event.payload.httpMethod} ${event.payload.url}`, {
       highlights: {
         body: event.payload.body,
         headers: event.payload.headers,
