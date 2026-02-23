@@ -30,11 +30,13 @@ export class HttpResponseLoggingInterceptor implements HttpResponseInterceptorIn
    */
   async interceptResponse(request: HttpRequestInterface, options: HttpRequestOptions, response: HttpResponseInterface): Promise<HttpResponseInterface> {
     if (this.loggingEnabled) {
-      this.logHandler.info("HttpResponseLoggingInterceptor: Receiving http response.", {
+      // Eventually, add the execution time like this: `[OUTBOUND] GET https://api.stripe.com/v1/charges 200 112ms`
+      this.logHandler.info(`[OUTBOUND] ${request.httpMethod} ${request.url} ${response.status}`, {
         highlights: {
-          status: response.status,
-          body: response.body,
-          headers: response.headers
+          requestBody: request.body,
+          requestHeaders: request.headers,
+          responseBody: response.body,
+          responseHeaders: response.headers
         }, eventId: options.eventId, extra: {response, options}
       });
     }
