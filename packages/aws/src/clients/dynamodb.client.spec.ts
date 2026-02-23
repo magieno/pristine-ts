@@ -23,6 +23,7 @@ describe("Dynamodb client", () => {
   }
   const client = new DynamodbClient(logHandlerMock, "us-east-1");
 
+  
   describe("createFilterConditions", () => {
     it("should create a simple filter condition for a string.", () => {
       expect(client["createFilterConditions"]({"key": "value"})).toEqual([{
