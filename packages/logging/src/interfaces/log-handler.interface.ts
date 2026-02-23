@@ -27,6 +27,13 @@ export interface LogHandlerInterface {
   warning(message: string, data?: LogData): void;
 
   /**
+   * Logs the message if the severity is set to notice or above.
+   * @param message The message to log.
+   * @param data The data being passed to the log
+   */
+  notice(message: string, data?: LogData): void;
+
+  /**
    * Logs the message if the severity is set to info or above.
    * @param message The message to log.
    * @param data The data being passed to the log

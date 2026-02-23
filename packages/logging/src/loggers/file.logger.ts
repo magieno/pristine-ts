@@ -40,6 +40,8 @@ export class FileLogger extends BaseLogger implements LoggerInterface {
    * We often do not need to go to the bottom layer of an object, so we can truncate at a certain depth.
    * @param logInfoDepthConfiguration The number of level to go down in an object when printing a log with the Info severity.
    * We often do not need to go to the bottom layer of an object, so we can truncate at a certain depth.
+   * @param logNoticeDepthConfiguration The number of level to go down in an object when printing a log with the Notice severity.
+   * We often do not need to go to the bottom layer of an object, so we can truncate at a certain depth.
    * @param logWarningDepthConfiguration The number of level to go down in an object when printing a log with the Warning severity.
    * We often do not need to go to the bottom layer of an object, so we can truncate at a certain depth.
    * @param logErrorDepthConfiguration The number of level to go down in an object when printing a log with the Error severity.
@@ -55,6 +57,7 @@ export class FileLogger extends BaseLogger implements LoggerInterface {
                      @inject("%pristine.logging.logSeverityLevelConfiguration%") logSeverityLevelConfiguration: number,
                      @inject("%pristine.logging.logDebugDepthConfiguration%") logDebugDepthConfiguration: number,
                      @inject("%pristine.logging.logInfoDepthConfiguration%") logInfoDepthConfiguration: number,
+                     @inject("%pristine.logging.logNoticeDepthConfiguration%") logNoticeDepthConfiguration: number,
                      @inject("%pristine.logging.logWarningDepthConfiguration%") logWarningDepthConfiguration: number,
                      @inject("%pristine.logging.logErrorDepthConfiguration%") logErrorDepthConfiguration: number,
                      @inject("%pristine.logging.logCriticalDepthConfiguration%") logCriticalDepthConfiguration: number,
@@ -67,6 +70,7 @@ export class FileLogger extends BaseLogger implements LoggerInterface {
       logSeverityLevelConfiguration,
       logDebugDepthConfiguration,
       logInfoDepthConfiguration,
+      logNoticeDepthConfiguration,
       logWarningDepthConfiguration,
       logErrorDepthConfiguration,
       logCriticalDepthConfiguration,

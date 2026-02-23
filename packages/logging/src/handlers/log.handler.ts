@@ -81,6 +81,15 @@ export class LogHandler implements LogHandlerInterface {
   }
 
   /**
+   * Logs the message if the severity is set to notive or above.
+   * @param message The message to log.
+   * @param data The data being passed to the log
+   */
+  public notice(message: string, data?: LogData): void {
+    return this.log(message, SeverityEnum.Notice, data);
+  }
+
+  /**
    * Logs the message if the severity is set to info or above.
    * @param message The message to log.
    * @param data The data being passed to the log
