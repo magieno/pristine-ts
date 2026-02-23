@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/telemetry",
-  "version": "1.0.429",
+  "version": "1.0.430",
   "description": "",
   "module": "dist/lib/esm/telemetry.module.js",
   "main": "dist/lib/cjs/telemetry.module.js",

@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/aws-xray",
-  "version": "1.0.429",
+  "version": "1.0.430",
   "description": "",
   "module": "dist/lib/esm/aws-xray.module.js",
   "main": "dist/lib/cjs/aws-xray.module.js",
