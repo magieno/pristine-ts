@@ -54,6 +54,7 @@ describe("Console writer", () => {
       3,
       3,
       3,
+      3,
       true,
       OutputModeEnum.Json,
       50
@@ -78,6 +79,7 @@ describe("Console writer", () => {
     const consoleWriter = new ConsoleLogger(
       0,
       SeverityEnum.Debug,
+      3,
       3,
       3,
       3,
@@ -112,6 +114,7 @@ describe("Console writer", () => {
       3,
       3,
       3,
+      3,
       true,
       OutputModeEnum.Json,
       50
@@ -136,6 +139,7 @@ describe("Console writer", () => {
     const consoleWriter = new ConsoleLogger(
       0,
       SeverityEnum.Error,
+      3,
       3,
       3,
       3,
@@ -171,6 +175,7 @@ describe("Console writer", () => {
       3,
       3,
       3,
+      3,
       true,
       OutputModeEnum.Json,
       50
@@ -195,6 +200,7 @@ describe("Console writer", () => {
     const consoleWriter = new ConsoleLogger(
       5,
       SeverityEnum.Critical,
+      3,
       3,
       3,
       3,

@@ -47,6 +47,7 @@ describe("File writer", () => {
       3,
       3,
       3,
+      3,
       true,
       OutputModeEnum.Json,
       false,
@@ -76,6 +77,7 @@ describe("File writer", () => {
     const fileWriter = new FileLogger(
       0,
       SeverityEnum.Debug,
+      3,
       3,
       3,
       3,
@@ -114,6 +116,7 @@ describe("File writer", () => {
       3,
       3,
       3,
+      3,
       true,
       OutputModeEnum.Json,
       false,
@@ -141,6 +144,7 @@ describe("File writer", () => {
     const fileWriter = new FileLogger(
       0,
       SeverityEnum.Error,
+      3,
       3,
       3,
       3,
@@ -177,6 +181,7 @@ describe("File writer", () => {
       3,
       3,
       3,
+      3,
       true,
       OutputModeEnum.Json,
       false,
@@ -201,6 +206,7 @@ describe("File writer", () => {
     const fileWriter = new FileLogger(
       5,
       SeverityEnum.Critical,
+      3,
       3,
       3,
       3,
