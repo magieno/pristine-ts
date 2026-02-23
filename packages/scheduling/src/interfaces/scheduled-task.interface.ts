@@ -5,5 +5,5 @@ export interface ScheduledTaskInterface {
   /**
    * This method runs the actual task.
    */
-  run(): Promise<void>;
+  run(eventId?: string): Promise<void>;
 }
