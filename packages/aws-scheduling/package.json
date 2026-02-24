@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/aws-scheduling",
-  "version": "1.0.436",
+  "version": "1.0.437",
   "description": "",
   "module": "dist/lib/esm/aws-scheduling.module.js",
   "main": "dist/lib/cjs/aws-scheduling.module.js",
