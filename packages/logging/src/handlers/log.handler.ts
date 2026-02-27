@@ -122,7 +122,7 @@ export class LogHandler implements LogHandlerInterface {
     // Handle the data parameter to extract highlights and extra information.
     if (data) {
       // Check if data is in the structured format { highlights, extra }
-      if (typeof data === 'object' && data !== null && !Array.isArray(data) && (data.hasOwnProperty('highlights') || data.hasOwnProperty('extra'))) {
+      if (typeof data === 'object' && data !== null && !Array.isArray(data) && (data.hasOwnProperty('highlights') || data.hasOwnProperty('extra') || data.hasOwnProperty('eventId'))) {
         log.highlights = data.highlights ?? {};
         log.extra = data.extra;
         log.eventId = data.eventId;
