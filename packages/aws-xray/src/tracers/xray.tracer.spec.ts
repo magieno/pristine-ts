@@ -1,5 +1,5 @@
 describe("AWS XRay Tracer", () => {
-    it('should', () => {
-        expect(true).toBeTruthy();
-    })
+  it('should', () => {
+    expect(true).toBeTruthy();
+  })
 })

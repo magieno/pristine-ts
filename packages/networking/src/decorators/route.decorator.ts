@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import {HttpMethod, MetadataUtil, MetadataEnum} from "@pristine-ts/common";
+import {HttpMethod, MetadataEnum} from "@pristine-ts/common";
 import {RouteMethodDecorator} from "../interfaces/route-method-decorator.interface";
 import {ClassMetadata, MethodMetadata} from "@pristine-ts/metadata";
 
@@ -9,31 +9,29 @@ import {ClassMetadata, MethodMetadata} from "@pristine-ts/metadata";
  * @param path The part of the path following the base path of the controller. For path parameters use the colons. (ie: resources/:id)
  */
 export const route = (httpMethod: HttpMethod | string, path: string) => {
-    return (
-        /**
-         * The class on which the decorator is used.
-         */
-        target: any,
+  return (
+    /**
+     * The class on which the decorator is used.
+     */
+    target: any,
+    /**
+     * The method on which the decorator is used.
+     */
+    propertyKey: string,
+    /**
+     * The descriptor of the property.
+     */
+    descriptor: PropertyDescriptor
+  ) => {
+    // Set the route.
+    const route: RouteMethodDecorator = {
+      httpMethod,
+      methodKeyname: propertyKey,
+      path
+    }
 
-        /**
-         * The method on which the decorator is used.
-         */
-        propertyKey: string,
+    MethodMetadata.defineMetadata(target, propertyKey, MetadataEnum.Route, route);
 
-        /**
-         * The descriptor of the property.
-         */
-        descriptor: PropertyDescriptor
-    ) => {
-        // Set the route.
-        const route: RouteMethodDecorator = {
-            httpMethod,
-            methodKeyname: propertyKey,
-            path
-        }
-
-        MethodMetadata.defineMetadata(target, propertyKey, MetadataEnum.Route, route);
-
-        ClassMetadata.appendToMetadata(target.constructor, MetadataEnum.ControllerRoutes, propertyKey);
-    };
+    ClassMetadata.appendToMetadata(target.constructor, MetadataEnum.ControllerRoutes, propertyKey);
+  };
 }

@@ -8,13 +8,12 @@ export * from "./managers/managers";
 export * from "./tasks/tasks";
 
 export const SchedulingModule: ModuleInterface = {
-    keyname: SchedulingModuleKeyname,
-    importModules: [
-        LoggingModule,
-        CoreModule,
-    ],
-    providerRegistrations: [],
-    configurationDefinitions: [
-    ]
+  keyname: SchedulingModuleKeyname,
+  importModules: [
+    LoggingModule,
+    CoreModule,
+  ],
+  providerRegistrations: [],
+  configurationDefinitions: []
 
 }

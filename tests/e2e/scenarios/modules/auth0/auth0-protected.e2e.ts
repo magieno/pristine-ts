@@ -137,7 +137,7 @@ describe("Auth0 authenticator", () => {
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/identity");
+        const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/identity", "uuid");
         request.setHeaders({
             "Authorization": "Bearer " + jwt.sign(payload, privateKey, { algorithm: 'RS256', keyid: tokenHeader.kid})
         });
@@ -177,7 +177,7 @@ describe("Auth0 authenticator", () => {
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/identity")
+        const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/identity", "uuid")
         request.setHeaders({
             "Authorization": "Bearer " + jwt.sign(payload, privateKey, { algorithm: 'RS256', keyid: tokenHeader.kid})
         });
@@ -215,7 +215,7 @@ describe("Auth0 authenticator", () => {
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/identity");
+        const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/identity", "uuid");
         request.setHeaders({
             "Authorization": "Bearer " + jwt.sign(payload, privateKey, { algorithm: 'RS256', keyid: tokenHeader.kid})
         })
@@ -253,7 +253,7 @@ describe("Auth0 authenticator", () => {
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/identity");
+        const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/identity", "uuid");
         request.setHeaders({
             "Authorization": "Bearer " + jwt.sign(payload, privateKey, { algorithm: 'RS256', keyid: tokenHeader.kid})
         })

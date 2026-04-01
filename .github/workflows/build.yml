@@ -6,6 +6,11 @@ on:
   pull_request:
     branches:
       - master
+
+permissions:
+  id-token: write  # Required for OIDC
+  contents: write
+
 jobs:
   build:
     name: Build
@@ -16,7 +21,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [18.x, 20.x, 22.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
@@ -24,15 +29,12 @@ jobs:
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          always-auth: true
           node-version: ${{ matrix.node-version }}
           registry-url: https://registry.npmjs.org
-          scope: '@pristine'
+          scope: '@pristine-ts'
       - run: npm install -g npm@8.19.2
       - run: npm -v
       - run: npm ci
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 #      - run: npm install
 #        env:
 #          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -52,26 +54,19 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
-      - name: Use Node.js 18.x
+      - name: Use Node.js 24.x
         uses: actions/setup-node@v4
         with:
-          always-auth: true
-          node-version: 18.x
+          node-version: 24.x
           registry-url: https://registry.npmjs.org
-          scope: '@pristine'
+          scope: '@pristine-ts'
       - run: npm install -g npm@latest
       - run: npm ci
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 #      - run: npm install
 #        env:
 #          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - run: git config --global user.name 'ima-bot'
       - run: git config --global user.email 'ima-bot@ima-tech.ca'
       - run: npm run bump-patch
-      - run: npm whoami
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      #- run: npm whoami
       - run: npm run publish-ci
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

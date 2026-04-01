@@ -4,9 +4,11 @@ The CLI Module allows you to create your own Commands by simply implementing the
 
 Then, you tag your class using the `@tag(ServiceDefinitionTagEnum.Command)` decorator.
 
-You specify the expected arguments using an Options Class that is validated automatically for you using the `class-validator` library.
+You specify the expected arguments using an Options Class that is validated automatically for you using the
+`class-validator` library.
 
-You will need to modify your project's `package.json` by adding this: 
+You will need to modify your project's `package.json` by adding this:
+
 ```
 
 ...

@@ -2,12 +2,12 @@ import "reflect-metadata";
 import {IsString} from "@pristine-ts/class-validator";
 
 export class FileServerCommandOptions {
-    @IsString()
-    directory: string = "./";
+  @IsString()
+  directory: string = "./";
 
-    port?: number;
+  port?: number;
 
-    address?: string;
+  address?: string;
 
-    header?: string | string[];
+  header?: string | string[];
 }

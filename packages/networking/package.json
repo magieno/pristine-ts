@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/networking",
-  "version": "0.0.356",
+  "version": "1.0.438",
   "description": "",
   "module": "dist/lib/esm/networking.module.js",
   "main": "dist/lib/cjs/networking.module.js",
@@ -23,7 +23,7 @@
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/core": "file:../core",
     "@pristine-ts/data-mapping": "file:../data-mapping",
-    "@pristine-ts/metadata": "^1.0.6",
+    "@pristine-ts/metadata": "^1.0.16",
     "@pristine-ts/security": "file:../security",
     "@pristine-ts/telemetry": "file:../telemetry",
     "lodash": "^4.17.21"
@@ -62,5 +62,10 @@
       "src/*.{js,ts}"
     ]
   },
-  "gitHead": "112f715bf4ac6467192d416aa6e419f772b77c58"
+  "gitHead": "112f715bf4ac6467192d416aa6e419f772b77c58",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/magieno/pristine-ts.git",
+    "directory": "packages/networking"
+  }
 }

@@ -11,29 +11,27 @@ export const responseHeaderMetadataKeyname = "@responseHeader";
  * @param value The value to set the header to.
  */
 export const responseHeader = (key: string, value: string) => {
-    return (
-        /**
-         * The class on which the decorator is used.
-         */
-        target: any,
+  return (
+    /**
+     * The class on which the decorator is used.
+     */
+    target: any,
+    /**
+     * The method on which the decorator is used.
+     */
+    propertyKey?: string,
+    /**
+     * The descriptor of the property
+     */
+    descriptor?: PropertyDescriptor
+  ) => {
+    const routeContext = MetadataUtil.getRouteContext(target, propertyKey);
 
-        /**
-         * The method on which the decorator is used.
-         */
-        propertyKey?: string,
+    const headers = routeContext[responseHeaderMetadataKeyname] ?? {};
 
-        /**
-         * The descriptor of the property
-         */
-        descriptor?: PropertyDescriptor
-    ) => {
-        const routeContext = MetadataUtil.getRouteContext(target, propertyKey);
+    headers[key] = value;
 
-        const headers = routeContext[responseHeaderMetadataKeyname] ?? {};
-
-        headers[key] = value;
-
-        MetadataUtil.setToRouteContext(responseHeaderMetadataKeyname, headers, target, propertyKey);
-    }
+    MetadataUtil.setToRouteContext(responseHeaderMetadataKeyname, headers, target, propertyKey);
+  }
 }
 

@@ -17,32 +17,32 @@ export * from "./utils/utils";
 export * from "./wrappers/wrappers";
 
 export const HttpModule: ModuleInterface = {
-    keyname: HttpModuleKeyname,
-    importModules: [LoggingModule, CliModule],
-    configurationDefinitions: [
-        {
-            parameterName: `${HttpModuleKeyname}.logging-enabled`,
-            defaultValue: true,
-            isRequired: false,
-            defaultResolvers: [
-                new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_HTTP_LOGGING")),
-            ]
-        },
-        {
-            parameterName: `${HttpModuleKeyname}.http-server.file.address`,
-            defaultValue: "127.0.0.1",
-            isRequired: false,
-            defaultResolvers: [
-                new EnvironmentVariableResolver("PRISTINE_HTTP_SERVER_FILE_ADDRESS"),
-            ]
-        },
-        {
-            parameterName: `${HttpModuleKeyname}.http-server.file.port`,
-            defaultValue: 9000,
-            isRequired: false,
-            defaultResolvers: [
-                new NumberResolver(new EnvironmentVariableResolver("PRISTINE_HTTP_SERVER_FILE_PORT")),
-            ]
-        },
-    ],
+  keyname: HttpModuleKeyname,
+  importModules: [LoggingModule, CliModule],
+  configurationDefinitions: [
+    {
+      parameterName: `${HttpModuleKeyname}.logging-enabled`,
+      defaultValue: true,
+      isRequired: false,
+      defaultResolvers: [
+        new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_HTTP_LOGGING")),
+      ]
+    },
+    {
+      parameterName: `${HttpModuleKeyname}.http-server.file.address`,
+      defaultValue: "127.0.0.1",
+      isRequired: false,
+      defaultResolvers: [
+        new EnvironmentVariableResolver("PRISTINE_HTTP_SERVER_FILE_ADDRESS"),
+      ]
+    },
+    {
+      parameterName: `${HttpModuleKeyname}.http-server.file.port`,
+      defaultValue: 9000,
+      isRequired: false,
+      defaultResolvers: [
+        new NumberResolver(new EnvironmentVariableResolver("PRISTINE_HTTP_SERVER_FILE_PORT")),
+      ]
+    },
+  ],
 }

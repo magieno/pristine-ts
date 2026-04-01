@@ -9,7 +9,7 @@ import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
  */
 @injectable()
 @tag(ServiceDefinitionTagEnum.ScheduledTask)
-export class DefaultTask implements ScheduledTaskInterface{
-    async run(): Promise<void> {
-    }
+export class DefaultTask implements ScheduledTaskInterface {
+  async run(): Promise<void> {
+  }
 }

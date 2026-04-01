@@ -1,5 +1,5 @@
 import {inject, injectable} from "tsyringe";
-import { moduleScoped, ServiceDefinitionTagEnum, tag } from "@pristine-ts/common";
+import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {HttpRequestInterface} from "../interfaces/http-request.interface";
 import {HttpRequestOptions} from "../options/http-request.options.";
 import {LogHandlerInterface} from "@pristine-ts/logging";
@@ -16,24 +16,33 @@ import {HttpModuleKeyname} from "../http.module.keyname";
 @moduleScoped(HttpModuleKeyname)
 @injectable()
 export class HttpResponseLoggingInterceptor implements HttpResponseInterceptorInterface {
-    constructor(
-        @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-        @inject("%pristine.http.logging-enabled%") private readonly loggingEnabled: boolean,
-        ) {
+  constructor(
+    @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
+    @inject("%pristine.http.logging-enabled%") private readonly loggingEnabled: boolean,
+  ) {
+  }
+
+  /**
+   * This method intercepts an incoming http response and logs it.
+   * @param request
+   * @param options
+   * @param response
+   */
+  async interceptResponse(request: HttpRequestInterface, options: HttpRequestOptions, response: HttpResponseInterface): Promise<HttpResponseInterface> {
+    if (this.loggingEnabled) {
+      const duration = response.responseTime !== undefined ? ` ${Math.trunc(response.responseTime)}ms` : "";
+
+      this.logHandler.info(`[OUTBOUND] ${request.httpMethod} ${request.url} ${response.status}${duration}`, {
+        highlights: {
+          requestBody: request.body,
+          requestHeaders: request.headers,
+          responseBody: response.body,
+          responseHeaders: response.headers
+        }, eventId: options.eventId, extra: {response, options}
+      });
     }
 
-    /**
-     * This method intercepts an incoming http response and logs it.
-     * @param request
-     * @param options
-     * @param response
-     */
-    async interceptResponse(request: HttpRequestInterface, options: HttpRequestOptions, response: HttpResponseInterface): Promise<HttpResponseInterface> {
-        if(this.loggingEnabled) {
-            this.logHandler.info("Receiving http response", {response, options}, HttpModuleKeyname);
-        }
-
-        return response;
-    }
+    return response;
+  }
 
 }

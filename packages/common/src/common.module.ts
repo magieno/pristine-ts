@@ -1,5 +1,6 @@
 import {CommonModuleKeyname} from "./common.module.keyname";
 import {ModuleInterface} from "./interfaces/module.interface";
+
 export * from "./contexts/contexts";
 export * from "./decorators/decorators";
 export * from "./enums/enums";
@@ -10,10 +11,8 @@ export * from "./types/types";
 export * from "./utils/utils";
 export * from "./common.module.keyname";
 
-export const CommonModule: ModuleInterface =  {
-    keyname: CommonModuleKeyname,
-    importModules: [
-
-    ],
-    providerRegistrations: [],
+export const CommonModule: ModuleInterface = {
+  keyname: CommonModuleKeyname,
+  importModules: [],
+  providerRegistrations: [],
 }

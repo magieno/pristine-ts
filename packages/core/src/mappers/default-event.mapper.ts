@@ -13,23 +13,23 @@ import {EventResponse} from "../models/event.response";
 @moduleScoped(CoreModuleKeyname)
 @tag(ServiceDefinitionTagEnum.EventMapper)
 @injectable()
-export class DefaultEventMapper implements EventMapperInterface<any, any>{
-    map(event: object, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<any> {
-        return {
-            events: [],
-            executionOrder: 'sequential',
-        };
-    }
+export class DefaultEventMapper implements EventMapperInterface<any, any> {
+  map(event: object, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<any> {
+    return {
+      events: [],
+      executionOrder: 'sequential',
+    };
+  }
 
-    reverseMap(eventResponse: EventResponse<any, any>, response: object, executionContext: ExecutionContextInterface<any>): void {
-    }
+  reverseMap(eventResponse: EventResponse<any, any>, response: object, executionContext: ExecutionContextInterface<any>): void {
+  }
 
-    supportsMapping(event: object, executionContext: ExecutionContextInterface<any>): boolean {
-        return false;
-    }
+  supportsMapping(event: object, executionContext: ExecutionContextInterface<any>): boolean {
+    return false;
+  }
 
-    supportsReverseMapping(eventResponse: EventResponse<any, any>, response: object, executionContext: ExecutionContextInterface<any>): boolean {
-        return false;
-    }
+  supportsReverseMapping(eventResponse: EventResponse<any, any>, response: object, executionContext: ExecutionContextInterface<any>): boolean {
+    return false;
+  }
 
 }

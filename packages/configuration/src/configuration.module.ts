@@ -11,8 +11,7 @@ export * from "./utils/utils";
 export * from "./configuration.module.keyname";
 
 export const ConfigurationModule: ModuleInterface = {
-    keyname: ConfigurationModuleKeyname,
+  keyname: ConfigurationModuleKeyname,
 
-    importModules:[
-    ],
+  importModules: [],
 }

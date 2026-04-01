@@ -14,23 +14,23 @@ export * from "./providers/providers";
 export * from "./security.module.keyname";
 
 export const SecurityModule: ModuleInterface = {
-    keyname: SecurityModuleKeyname,
-    importModules: [
-        LoggingModule,
-    ],
-    providerRegistrations: [],
-    configurationDefinitions: [
-        /**
-         * The key in the claims of the access token where the roles are defined.
-         */
-        {
-            parameterName: SecurityModuleKeyname + ".rolesClaimKey",
-            isRequired: false,
-            defaultValue: "roles",
-            defaultResolvers: [
-                new EnvironmentVariableResolver("PRISTINE_SECURITY_ROLES_CLAIM_KEY"),
-            ]
-        }
-    ]
+  keyname: SecurityModuleKeyname,
+  importModules: [
+    LoggingModule,
+  ],
+  providerRegistrations: [],
+  configurationDefinitions: [
+    /**
+     * The key in the claims of the access token where the roles are defined.
+     */
+    {
+      parameterName: SecurityModuleKeyname + ".rolesClaimKey",
+      isRequired: false,
+      defaultValue: "roles",
+      defaultResolvers: [
+        new EnvironmentVariableResolver("PRISTINE_SECURITY_ROLES_CLAIM_KEY"),
+      ]
+    }
+  ]
 
 }

@@ -6,9 +6,9 @@ import {IdentityInterface} from "@pristine-ts/common";
  * You can provide your own IdentityProvider.
  */
 export interface IdentityProviderInterface {
-    /**
-     * Provides the identity from the base Identity that was extracted from the request.
-     * @param identity The identity that was extracted from the request.
-     */
-    provide(identity: IdentityInterface): Promise<IdentityInterface>;
+  /**
+   * Provides the identity from the base Identity that was extracted from the request.
+   * @param identity The identity that was extracted from the request.
+   */
+  provide(identity: IdentityInterface): Promise<IdentityInterface>;
 }

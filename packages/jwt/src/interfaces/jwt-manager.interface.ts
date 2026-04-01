@@ -4,9 +4,9 @@
 import {Request} from "@pristine-ts/common";
 
 export interface JwtManagerInterface {
-    /**
-     * Validates and returns the decoded JWT.
-     * @param request The request containing the JWT.
-     */
-    validateAndDecode(request: Request): Promise<any>;
+  /**
+   * Validates and returns the decoded JWT.
+   * @param request The request containing the JWT.
+   */
+  validateAndDecode(request: Request): Promise<any>;
 }

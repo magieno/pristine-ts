@@ -5,5 +5,8 @@
     "declarationDir": "dist/types",
     "outDir": "dist/lib/cjs"
   },
-  "exclude": ["./**/*.spec.ts", "dist"]
+  "exclude": [
+    "./**/*.spec.ts",
+    "dist"
+  ]
 }

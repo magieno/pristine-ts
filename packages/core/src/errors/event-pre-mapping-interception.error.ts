@@ -6,17 +6,17 @@ import {ExecutionContextInterface} from "../interfaces/execution-context.interfa
  */
 export class EventPreMappingInterceptionError extends LoggableError {
 
-    public constructor(message: string, originalError: Error, interceptorName: string, event: object, executionContext: ExecutionContextInterface<any>) {
-        super(message, {
-            originalError,
-            event,
-            interceptorName,
-            executionContext,
-        });
+  public constructor(message: string, originalError: Error, interceptorName: string, event: object, executionContext: ExecutionContextInterface<any>) {
+    super(message, {
+      originalError,
+      event,
+      interceptorName,
+      executionContext,
+    });
 
-        // Set the prototype explicitly.
-        // As specified in the documentation in TypeScript
-        // https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
-        Object.setPrototypeOf(this, EventPreMappingInterceptionError.prototype);
-    }
+    // Set the prototype explicitly.
+    // As specified in the documentation in TypeScript
+    // https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
+    Object.setPrototypeOf(this, EventPreMappingInterceptionError.prototype);
+  }
 }

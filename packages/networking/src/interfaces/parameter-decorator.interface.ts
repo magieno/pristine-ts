@@ -3,5 +3,5 @@
  * It's the base interface that all other decorator interfaces will extend.
  */
 export interface ParameterDecoratorInterface {
-    type: string;
+  type: string;
 }

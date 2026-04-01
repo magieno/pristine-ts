@@ -1,4 +1,4 @@
 export enum ExitCodeEnum {
-    Success = 0,
-    Error = 1,
+  Success = 0,
+  Error = 1,
 }

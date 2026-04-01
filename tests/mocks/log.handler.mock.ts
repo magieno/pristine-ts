@@ -13,6 +13,9 @@ export class LogHandlerMock implements LogHandlerInterface {
     critical(message: string, extra?: any) {
     }
 
+    notice(message: string, extra?: any) {
+    }
+
     warning(message: string, extra?: any) {
     }
 

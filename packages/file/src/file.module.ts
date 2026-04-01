@@ -9,11 +9,10 @@ export * from "./options/options";
 export * from "./resolvers/resolvers";
 
 export const FileModule: ModuleInterface = {
-    keyname: FileModuleKeyname,
-    configurationDefinitions: [
-    ],
-    importModules: [
-        CommonModule,
-        DataMappingModule,
-    ],
+  keyname: FileModuleKeyname,
+  configurationDefinitions: [],
+  importModules: [
+    CommonModule,
+    DataMappingModule,
+  ],
 }

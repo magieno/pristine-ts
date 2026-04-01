@@ -1,13 +1,6 @@
 import {CommonModule, ModuleInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
-import {
-    BooleanResolver,
-    ConfigurationModule,
-    EnumResolver,
-    EnvironmentVariableResolver, NumberResolver
-} from "@pristine-ts/configuration";
+import {ConfigurationModule} from "@pristine-ts/configuration";
 import {MysqlModuleKeyname} from "./mysql.module.keyname";
-import {MysqlConfig} from "./configs/mysql.config";
-import {DefaultMysqlConfigProvider} from "./config-providers/default-mysql.config-provider";
 
 
 export * from "./clients/clients";
@@ -22,26 +15,25 @@ export * from "./types/types";
 export * from "./mysql.module.keyname";
 
 export const MysqlModule: ModuleInterface = {
-    keyname: MysqlModuleKeyname,
-    importModules: [
-        CommonModule,
-        ConfigurationModule,
-    ],
-    configurationDefinitions: [
-    ],
-    providerRegistrations: [
-        {
-            token: ServiceDefinitionTagEnum.MysqlConfig,
-            useValue: {
-                uniqueKeyname: "__default__",
-                host: "",
-                port: 0,
-                user: "",
-                password: "",
-                connectionLimit: 0,
-                debug: false,
-                database: "",
-            }
-        }
-    ]
+  keyname: MysqlModuleKeyname,
+  importModules: [
+    CommonModule,
+    ConfigurationModule,
+  ],
+  configurationDefinitions: [],
+  providerRegistrations: [
+    {
+      token: ServiceDefinitionTagEnum.MysqlConfig,
+      useValue: {
+        uniqueKeyname: "__default__",
+        host: "",
+        port: 0,
+        user: "",
+        password: "",
+        connectionLimit: 0,
+        debug: false,
+        database: "",
+      }
+    }
+  ]
 };

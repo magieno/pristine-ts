@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/express",
-  "version": "0.0.356",
+  "version": "1.0.438",
   "description": "",
   "module": "dist/lib/esm/express.module.js",
   "main": "dist/lib/cjs/express.module.js",
@@ -61,5 +61,10 @@
       "src/*.{js,ts}"
     ]
   },
-  "gitHead": "112f715bf4ac6467192d416aa6e419f772b77c58"
+  "gitHead": "112f715bf4ac6467192d416aa6e419f772b77c58",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/magieno/pristine-ts.git",
+    "directory": "packages/express"
+  }
 }

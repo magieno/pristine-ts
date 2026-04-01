@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/common",
-  "version": "0.0.356",
+  "version": "1.0.438",
   "description": "",
   "module": "dist/lib/esm/common.module.js",
   "main": "dist/lib/cjs/common.module.js",
@@ -14,13 +14,18 @@
   "files": [
     "dist"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/magieno/pristine-ts.git",
+    "directory": "packages/common"
+  },
   "author": "",
   "license": "ISC",
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
-    "@pristine-ts/metadata": "^1.0.3",
+    "@pristine-ts/metadata": "^1.0.16",
     "reflect-metadata": "^0.1.13",
     "tsyringe": "^4.8.0"
   },

@@ -92,7 +92,7 @@ describe("Networking - Request Interceptors", () => {
     })
 
     it("should call the request and response interceptors", async () => {
-        const request = new Request(HttpMethod.Put, "/api/2.0/services/uniqueId")
+        const request = new Request(HttpMethod.Put, "/api/2.0/services/uniqueId", "uuid")
 
         const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response
 
@@ -105,7 +105,7 @@ describe("Networking - Request Interceptors", () => {
     });
 
     it("should call the error response interceptors, then call the response interceptors and finally properly return the intercepted error response", async () => {
-        const request = new Request(HttpMethod.Put, "/api/2.0/errorThrown")
+        const request = new Request(HttpMethod.Put, "/api/2.0/errorThrown", "uuid")
 
         const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response
 

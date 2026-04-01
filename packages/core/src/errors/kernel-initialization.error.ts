@@ -5,11 +5,12 @@ import {LoggableError} from "@pristine-ts/common";
  */
 export class KernelInitializationError extends LoggableError {
 
-    public constructor(message: string) {
-        super(message);
+  public constructor(message: string) {
+    super(message);
 
-        // Set the prototype explicitly.
-        // As specified in the documentation in TypeScript
-        // https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
-        Object.setPrototypeOf(this, KernelInitializationError.prototype);    }
+    // Set the prototype explicitly.
+    // As specified in the documentation in TypeScript
+    // https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
+    Object.setPrototypeOf(this, KernelInitializationError.prototype);
+  }
 }

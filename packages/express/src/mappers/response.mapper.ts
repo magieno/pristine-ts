@@ -5,24 +5,24 @@ import {Response} from "@pristine-ts/common";
 @injectable()
 export class ResponseMapper {
 
-    /**
-     * Maps a Pristine response to an express http response.
-     * @param response
-     * @param expressResponse
-     */
-    reverseMap(response: Response, expressResponse: ExpressResponse): ExpressResponse {
-        expressResponse.status(response.status);
+  /**
+   * Maps a Pristine response to an express http response.
+   * @param response
+   * @param expressResponse
+   */
+  reverseMap(response: Response, expressResponse: ExpressResponse): ExpressResponse {
+    expressResponse.status(response.status);
 
-        for (const headersKey in response.headers) {
-            if(response.headers.hasOwnProperty(headersKey) === false) {
-                continue;
-            }
+    for (const headersKey in response.headers) {
+      if (response.headers.hasOwnProperty(headersKey) === false) {
+        continue;
+      }
 
-            expressResponse.setHeader(headersKey, response.headers[headersKey]);
-        }
-
-        expressResponse.send(response.body);
-
-        return expressResponse;
+      expressResponse.setHeader(headersKey, response.headers[headersKey]);
     }
+
+    expressResponse.send(response.body);
+
+    return expressResponse;
+  }
 }

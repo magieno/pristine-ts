@@ -7,13 +7,13 @@ export const taggedProviderRegistrationsRegistry: TaggedRegistrationInterface[] 
  * @param tag The tag that should be used to resolve the service.
  */
 export const tag = (tag: string) => {
-    return (constructor: any) => {
-        taggedProviderRegistrationsRegistry.push({
-            constructor,
-            providerRegistration: {
-                token: tag,
-                useToken: constructor,
-            },
-        });
-    }
+  return (constructor: any) => {
+    taggedProviderRegistrationsRegistry.push({
+      constructor,
+      providerRegistration: {
+        token: tag,
+        useToken: constructor,
+      },
+    });
+  }
 }

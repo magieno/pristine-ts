@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/file",
-  "version": "0.0.356",
+  "version": "1.0.438",
   "description": "",
   "module": "dist/lib/esm/file.module.js",
   "main": "dist/lib/cjs/file.module.js",
@@ -20,7 +20,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@pristine-ts/class-validator": "^2.0.2",
+    "@pristine-ts/class-validator": "^2.0.4",
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/configuration": "file:../configuration",
     "@pristine-ts/data-mapping": "file:../data-mapping",
@@ -60,5 +60,10 @@
       "src/*.{js,ts}"
     ]
   },
-  "gitHead": "112f715bf4ac6467192d416aa6e419f772b77c58"
+  "gitHead": "112f715bf4ac6467192d416aa6e419f772b77c58",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/magieno/pristine-ts.git",
+    "directory": "packages/file"
+  }
 }

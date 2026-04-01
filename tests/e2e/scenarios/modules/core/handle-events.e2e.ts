@@ -102,6 +102,7 @@ describe("Handle events", () => {
 
             const kafkaEvent1: Event<KafkaEventPayload> = {
                 type: KafkaEventType.KafkaEvent,
+                id: "kafka",
                 payload: {
                     eventSource: "aws:kafka",
                     eventSourceArn: "arn:aws:kafka:us-east-1:account:cluster/vpc/uuid",
@@ -120,6 +121,7 @@ describe("Handle events", () => {
 
             const kafkaEvent2: Event<KafkaEventPayload> = {
                 type: KafkaEventType.KafkaEvent,
+                id: "kafka",
                 payload: {
                     eventSource: "aws:kafka",
                     eventSourceArn: "arn:aws:kafka:us-east-1:account:cluster/vpc/uuid",

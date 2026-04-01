@@ -5,15 +5,15 @@ import {LoggableError} from "@pristine-ts/common";
  * If you throw this error when handling an Event, it won't be returned.
  */
 export class HttpError extends LoggableError {
-    public constructor(public readonly httpStatus: number, readonly message: string, public readonly errors?: any[]) {
-        super(message, {
-            httpStatus,
-            errors,
-        });
+  public constructor(public readonly httpStatus: number, readonly message: string, public readonly errors?: any[]) {
+    super(message, {
+      httpStatus,
+      errors,
+    });
 
-        // Set the prototype explicitly.
-        // As specified in the documentation in TypeScript
-        // https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
-        Object.setPrototypeOf(this, HttpError.prototype);
-    }
+    // Set the prototype explicitly.
+    // As specified in the documentation in TypeScript
+    // https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
+    Object.setPrototypeOf(this, HttpError.prototype);
+  }
 }

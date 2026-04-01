@@ -1,62 +1,62 @@
 import "reflect-metadata";
 import {ConfigurationParser} from "./configuration.parser";
 import {container} from "tsyringe";
-import {EnvironmentVariableResolver} from "../resolvers/environment-variable.resolver";
 import {ConfigurationValidationError} from "../errors/configuration-validation.error";
 import {DynamicConfigurationResolverInterface} from "@pristine-ts/common";
 
 
 describe("Configuration Parser", () => {
 
-    // Resolve
-    it("should test that all the basic values are being returned", async () => {
+  // Resolve
+  it("should test that all the basic values are being returned", async () => {
 
-        const configurationParser = new ConfigurationParser();
-        expect(await configurationParser.resolve(3, container)).toBe(3);
-        expect(await configurationParser.resolve(true, container)).toBe(true);
-        expect(await configurationParser.resolve("string", container)).toBe("string");
-    })
+    const configurationParser = new ConfigurationParser();
+    expect(await configurationParser.resolve(3, container)).toBe(3);
+    expect(await configurationParser.resolve(true, container)).toBe(true);
+    expect(await configurationParser.resolve("string", container)).toBe("string");
+  })
 
-    it("should throw when the ModuleConfigurationValue doesn't implement the DynamicConfigurationResolverInterface interface", async () => {
-        const configurationParser = new ConfigurationParser();
-        await expect(configurationParser.resolve(
-            {
-                // @ts-ignore
-                allo: () => {}
-            }, container)).rejects.toThrowError(ConfigurationValidationError);
-    })
-
-    it("should call the 'resolve' method in the DynamicConfigurationResolverInterface", async () => {
-        const configurationValue: DynamicConfigurationResolverInterface<any> = {
-            dynamicResolve: (instance) => Promise.resolve("allo"),
+  it("should throw when the ModuleConfigurationValue doesn't implement the DynamicConfigurationResolverInterface interface", async () => {
+    const configurationParser = new ConfigurationParser();
+    await expect(configurationParser.resolve(
+      {
+        // @ts-ignore
+        allo: () => {
         }
-        const spy = jest.spyOn(configurationValue, "dynamicResolve");
+      }, container)).rejects.toThrowError(ConfigurationValidationError);
+  })
 
-        const configurationParser = new ConfigurationParser();
-        const resolvedValue = await configurationParser.resolve(configurationValue, container);
+  it("should call the 'resolve' method in the DynamicConfigurationResolverInterface", async () => {
+    const configurationValue: DynamicConfigurationResolverInterface<any> = {
+      dynamicResolve: (instance) => Promise.resolve("allo"),
+    }
+    const spy = jest.spyOn(configurationValue, "dynamicResolve");
 
-        expect(spy).toHaveBeenCalled();
-        expect(resolvedValue).toBe("allo");
-    })
+    const configurationParser = new ConfigurationParser();
+    const resolvedValue = await configurationParser.resolve(configurationValue, container);
 
-    it("should pass the properly injected class coming from the container to the 'resolve' method in the DynamicConfigurationResolverInterface", async () => {
-        const configurationValue: DynamicConfigurationResolverInterface<any> = {
-            dynamicResolve: (instance) => Promise.resolve(instance.testclassProperty),
-            injectionToken: "test"
-        }
-        const spy = jest.spyOn(configurationValue, "dynamicResolve");
+    expect(spy).toHaveBeenCalled();
+    expect(resolvedValue).toBe("allo");
+  })
 
-        const test = {
-            "testclassProperty": "property",
-            "really": true,
-        }
+  it("should pass the properly injected class coming from the container to the 'resolve' method in the DynamicConfigurationResolverInterface", async () => {
+    const configurationValue: DynamicConfigurationResolverInterface<any> = {
+      dynamicResolve: (instance) => Promise.resolve(instance.testclassProperty),
+      injectionToken: "test"
+    }
+    const spy = jest.spyOn(configurationValue, "dynamicResolve");
 
-        container.registerInstance("test", test);
+    const test = {
+      "testclassProperty": "property",
+      "really": true,
+    }
 
-        const configurationParser = new ConfigurationParser();
-        const resolvedValue = await configurationParser.resolve(configurationValue, container);
+    container.registerInstance("test", test);
 
-        expect(spy).toHaveBeenCalledWith(test);
-        expect(resolvedValue).toBe("property");
-    })
+    const configurationParser = new ConfigurationParser();
+    const resolvedValue = await configurationParser.resolve(configurationValue, container);
+
+    expect(spy).toHaveBeenCalledWith(test);
+    expect(resolvedValue).toBe("property");
+  })
 });

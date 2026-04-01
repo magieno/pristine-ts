@@ -2,8 +2,8 @@
 
 When you want to use Express with Pristine, you need to use the Express module.
 
-The Express module for pristine will simply convert the Express request to a Pristine request and convert back Pristine 
-response to an Express response. You can look in the demo folder for more information but in reality, that's all there 
+The Express module for pristine will simply convert the Express request to a Pristine request and convert back Pristine
+response to an Express response. You can look in the demo folder for more information but in reality, that's all there
 is to do to integrate with Express:
 
     const express = require('express')
@@ -33,6 +33,5 @@ is to do to integrate with Express:
     }
 
     bootstrap();
-
 
 We plan to integrate additional features and integration with Express but for now this is a good base.

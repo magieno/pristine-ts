@@ -61,8 +61,8 @@ describe("Event Pipeline Scenarios", () => {
 
             return {
                 events: [
-                    new Event<any>("type", rawEvent),
-                    new Event<any>("type", rawEvent),
+                    new Event<any>("type", rawEvent, "uuid"),
+                    new Event<any>("type", rawEvent, "uuid"),
                 ],
                 executionOrder: executionContext.context.executionOrder,
             };
@@ -82,7 +82,7 @@ describe("Event Pipeline Scenarios", () => {
 
     }
 
-    let kernel = new Kernel();
+    const kernel = new Kernel();
 
     beforeAll( async () => {
         const appModule: AppModuleInterface = {

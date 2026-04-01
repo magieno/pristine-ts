@@ -5,5 +5,5 @@ import {ParameterDecoratorInterface} from "./parameter-decorator.interface";
  * @identity decorator.
  */
 export interface IdentityParameterDecoratorInterface extends ParameterDecoratorInterface {
-    type: "identity";
+  type: "identity";
 }

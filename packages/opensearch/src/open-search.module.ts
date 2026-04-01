@@ -12,20 +12,20 @@ export * from "./parsers/parsers";
 export * from "./open-search.module.keyname";
 
 export const OpenSearchModule: ModuleInterface = {
-    keyname: OpenSearchModuleKeyname,
-    configurationDefinitions: [
-        {
-            parameterName: OpenSearchModuleKeyname + ".domain-url",
-            isRequired: true,
-            defaultResolvers: [
-                new EnvironmentVariableResolver("PRISTINE_OPENSEARCH_DOMAIN_URL"),
-            ]
-        },
-    ],
-    importModules: [
-        AwsModule,
-        CoreModule,
-    ],
+  keyname: OpenSearchModuleKeyname,
+  configurationDefinitions: [
+    {
+      parameterName: OpenSearchModuleKeyname + ".domain-url",
+      isRequired: true,
+      defaultResolvers: [
+        new EnvironmentVariableResolver("PRISTINE_OPENSEARCH_DOMAIN_URL"),
+      ]
+    },
+  ],
+  importModules: [
+    AwsModule,
+    CoreModule,
+  ],
 }
 
 
