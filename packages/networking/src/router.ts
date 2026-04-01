@@ -215,7 +215,7 @@ export class Router implements RouterInterface {
       }
 
       // Get the route parameters
-      const routeParameters = cachedRouterRoute?.routeParameters ?? (methodNode.parent as PathRouterNode).getRouteParameters(splitPath.reverse());
+      const routeParameters = cachedRouterRoute?.routeParameters ?? (methodNode.parent as PathRouterNode).getRouteParameters(splitPath.slice().reverse());
 
       if (cachedRouterRoute !== undefined && cachedRouterRoute.routeParameters === undefined) {
         cachedRouterRoute.routeParameters = routeParameters;
