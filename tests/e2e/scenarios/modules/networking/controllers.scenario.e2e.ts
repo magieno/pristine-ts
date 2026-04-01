@@ -31,7 +31,7 @@ describe("Networking - Controllers", () => {
             "pristine.logging.fileLoggerActivated": false,
         });
 
-        let request = new Request(HttpMethod.Get, "https://localhost:8080/api/2.0/magieno/pristine");
+        let request = new Request(HttpMethod.Get, "https://localhost:8080/api/2.0/magieno/pristine", "uuid");
 
         let response = await kernel.handle(request, {
             keyname: ExecutionContextKeynameEnum.Jest,
@@ -42,7 +42,7 @@ describe("Networking - Controllers", () => {
         expect(response.status).toBe(200);
         expect(response.body).toStrictEqual({"NestedController": true});
 
-        request = new Request(HttpMethod.Post, "https://localhost:8080/api/2.0/magieno/pristine");
+        request = new Request(HttpMethod.Post, "https://localhost:8080/api/2.0/magieno/pristine", "uuid");
         const body = {
             "my_body": true,
         };
@@ -56,5 +56,24 @@ describe("Networking - Controllers", () => {
         expect(response instanceof Response).toBeTruthy()
         expect(response.status).toBe(200);
         expect(response.body).toStrictEqual(body);
+    })
+
+    it("should load the 'nested' controller and succeed with the id parameter", async () => {
+        const kernel = new Kernel();
+        await kernel.start(testModule, {
+            "pristine.logging.consoleLoggerActivated": false,
+            "pristine.logging.fileLoggerActivated": false,
+        });
+
+        let request = new Request(HttpMethod.Post, "https://localhost:8080/api/2.0/magieno/pristine/0123456789/registrations", "uuid");
+
+        let response = await kernel.handle(request, {
+            keyname: ExecutionContextKeynameEnum.Jest,
+            context: {}
+        }) as Response;
+
+        expect(response instanceof Response).toBeTruthy()
+        expect(response.status).toBe(200);
+        expect(response.body).toStrictEqual("0123456789");
     })
 })
