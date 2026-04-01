@@ -59,8 +59,8 @@ export class PathRouterNode extends RouterNode {
       // If this is a catch all we can only match with a catch all.
       matchedChild = this.children.filter(child => child instanceof PathRouterNode).find((child: RouterNode) => (child as PathRouterNode).isCatchAll());
     } else if (UrlUtil.isPathARouteParameter(splitPaths[1])) {
-      // If this is a catch all we can only match with a catch all.
-      matchedChild = this.children.filter(child => child instanceof PathRouterNode).find((child: RouterNode) => (child as PathRouterNode).isRouteParameter());
+      // If this is a route parameter, we can only match with a route parameter that has the exact same name.
+      matchedChild = this.children.filter(child => child instanceof PathRouterNode).find((child: RouterNode) => (child as PathRouterNode).isRouteParameter() && (child as PathRouterNode).path === splitPaths[1]);
     } else {
       // Loop over our children that are of PathRouterNode and check if the next path matches,
       // but if it's not a catch all we can't match with a catch all.

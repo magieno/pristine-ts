@@ -99,6 +99,21 @@ describe("Path Router Node tests", () => {
     expect(pathRouterNode.find([], HttpMethod.Get)).toBeNull();
   })
 
+  it("should not merge two different route parameters", () => {
+    const pathRouterNode = new PathRouterNode("/", undefined)
+    pathRouterNode.add(["/", "/api", "/{id}"], HttpMethod.Get, new Route(undefined, "id-route"), 0);
+    pathRouterNode.add(["/", "/api", "/{channelId}", "/registrations"], HttpMethod.Get, new Route(undefined, "channel-route"), 0);
+
+    const idNode = pathRouterNode.find(["/", "/api", "/123"], HttpMethod.Get);
+    expect(idNode).toBeDefined();
+    expect((idNode!.parent as PathRouterNode).path).toBe("/{id}");
+
+    const channelNode = pathRouterNode.find(["/", "/api", "/456", "/registrations"], HttpMethod.Get);
+    expect(channelNode).toBeDefined();
+    expect((channelNode!.parent as PathRouterNode).path).toBe("/registrations");
+    expect((channelNode!.parent!.parent as PathRouterNode).path).toBe("/{channelId}");
+  })
+
   it("should return null if the split paths[0] doesn't match", () => {
     const pathRouterNode = new PathRouterNode("/hello", undefined)
 

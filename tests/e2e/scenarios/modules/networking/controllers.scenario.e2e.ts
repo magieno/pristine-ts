@@ -76,4 +76,32 @@ describe("Networking - Controllers", () => {
         expect(response.status).toBe(200);
         expect(response.body).toStrictEqual("0123456789");
     })
+
+    it("should correctly handle different route parameters at the same level (e.g. {id} and {channelId})", async () => {
+        const kernel = new Kernel();
+        await kernel.start(testModule, {
+            "pristine.logging.consoleLoggerActivated": false,
+            "pristine.logging.fileLoggerActivated": false,
+        });
+
+        // Test the first route with {id}
+        let request = new Request(HttpMethod.Get, "https://localhost:8080/api/admin/notification-channels/123", "uuid");
+        let response = await kernel.handle(request, {
+            keyname: ExecutionContextKeynameEnum.Jest,
+            context: {}
+        }) as Response;
+
+        expect(response.status).toBe(200);
+        expect(response.body).toStrictEqual({ id: "123" });
+
+        // Test the second route with {channelId}
+        request = new Request(HttpMethod.Get, "https://localhost:8080/api/admin/notification-channels/456/registrations", "uuid");
+        response = await kernel.handle(request, {
+            keyname: ExecutionContextKeynameEnum.Jest,
+            context: {}
+        }) as Response;
+
+        expect(response.status).toBe(200);
+        expect(response.body).toStrictEqual({ channelId: "456" });
+    })
 })

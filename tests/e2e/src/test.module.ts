@@ -6,6 +6,7 @@ import {Voter1Model} from "./models/voter1.model";
 import {Voter2Model} from "./models/voter2.model";
 import {TestController} from "./controllers/test.controller";
 import {NestedController} from "./controllers/nested.controller";
+import {ParameterCollisionController} from "./controllers/parameter-collision.controller";
 import {TestGuard} from "./guards/test.guard";
 import {SecurityModule} from "@pristine-ts/security";
 import {AppModuleInterface} from "@pristine-ts/common";
@@ -13,7 +14,7 @@ import {NetworkingModule} from "@pristine-ts/networking";
 
 export const testModule: AppModuleInterface = {
     keyname: "test",
-    importServices: [TestController, NestedController],
+    importServices: [TestController, NestedController, ParameterCollisionController],
     importModules: [CoreModule, SecurityModule, NetworkingModule],
     providerRegistrations: [
         {
