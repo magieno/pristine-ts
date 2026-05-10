@@ -5,7 +5,8 @@ import {CoreModule} from "./core.module";
 import {Kernel} from "./kernel";
 import {InstantiationStatusEnum} from "./enums/instantiation-status.enum";
 import {InstantiationPhaseEnum} from "./enums/instantiation-phase.enum";
-import {InstantiationTestInterface, InstantiationTestResultInterface} from "./interfaces/instantiation-test.interface";
+import {InstantiationTestInterface} from "./interfaces/instantiation-test.interface";
+import {InstantiationTestResultInterface} from "./interfaces/instantiation-test-result.interface";
 
 describe("Kernel.verifyInstantiation", () => {
   beforeEach(() => {

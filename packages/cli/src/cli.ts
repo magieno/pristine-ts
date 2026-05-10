@@ -1,22 +1,35 @@
 import {ExecutionContextKeynameEnum, Kernel} from "@pristine-ts/core";
 import {ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {CommandInterface} from "./interfaces/command.interface";
-import {loadAppModule} from "./bootstrap/app-module-loader";
+import {AppModuleCache} from "./bootstrap/app-module-cache";
+import {AppModuleDiscoverer} from "./bootstrap/app-module-discoverer";
+import {AppModuleLoader} from "./bootstrap/app-module-loader";
+import {AppModulePrompt} from "./bootstrap/app-module-prompt";
+import {DynamicImporter} from "./bootstrap/dynamic-importer";
+import {PluginLoader} from "./bootstrap/plugin-loader";
+import {ConfigLoader} from "./config/config-loader";
 
 /**
  * Boots the CLI: discovers the consumer's AppModule, starts the kernel, and dispatches
  * `process.argv` to whichever command matches. Exported so `bin.ts` can call it explicitly
  * — the auto-invoke at module load was removed so library consumers importing this file for
  * its types or `bootstrap` reference do not accidentally trigger an entire kernel boot.
+ *
+ * The bootstrap-layer collaborators (loaders, discoverers, cache, prompt) are instantiated
+ * by hand here rather than resolved through DI. The kernel container does not exist yet at
+ * this point, so DI is not available — manually wiring the (small, stable) class graph is the
+ * least surprising option. Once the kernel is up, the kernel itself is registered into its
+ * own container so commands can inject it.
  */
 export const bootstrap = async (): Promise<void> => {
-  const {appModule, configuration} = await loadAppModule();
+  const appModuleLoader = buildAppModuleLoader();
+  const {appModule, configuration} = await appModuleLoader.load();
 
   const kernel = new Kernel();
   await kernel.start(appModule, configuration);
 
   // Make the running kernel resolvable from within commands so things like `pristine start`
-  // can register signal handlers and call `kernel.stop()` for graceful shutdown.
+  // and the alias commands can register signal handlers and resolve their delegates.
   kernel.container.registerInstance(Kernel, kernel);
 
   warnOnCommandCollisions(kernel);
@@ -25,11 +38,27 @@ export const bootstrap = async (): Promise<void> => {
 }
 
 /**
- * Walks every registered Command-tagged service and warns to stderr if multiple share a `name`.
- * The CLI's event dispatcher picks whichever match it sees first — without this warning, a
- * plugin silently shadowing a built-in command (or two plugins shadowing each other) would
- * be invisible until someone debugged "why is my command not running?". Warning rather than
- * throwing keeps the bin runnable; users decide whether to fix the conflict.
+ * Hand-wired graph of the bootstrap-layer classes. The kernel container does not exist yet,
+ * so we cannot resolve via DI — but the class graph here is shallow and stable, so manual
+ * wiring stays readable. Each class is `@injectable()` so DI resolution would also work if
+ * we ever moved this into a kernel-pre-boot container.
+ */
+const buildAppModuleLoader = (): AppModuleLoader => {
+  const dynamicImporter = new DynamicImporter();
+  const configLoader = new ConfigLoader(dynamicImporter);
+  const cache = new AppModuleCache();
+  const discoverer = new AppModuleDiscoverer();
+  const prompt = new AppModulePrompt(dynamicImporter);
+  const pluginLoader = new PluginLoader(dynamicImporter);
+  return new AppModuleLoader(configLoader, cache, discoverer, prompt, pluginLoader, dynamicImporter);
+}
+
+/**
+ * Walks every registered Command-tagged service and warns to stderr if multiple share a
+ * `name`. The CLI's event dispatcher picks whichever match it sees first — without this
+ * warning, a plugin silently shadowing a built-in command (or two plugins shadowing each
+ * other) would be invisible until someone debugged "why is my command not running?". Warning
+ * rather than throwing keeps the bin runnable; users decide whether to fix the conflict.
  */
 const warnOnCommandCollisions = (kernel: Kernel): void => {
   let commands: CommandInterface<any>[];
@@ -47,7 +76,7 @@ const warnOnCommandCollisions = (kernel: Kernel): void => {
   for (const [name, count] of byName.entries()) {
     if (count > 1) {
       process.stderr.write(
-        `[pristine] WARNING: command '${name}' is registered ${count} times. Only the first match will be dispatched.\n`
+        `[pristine] WARNING: command '${name}' is registered ${count} times. Only the first match will be dispatched.\n`,
       );
     }
   }

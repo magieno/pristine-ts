@@ -7,7 +7,7 @@ import {ConsoleManager} from "../managers/console.manager";
 import {ShellManager} from "../managers/shell.manager";
 import {ExitCodeEnum} from "../enums/exit-code.enum";
 import {CliModuleKeyname} from "../cli.module.keyname";
-import {loadConfig} from "../config/config-loader";
+import {ConfigLoader} from "../config/config-loader";
 
 /**
  * Compiles the consumer's TypeScript project. Reads `build.{outDir,tsconfig,format,clean}` from
@@ -34,12 +34,13 @@ export class BuildCommand implements CommandInterface<null> {
   constructor(
     private readonly consoleManager: ConsoleManager,
     private readonly shellManager: ShellManager,
+    private readonly configLoader: ConfigLoader,
   ) {
   }
 
   async run(args: any): Promise<ExitCodeEnum | number> {
     const projectRoot = process.cwd();
-    const resolvedConfig = await loadConfig({startDir: projectRoot});
+    const resolvedConfig = await this.configLoader.load({startDir: projectRoot});
     const buildConfig = resolvedConfig.config.build ?? {};
 
     const tsconfig = buildConfig.tsconfig ?? "tsconfig.json";

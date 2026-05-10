@@ -1,53 +1,57 @@
+import {injectable} from "tsyringe";
 import fs from "fs";
 import path from "path";
 
-const CACHE_DIR = ".pristine";
-const CACHE_FILE = "last-app-module";
-
 /**
- * Reads the previously-selected AppModule path from `.pristine/last-app-module`. Returns
- * undefined if no cache exists or if the cached path no longer points to an existing file
- * (in which case the stale cache file is deleted so it doesn't keep being suggested).
+ * Persists the user's selection from the disambiguation prompt so subsequent invocations of
+ * `pristine` in the same project skip the prompt. Stale entries (target file deleted since
+ * the cache was written) are auto-cleaned on read.
+ *
+ * Best-effort throughout — failures to read or write the cache file are swallowed because
+ * the cache is a UX optimization, not correctness-critical.
  */
-export const readCachedAppModulePath = (projectRoot: string): string | undefined => {
-  const cachePath = path.resolve(projectRoot, CACHE_DIR, CACHE_FILE);
-  if (fs.existsSync(cachePath) === false) {
-    return undefined;
-  }
+@injectable()
+export class AppModuleCache {
+  private readonly cacheDirName: string = ".pristine";
+  private readonly cacheFileName: string = "last-app-module";
 
-  let cached: string;
-  try {
-    cached = fs.readFileSync(cachePath, "utf8").trim();
-  } catch {
-    return undefined;
-  }
-
-  if (cached.length === 0 || fs.existsSync(cached) === false) {
-    // Stale cache — the user must have deleted or moved the file since they last selected it.
-    try {
-      fs.unlinkSync(cachePath);
-    } catch {
-      // Best-effort cleanup; if we can't delete it we still continue without using the cached value.
+  read(projectRoot: string): string | undefined {
+    const cachePath = this.cachePath(projectRoot);
+    if (fs.existsSync(cachePath) === false) {
+      return undefined;
     }
-    return undefined;
+
+    let cached: string;
+    try {
+      cached = fs.readFileSync(cachePath, "utf8").trim();
+    } catch {
+      return undefined;
+    }
+
+    if (cached.length === 0 || fs.existsSync(cached) === false) {
+      // Stale cache — the user must have deleted or moved the file. Drop it so it doesn't
+      // keep being suggested on every subsequent invocation.
+      try {
+        fs.unlinkSync(cachePath);
+      } catch {
+        // Best-effort cleanup.
+      }
+      return undefined;
+    }
+
+    return cached;
   }
 
-  return cached;
-}
+  write(projectRoot: string, absolutePath: string): void {
+    try {
+      fs.mkdirSync(path.resolve(projectRoot, this.cacheDirName), {recursive: true});
+      fs.writeFileSync(this.cachePath(projectRoot), absolutePath, "utf8");
+    } catch {
+      // Best-effort.
+    }
+  }
 
-/**
- * Persists the user's AppModule selection to `.pristine/last-app-module` so subsequent
- * `pristine` invocations in the same project skip the prompt. Best-effort: failures are
- * swallowed because the cache is an optimization, not correctness-critical.
- */
-export const writeCachedAppModulePath = (projectRoot: string, absolutePath: string): void => {
-  const cacheDir = path.resolve(projectRoot, CACHE_DIR);
-  const cachePath = path.resolve(cacheDir, CACHE_FILE);
-
-  try {
-    fs.mkdirSync(cacheDir, {recursive: true});
-    fs.writeFileSync(cachePath, absolutePath, "utf8");
-  } catch {
-    // Best-effort.
+  private cachePath(projectRoot: string): string {
+    return path.resolve(projectRoot, this.cacheDirName, this.cacheFileName);
   }
 }

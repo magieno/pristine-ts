@@ -1,4 +1,4 @@
-import {SerializedError} from "./phase-result";
+import {SerializedError} from "../interfaces/serialized-error.interface";
 
 export class InstantiationTestExecutionResult {
   constructor(

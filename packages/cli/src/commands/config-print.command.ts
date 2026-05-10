@@ -5,7 +5,7 @@ import {CommandInterface} from "../interfaces/command.interface";
 import {ConsoleManager} from "../managers/console.manager";
 import {ExitCodeEnum} from "../enums/exit-code.enum";
 import {CliModuleKeyname} from "../cli.module.keyname";
-import {loadConfig} from "../config/config-loader";
+import {ConfigLoader} from "../config/config-loader";
 
 /**
  * Prints the resolved Pristine configuration plus where it was loaded from. Useful for
@@ -20,11 +20,14 @@ export class ConfigPrintCommand implements CommandInterface<null> {
   name = "p:config:print";
   description = "Print the resolved Pristine configuration plus where it was loaded from.";
 
-  constructor(private readonly consoleManager: ConsoleManager) {
+  constructor(
+    private readonly consoleManager: ConsoleManager,
+    private readonly configLoader: ConfigLoader,
+  ) {
   }
 
   async run(args: any): Promise<ExitCodeEnum | number> {
-    const resolved = await loadConfig({startDir: process.cwd()});
+    const resolved = await this.configLoader.load({startDir: process.cwd()});
 
     if (resolved.configFilePath !== undefined) {
       this.consoleManager.writeInfo(`Config file: ${path.relative(process.cwd(), resolved.configFilePath)}`);

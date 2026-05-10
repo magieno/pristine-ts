@@ -5,6 +5,7 @@ import {ValidationModule} from "@pristine-ts/validation";
 import {LoggingModule} from "@pristine-ts/logging";
 import {DataMappingModule} from "@pristine-ts/data-mapping"
 
+export * from "./bootstrap/bootstrap";
 export * from "./commands/commands";
 export * from "./config/config";
 export * from "./enums/enums";

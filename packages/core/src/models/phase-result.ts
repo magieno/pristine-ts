@@ -1,16 +1,11 @@
 import {InstantiationPhaseEnum} from "../enums/instantiation-phase.enum";
 import {InstantiationStatusEnum} from "../enums/instantiation-status.enum";
+import {SerializedError} from "../interfaces/serialized-error.interface";
 
 /**
- * A serialized error captured when a phase throws. The original Error is not retained because the report
- * is plain data — callers may serialize it (JSON, log payload, etc.) and a thrown Error would not survive.
+ * Outcome of a single phase of `Kernel.verifyInstantiation` (e.g. `ModuleRegistration`,
+ * `ConfigurationLoad`, `BootProbe`). One `PhaseResult` per phase appears in the report.
  */
-export interface SerializedError {
-  name: string;
-  message: string;
-  stack?: string;
-}
-
 export class PhaseResult {
   constructor(
     public readonly phase: InstantiationPhaseEnum,

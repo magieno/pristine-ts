@@ -1,59 +1,107 @@
 # `@pristine-ts/cli`
 
-The Pristine CLI. Provides:
+The Pristine CLI — a `pristine` binary for your project, plus everything you need to add
+your own commands, build and start your app, and verify that your AppModule is healthy.
 
-- A `pristine` binary you can invoke from any project that depends on Pristine.
-- A registration mechanism for custom commands (your own `pristine my-command ...`).
-- Built-in commands for verification, listing, configuration, and diagnostics.
-- A `pristine.config.ts` config system that drops the old `package.json` glue.
-
-This document covers everything you need to install, configure, and extend the CLI.
+If you've used `ng`, `nest`, or `vite`, this is the equivalent for Pristine apps.
 
 ---
 
-## Installation
+## Table of contents
+
+- [Install](#install)
+- [A 5-minute tour](#a-5-minute-tour)
+- [Recipes](#recipes)
+  - [Add a command to your app](#recipe-add-a-command-to-your-app)
+  - [Build your TypeScript](#recipe-build-your-typescript)
+  - [Start your app in production](#recipe-start-your-app-in-production)
+  - [Host an HTTP (or HTTPS) server](#recipe-host-an-http-or-https-server)
+  - [Verify your AppModule on every CI run](#recipe-verify-your-appmodule-on-every-ci-run)
+  - [Pull commands in from a separate package (plugins)](#recipe-pull-commands-in-from-a-separate-package-plugins)
+- [Configuration reference](#configuration-reference)
+- [How `pristine` finds your AppModule](#how-pristine-finds-your-appmodule)
+- [Built-in commands](#built-in-commands)
+- [Production deployment](#production-deployment)
+- [Architecture & design notes](#architecture--design-notes)
+- [Migrating from older versions](#migrating-from-older-versions)
+- [What changed](#what-changed-versus-pre-10440)
+
+---
+
+## Install
+
+You have two good options. Pick the one that matches how you'll invoke the CLI.
+
+### Option A — Local install (recommended for project-bound usage)
 
 ```sh
-npm install @pristine-ts/cli
+npm install --save-dev @pristine-ts/cli
 ```
 
-After install, `node_modules/.bin/pristine` is available — invoke it via `npx pristine`,
-through an npm script, or by adding `node_modules/.bin` to your PATH.
+Use it from your `package.json` scripts — no `npx` needed because npm puts
+`node_modules/.bin/` on PATH for `npm run` invocations:
 
-For host-wide invocation (CI machines, deploy boxes, dev machines), install globally:
+```json
+{
+  "scripts": {
+    "build": "pristine build",
+    "start": "pristine start",
+    "verify": "pristine verify"
+  }
+}
+```
+
+```sh
+npm run build
+npm run start
+```
+
+For one-off invocations from the terminal, use `npx pristine ...`.
+
+### Option B — Global install (if you want bare `pristine` in any terminal)
 
 ```sh
 npm install -g @pristine-ts/cli
+pristine list   # works in any directory
 ```
 
-The bin is a single self-contained file (~1.5 KB) that defers to `@pristine-ts/cli` resolved
-from your project's `node_modules`. There is no transitive resolution lookup tree the bin
-itself walks — its only requirement is that `require('@pristine-ts/cli')` resolves from where
-the bin file lives. Both `npm install` (locally) and `npm install -g` satisfy this.
+The bin is self-contained, so the global install pulls everything it needs and `pristine`
+becomes available everywhere. This is the Angular/Nest/Vue CLI pattern.
+
+> **Tip**: if you want bare `pristine` in your terminal **without** a global install, add
+> `./node_modules/.bin` to your shell PATH per-project. `direnv` works well:
+> create a `.envrc` with `PATH_add node_modules/.bin`, run `direnv allow`, done.
 
 ---
 
-## Quick start
+## A 5-minute tour
 
-In an existing Pristine project:
+Let's walk through what the CLI looks like in practice. Assume you have a brand-new Pristine
+project with this layout:
+
+```
+my-app/
+├── package.json
+├── tsconfig.json
+└── src/
+    ├── app.module.ts
+    └── main.ts
+```
+
+### 1. Install the CLI
 
 ```sh
-npx pristine p:config:init        # creates pristine.config.ts in the project root
-npx pristine p:list               # lists all registered commands
-npx pristine p:verify             # smoke-tests your AppModule and configuration
+npm install --save-dev @pristine-ts/cli
 ```
 
-You're done. No `package.json` config required.
+### 2. Initialize a config file
 
-For a brand-new project with a conventional layout (an `app.module.{js,mjs,cjs}` somewhere
-under `dist/`), even `pristine p:config:init` is optional — the CLI auto-discovers the
-AppModule on first run.
+```sh
+npx pristine p:config:init
+```
 
----
-
-## Configuration
-
-The canonical configuration file is `pristine.config.ts` at the project root.
+This creates `pristine.config.ts` at your project root with sensible defaults. It looks
+like this (with comments trimmed):
 
 ```ts
 import {defineConfig} from "@pristine-ts/cli";
@@ -61,283 +109,490 @@ import {defineConfig} from "@pristine-ts/cli";
 export default defineConfig({
   appModule: {
     path: "dist/app.module.js",
-    // export: "AppModule",   // override if your file exports a different symbol
-  },
-
-  // Reserved for upcoming `pristine build` (Phase 4).
-  build: {
-    outDir: "dist",
-    tsconfig: "tsconfig.json",
-    format: "esm",
-  },
-
-  // Reserved for upcoming `pristine start` (Phase 4).
-  start: {
-    entry: "dist/main.js",
-    nodeArgs: ["--enable-source-maps"],
-  },
-
-  // Reserved for upcoming plugin discovery (Phase 5).
-  plugins: [
-    // "@my-org/pristine-cli-extras",
-  ],
-
-  // Configuration values layered onto `kernel.start()`. Lets you keep CLI-only runtime
-  // overrides out of your AppModule — they only apply when the kernel boots via the CLI.
-  kernelConfiguration: {
-    // "pristine.logging.logSeverityLevelConfiguration": 1,
   },
 });
 ```
 
-### Config file format
-
-Any of the following is recognised, in this preference order:
-
-1. `pristine.config.ts` *(canonical — typed, full IDE autocomplete via `defineConfig`)*
-2. `pristine.config.mts`
-3. `pristine.config.cts`
-4. `pristine.config.js`
-5. `pristine.config.mjs`
-6. `pristine.config.cjs`
-
-`.ts` configs are loaded at runtime via `jiti` — no separate compile step needed.
-
-The CLI walks **upward** from `process.cwd()` looking for any of these names, so a CLI
-invocation from `packages/foo/` in a monorepo still finds a `pristine.config.ts` at the
-repo root.
-
-### Config schema
-
-```ts
-interface PristineConfig {
-  appModule?: {
-    path: string;       // resolved relative to the config file's directory
-    export?: string;    // default "AppModule"
-  };
-  build?: {
-    outDir?: string;
-    tsconfig?: string;
-    format?: "esm" | "cjs" | "both";
-    clean?: boolean;
-  };
-  start?: {
-    entry?: string;
-    watch?: boolean | { paths: string[]; ignore?: string[] };
-    nodeArgs?: string[];
-  };
-  plugins?: Array<string | { name: string; options?: unknown }>;
-  kernelConfiguration?: Record<string, unknown>;
-}
-```
-
-All fields are optional. The CLI applies sensible defaults wherever a field is absent.
-
-### Migrating from `package.json`
-
-Older Pristine versions stored config in `package.json` under a `pristine` field:
-
-```json
-{
-  "pristine": {
-    "appModule": { "cjsPath": "dist/lib/cjs/app.module.js" }
-  }
-}
-```
-
-Both `pristine.appModule.cjsPath` (deprecated) and `pristine.appModule.path` (new,
-format-agnostic) are still read for one minor cycle. When `cjsPath` is read, the CLI
-prints a one-line deprecation warning to stderr.
-
-To migrate cleanly, run:
+### 3. Build your project
 
 ```sh
-npx pristine p:config:init
+npx pristine build
 ```
 
-The command detects the existing `pristine.appModule.{path,cjsPath}` field, generates a
-`pristine.config.ts` with the path migrated, and tells you to delete the `pristine` field
-from `package.json`.
+`pristine build` runs `tsc` for you and produces `dist/`.
+
+### 4. See what's loaded
+
+```sh
+npx pristine info
+```
+
+Output looks like:
+
+```
+Pristine CLI
+  Version:        1.0.440
+  Node:           v22.18.0
+  Platform:       darwin arm64 (24.6.0)
+  CWD:            /Users/you/projects/my-app
+
+Configuration
+  Config file:    /Users/you/projects/my-app/pristine.config.ts
+  AppModule path: dist/app.module.js  (from config file)
+
+AppModule: my-app
+Imported modules (5):
+  - my-app
+  - pristine.cli
+  - pristine.common
+  - pristine.core
+  - pristine.logging
+```
+
+### 5. Verify your AppModule boots cleanly
+
+```sh
+npx pristine verify
+```
+
+This actually starts a kernel from your AppModule, captures every phase outcome (module
+registration, config load, after-init, etc.), runs every registered `InstantiationTest`,
+and exits non-zero if anything fails. Drop it in CI to catch boot regressions before they
+ship.
+
+### 6. Run your app
+
+```sh
+npx pristine start
+```
+
+Boots your AppModule, registers SIGTERM/SIGINT handlers, keeps the process alive. If your
+AppModule imports `@pristine-ts/http`, `pristine start` automatically launches an HTTP
+server on `0.0.0.0:3000` (configurable). Send `SIGTERM` and watch graceful shutdown happen.
+
+That's the whole loop. The rest of the README is recipes for specific things you'll want
+to do, plus reference material when you need to look something up.
 
 ---
 
-## AppModule discovery
+## Recipes
 
-When the CLI starts, it locates your AppModule using the following cascade. The first
-match wins; later steps run only if no earlier step resolved a path.
+### Recipe: Add a command to your app
 
-1. **`pristine.config.{ts,…}`'s `appModule.path`** — the canonical location.
-2. **`package.json` → `pristine.appModule.path`** *(legacy, still supported).*
-3. **`package.json` → `pristine.appModule.cjsPath`** *(deprecated, warns).*
-4. **`.pristine/last-app-module`** — the previously-selected path from a TTY prompt
-   (see step 5). Stale entries (target file deleted) are auto-cleaned.
-5. **Convention scan** of these directories, non-recursive:
-   - `dist/`
-   - `dist/lib/cjs/`
-   - `dist/lib/esm/`
-   - `build/`
-   - the project root (`.`)
+You want to type `pristine sync-products` and have your own code run.
 
-   A file is a candidate when its name matches `*.module.{js,mjs,cjs}` AND either:
-     - its filename literally matches `app.module.{js,mjs,cjs}` (highest confidence,
-       score `0`), OR
-     - its exports include a symbol named `AppModule` (score `10`).
-
-   Files matching `*.spec.*` or `*.test.*` are excluded.
-
-   - **One candidate** → use it.
-   - **Multiple candidates with one outranking the rest** (e.g. one `app.module.js`
-     plus other `*.module.js` files that happen to export `AppModule`) → use the
-     top-ranked candidate without prompting.
-   - **Multiple equally-ranked candidates AND interactive terminal** → prompt the user
-     to pick one (uses `@inquirer/prompts`). The selection is cached to
-     `.pristine/last-app-module` so subsequent runs in the same project skip the prompt.
-   - **Multiple equally-ranked candidates AND non-interactive** (CI, Docker, redirected
-     stdin) → exit with an actionable error listing the candidates and showing the
-     `pristine.appModule.path` snippet to set. Never guesses in non-interactive mode.
-
-6. **Legacy `node_modules/@pristine-ts/*` scan** — when no project AppModule is
-   discoverable at all, the CLI builds a synthetic AppModule from every `*.module.js`
-   it finds under `node_modules/@pristine-ts/*/dist/lib/cjs/`. Useful when invoking
-   `pristine` against a vendored Pristine installation.
-
-7. **Built-in `CliModule` fallback** — when even step 6 turns up nothing (e.g. the bin
-   was invoked outside any project), the CLI synthesizes an AppModule that imports
-   `CliModule` only. Built-in commands (`p:help`, `p:list`, `p:config:print`, …) remain
-   runnable. Custom commands are unavailable in this state, of course.
-
-If a configured/discovered AppModule fails to load (file missing, import error), the CLI
-prints both the configured path and the underlying error to stderr, then **falls back to
-the built-in CliModule** so commands like `p:config:init` and `p:config:print` remain
-usable for fixing the broken config.
-
-### Module-format support
-
-The loader uses Node's dynamic `import()` (real `import()`, not the tsc-lowered
-`require()`), so all of the following work for an AppModule entry:
-
-| Extension | Load via | Notes |
-|-----------|----------|-------|
-| `.js` (CJS) | `import()` | Default for tsc CommonJS output. |
-| `.cjs`      | `import()` | Explicit CJS. |
-| `.mjs`      | `import()` | ESM. |
-| `.js` (ESM, in a `"type": "module"` package) | `import()` | ESM via package context. |
-
-The configured path is wrapped in `pathToFileURL()` before import, so absolute paths and
-Windows paths are handled correctly.
-
----
-
-## Built-in commands
-
-Every framework-reserved command has a canonical `p:` prefixed name and a top-level alias.
-Use whichever you prefer — `pristine help` and `pristine p:help` are equivalent.
-
-| Command | Alias | Purpose |
-|---------|-------|---------|
-| `pristine p:help` | `help` | Show a usage banner and list every registered command (built-in and custom) with its description. |
-| `pristine p:list` | `list` | Print every registered command's name. Shorter output than `help`. |
-| `pristine p:info` | `info` | Print framework version, Node version, OS, resolved config path, AppModule location, and the recursively-resolved list of imported modules. Useful for support tickets. |
-| `pristine p:build` | `build` | Compile the project's TypeScript via `tsc`. Reads `build.{outDir,tsconfig,format,clean}` from `pristine.config.ts`. Format `"both"` runs the primary tsconfig then the matching `*.cjs.json` sibling. |
-| `pristine p:start` | `start` | Boot the AppModule, register signal handlers, and keep the process alive. SIGTERM or SIGINT triggers `Kernel.stop()` (reverse-instantiation `onShutdown` hooks with per-hook timeout); a second signal forces immediate exit. Production-grade entry point. |
-| `pristine p:verify` | `verify` | Run a fresh kernel boot, capture per-phase outcomes, execute every registered `InstantiationTestInterface`. Exits non-zero on failure. `--skip-tests` skips the embedder-test phase. |
-| `pristine p:config:init` | — | Create a starter `pristine.config.ts`. Migrates an existing `pristine.appModule.{path,cjsPath}` field from `package.json` if present. Refuses to overwrite an existing config file. |
-| `pristine p:config:print` | — | Print the resolved config plus the file path it was loaded from and per-field provenance markers. Use this when discovery is doing something unexpected. |
-
-`config:*` commands deliberately don't have top-level aliases — they're sub-commands by design and the namespaced form keeps that clear.
-
----
-
-## Adding your own commands
-
-Custom commands are tsyringe-decorated classes in your AppModule's import graph. You
-register them once and `pristine your-command-name` invokes them.
-
-### Minimal example
+**1. Write the command class.** It's an injectable class implementing `CommandInterface`,
+decorated with `@tag(ServiceDefinitionTagEnum.Command)`:
 
 ```ts
+// src/commands/sync-products.command.ts
 import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {injectable} from "tsyringe";
 import {CommandInterface, ConsoleManager, ExitCodeEnum} from "@pristine-ts/cli";
-import {YourModuleKeyname} from "./your.module.keyname";
+import {AppModuleKeyname} from "../app.module.keyname";
+import {ProductService} from "../services/product.service";
 
 @tag(ServiceDefinitionTagEnum.Command)
-@moduleScoped(YourModuleKeyname)
+@moduleScoped(AppModuleKeyname)
 @injectable()
-export class HelloCommand implements CommandInterface<null> {
+export class SyncProductsCommand implements CommandInterface<null> {
   optionsType = null;
-  name = "hello";
+  name = "sync-products";
+  description = "Re-sync the local product cache from upstream.";
 
-  constructor(private readonly consoleManager: ConsoleManager) {}
+  constructor(
+    private readonly consoleManager: ConsoleManager,
+    private readonly productService: ProductService,
+  ) {}
 
-  async run(args: any): Promise<ExitCodeEnum | number> {
-    this.consoleManager.writeSuccess("Hello from Pristine CLI!");
+  async run(): Promise<ExitCodeEnum | number> {
+    const count = await this.productService.syncAll();
+    this.consoleManager.writeSuccess(`Synced ${count} products.`);
     return ExitCodeEnum.Success;
   }
 }
 ```
 
-Then ensure `HelloCommand` is reachable from your AppModule's import graph (either via
-the module's `providerRegistrations` or via a re-export from a file your `AppModule`
-transitively imports — the `@tag` decorator self-registers as soon as the class is loaded).
-
-Run it:
-
-```sh
-npx pristine hello
-```
-
-### Typed CLI options
-
-For commands that accept arguments, declare an options class decorated with
-`class-validator` decorators and set `optionsType` to it. `CliEventHandler` validates
-the parsed options before invoking `run`.
+**2. Make sure your AppModule imports it.** The simplest way: include it in your AppModule's
+`importServices`:
 
 ```ts
-import {IsString, IsOptional} from "class-validator";
+// src/app.module.ts
+import {AppModuleInterface} from "@pristine-ts/common";
+import {CliModule} from "@pristine-ts/cli";
+import {CoreModule} from "@pristine-ts/core";
+import {SyncProductsCommand} from "./commands/sync-products.command";
 
-class GreetOptions {
-  @IsString() name!: string;
-  @IsOptional() @IsString() language?: string;
+export const AppModule: AppModuleInterface = {
+  keyname: "my-app",
+  importModules: [CoreModule, CliModule],
+  importServices: [SyncProductsCommand],
+};
+```
+
+**3. Build and run.**
+
+```sh
+npx pristine build
+npx pristine sync-products
+```
+
+Output:
+
+```
+✔ Success: Synced 142 products.
+[status:'Success', code:'0'] - Command 'sync-products' exited.
+```
+
+#### With typed CLI flags
+
+Need `--limit=100 --dry-run`? Define an options class with `class-validator` decorators:
+
+```ts
+// src/commands/sync-products.command-options.ts
+import "reflect-metadata";
+import {IsBoolean, IsNumber, IsOptional} from "@pristine-ts/class-validator";
+
+export class SyncProductsOptions {
+  @IsOptional() @IsNumber() limit?: number;
+  @IsOptional() @IsBoolean() "dry-run"?: boolean;
 }
+```
 
-@tag(ServiceDefinitionTagEnum.Command)
-@moduleScoped(YourModuleKeyname)
+Then in the command, set `optionsType` to a fresh instance and read `args` in `run`:
+
+```ts
 @injectable()
-export class GreetCommand implements CommandInterface<GreetOptions> {
-  optionsType = GreetOptions;
-  name = "greet";
+export class SyncProductsCommand implements CommandInterface<SyncProductsOptions> {
+  optionsType = new SyncProductsOptions();
+  name = "sync-products";
+  description = "Re-sync the local product cache from upstream.";
 
-  async run(args: GreetOptions): Promise<ExitCodeEnum | number> {
-    // args.name is guaranteed non-null here.
-    return ExitCodeEnum.Success;
+  async run(args: SyncProductsOptions): Promise<ExitCodeEnum | number> {
+    const limit = args.limit ?? Infinity;
+    const dryRun = args["dry-run"] === true;
+    // ...
   }
 }
 ```
 
-Invoke as:
+`npx pristine sync-products --limit=50 --dry-run` parses, validates, and passes the typed
+options into `run`. Validation failures exit non-zero and print the constraint errors.
 
-```sh
-npx pristine greet --name=Alice --language=fr
+---
+
+### Recipe: Build your TypeScript
+
+`pristine build` is a `tsc` wrapper. For most projects, the only thing you need is the
+default config:
+
+```ts
+// pristine.config.ts
+import {defineConfig} from "@pristine-ts/cli";
+
+export default defineConfig({
+  appModule: {path: "dist/app.module.js"},
+  build: {
+    outDir: "dist",
+    tsconfig: "tsconfig.json",
+    format: "esm",          // "esm" | "cjs" | "both"
+    clean: true,            // wipe outDir before each build
+  },
+});
 ```
 
-Validation failures exit non-zero with a printed list of the validation errors.
+```sh
+npx pristine build
+```
 
-### Plugins (commands from external packages)
+#### Building both ESM and CJS
 
-Custom commands can also live in **separate npm packages** that the user opts into via
-`pristine.config.ts` `plugins`. This is the right shape for tooling-only commands you don't
-want loaded into your production runtime AppModule (generators, linters, codemods, etc.).
+If you publish a library that needs both:
 
-**Plugin author contract:**
+```ts
+build: {
+  format: "both",          // runs tsconfig.json then tsconfig.cjs.json sequentially
+}
+```
 
-A plugin package exports one or more `*Module` symbols. Each module is a regular
-`ModuleInterface` — declare commands the same way you would in your AppModule.
+You need a `tsconfig.cjs.json` sibling that targets CommonJS. The CLI looks for it
+automatically when format is `"both"` or `"cjs"`.
+
+#### Custom tsconfig path
+
+```ts
+build: {
+  tsconfig: "tsconfig.build.json",
+}
+```
+
+---
+
+### Recipe: Start your app in production
+
+`pristine start` is a real production entry point — boots your AppModule, runs every
+registered `RuntimeServer` (HTTP, etc.), handles SIGTERM/SIGINT with graceful shutdown.
+
+#### The simplest case
+
+```sh
+npx pristine start
+```
+
+If your AppModule has no HTTP/queue/etc. modules imported, this just boots the kernel and
+waits for a signal. Useful as a worker-style entry that consumes events through other
+mechanisms (cron, CLI args, etc.).
+
+#### With graceful shutdown
+
+Add an `onShutdown` hook to your modules to release resources cleanly when the process
+gets SIGTERM:
+
+```ts
+import {ModuleInterface} from "@pristine-ts/common";
+
+export const DatabaseModule: ModuleInterface = {
+  keyname: "my-app.database",
+  // ... onInit, providerRegistrations, etc.
+  onShutdown: async (container) => {
+    const pool = container.resolve(DatabaseConnectionPool);
+    await pool.drain();      // wait for in-flight queries
+    await pool.close();      // release sockets
+  },
+};
+```
+
+When `pristine start` receives SIGTERM:
+1. Signal handler fires.
+2. `Kernel.stop()` walks every imported module's `onShutdown` in outer-to-inner order
+   (your AppModule first, leaf dependencies last) so a higher-level module can still call
+   into its dependencies during teardown.
+3. Each hook gets a 10-second timeout. Misbehaving hooks log a warning and shutdown
+   continues.
+4. After all hooks complete, the process exits 0.
+5. If shutdown takes longer than 30 seconds total, the process is force-killed (so
+   Kubernetes / ECS / systemd are never stuck waiting).
+
+A second SIGTERM/SIGINT during shutdown bypasses the rest of the wait and exits
+immediately with code 130.
+
+#### In a Dockerfile
+
+```dockerfile
+FROM node:22-slim
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --omit=dev
+RUN npm install -g @pristine-ts/cli
+COPY dist/ ./dist/
+COPY pristine.config.js ./   # if your config file is .ts, compile it or use .js
+CMD ["pristine", "start"]
+```
+
+`pristine start` is the canonical container entry. If you'd rather use bare Node, that
+also works: `CMD ["node", "dist/main.js"]`. Both are supported; `pristine start` adds
+graceful-shutdown wiring you'd otherwise have to write yourself.
+
+---
+
+### Recipe: Host an HTTP (or HTTPS) server
+
+If your AppModule imports `@pristine-ts/http`, `pristine start` automatically launches the
+built-in `KernelHttpServer`. Every incoming request goes through `kernel.handle()` →
+the `@pristine-ts/networking` `Router` → your controllers. No glue code needed.
+
+**1. Set up the AppModule.**
+
+```ts
+// src/app.module.ts
+import {AppModuleInterface} from "@pristine-ts/common";
+import {CoreModule} from "@pristine-ts/core";
+import {HttpModule} from "@pristine-ts/http";
+import {NetworkingModule} from "@pristine-ts/networking";
+import {DogsController} from "./controllers/dogs.controller";
+
+export const AppModule: AppModuleInterface = {
+  keyname: "my-app",
+  importModules: [CoreModule, HttpModule, NetworkingModule],
+  importServices: [DogsController],
+};
+```
+
+**2. Write a controller.** Standard Pristine — nothing CLI-specific:
+
+```ts
+// src/controllers/dogs.controller.ts
+import {injectable} from "tsyringe";
+import {controller, HttpMethod, route} from "@pristine-ts/networking";
+
+@injectable()
+@controller("/dogs")
+export class DogsController {
+  @route(HttpMethod.Get, "")
+  list() {
+    return [{name: "Peach"}, {name: "Banjo"}];
+  }
+}
+```
+
+**3. Build and start.**
+
+```sh
+npx pristine build
+npx pristine start
+# Pristine app running with 1 server(s): http. Send SIGTERM (or Ctrl+C) to stop.
+
+curl http://localhost:3000/dogs
+# [{"name":"Peach"},{"name":"Banjo"}]
+```
+
+#### Customizing port and address
+
+Three layers, highest priority first. Use whichever fits.
+
+```sh
+# CLI flag — one-off override
+npx pristine start --port=4000 --address=127.0.0.1
+```
+
+```ts
+// Config file — project-level default
+export default defineConfig({
+  appModule: {path: "dist/app.module.js"},
+  kernelConfiguration: {
+    "pristine.http.kernel-server.port": 4000,
+    "pristine.http.kernel-server.address": "127.0.0.1",
+  },
+});
+```
+
+```sh
+# Environment variable — deploy-time override
+PRISTINE_HTTP_KERNEL_SERVER_PORT=4000 \
+PRISTINE_HTTP_KERNEL_SERVER_ADDRESS=0.0.0.0 \
+  pristine start
+```
+
+Defaults: `0.0.0.0:3000`.
+
+#### Switching to HTTPS
+
+Set the TLS key and cert paths and the server flips from `http.Server` to `https.Server`
+automatically:
+
+```sh
+PRISTINE_HTTP_KERNEL_SERVER_TLS_KEY_PATH=/etc/ssl/key.pem \
+PRISTINE_HTTP_KERNEL_SERVER_TLS_CERT_PATH=/etc/ssl/cert.pem \
+  pristine start
+# KernelHttpServer: listening on https://0.0.0.0:3000
+```
+
+Or via config:
+
+```ts
+kernelConfiguration: {
+  "pristine.http.kernel-server.tls.key-path": "/etc/ssl/key.pem",
+  "pristine.http.kernel-server.tls.cert-path": "/etc/ssl/cert.pem",
+}
+```
+
+When both paths are set to non-empty values, the server reads the PEM files at boot and
+serves HTTPS. The `name` it reports flips from `"http"` to `"https"`.
+
+#### Graceful drain
+
+When SIGTERM hits, `KernelHttpServer.stop()` is called via `HttpModule.onShutdown` — it
+calls `server.close()` (refuses new connections, lets in-flight requests finish), waits up
+to 10 seconds for connection drain, then force-closes any remaining sockets. Matches what
+container orchestrators expect during a rolling deploy.
+
+#### Adding more server types
+
+Any module can register a long-running server by implementing `RuntimeServerInterface`
+and tagging it. `pristine start` discovers and launches it alongside the HTTP server:
+
+```ts
+@tag(ServiceDefinitionTagEnum.RuntimeServer)
+@moduleScoped(MyModuleKeyname)
+@injectable()
+export class GrpcServer implements RuntimeServerInterface {
+  name = "grpc";
+  async start(overrides) { /* ... */ }
+  async stop() { /* ... */ }
+}
+```
+
+This is how future gRPC, websocket, or queue-listener modules will plug into `pristine
+start` — no `@pristine-ts/cli` changes required.
+
+---
+
+### Recipe: Verify your AppModule on every CI run
+
+`pristine verify` runs a fresh kernel boot of your AppModule on a throw-away kernel,
+captures per-phase outcomes (module registration, config check/load, after-init, etc.),
+and runs every registered `InstantiationTestInterface`. Returns non-zero if anything
+fails. Perfect for CI.
+
+#### In your CI pipeline
+
+```yaml
+# .github/workflows/ci.yml
+- run: npm ci
+- run: npm run build
+- run: npx pristine verify
+```
+
+#### Adding your own boot-time health checks
+
+Want CI to fail if your DB credentials are wrong? Implement `InstantiationTestInterface`:
+
+```ts
+// src/health/database-connectivity.test.ts
+import {tag, ServiceDefinitionTagEnum} from "@pristine-ts/common";
+import {injectable, DependencyContainer} from "tsyringe";
+import {InstantiationTestInterface, InstantiationTestResultInterface} from "@pristine-ts/core";
+import {DatabaseClient} from "../database/database.client";
+
+@tag(ServiceDefinitionTagEnum.InstantiationTest)
+@injectable()
+export class DatabaseConnectivityTest implements InstantiationTestInterface {
+  name = "database connectivity";
+  description = "Pings the database to confirm credentials and network reachability.";
+
+  async run(container: DependencyContainer): Promise<InstantiationTestResultInterface> {
+    try {
+      await container.resolve(DatabaseClient).ping();
+      return {passed: true};
+    } catch (e) {
+      return {passed: false, message: (e as Error).message};
+    }
+  }
+}
+```
+
+Register it the same way you would any service (via `importServices` or by `@tag`
+self-registration). `pristine verify` will discover and run it automatically.
+
+To skip the health-test phase (and only verify the boot phases):
+
+```sh
+npx pristine verify --skip-tests
+```
+
+---
+
+### Recipe: Pull commands in from a separate package (plugins)
+
+Custom commands can live in their own npm package. Useful for tooling-only commands
+(generators, codemods, linters) you don't want loaded into your runtime AppModule.
+
+**Plugin author** publishes a package that exports one or more `*Module` symbols:
 
 ```ts
 // my-plugin/src/index.ts
-import {ModuleInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
-import {moduleScoped, tag} from "@pristine-ts/common";
+import {ModuleInterface} from "@pristine-ts/common";
+import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {injectable} from "tsyringe";
 import {CommandInterface, ConsoleManager, ExitCodeEnum} from "@pristine-ts/cli";
 
@@ -354,14 +609,16 @@ export class HelloCommand implements CommandInterface<null> {
 
 export const MyPluginModule: ModuleInterface = {
   keyname: "my-plugin",
-  providerRegistrations: [
-    // Or rely on the @tag decorator's self-registration if your AppModule's import graph
-    // reaches this file. providerRegistrations is the explicit form.
-  ],
+  // No providerRegistrations needed — the @tag decorator self-registers HelloCommand
+  // as soon as the file is imported (which happens when this module is loaded).
 };
 ```
 
-**Consumer config:**
+**Consumer** installs and declares it:
+
+```sh
+npm install --save-dev my-plugin
+```
 
 ```ts
 // pristine.config.ts
@@ -370,67 +627,200 @@ import {defineConfig} from "@pristine-ts/cli";
 export default defineConfig({
   appModule: {path: "dist/app.module.js"},
   plugins: [
-    "my-plugin",                              // string form: package name
-    {name: "@my-org/other-plugin", options: {}}, // object form (options reserved for future use)
+    "my-plugin",
+    // Or: {name: "@my-org/codegen", options: {/* reserved for future use */}},
   ],
 });
 ```
 
-`pristine` resolves each plugin package from your **project's** `node_modules` (using
-`createRequire` anchored at the config file's location, so monorepos with hoisted deps work).
-The CLI imports the plugin, harvests every export ending in `Module` whose value has a
-`keyname`, and folds those modules into a wrapper AppModule so the kernel boots them
-alongside your user-authored modules.
-
-**Failure handling:**
-
-- A plugin that fails to resolve or import prints a clear stderr error and the CLI continues
-  without it (built-in commands like `pristine p:config:print` still work so you can debug).
-- A plugin that exports no `*Module` symbols also fails loudly — silent loading would make
-  "why isn't my command showing up" undebuggable.
-- When two plugins (or a plugin and a built-in) register commands with the same name, the
-  CLI prints a stderr warning but continues; the first registered match is dispatched.
-  Rename one of the conflicting commands to fix.
-
-**Diagnostics:**
-
-`pristine info` lists every loaded plugin under a `Plugins (N)` section, plus the wrapped
-AppModule keyname (`<your-keyname>.with-plugins` when plugins are present).
-
-### Adding a built-in `InstantiationTestInterface`
-
-Embedders can contribute health checks that run as part of `pristine p:verify`. See the
-`@pristine-ts/core` README for the full `InstantiationTestInterface` contract; a tagged
-implementation is enough:
-
-```ts
-import {tag, ServiceDefinitionTagEnum} from "@pristine-ts/common";
-import {injectable, DependencyContainer} from "tsyringe";
-import {InstantiationTestInterface, InstantiationTestResultInterface} from "@pristine-ts/core";
-
-@tag(ServiceDefinitionTagEnum.InstantiationTest)
-@injectable()
-export class DatabaseConnectivityTest implements InstantiationTestInterface {
-  name = "database connectivity";
-
-  async run(container: DependencyContainer): Promise<InstantiationTestResultInterface> {
-    try {
-      await container.resolve(MyDbClient).ping();
-      return {passed: true};
-    } catch (e) {
-      return {passed: false, message: (e as Error).message};
-    }
-  }
-}
+```sh
+npx pristine my-plugin:hello
+# Hello!
 ```
 
-`pristine p:verify` will discover and run it automatically.
+Plugins are resolved from the **consumer's** `node_modules` (via `createRequire` anchored
+at the config file's location), so monorepos with hoisted deps work out of the box.
+
+#### Failure modes
+
+- Missing plugin → clear stderr error, CLI continues without it (built-in commands like
+  `pristine p:config:print` still work for debugging).
+- Plugin exports no `*Module` symbols → loud error (silent loading is a footgun).
+- Two commands collide on `name` → stderr warning at boot listing the count, first
+  registered match dispatches. Rename one to fix.
+
+#### Diagnostics
+
+`pristine info` lists every loaded plugin under a dedicated `Plugins (N)` section.
 
 ---
 
-## Architecture & cross-realm safety
+## Configuration reference
 
-The bin is a thin shim that does:
+The canonical config file is **`pristine.config.ts`** at your project root.
+
+```ts
+import {defineConfig} from "@pristine-ts/cli";
+
+export default defineConfig({
+  appModule: {
+    path: "dist/app.module.js",     // required for non-trivial setups
+    export: "AppModule",             // default; override only for unusual setups
+  },
+
+  build: {
+    outDir: "dist",                  // tsc's outDir is what actually controls output
+    tsconfig: "tsconfig.json",
+    format: "esm",                   // "esm" | "cjs" | "both"
+    clean: false,                    // wipe outDir before each build
+  },
+
+  start: {
+    // Reserved for upcoming features (entry, watch, nodeArgs).
+  },
+
+  plugins: [
+    "my-plugin",
+    {name: "@my-org/codegen"},
+  ],
+
+  kernelConfiguration: {
+    // Any configuration value your modules expect — these are passed through to
+    // `kernel.start(appModule, kernelConfiguration)` so they take effect during boot.
+    "pristine.http.kernel-server.port": 4000,
+    "pristine.logging.logSeverityLevelConfiguration": 1,
+  },
+});
+```
+
+All fields are optional. The CLI applies sensible defaults wherever a field is absent.
+
+### Supported file formats
+
+The CLI looks for these names in order, walking **up** from `process.cwd()` until it
+finds a match (so a CLI invocation from `packages/foo/` in a monorepo finds the root
+config):
+
+1. `pristine.config.ts` — recommended; full IDE autocomplete via `defineConfig`
+2. `pristine.config.mts`
+3. `pristine.config.cts`
+4. `pristine.config.js`
+5. `pristine.config.mjs`
+6. `pristine.config.cjs`
+
+`.ts` configs load at runtime via `jiti` — no separate compile step needed.
+
+### Inspecting the resolved config
+
+```sh
+npx pristine p:config:print
+```
+
+Prints the loaded config as JSON, plus the file path it came from and per-field
+provenance markers. Use this when discovery is doing something unexpected.
+
+---
+
+## How `pristine` finds your AppModule
+
+When the CLI starts, it walks this cascade. The first match wins.
+
+```
+1. pristine.config.ts → appModule.path
+        ↓ (not set?)
+2. package.json → pristine.appModule.path
+        ↓ (deprecated alias: pristine.appModule.cjsPath, prints warning)
+        ↓ (not set?)
+3. .pristine/last-app-module        ← cached selection from a previous TTY prompt
+        ↓ (not set?)
+4. Convention scan: dist/, dist/lib/cjs/, dist/lib/esm/, build/, .
+   for *.module.{js,mjs,cjs}
+        ├── named app.module.* → score 0
+        └── exports an AppModule symbol → score 10
+   ── one match? → use it
+   ── multiple equally-ranked + TTY? → prompt
+   ── multiple equally-ranked + no TTY? → exit with actionable error
+        ↓ (no candidates?)
+5. Legacy node_modules/@pristine-ts/* scan (synthetic AppModule)
+        ↓ (still nothing?)
+6. Built-in CliModule fallback (so p:help etc. always work)
+```
+
+If a configured AppModule path can't be loaded (file missing, import error), the CLI
+warns to stderr and falls back to the CliModule fallback. Built-in commands like
+`pristine p:config:print` still work so you can debug.
+
+### Module formats
+
+The loader accepts:
+
+| Extension | Loaded as | Example |
+|-----------|-----------|---------|
+| `.js` (CJS) | CommonJS | tsc's default output |
+| `.cjs` | CommonJS (explicit) | |
+| `.mjs` | ESM | |
+| `.js` in a `"type": "module"` package | ESM (via package context) | |
+
+All loaded via Node's real dynamic `import()` (with `pathToFileURL` for absolute paths).
+
+---
+
+## Built-in commands
+
+Every framework-reserved command has a canonical `p:`-prefixed name and a top-level
+alias. Use whichever you prefer.
+
+| Command | Alias | What it does |
+|---------|-------|--------------|
+| `pristine p:help` | `help` | Print usage and list every registered command (built-in + custom) with descriptions. |
+| `pristine p:list` | `list` | Print every registered command name (compact form). |
+| `pristine p:info` | `info` | Print framework version, Node, OS, resolved config path, AppModule location, imported module list. Useful for support tickets. |
+| `pristine p:build` | `build` | Compile your TypeScript via `tsc`. Reads `build.{outDir,tsconfig,format,clean}` from config. |
+| `pristine p:start` | `start` | Boot the AppModule and run until SIGTERM/SIGINT. Auto-starts every registered `RuntimeServer` (HTTP, etc.). Production-grade. Supports `--port` / `--address`. |
+| `pristine p:verify` | `verify` | Boot a fresh kernel of your AppModule, run all registered `InstantiationTest`s. Exits non-zero on failure. `--skip-tests` skips the test phase. |
+| `pristine p:config:init` | — | Generate a starter `pristine.config.ts`. Migrates from `package.json` `pristine.appModule.{path,cjsPath}` if present. Refuses to overwrite an existing config. |
+| `pristine p:config:print` | — | Print the resolved config + file path it loaded from + per-field provenance. |
+
+`config:*` commands intentionally don't have top-level aliases — they're sub-commands by
+design.
+
+---
+
+## Production deployment
+
+You have two equally supported entry points.
+
+### Option A — `node dist/main.js`
+
+Traditional. Your `dist/main.js` is the entry. No `@pristine-ts/cli` needed in the deploy
+unit. Lifecycle, signal handling, and graceful shutdown are your responsibility.
+
+### Option B — `pristine start`
+
+`pristine start` is itself a production-grade entry. It boots your AppModule, starts every
+registered `RuntimeServer` (HTTP server, etc.), handles SIGTERM/SIGINT with graceful
+shutdown, enforces a hard-exit timeout, and keeps the event loop alive on its own.
+
+Install once on the host:
+
+```sh
+npm install -g @pristine-ts/cli
+```
+
+Then in your Dockerfile / systemd unit / process manager:
+
+```sh
+pristine start
+```
+
+If `@pristine-ts/http` is in your AppModule, an HTTP server is launched automatically.
+Configure port/address/TLS via env vars (see [HTTP recipe](#recipe-host-an-http-or-https-server)).
+
+---
+
+## Architecture & design notes
+
+The `pristine` bin file is a thin shim:
 
 ```js
 require("reflect-metadata");
@@ -448,135 +838,64 @@ guarantees that whichever `@pristine-ts/cli` class your AppModule imports is the
 physical class the bin reaches for — single identity, single decorator metadata
 registration, no mismatch.
 
-Side effect: `reflect-metadata`, `tsyringe`, and `class-transformer` are not declared as
-direct dependencies of `@pristine-ts/cli` even though the bin uses them. They come
-transitively through `@pristine-ts/common` (which every Pristine package depends on).
-Declaring them directly would cause npm to install duplicate copies in
-`packages/cli/node_modules/`, and `reflect-metadata` in particular keeps its decorator
-WeakMap inside the module closure — two copies = two WeakMaps = silently lost metadata.
+Side effect: `reflect-metadata`, `tsyringe`, and `class-transformer` are NOT declared as
+direct dependencies of `@pristine-ts/cli`. They come transitively through
+`@pristine-ts/common` (which every Pristine package depends on). Declaring them directly
+would cause npm to install duplicate copies in `packages/cli/node_modules/`, and
+`reflect-metadata` in particular keeps its decorator WeakMap inside the module closure —
+two copies = two WeakMaps = silently lost metadata.
+
+The bin itself is bundled with `esbuild` for fast startup, but with all `@pristine-ts/*`
+packages marked external so the cross-realm trap doesn't reappear.
 
 ---
 
-## Production deployment
+## Migrating from older versions
 
-You have two equally-supported options for running a Pristine app in production.
+### From the `package.json` `pristine.appModule.cjsPath` field
 
-### Option A — `node dist/main.js`
+The old setup required:
 
-Traditional approach. Your `dist/main.js` is the entry point. Doesn't require shipping
-`@pristine-ts/cli` to the deployment host. Lifecycle, signal handling, and graceful
-shutdown are entirely your responsibility (or your AppModule's).
-
-### Option B — `pristine start`
-
-`pristine start` (or `pristine p:start`) is also a production-grade entry point. It:
-
-- Boots the AppModule via the same loader as the rest of the CLI.
-- Discovers and starts every registered `RuntimeServerInterface` (HTTP server, gRPC server,
-  etc.) — no extra wiring needed. Importing `@pristine-ts/http` is enough for `pristine
-  start` to listen on the configured port.
-- Registers `SIGTERM` and `SIGINT` handlers — the first signal triggers a graceful shutdown
-  via `Kernel.stop()`, which walks every instantiated module's `onShutdown` hook in
-  outer-to-inner order with a per-hook timeout. A second signal force-exits.
-- Enforces a hard-exit timeout (30 seconds) so a wedged shutdown can never block your
-  orchestrator (Kubernetes / ECS / systemd) indefinitely.
-- Keeps the event loop alive on its own (no need for your modules to register a heartbeat).
-
-#### Hosting an HTTP server with `pristine start`
-
-If your AppModule imports `@pristine-ts/http`, `pristine start` automatically launches the
-built-in `KernelHttpServer`. Every incoming request is routed through `kernel.handle()` →
-the `@pristine-ts/networking` `Router` → your controllers. No glue code needed.
-
-```ts
-import {ModuleInterface} from "@pristine-ts/common";
-import {CoreModule} from "@pristine-ts/core";
-import {HttpModule} from "@pristine-ts/http";
-import {NetworkingModule} from "@pristine-ts/networking";
-import {DogsController} from "./controllers/dogs.controller";
-
-export const AppModule: ModuleInterface = {
-  keyname: "my.app",
-  importModules: [CoreModule, HttpModule, NetworkingModule],
-  importServices: [DogsController],
-};
+```json
+{
+  "pristine": {
+    "appModule": { "cjsPath": "dist/lib/cjs/app.module.js" }
+  }
+}
 ```
+
+Both `pristine.appModule.cjsPath` (deprecated, prints warning) and `pristine.appModule.path`
+(new, format-agnostic) still work for one minor version cycle. To migrate cleanly:
 
 ```sh
-npx pristine start
-# Pristine app running with 1 server(s): http. Send SIGTERM (or Ctrl+C) to stop.
+npx pristine p:config:init
 ```
 
-**Configuring port and address.** Three layers, highest-priority first:
+The command detects the existing `pristine.appModule.{path,cjsPath}` field, generates a
+`pristine.config.ts` with the path migrated, and tells you to delete the `pristine` field
+from `package.json`.
 
-| Source | Example |
-|--------|---------|
-| CLI flag | `pristine start --port=4000 --address=127.0.0.1` |
-| Config file | `start.http: { port: 4000, address: "127.0.0.1" }` in `pristine.config.ts` (Phase 5) |
-| Module config | `pristine.http.kernel-server.port` in `pristine.config.ts` `kernelConfiguration` |
-| Environment variable | `PRISTINE_HTTP_KERNEL_SERVER_PORT=4000`, `PRISTINE_HTTP_KERNEL_SERVER_ADDRESS=0.0.0.0` |
-| Default | `0.0.0.0:3000` |
+### From manual bootstrap in `main.ts`
 
-Defaults follow Node convention: bind on all interfaces (`0.0.0.0`), port 3000.
-
-**HTTPS.** Set the TLS key and cert paths and the kernel server switches from `http.Server`
-to `https.Server` automatically:
-
-| Source | Example |
-|--------|---------|
-| Module config | `pristine.http.kernel-server.tls.key-path` + `.cert-path` |
-| Environment variable | `PRISTINE_HTTP_KERNEL_SERVER_TLS_KEY_PATH=/etc/ssl/key.pem`, `..._TLS_CERT_PATH=/etc/ssl/cert.pem` |
-
-When both are set to non-empty values, `pristine start` reads the PEM files at boot and
-hosts HTTPS instead of HTTP. The `name` reported in logs and via `RuntimeServerInterface`
-flips from `"http"` to `"https"` accordingly.
-
-**Graceful drain.** When `pristine start` receives SIGTERM, `KernelHttpServer.stop()` is
-called via `HttpModule.onShutdown` (which runs as part of `Kernel.stop()`). It calls
-`server.close()` (refuses new connections, lets in-flight requests finish), then waits up
-to 10 seconds for connection drain before force-closing remaining sockets. This matches
-what container orchestrators expect during a rolling deploy.
-
-**Custom server types.** Any module can register its own server by implementing
-`RuntimeServerInterface` and tagging the class with
-`@tag(ServiceDefinitionTagEnum.RuntimeServer)`. `pristine start` will discover and launch
-it alongside the HTTP server. This is how future modules (gRPC, websocket, etc.) plug in
-without `@pristine-ts/cli` having to know about them.
-
-To use it in production:
-
-```sh
-npm install -g @pristine-ts/cli         # one-time, on the host
-pristine start                           # from your project directory
-```
-
-Or, in a Dockerfile:
-
-```dockerfile
-RUN npm install -g @pristine-ts/cli
-CMD ["pristine", "start"]
-```
-
-### Implementing graceful shutdown in your modules
-
-Add an `onShutdown` hook to any `ModuleInterface`:
+If your old setup looked like:
 
 ```ts
-export const MyModule: ModuleInterface = {
-  keyname: "my.module",
-  onShutdown: async (container) => {
-    await container.resolve(MyDbClient).close();
-    await container.resolve(MyQueueConsumer).drain();
-  },
-};
+// main.ts (old)
+import {Kernel} from "@pristine-ts/core";
+import http from "http";
+import {AppModule} from "./app.module";
+
+const kernel = new Kernel();
+await kernel.start(AppModule);
+
+http.createServer(async (req, res) => {
+  // ... wire req → kernel.handle → res
+}).listen(3000);
 ```
 
-Hooks run in outer-to-inner order so a high-level module (your AppModule, your HTTP server)
-can still call into its dependencies (DB connection pool, logging) while it tears itself
-down. Each hook has a 10-second timeout by default — exceeding it logs a warning and
-shutdown continues with the next module.
-
-`onShutdown` is optional — modules that don't need cleanup just don't declare it.
+You can drop all of that and just use `pristine start`. Make sure `@pristine-ts/http` is
+in your AppModule's `importModules` and the server starts automatically with the same
+routing pipeline (no behavior changes).
 
 ---
 
@@ -584,86 +903,57 @@ shutdown continues with the next module.
 
 **Phase 6 (this release):**
 
-- **End-to-end smoke tests for the bin.** `tests/cli` now exercises every Phase 1–5
-  command (`pristine sample`, `pristine help`, `pristine list`, `pristine info`,
-  `pristine p:config:print`, `pristine p:verify`) plus the unknown-command failure path,
-  via the actual built `pristine` binary spawned by jest.
-- **`pristine.config.ts` migration in `tests/cli`.** The old `package.json` `pristine.appModule.cjsPath`
-  field was removed in favor of a real `pristine.config.ts` — this is the canonical example
-  of how a downstream consumer should set things up.
-- **CI runs the e2e suite.** `npm run e2e` now invokes `tests/cli`'s suite in addition to
-  `tests/e2e`. The install script (`install_packages.sh`) was extended to install deps for
-  every `tests/*` harness, not just `packages/*`.
+- **End-to-end smoke tests for the bin.** `tests/cli` exercises every command via the
+  actual built `pristine` binary spawned by jest.
+- **`pristine.config.ts` migration in `tests/cli`.** The old `package.json`
+  `pristine.appModule.cjsPath` field was removed in favor of a real `pristine.config.ts`.
+- **CI runs the e2e suite.** `npm run e2e` invokes `tests/cli`'s suite alongside
+  `tests/e2e`.
 
 **Phase 5:**
 
 - **Plugin discovery via `pristine.config.ts`'s `plugins` array.** Tooling-only command
-  packages can be opted into without polluting the runtime AppModule. Plugins are resolved
-  from the project's `node_modules` (via `createRequire` anchored at the config file).
-- **Plugin failure is non-fatal.** A missing or broken plugin prints a clear stderr error and
-  the CLI continues with built-in commands intact, so `pristine p:config:print` still works
-  for debugging.
-- **`pristine info` lists loaded plugins** under a dedicated `Plugins (N)` section.
-- **Command-name collisions warn loudly.** When two registered commands share a name, the CLI
-  prints a stderr warning at boot listing the count. The first registered match is dispatched
-  (no silent shadowing).
+  packages can be opted into without polluting the runtime AppModule.
+- **Plugin failure is non-fatal.** A missing or broken plugin warns to stderr and the CLI
+  continues with built-in commands intact.
+- **`pristine info` lists loaded plugins.**
+- **Command-name collisions warn loudly** at boot.
 
 **Phase 4:**
 
-- **`pristine start` hosts HTTP servers automatically.** When your AppModule imports
-  `@pristine-ts/http`, `pristine start` discovers `KernelHttpServer` (a new
-  `RuntimeServerInterface` implementation) and launches it. Requests are routed through
-  `kernel.handle()` → `Router` → your controllers. HTTPS supported when TLS key/cert
-  paths are configured. Configurable port/address via env var, config file, or `--port` /
-  `--address` CLI flags.
-- **`pristine start` is a real production entry point.** Boots the AppModule, handles
-  SIGTERM/SIGINT, runs `onShutdown` hooks via `Kernel.stop()`, enforces a hard-exit
-  timeout. Use it instead of (or alongside) `node dist/main.js`.
-- **`RuntimeServerInterface` and `ServiceDefinitionTagEnum.RuntimeServer`** added so any
-  module can plug a long-running server (HTTP, gRPC, websocket, etc.) into `pristine
-  start` without `@pristine-ts/cli` having to know about each protocol.
-- **`Kernel.stop()` and `ModuleInterface.onShutdown`** added to `@pristine-ts/core` and
-  `@pristine-ts/common`. Optional, additive — existing modules without an `onShutdown`
-  hook continue to work unchanged.
-- **`pristine info`** prints framework version, runtime environment, resolved config
-  path, AppModule location, and the imported module graph. Designed for support tickets.
-- **`pristine build`** wraps `tsc` and reads `build.{outDir,tsconfig,format,clean}` from
-  `pristine.config.ts`. `format: "both"` runs both your primary tsconfig and a
-  `*.cjs.json` sibling sequentially.
-- **`pristine help`** is now generated from the live command registry — every registered
-  command (built-in and custom) shows up automatically with its declared description.
-- **Top-level aliases**: `pristine help`, `pristine list`, `pristine verify`, `pristine
-  info`, `pristine build`, `pristine start`. The `p:*` canonical names still work.
-- **`CommandInterface.description`** added (optional). Used by `help` for one-line
-  summaries. Existing commands without a description show up in help with an empty
-  description column.
-- **Pre-existing `ListCommand` bug fixed** (it used to misuse `@injectAll(CurrentChildContainer)`
-  and crash). Lazy-resolves the command list from `Kernel.container` instead.
+- **`pristine start` hosts HTTP servers automatically** when `@pristine-ts/http` is
+  imported. HTTPS support via TLS file paths. CLI flag overrides for `--port` / `--address`.
+- **`pristine start` is a real production entry point.** SIGTERM/SIGINT → graceful
+  `Kernel.stop()` → `onShutdown` hooks → exit. Hard-exit timeout protection.
+- **`RuntimeServerInterface`** added so any module can plug a long-running server into
+  `pristine start`.
+- **`pristine info`** prints framework + runtime metadata + the imported module graph.
+- **`pristine build`** wraps `tsc`. Format `"both"` runs ESM and CJS sequentially.
+- **`pristine help`** is generated from the live command registry.
+- **Top-level aliases** (`pristine help`, `list`, `verify`, `info`, `build`, `start`).
+- **`CommandInterface.description`** added (optional one-line summary).
 
-**Phase 1-3 (earlier):**
+**Phase 3:**
 
+- **`pristine.config.ts` is the canonical config location.** Loaded via `jiti` — no
+  separate compile step.
+- **`p:config:init`** generates a starter config and migrates from `package.json`.
+- **`p:config:print`** prints the resolved config with provenance markers.
+- **Deprecation warning** on `pristine.appModule.cjsPath` in `package.json`.
 
-- **CLI is no longer locked to CJS-compiled AppModules.** ESM (`.mjs`) and CJS (`.cjs`,
-  `.js`) AppModules both work. Path is resolved through `pathToFileURL` so Windows paths
-  and ESM resolution are correct.
-- **`pristine.config.ts` is the canonical config location.** `pristine.appModule.cjsPath`
-  in `package.json` still works but emits a deprecation warning.
+**Phase 2:**
+
+- **ESM (`.mjs`) AppModules supported.** Path resolved through `pathToFileURL` so Windows
+  paths and ESM resolution are correct.
 - **Convention-based AppModule discovery.** Greenfield projects with `dist/app.module.js`
   need zero configuration.
-- **Multi-candidate detection with TTY prompt / non-TTY error.** When discovery turns up
-  multiple equally-ranked AppModule candidates, the CLI either asks (in a terminal) or
-  fails with an actionable error (in CI). Selections are cached so re-runs skip the prompt.
+- **Multi-candidate detection with TTY prompt / non-TTY error.** Selections are cached so
+  re-runs skip the prompt.
 - **Resilient bootstrap.** A broken AppModule path no longer prevents built-in commands
-  from running — the CLI prints the error and falls back to `CliModule`-only mode so you
-  can still run `pristine p:config:init` to fix things.
-- **`p:config:init`** generates a starter `pristine.config.ts` and migrates from
-  `package.json` automatically.
-- **`p:config:print`** prints the resolved config and where it was loaded from.
-- **`p:verify`** runs a fresh kernel boot of your AppModule, captures per-phase results,
-  and runs every registered `InstantiationTestInterface`. Exits non-zero on failure for
-  CI use.
+  from running.
+
+**Phase 1:**
+
 - **The bin is bundled** (esbuild, single file) but with all `@pristine-ts/*` packages
-  marked external — see *Architecture & cross-realm safety* above for why.
-- **Bundled bin is published with the executable bit set.** A previous bug shipped the
-  bin without `0o755`, breaking `node_modules/.bin/pristine` symlinks on first install
-  for some users.
+  marked external (cross-realm safety — see [Architecture](#architecture--design-notes)).
+- **Bundled bin is published with the executable bit set.**

@@ -5,16 +5,18 @@ import {LogHandlerInterface} from "@pristine-ts/logging";
 import {CommandInterface} from "../interfaces/command.interface";
 import {ExitCodeEnum} from "../enums/exit-code.enum";
 import {CliModuleKeyname} from "../cli.module.keyname";
-import {loadAppModule} from "../bootstrap/app-module-loader";
+import {AppModuleLoader} from "../bootstrap/app-module-loader";
 
 /**
- * Verifies that the consumer's AppModule can be instantiated against its configuration. Builds a fresh
- * throw-away kernel, runs every boot phase capturing per-phase outcomes, executes every embedder-registered
- * `InstantiationTestInterface`, and routes the resulting report through the project's LogHandler.
+ * Verifies that the consumer's AppModule can be instantiated against its configuration.
+ * Builds a fresh throw-away kernel, runs every boot phase capturing per-phase outcomes,
+ * executes every embedder-registered `InstantiationTestInterface`, and routes the resulting
+ * report through the project's `LogHandlerInterface`.
  *
- * Note: this command runs after the CLI's own `kernel.start()` has succeeded, so it cannot be used to debug
- * a configuration that is so broken the CLI can't start. For that case, call `kernel.verifyInstantiation(...)`
- * directly from a small JS script that imports your AppModule.
+ * Note: this command runs after the CLI's own `kernel.start()` has succeeded, so it cannot
+ * be used to debug a configuration that is so broken the CLI can't start. For that case,
+ * call `kernel.verifyInstantiation(...)` directly from a small script that imports your
+ * AppModule.
  */
 @tag(ServiceDefinitionTagEnum.Command)
 @moduleScoped(CliModuleKeyname)
@@ -26,13 +28,14 @@ export class VerifyCommand implements CommandInterface<null> {
 
   constructor(
     @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
+    private readonly appModuleLoader: AppModuleLoader,
   ) {
   }
 
   async run(args: any): Promise<ExitCodeEnum | number> {
     const skipTests = args?.["skip-tests"] === true || args?.skipTests === true;
 
-    const {appModule, configuration} = await loadAppModule();
+    const {appModule, configuration} = await this.appModuleLoader.load();
 
     const kernel = new Kernel();
     const report = await kernel.verifyInstantiation(appModule, configuration, {

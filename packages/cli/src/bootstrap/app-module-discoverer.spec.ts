@@ -1,14 +1,18 @@
+import "reflect-metadata";
 import fs from "fs";
 import os from "os";
 import path from "path";
-import {discoverAppModuleCandidates} from "./app-module-discovery";
+import {AppModuleDiscoverer} from "./app-module-discoverer";
+import {AppModuleDiscoveryReasonEnum} from "./app-module-discovery-reason.enum";
 
-describe("discoverAppModuleCandidates", () => {
+describe("AppModuleDiscoverer", () => {
   let projectRoot: string;
+  let discoverer: AppModuleDiscoverer;
 
   beforeEach(() => {
     projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), "pristine-discovery-"));
     fs.mkdirSync(path.join(projectRoot, "dist"), {recursive: true});
+    discoverer = new AppModuleDiscoverer();
   });
 
   afterEach(() => {
@@ -25,35 +29,35 @@ describe("discoverAppModuleCandidates", () => {
   }
 
   it("returns no candidates when no module files exist", async () => {
-    const candidates = await discoverAppModuleCandidates(projectRoot);
+    const candidates = await discoverer.discover(projectRoot);
     expect(candidates).toEqual([]);
   });
 
   it("returns dist/app.module.js with score 0 when present", async () => {
     writeAppModuleFile("dist/app.module.js");
 
-    const candidates = await discoverAppModuleCandidates(projectRoot);
+    const candidates = await discoverer.discover(projectRoot);
 
     expect(candidates).toHaveLength(1);
     expect(candidates[0].score).toBe(0);
-    expect(candidates[0].reason).toBe("named");
+    expect(candidates[0].reason).toBe(AppModuleDiscoveryReasonEnum.Named);
     expect(candidates[0].displayPath).toBe(path.join("dist", "app.module.js"));
   });
 
   it("returns *.module.js files exporting AppModule with score 10", async () => {
     writeAppModuleFile("dist/admin.module.js");
 
-    const candidates = await discoverAppModuleCandidates(projectRoot);
+    const candidates = await discoverer.discover(projectRoot);
 
     expect(candidates).toHaveLength(1);
     expect(candidates[0].score).toBe(10);
-    expect(candidates[0].reason).toBe("exports");
+    expect(candidates[0].reason).toBe(AppModuleDiscoveryReasonEnum.Exports);
   });
 
   it("excludes *.module.js files that do not export AppModule", async () => {
     writeAppModuleFile("dist/sub.module.js", false);
 
-    const candidates = await discoverAppModuleCandidates(projectRoot);
+    const candidates = await discoverer.discover(projectRoot);
 
     expect(candidates).toEqual([]);
   });
@@ -62,7 +66,7 @@ describe("discoverAppModuleCandidates", () => {
     writeAppModuleFile("dist/app.module.spec.js");
     writeAppModuleFile("dist/app.module.test.js");
 
-    const candidates = await discoverAppModuleCandidates(projectRoot);
+    const candidates = await discoverer.discover(projectRoot);
 
     expect(candidates).toEqual([]);
   });
@@ -71,7 +75,7 @@ describe("discoverAppModuleCandidates", () => {
     writeAppModuleFile("dist/app.module.js");
     writeAppModuleFile("dist/admin.module.js");
 
-    const candidates = await discoverAppModuleCandidates(projectRoot);
+    const candidates = await discoverer.discover(projectRoot);
 
     expect(candidates).toHaveLength(2);
     expect(candidates[0].displayPath).toBe(path.join("dist", "app.module.js"));
@@ -82,7 +86,7 @@ describe("discoverAppModuleCandidates", () => {
   it("scans dist/lib/cjs in addition to dist/", async () => {
     writeAppModuleFile("dist/lib/cjs/app.module.js");
 
-    const candidates = await discoverAppModuleCandidates(projectRoot);
+    const candidates = await discoverer.discover(projectRoot);
 
     expect(candidates).toHaveLength(1);
     expect(candidates[0].displayPath).toBe(path.join("dist", "lib", "cjs", "app.module.js"));
@@ -93,7 +97,7 @@ describe("discoverAppModuleCandidates", () => {
     writeAppModuleFile("dist/lib/cjs/app.module.js");
     writeAppModuleFile("dist/lib/esm/app.module.mjs");
 
-    const candidates = await discoverAppModuleCandidates(projectRoot);
+    const candidates = await discoverer.discover(projectRoot);
 
     expect(candidates).toHaveLength(3);
     expect(candidates.every(c => c.score === 0)).toBe(true);
