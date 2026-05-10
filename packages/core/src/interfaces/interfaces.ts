@@ -7,3 +7,4 @@ export * from "./events-execution-options.interface";
 export * from "./execution-context.interface";
 export * from "./instantiation-test.interface";
 export * from "./options-mapper.interface";
+export * from "./runtime-server.interface";

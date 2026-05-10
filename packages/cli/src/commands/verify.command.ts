@@ -22,6 +22,7 @@ import {loadAppModule} from "../bootstrap/app-module-loader";
 export class VerifyCommand implements CommandInterface<null> {
   optionsType = null;
   name = "p:verify";
+  description = "Verify the AppModule boots cleanly and run all registered InstantiationTests.";
 
   constructor(
     @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,

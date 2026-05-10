@@ -41,4 +41,21 @@ export interface ModuleInterface {
    * @param container
    */
   afterInit?(container: DependencyContainer): Promise<void>;
+
+  /**
+   * Optional graceful-shutdown hook. Invoked by `Kernel.stop()` when the runtime is shutting down
+   * (typically in response to SIGTERM or SIGINT under `pristine start`). Modules should release
+   * external resources here — close DB connections, drain queue consumers, stop background timers,
+   * flush log buffers — before the process exits.
+   *
+   * Hooks are called in **outer-to-inner** order (root AppModule first, deepest dependencies
+   * last) so that high-level modules can still call into their dependencies while they tear
+   * themselves down. Each hook runs under a configurable per-hook timeout (default 10 seconds)
+   * — exceeding it logs a warning and continues to the next module rather than blocking
+   * shutdown indefinitely.
+   *
+   * Implementations must be idempotent: a kernel may receive multiple shutdown signals while
+   * stop() is in flight, but stop() will only invoke each hook at most once.
+   */
+  onShutdown?(container: DependencyContainer): Promise<void>;
 }

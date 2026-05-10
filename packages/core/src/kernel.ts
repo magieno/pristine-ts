@@ -43,9 +43,9 @@ export class Kernel {
   public instantiationId: string = uuidv4();
   /**
    * Contains a map of all the modules that were instantiated indexed by the modules names.
-   * @private
+   * @public Exposed read-only so commands like `pristine info` can introspect the boot graph.
    */
-  private instantiatedModules: { [id: string]: ModuleInterface } = {};
+  public instantiatedModules: { [id: string]: ModuleInterface } = {};
   /**
    * Contains a map of all the modules that the afterInit was run for, indexed by the modules names .
    * @private
@@ -56,6 +56,13 @@ export class Kernel {
    * @private
    */
   private initializationSpan?: Span
+
+  /**
+   * True after `stop()` has begun (or completed). Prevents double-shutdown when multiple
+   * SIGTERM/SIGINT signals arrive in quick succession.
+   * @private
+   */
+  private stopped: boolean = false;
 
   /**
    * This function is the entry point of the Kernel. It initializes the module for your application (AppModule) as well as its the dependencies,
@@ -266,6 +273,96 @@ export class Kernel {
 
     report.totalDurationMs = Date.now() - startedAt;
     return report;
+  }
+
+  /**
+   * Gracefully shuts down the kernel by invoking each instantiated module's `onShutdown` hook
+   * in reverse instantiation order (root module first, deepest dependencies last). Modules
+   * without an `onShutdown` hook are skipped silently.
+   *
+   * Each hook runs under a per-hook timeout so a single misbehaving module cannot block the
+   * shutdown indefinitely. When a hook throws or times out, the error is logged via the
+   * resolved `LogHandlerInterface` (or stderr if logging itself failed) and shutdown continues
+   * with the next module — the goal is to release as much as possible, not to abort on the
+   * first failure.
+   *
+   * Calling `stop()` more than once is a no-op (subsequent calls return immediately) so this
+   * method is safe to wire up to multiple signal handlers.
+   *
+   * @param options.perHookTimeoutMs Maximum milliseconds to wait for a single module's
+   *        `onShutdown` to resolve. Default 10_000 (10 seconds). Set to 0 to wait indefinitely.
+   */
+  public async stop(options?: {perHookTimeoutMs?: number}): Promise<void> {
+    if (this.stopped) {
+      return;
+    }
+    this.stopped = true;
+
+    const perHookTimeoutMs = options?.perHookTimeoutMs ?? 10_000;
+
+    let logHandler: LogHandlerInterface | undefined;
+    try {
+      logHandler = this.container.resolve<LogHandlerInterface>("LogHandlerInterface");
+    } catch {
+      // Logging may not have booted (e.g. start() failed mid-flight). Fall back to stderr.
+    }
+
+    // Insertion order: `initModule` records the parent BEFORE recursing into children, so the
+    // map's natural key order is root → branch → leaf. Shutting down in that order means the
+    // outer-most modules (AppModule and its direct imports) tear down first while their
+    // dependencies (logging, configuration, the container itself) are still healthy — exactly
+    // what we want.
+    const moduleNames = Object.keys(this.instantiatedModules);
+
+    for (const name of moduleNames) {
+      const module = this.instantiatedModules[name];
+      if (typeof module.onShutdown !== "function") {
+        continue;
+      }
+
+      try {
+        await this.runWithTimeout(module.onShutdown(this.container), perHookTimeoutMs, name);
+      } catch (error) {
+        const message = `[Kernel] onShutdown failed for module '${name}': ${(error as Error).message}`;
+        if (logHandler !== undefined) {
+          logHandler.error(message, {extra: {moduleKeyname: name, error}});
+        } else {
+          process.stderr.write(message + "\n");
+        }
+      }
+    }
+
+    if (logHandler !== undefined && typeof logHandler.terminate === "function") {
+      try {
+        logHandler.terminate();
+      } catch {
+        // Best-effort.
+      }
+    }
+  }
+
+  /**
+   * Wraps a Promise in a timeout that rejects with a clear error if not settled in time.
+   * `timeoutMs <= 0` disables the timeout entirely.
+   * @private
+   */
+  private async runWithTimeout<T>(promise: Promise<T>, timeoutMs: number, label: string): Promise<T> {
+    if (timeoutMs <= 0) {
+      return promise;
+    }
+
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeout = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new Error(`onShutdown for '${label}' exceeded ${timeoutMs}ms`)), timeoutMs);
+    });
+
+    try {
+      return await Promise.race([promise, timeout]);
+    } finally {
+      if (timer !== undefined) {
+        clearTimeout(timer);
+      }
+    }
   }
 
   /**

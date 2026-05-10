@@ -19,10 +19,30 @@ const pkg = JSON.parse(readFileSync(resolve(packageRoot, "package.json"), "utf8"
 // Externals: anything we cannot safely have two copies of in a single Node process. tsyringe
 // holds the DI registry; reflect-metadata is the polyfill backing every decorator; both must
 // be the exact same instance the consumer's code is using when it boots.
+//
+// All `@pristine-ts/*` packages are also external so that classes the consumer's AppModule
+// imports (and decorates) share identity with the classes the bundled bin reaches for. If we
+// inlined them, tsyringe would see two distinct DataMapper / EventHandler / etc. constructors
+// and decorator metadata recorded by one would be invisible to the other ("TypeInfo not known
+// for X"). Keeping them external means both halves of the system always resolve to a single
+// physical copy living in node_modules.
 const externals = [
   "tsyringe",
   "reflect-metadata",
   "class-transformer",
+  "@pristine-ts/common",
+  "@pristine-ts/core",
+  "@pristine-ts/configuration",
+  "@pristine-ts/data-mapping",
+  "@pristine-ts/data-mapping-common",
+  "@pristine-ts/file",
+  "@pristine-ts/logging",
+  "@pristine-ts/security",
+  "@pristine-ts/telemetry",
+  "@pristine-ts/validation",
+  "@pristine-ts/networking",
+  // The cli itself is external too — see comment in bin.ts about cross-realm class identity.
+  "@pristine-ts/cli",
 ];
 
 await mkdir(dirname(outFile), {recursive: true});

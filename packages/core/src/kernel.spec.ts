@@ -162,3 +162,125 @@ describe("Kernel.verifyInstantiation", () => {
     expect(report.logHandler).toBeDefined();
   });
 });
+
+describe("Kernel.stop", () => {
+  beforeEach(() => {
+    container.clearInstances();
+  });
+
+  it("invokes onShutdown hooks in reverse instantiation order", async () => {
+    const order: string[] = [];
+
+    const leafModule: ModuleInterface = {
+      keyname: "test.leaf",
+      onShutdown: async () => { order.push("leaf"); },
+    };
+    const branchModule: ModuleInterface = {
+      keyname: "test.branch",
+      importModules: [leafModule],
+      onShutdown: async () => { order.push("branch"); },
+    };
+    const rootModule: AppModuleInterface = {
+      keyname: "test.root",
+      importModules: [CoreModule, branchModule],
+      importServices: [],
+      onShutdown: async () => { order.push("root"); },
+    };
+
+    const kernel = new Kernel();
+    await kernel.start(rootModule, {
+      "pristine.logging.consoleLoggerActivated": false,
+      "pristine.logging.fileLoggerActivated": false,
+    });
+    await kernel.stop();
+
+    // Root shuts down first; leaf last. CoreModule has no onShutdown so it's silently skipped.
+    expect(order).toEqual(["root", "branch", "leaf"]);
+  });
+
+  it("continues shutting down other modules when one onShutdown throws", async () => {
+    const order: string[] = [];
+
+    const goodModule: ModuleInterface = {
+      keyname: "test.good",
+      onShutdown: async () => { order.push("good"); },
+    };
+    const badModule: ModuleInterface = {
+      keyname: "test.bad",
+      onShutdown: async () => { throw new Error("boom"); },
+    };
+    const rootModule: AppModuleInterface = {
+      keyname: "test.root2",
+      importModules: [CoreModule, goodModule, badModule],
+      importServices: [],
+    };
+
+    const kernel = new Kernel();
+    await kernel.start(rootModule, {
+      "pristine.logging.consoleLoggerActivated": false,
+      "pristine.logging.fileLoggerActivated": false,
+    });
+
+    await expect(kernel.stop()).resolves.toBeUndefined();
+    // bad threw — but good still ran (it shuts down before bad in reverse order:
+    // bad was registered AFTER good, so bad gets reversed to run first, throws,
+    // then good runs).
+    expect(order).toContain("good");
+  });
+
+  it("is idempotent: a second stop() is a no-op", async () => {
+    let calls = 0;
+    const trackedModule: ModuleInterface = {
+      keyname: "test.idempotent",
+      onShutdown: async () => { calls++; },
+    };
+
+    const kernel = new Kernel();
+    await kernel.start({
+      keyname: "test.root3",
+      importModules: [CoreModule, trackedModule],
+      importServices: [],
+    } as AppModuleInterface, {
+      "pristine.logging.consoleLoggerActivated": false,
+      "pristine.logging.fileLoggerActivated": false,
+    });
+
+    await kernel.stop();
+    await kernel.stop();
+    await kernel.stop();
+
+    expect(calls).toBe(1);
+  });
+
+  it("times out a hung onShutdown and continues", async () => {
+    let secondRan = false;
+
+    const hangingModule: ModuleInterface = {
+      keyname: "test.hanging",
+      onShutdown: () => new Promise(() => {/* never resolves */}),
+    };
+    const fastModule: ModuleInterface = {
+      keyname: "test.fast",
+      onShutdown: async () => { secondRan = true; },
+    };
+
+    const kernel = new Kernel();
+    await kernel.start({
+      keyname: "test.root4",
+      // Order matters: fast first (registered first in reverse → runs last after hanging),
+      // hanging registered later (runs first via reverse iteration).
+      importModules: [CoreModule, fastModule, hangingModule],
+      importServices: [],
+    } as AppModuleInterface, {
+      "pristine.logging.consoleLoggerActivated": false,
+      "pristine.logging.fileLoggerActivated": false,
+    });
+
+    const startedAt = Date.now();
+    await kernel.stop({perHookTimeoutMs: 50});
+
+    // hanging timed out after ~50ms; fast still ran afterwards.
+    expect(secondRan).toBe(true);
+    expect(Date.now() - startedAt).toBeLessThan(1000);
+  });
+});

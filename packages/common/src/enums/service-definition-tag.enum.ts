@@ -21,6 +21,13 @@ export enum ServiceDefinitionTagEnum {
   MethodParameterDecoratorResolver = "METHOD_PARAMETER_DECORATOR_RESOLVER",
   MysqlConfig = "MysqlConfig",
   RequestInterceptor = "RequestInterceptorInterface",
+  /**
+   * Long-running services (HTTP server, gRPC server, websocket listener, etc.) that should be
+   * started by `pristine start` and stopped during graceful shutdown. Multiple servers can
+   * coexist — e.g. an HTTP server on 3000 and a metrics server on 9100. Implementations live
+   * in their respective modules (e.g. `KernelHttpServer` in `@pristine-ts/http`).
+   */
+  RuntimeServer = "RuntimeServerInterface",
   ScheduledTask = "ScheduledTaskInterface",
   Tracer = "TracerInterface",
   Voter = "VoterInterface",
