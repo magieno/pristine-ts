@@ -1,4 +1,10 @@
 #!/usr/bin/env node
+/* eslint-disable @typescript-eslint/no-var-requires */
+// This file is intentionally CJS `require()` rather than ESM `import`. It runs as the bin
+// entry compiled to dist/lib/cjs/bin.js, where (a) the load order matters (reflect-metadata
+// MUST initialize before any decorated class is touched) and (b) static `import` cannot be
+// reordered around package-loading side effects the way explicit require() calls can.
+//
 // reflect-metadata must load before any decorated class so the @injectable/@tag decorators
 // can record their metadata against the same Reflect.metadata storage tsyringe later reads.
 require('reflect-metadata');

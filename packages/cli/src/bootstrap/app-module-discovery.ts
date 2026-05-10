@@ -87,6 +87,7 @@ export const discoverAppModuleCandidates = async (projectRoot: string): Promise<
       // avoids holding open import() promises for files we may discard.
       let exportsAppModule = false;
       try {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
         const loaded = require(absolutePath);
         exportsAppModule = loaded && typeof loaded === "object" && "AppModule" in loaded;
       } catch {
