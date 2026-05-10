@@ -1,28 +1,44 @@
 import {exec, ExecOptions} from "child_process";
+import fs from "fs";
 import path from "path";
 
 /**
- * End-to-end smoke tests for the `pristine` bin. Invokes the actual built bin via
- * `node_modules/.bin/pristine` (resolved through the `@pristine-ts/cli` symlink) and asserts
- * exit codes and key output strings.
+ * End-to-end smoke tests for the `pristine` bin. Invokes the actual built bin file directly
+ * (no `npx` wrapper, no PATH lookup) and asserts exit codes and key output strings.
  *
  * Each test runs in this package's directory, where `pristine.config.ts` points the AppModule
  * at the compiled `app.module.js` (with `SampleCommand` registered). This is the canonical
  * "did the bin actually work" gate — the unit tests in `packages/cli/src/` cover individual
  * functions, but only this suite proves that the bundled bin, the loader cascade, the
  * decorator metadata pipeline, and the command dispatcher all line up at runtime.
+ *
+ * Why we bypass `npx pristine` and call the bin file directly: the bin lives at a known,
+ * stable path inside the monorepo (`packages/cli/dist/bin/pristine.cjs`). Going through
+ * `npx` adds an indirection that depends on `tests/cli/node_modules/.bin/pristine` being
+ * populated, which CI's `npm ci` at root does not do. The bin itself walks up from its own
+ * location to find `@pristine-ts/cli` in the root `node_modules`, so it works regardless of
+ * tests/cli's local install state. Faster too — no per-call npm overhead.
  */
 describe("pristine bin (end-to-end)", () => {
   const cwd = path.resolve(__dirname, "..");
 
+  // Absolute path to the built bin. Resolved at module load so a missing/unbuilt bin fails
+  // loudly with a clear error rather than 8 cryptic per-test failures.
+  const bin = path.resolve(__dirname, "..", "..", "..", "packages", "cli", "dist", "bin", "pristine.cjs");
+  if (!fs.existsSync(bin)) {
+    throw new Error(
+      `[tests/cli] Built bin not found at ${bin}. Run \`npm run build\` in packages/cli first.`
+    );
+  }
+
   /**
    * Wraps `exec` in a Promise that resolves to `{stdout, stderr, code}` instead of rejecting
-   * on non-zero exit. Tests that intentionally provoke errors (e.g. missing-plugin scenarios)
+   * on non-zero exit. Tests that intentionally provoke errors (e.g. unknown-command scenarios)
    * still need to inspect stderr and the exit code, so a reject-on-error wrapper would fight us.
    */
-  const run = (cmd: string, options: ExecOptions = {}): Promise<{stdout: string; stderr: string; code: number}> => {
+  const run = (args: string, options: ExecOptions = {}): Promise<{stdout: string; stderr: string; code: number}> => {
     return new Promise((resolve) => {
-      exec(cmd, {cwd, ...options}, (error, stdout, stderr) => {
+      exec(`node ${bin} ${args}`, {cwd, ...options}, (error, stdout, stderr) => {
         resolve({
           stdout: stdout.toString(),
           stderr: stderr.toString(),
@@ -38,7 +54,7 @@ describe("pristine bin (end-to-end)", () => {
 
   describe("dispatching a registered command", () => {
     it("runs the user-registered SampleCommand with exit 0", async () => {
-      const {stdout, code} = await run("npx pristine sample");
+      const {stdout, code} = await run("sample");
       expect(code).toBe(0);
       expect(stdout).toContain("should run");
       expect(stdout).toContain("[status:'Success', code:'0']");
@@ -47,7 +63,7 @@ describe("pristine bin (end-to-end)", () => {
 
   describe("built-in commands", () => {
     it("p:help lists every registered command", async () => {
-      const {stdout, code} = await run("npx pristine p:help");
+      const {stdout, code} = await run("p:help");
       expect(code).toBe(0);
       expect(stdout).toContain("Pristine CLI");
       expect(stdout).toContain("Commands:");
@@ -65,14 +81,14 @@ describe("pristine bin (end-to-end)", () => {
     });
 
     it("help (top-level alias) produces the same output", async () => {
-      const {stdout, code} = await run("npx pristine help");
+      const {stdout, code} = await run("help");
       expect(code).toBe(0);
       expect(stdout).toContain("Pristine CLI");
       expect(stdout).toContain("Commands:");
     });
 
     it("p:list prints every registered command name", async () => {
-      const {stdout, code} = await run("npx pristine p:list");
+      const {stdout, code} = await run("p:list");
       expect(code).toBe(0);
       expect(stdout).toContain("List of registered commands:");
       expect(stdout).toContain("sample");
@@ -80,7 +96,7 @@ describe("pristine bin (end-to-end)", () => {
     });
 
     it("p:info prints version, runtime, and the imported module list", async () => {
-      const {stdout, code} = await run("npx pristine p:info");
+      const {stdout, code} = await run("p:info");
       expect(code).toBe(0);
       expect(stdout).toContain("Pristine CLI");
       expect(stdout).toContain("Version:");
@@ -93,7 +109,7 @@ describe("pristine bin (end-to-end)", () => {
     });
 
     it("p:config:print resolves the pristine.config.ts and shows file path + appModule", async () => {
-      const {stdout, code} = await run("npx pristine p:config:print");
+      const {stdout, code} = await run("p:config:print");
       expect(code).toBe(0);
       expect(stdout).toContain("Config file:");
       expect(stdout).toContain("pristine.config.ts");
@@ -104,7 +120,7 @@ describe("pristine bin (end-to-end)", () => {
     });
 
     it("p:verify boots a fresh kernel and exits 0", async () => {
-      const {stdout, code} = await run("npx pristine p:verify");
+      const {stdout, code} = await run("p:verify");
       // p:verify routes its report through LogHandlerInterface, so the exact output depends
       // on which logger transport is active (console vs file vs sink). Assert only the exit
       // code and the standard CliEventHandler success line — both are stable across configs.
@@ -115,7 +131,7 @@ describe("pristine bin (end-to-end)", () => {
 
   describe("error handling", () => {
     it("returns non-zero exit and 'CommandNotFoundError' for unknown commands", async () => {
-      const {stderr, code} = await run("npx pristine this-command-does-not-exist");
+      const {stderr, code} = await run("this-command-does-not-exist");
       expect(code).not.toBe(0);
       expect(stderr + "").toMatch(/this-command-does-not-exist|CommandNotFoundError/);
     });
