@@ -16,6 +16,7 @@ export enum ServiceDefinitionTagEnum {
   HttpResponseInterceptor = "HttpResponseInterceptorInterface",
   HttpErrorResponseInterceptor = "HttpErrorResponseInterceptorInterface",
   IdentityProvider = "IdentityProviderInterface",
+  InstantiationTest = "InstantiationTestInterface",
   Logger = "LoggerInterface",
   MethodParameterDecoratorResolver = "METHOD_PARAMETER_DECORATOR_RESOLVER",
   MysqlConfig = "MysqlConfig",

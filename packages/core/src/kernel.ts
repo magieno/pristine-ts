@@ -7,6 +7,7 @@ import {
   moduleScopedServicesRegistry,
   ProviderRegistration,
   Request,
+  ServiceDefinitionTagEnum,
   taggedProviderRegistrationsRegistry,
   TaggedRegistrationInterface
 } from "@pristine-ts/common";
@@ -19,6 +20,13 @@ import {EventPipeline} from "./pipelines/event.pipeline";
 import {Event} from "./models/event";
 import {KernelInitializationError} from "./errors/kernel-initialization.error";
 import {LogHandlerInterface} from "@pristine-ts/logging";
+import {InstantiationTestInterface} from "./interfaces/instantiation-test.interface";
+import {InstantiationReport} from "./models/instantiation-report";
+import {PhaseResult, SerializedError} from "./models/phase-result";
+import {InstantiationTestExecutionResult} from "./models/instantiation-test-execution-result";
+import {MissingRequiredConfigurationEntry} from "./models/missing-required-configuration-entry";
+import {InstantiationPhaseEnum} from "./enums/instantiation-phase.enum";
+import {InstantiationStatusEnum} from "./enums/instantiation-status.enum";
 
 /**
  * This is the central class that manages the lifecyle of this library.
@@ -77,7 +85,8 @@ export class Kernel {
 
     // Register the configuration.
     const configurationInitializationSpan = new Span(SpanKeynameEnum.ConfigurationInitialization)
-    await this.initConfiguration(moduleConfigurationValues);
+    const configurationManager = this.registerConfigurationDefinitions();
+    await this.loadConfiguration(configurationManager, moduleConfigurationValues);
     configurationInitializationSpan.endDate = Date.now();
 
     this.initializationSpan.addChild(configurationInitializationSpan);
@@ -100,6 +109,163 @@ export class Kernel {
         initializationSpan: this.initializationSpan
       }
     });
+  }
+
+  /**
+   * Verifies that this kernel can be fully instantiated against the provided AppModule and configuration values.
+   * Runs the same boot phases as `start()` on this kernel, capturing each phase's outcome rather than letting
+   * exceptions propagate, then collects and runs every embedder-registered `InstantiationTestInterface`.
+   *
+   * Important: this method mutates the kernel's container (it actually performs registration). It should be
+   * called on a fresh `new Kernel()` instance, not on a kernel that has already had `start()` invoked.
+   *
+   * @param module The AppModule to verify.
+   * @param moduleConfigurationValues The configuration values that would be passed to `start()`.
+   * @param options.runInstantiationTests When false, skips the test discovery/execution phase. Default true.
+   * @param options.stopOnFirstFailure When true, halts after the first failed phase and marks the rest as skipped. Default false.
+   */
+  public async verifyInstantiation(module: AppModuleInterface, moduleConfigurationValues?: {
+    [key: string]: ModuleConfigurationValue
+  }, options?: { runInstantiationTests?: boolean; stopOnFirstFailure?: boolean }): Promise<InstantiationReport> {
+    const report = new InstantiationReport();
+    const startedAt = Date.now();
+
+    const runInstantiationTests = options?.runInstantiationTests !== false;
+    const stopOnFirstFailure = options?.stopOnFirstFailure === true;
+
+    // Phase 1: ModuleRegistration. Must succeed for any subsequent phase to be meaningful — if it fails,
+    // the container is in an indeterminate state and we skip everything else.
+    const moduleRegistrationOk = await this.runPhase(report, InstantiationPhaseEnum.ModuleRegistration, async () => {
+      this.container.register(InternalContainerParameterEnum.KernelInstantiationId, {
+        useValue: this.instantiationId,
+      });
+      await this.initModule(module);
+    });
+
+    if (!moduleRegistrationOk) {
+      this.skipRemainingPhases(report, [
+        InstantiationPhaseEnum.ConfigurationCheck,
+        InstantiationPhaseEnum.ConfigurationLoad,
+        InstantiationPhaseEnum.ServiceTagRegistration,
+        InstantiationPhaseEnum.AfterInit,
+        InstantiationPhaseEnum.BootProbe,
+        InstantiationPhaseEnum.InstantiationTests,
+      ]);
+      report.totalDurationMs = Date.now() - startedAt;
+      return report;
+    }
+
+    // Phase 2: ConfigurationCheck. Register all module configuration definitions, then non-mutatively
+    // inspect for missing required values. This phase is informational only — it surfaces what is missing
+    // but cannot itself determine whether `start()` would throw, because a defaultResolver might or might
+    // not succeed at load time (resolver failures are silently swallowed by ConfigurationManager.load).
+    // ConfigurationLoad is the source of truth for "would start throw."
+    let configurationManager: ConfigurationManager | undefined;
+    const configurationCheckOk = await this.runPhase(report, InstantiationPhaseEnum.ConfigurationCheck, async () => {
+      configurationManager = this.registerConfigurationDefinitions();
+      const missing = configurationManager.getMissingRequiredParameters(moduleConfigurationValues ?? {});
+      report.missingRequiredConfiguration = missing.map(m => new MissingRequiredConfigurationEntry(m.parameterName, m.hasDefaultResolvers));
+    });
+    if (configurationCheckOk && report.missingRequiredConfiguration.length > 0) {
+      const lastPhase = report.phases[report.phases.length - 1];
+      lastPhase.status = InstantiationStatusEnum.PassedWithWarnings;
+    }
+
+    if (!configurationCheckOk && stopOnFirstFailure) {
+      this.skipRemainingPhases(report, [
+        InstantiationPhaseEnum.ConfigurationLoad,
+        InstantiationPhaseEnum.ServiceTagRegistration,
+        InstantiationPhaseEnum.AfterInit,
+        InstantiationPhaseEnum.BootProbe,
+        InstantiationPhaseEnum.InstantiationTests,
+      ]);
+      report.totalDurationMs = Date.now() - startedAt;
+      return report;
+    }
+
+    // ConfigurationCheck registers definitions but doesn't load. If that registration itself failed,
+    // there's no manager to load from — skip ConfigurationLoad.
+    let configurationLoadOk: boolean;
+    if (configurationManager === undefined) {
+      this.skipPhase(report, InstantiationPhaseEnum.ConfigurationLoad);
+      configurationLoadOk = false;
+    } else {
+      configurationLoadOk = await this.runPhase(report, InstantiationPhaseEnum.ConfigurationLoad, async () => {
+        await this.loadConfiguration(configurationManager!, moduleConfigurationValues);
+      });
+    }
+
+    if (!configurationLoadOk && stopOnFirstFailure) {
+      this.skipRemainingPhases(report, [
+        InstantiationPhaseEnum.ServiceTagRegistration,
+        InstantiationPhaseEnum.AfterInit,
+        InstantiationPhaseEnum.BootProbe,
+        InstantiationPhaseEnum.InstantiationTests,
+      ]);
+      report.totalDurationMs = Date.now() - startedAt;
+      return report;
+    }
+
+    const serviceTagOk = await this.runPhase(report, InstantiationPhaseEnum.ServiceTagRegistration, async () => {
+      this.registerNonModuleScopedServiceTags();
+    });
+
+    if (!serviceTagOk && stopOnFirstFailure) {
+      this.skipRemainingPhases(report, [
+        InstantiationPhaseEnum.AfterInit,
+        InstantiationPhaseEnum.BootProbe,
+        InstantiationPhaseEnum.InstantiationTests,
+      ]);
+      report.totalDurationMs = Date.now() - startedAt;
+      return report;
+    }
+
+    const afterInitOk = await this.runPhase(report, InstantiationPhaseEnum.AfterInit, async () => {
+      await this.afterInitModule(module);
+    });
+
+    if (!afterInitOk && stopOnFirstFailure) {
+      this.skipRemainingPhases(report, [InstantiationPhaseEnum.BootProbe, InstantiationPhaseEnum.InstantiationTests]);
+      report.totalDurationMs = Date.now() - startedAt;
+      return report;
+    }
+
+    const bootProbeOk = await this.runPhase(report, InstantiationPhaseEnum.BootProbe, async () => {
+      // Mirror the cosmetic LogHandler resolve at the end of `start()`. If LoggingModule wasn't imported,
+      // the resolve will throw and the phase is marked Failed.
+      this.container.resolve<LogHandlerInterface>("LogHandlerInterface");
+    });
+
+    // Once BootProbe has confirmed LogHandler is resolvable, stamp it onto the report so `report.log()`
+    // can route through the project's logging stack without callers having to pass one in.
+    if (bootProbeOk) {
+      try {
+        report.logHandler = this.container.resolve<LogHandlerInterface>("LogHandlerInterface");
+      } catch {
+        // Should not happen since BootProbe already succeeded, but defensive.
+      }
+    }
+
+    if (runInstantiationTests) {
+      await this.runPhase(report, InstantiationPhaseEnum.InstantiationTests, async () => {
+        let tests: InstantiationTestInterface[] = [];
+        try {
+          tests = this.container.resolveAll<InstantiationTestInterface>(ServiceDefinitionTagEnum.InstantiationTest);
+        } catch {
+          // resolveAll throws when nothing is registered for the token. That's not a failure — there are simply no tests.
+          tests = [];
+        }
+
+        for (const test of tests) {
+          report.instantiationTests.push(await this.runInstantiationTest(test));
+        }
+      });
+    } else {
+      this.skipPhase(report, InstantiationPhaseEnum.InstantiationTests);
+    }
+
+    report.totalDurationMs = Date.now() - startedAt;
+    return report;
   }
 
   /**
@@ -220,14 +386,15 @@ export class Kernel {
   }
 
   /**
-   * Registers all the configuration definitions that all the modules have defined.
-   * @param moduleConfigurationValues
+   * Resolves the ConfigurationManager and registers every module's configuration definitions onto it.
+   * Returns the manager so the caller can subsequently inspect required parameters or call `load()`.
+   * Split out from the original `initConfiguration` so `verifyInstantiation` can run a non-mutating
+   * check between definition registration and value loading.
    * @private
    */
-  private async initConfiguration(moduleConfigurationValues?: { [key: string]: ModuleConfigurationValue }) {
+  private registerConfigurationDefinitions(): ConfigurationManager {
     const configurationManager: ConfigurationManager = this.container.resolve(ConfigurationManager);
 
-    // Start by loading the configuration definitions of all the modules
     for (const key in this.instantiatedModules) {
       if (this.instantiatedModules.hasOwnProperty(key) === false) {
         continue;
@@ -239,7 +406,14 @@ export class Kernel {
       }
     }
 
-    // Load the configuration values passed by the app
+    return configurationManager;
+  }
+
+  /**
+   * Loads the configuration values into the previously-registered ConfigurationManager.
+   * @private
+   */
+  private async loadConfiguration(configurationManager: ConfigurationManager, moduleConfigurationValues?: { [key: string]: ModuleConfigurationValue }) {
     await configurationManager.load(moduleConfigurationValues ?? {}, this.container);
   }
 
@@ -306,6 +480,50 @@ export class Kernel {
 
       this.registerProviderRegistration(taggedRegistrationType.providerRegistration);
     })
+  }
+
+  /**
+   * Wraps a phase invocation: times it, captures any thrown error into a serialized form, appends a
+   * PhaseResult to the report, and returns whether the phase passed.
+   * @private
+   */
+  private async runPhase(report: InstantiationReport, phase: InstantiationPhaseEnum, fn: () => Promise<void>): Promise<boolean> {
+    const startedAt = Date.now();
+    try {
+      await fn();
+      report.phases.push(new PhaseResult(phase, InstantiationStatusEnum.Passed, Date.now() - startedAt));
+      return true;
+    } catch (error) {
+      report.phases.push(new PhaseResult(phase, InstantiationStatusEnum.Failed, Date.now() - startedAt, this.serializeError(error)));
+      return false;
+    }
+  }
+
+  private async runInstantiationTest(test: InstantiationTestInterface): Promise<InstantiationTestExecutionResult> {
+    const startedAt = Date.now();
+    try {
+      const result = await test.run(this.container);
+      return new InstantiationTestExecutionResult(test.name, result.passed, Date.now() - startedAt, test.description, result.message, result.details);
+    } catch (error) {
+      return new InstantiationTestExecutionResult(test.name, false, Date.now() - startedAt, test.description, undefined, undefined, this.serializeError(error));
+    }
+  }
+
+  private skipPhase(report: InstantiationReport, phase: InstantiationPhaseEnum) {
+    report.phases.push(new PhaseResult(phase, InstantiationStatusEnum.Skipped, 0));
+  }
+
+  private skipRemainingPhases(report: InstantiationReport, phases: InstantiationPhaseEnum[]) {
+    for (const phase of phases) {
+      this.skipPhase(report, phase);
+    }
+  }
+
+  private serializeError(error: unknown): SerializedError {
+    if (error instanceof Error) {
+      return {name: error.name, message: error.message, stack: error.stack};
+    }
+    return {name: "UnknownError", message: String(error)};
   }
 
 }

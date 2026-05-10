@@ -116,6 +116,42 @@ export class ConfigurationManager {
   }
 
   /**
+   * Returns the registered required parameters that are missing a value, without mutating state and without
+   * invoking default resolvers (which would require a container and could throw). A parameter is reported as
+   * missing when it is declared `isRequired: true` and no value was provided in `moduleConfigurationValues`.
+   * `hasDefaultResolvers` indicates that a defaultResolver is configured and may still satisfy the value at
+   * load time — call sites can use this to decide whether the missing entry should be treated as fatal.
+   */
+  public getMissingRequiredParameters(moduleConfigurationValues: {
+    [key: string]: ModuleConfigurationValue
+  }): { parameterName: string; hasDefaultResolvers: boolean }[] {
+    const missing: { parameterName: string; hasDefaultResolvers: boolean }[] = [];
+
+    for (const key of Object.keys(this.configurationDefinitions)) {
+      if (this.configurationDefinitions.hasOwnProperty(key) === false) {
+        continue;
+      }
+
+      const definition = this.configurationDefinitions[key];
+
+      if (definition.isRequired !== true) {
+        continue;
+      }
+
+      if (moduleConfigurationValues.hasOwnProperty(key) && moduleConfigurationValues[key] !== undefined) {
+        continue;
+      }
+
+      missing.push({
+        parameterName: key,
+        hasDefaultResolvers: Array.isArray(definition.defaultResolvers) && definition.defaultResolvers.length > 0,
+      });
+    }
+
+    return missing;
+  }
+
+  /**
    * This method simply registers the configuration parameter with the resolved value in the container.
    *
    * @param configurationKey

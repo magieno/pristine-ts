@@ -28,6 +28,44 @@ describe("Configuration Manager", () => {
     })
   })
 
+  describe("getMissingRequiredParameters", () => {
+    it("returns required parameters with no value provided", () => {
+      const configurationManager = new ConfigurationManager(getConfigurationParserMock("test"));
+      configurationManager.register({parameterName: "a", isRequired: true});
+      configurationManager.register({parameterName: "b", isRequired: true, defaultResolvers: ["fallback"]});
+
+      const missing = configurationManager.getMissingRequiredParameters({});
+
+      expect(missing).toEqual([
+        {parameterName: "a", hasDefaultResolvers: false},
+        {parameterName: "b", hasDefaultResolvers: true},
+      ]);
+    });
+
+    it("excludes required parameters that have a value provided", () => {
+      const configurationManager = new ConfigurationManager(getConfigurationParserMock("test"));
+      configurationManager.register({parameterName: "a", isRequired: true});
+
+      expect(configurationManager.getMissingRequiredParameters({a: "value"})).toEqual([]);
+    });
+
+    it("excludes optional parameters even when no value is provided", () => {
+      const configurationManager = new ConfigurationManager(getConfigurationParserMock("test"));
+      configurationManager.register({parameterName: "a", isRequired: false, defaultValue: "x"});
+
+      expect(configurationManager.getMissingRequiredParameters({})).toEqual([]);
+    });
+
+    it("does not mutate configurationDefinitions", () => {
+      const configurationManager = new ConfigurationManager(getConfigurationParserMock("test"));
+      configurationManager.register({parameterName: "a", isRequired: true});
+
+      configurationManager.getMissingRequiredParameters({});
+
+      expect(Object.keys(configurationManager.configurationDefinitions)).toEqual(["a"]);
+    });
+  })
+
   describe("registerConfigurationValue", () => {
     it("should register the configuration value in the container", () => {
       const configurationManager: ConfigurationManager = new ConfigurationManager(getConfigurationParserMock("test"));
