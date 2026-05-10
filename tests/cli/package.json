@@ -6,7 +6,7 @@
   "types": "dist/types/cli.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
-    "test": "jest",
+    "test": "npm run build && jest",
     "sample": "pristine sample",
     "help": "pristine help"
   },
