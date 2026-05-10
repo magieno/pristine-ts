@@ -7,7 +7,7 @@
     "bootstrap": "lerna bootstrap",
     "build": "lerna run build",
     "test": "lerna run test",
-    "test:cli": "cd tests/cli && jest",
+    "test:cli": "cd tests/cli && npm test",
     "e2e": "cd tests/e2e && jest && cd ../.. && npm run test:cli",
     "perf": "cd tests/perf && jest && cd ..",
     "bump-patch": "lerna version patch --yes",
