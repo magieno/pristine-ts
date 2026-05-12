@@ -55,7 +55,26 @@ jobs:
           restore-keys: |
             pristine-build-${{ matrix.node-version }}-
       - run: npm run build
-      - run: npx eslint --ext .ts packages/**
+      # Cache eslint's per-file analysis so re-lints only check changed files. `.eslintcache`
+      # is small (~tens of KB) so cache size is negligible. The `--cache-location` flag pins
+      # the file to a known path; `--cache` enables cache use for this run.
+      - uses: actions/cache@v4
+        with:
+          path: .eslintcache
+          key: eslint-${{ matrix.node-version }}-${{ github.sha }}
+          restore-keys: |
+            eslint-${{ matrix.node-version }}-
+      - run: npx eslint --ext .ts --cache --cache-location .eslintcache packages/**
+      # Cache jest's tmp cache (ts-jest compiled output, jest haste-map, etc.). Each jest
+      # run hashes the project root and writes to /tmp/jest_<hash>; the glob covers every
+      # package's slot. Skipping ts-jest re-compilation of unchanged sources is the bulk of
+      # the savings here.
+      - uses: actions/cache@v4
+        with:
+          path: /tmp/jest_*
+          key: jest-${{ matrix.node-version }}-${{ github.sha }}
+          restore-keys: |
+            jest-${{ matrix.node-version }}-
       - run: npm run test
       - run: npm run e2e
       - run: npm run perf
