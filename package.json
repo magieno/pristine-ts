@@ -14,7 +14,9 @@
     "publish-ci": "lerna publish from-git --yes",
     "prune": "rm -rf `find . -type d -name node_modules` && rm -rf `find . -type d -name dist`",
     "install-all": " for dir in packages/*/; do\n  (cd -- \"$dir\" && echo \"$dir\" && npm install)\ndone",
-    "ci-all": " for dir in packages/*/; do\n  (cd -- \"$dir\" && echo \"$dir\" && npm ci)\ndone"
+    "ci-all": " for dir in packages/*/; do\n  (cd -- \"$dir\" && echo \"$dir\" && npm ci)\ndone",
+    "docs:reference": "typedoc",
+    "docs:reference:watch": "typedoc --watch"
   },
   "repository": {
     "type": "git",
@@ -40,6 +42,7 @@
     "jest-extended": "^4.0.2",
     "lerna": "^9.0.3",
     "ts-jest": "^29.1.1",
+    "typedoc": "^0.26.0",
     "typescript": "^5.2.2"
   },
   "dependencies": {

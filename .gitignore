@@ -49,3 +49,6 @@ tests/perf/generation/output/*
 # CLI tool caches
 .eslintcache
 .pristine
+
+# Auto-generated API reference (regenerate with `npm run docs:reference`)
+docs/getting-started/13-reference/api
