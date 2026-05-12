@@ -1,5 +1,5 @@
 import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
-import {injectable} from "tsyringe";
+import {injectable, injectAll} from "tsyringe";
 import {Kernel, RuntimeServerInterface} from "@pristine-ts/core";
 import {CommandInterface} from "../interfaces/command.interface";
 import {ConsoleManager} from "../managers/console.manager";
@@ -21,10 +21,13 @@ import {StartCommandOptions} from "./start.command-options";
  *   - The kernel is **already started** by `bootstrap()` before this command runs (the CLI
  *     boots once for every command). This command does not call `kernel.start()` again — it
  *     just starts the registered servers and keeps the process alive.
- *   - Servers are discovered lazily via `kernel.container.resolveAll(RuntimeServer)` rather
- *     than constructor injection. Constructor `@injectAll(RuntimeServer)` works too, but lazy
- *     resolution keeps the failure mode "no server registered" silent and clean rather than
- *     a tsyringe error during command construction.
+ *   - `RuntimeServer`-tagged services are constructor-injected via `@injectAll`. This works
+ *     because `RuntimeServer` is a different tag than `Command`, so there's no self-reference
+ *     cycle (StartCommand is `@tag(Command)`, not `@tag(RuntimeServer)`). When no servers
+ *     are registered, the array is empty and the start path skips the loop.
+ *   - The `Kernel` is injected only for `kernel.stop()` — the legitimate use of the Kernel
+ *     as a service. Other resolution (commands, runtime servers, etc.) goes through
+ *     standard DI rather than reaching through `kernel.container`.
  *   - The shutdown timeout (per `onShutdown` hook) defaults to 10 seconds. The whole-process
  *     hard exit timeout defaults to 30 seconds — if the orderly shutdown doesn't finish in
  *     that window, the process is force-exited so Kubernetes / ECS don't get stuck waiting.
@@ -47,23 +50,21 @@ export class StartCommand implements CommandInterface<StartCommandOptions> {
   // wedged shutdown.
   private static readonly HARD_EXIT_TIMEOUT_MS = 30_000;
 
+  // Sentinel name of the DefaultRuntimeServer registered in @pristine-ts/core. We filter
+  // it out of `this.servers` before doing any real work because it's a no-op placeholder
+  // whose only job is to make `@injectAll(RuntimeServer)` resolvable in apps that don't
+  // import a real server module.
+  private readonly defaultRuntimeServerName: string = "__default__";
+
   constructor(
     private readonly consoleManager: ConsoleManager,
     private readonly kernel: Kernel,
+    @injectAll(ServiceDefinitionTagEnum.RuntimeServer) private readonly servers: RuntimeServerInterface[],
   ) {
   }
 
   async run(args: StartCommandOptions): Promise<ExitCodeEnum | number> {
-    // Resolve and start every registered RuntimeServer. Lazy resolution via the kernel's
-    // container — constructor `@injectAll` would error out hard if no servers were registered;
-    // this path treats the empty case as "fine, nothing to start".
-    const servers: RuntimeServerInterface[] = (() => {
-      try {
-        return this.kernel.container.resolveAll<RuntimeServerInterface>(ServiceDefinitionTagEnum.RuntimeServer);
-      } catch {
-        return [];
-      }
-    })();
+    const servers = this.servers.filter(s => s.name !== this.defaultRuntimeServerName);
 
     const overrides = (args.port !== undefined || args.address !== undefined)
       ? {port: args.port, address: args.address}

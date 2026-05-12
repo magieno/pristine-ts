@@ -1,6 +1,5 @@
-import {injectable} from "tsyringe";
+import {DependencyContainer, inject, injectable} from "tsyringe";
 import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
-import {Kernel} from "@pristine-ts/core";
 import {CommandInterface} from "../interfaces/command.interface";
 import {ConsoleManager} from "../managers/console.manager";
 import {ExitCodeEnum} from "../enums/exit-code.enum";
@@ -8,7 +7,7 @@ import {CliModuleKeyname} from "../cli.module.keyname";
 
 /**
  * Prints a usage banner plus a one-line summary for every registered command. The output is
- * generated from the actual `CommandInterface[]` resolved from the kernel's container, so
+ * generated from the actual `CommandInterface[]` resolved from the current DI container, so
  * newly registered (built-in or custom) commands show up automatically.
  *
  * The first column is sized to the longest command name in the set, so the second-column
@@ -17,9 +16,9 @@ import {CliModuleKeyname} from "../cli.module.keyname";
  * **Lazy command resolution.** This command is itself `@tag(Command)`, so a constructor-time
  * `@injectAll(ServiceDefinitionTagEnum.Command)` would create an infinite cycle: tsyringe
  * tries to construct HelpCommand → must inject all Commands → must construct HelpCommand →
- * recursion. We instead inject the running `Kernel` (registered as an instance after
- * `kernel.start()` in `cli.ts`) and call `kernel.container.resolveAll` from inside `run()`,
- * by which time every Command-tagged class is fully constructed and cached.
+ * recursion. We instead inject the current child container (registered by the kernel under
+ * `ServiceDefinitionTagEnum.CurrentChildContainer`) and call `resolveAll` from inside `run()`,
+ * by which point every Command-tagged class is fully constructed and cached.
  */
 @tag(ServiceDefinitionTagEnum.Command)
 @moduleScoped(CliModuleKeyname)
@@ -31,12 +30,13 @@ export class HelpCommand implements CommandInterface<null> {
 
   constructor(
     private readonly consoleManager: ConsoleManager,
-    private readonly kernel: Kernel,
+    @inject(ServiceDefinitionTagEnum.CurrentChildContainer) private readonly container: DependencyContainer,
   ) {
   }
 
   async run(args: any): Promise<ExitCodeEnum | number> {
-    const commands: CommandInterface<any>[] = this.kernel.container.resolveAll(ServiceDefinitionTagEnum.Command);
+    const commands: CommandInterface<any>[] = this.container.resolveAll(ServiceDefinitionTagEnum.Command);
+
     this.consoleManager.writeLine("Pristine CLI");
     this.consoleManager.writeLine("");
     this.consoleManager.writeLine("Usage:");
@@ -44,9 +44,7 @@ export class HelpCommand implements CommandInterface<null> {
     this.consoleManager.writeLine("");
     this.consoleManager.writeLine("Commands:");
 
-    // Aliases share the same delegate but appear as distinct command rows under both names.
     const sorted = [...commands].sort((a, b) => a.name.localeCompare(b.name));
-
     const longestName = sorted.reduce((max, c) => Math.max(max, c.name.length), 0);
 
     for (const command of sorted) {

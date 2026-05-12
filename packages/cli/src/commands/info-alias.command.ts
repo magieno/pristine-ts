@@ -1,14 +1,13 @@
 import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {injectable} from "tsyringe";
-import {Kernel} from "@pristine-ts/core";
 import {CommandInterface} from "../interfaces/command.interface";
 import {ExitCodeEnum} from "../enums/exit-code.enum";
 import {CliModuleKeyname} from "../cli.module.keyname";
 import {InfoCommand} from "./info.command";
 
 /**
- * Top-level alias for the framework-reserved `p:info` command. Lazy delegate resolution —
- * see `HelpAliasCommand` for the rationale.
+ * Top-level alias for the framework-reserved `p:info` command. Injects the delegate
+ * directly via standard DI.
  */
 @tag(ServiceDefinitionTagEnum.Command)
 @moduleScoped(CliModuleKeyname)
@@ -18,10 +17,10 @@ export class InfoAliasCommand implements CommandInterface<null> {
   name = "info";
   description = "Alias for p:info.";
 
-  constructor(private readonly kernel: Kernel) {
+  constructor(private readonly delegate: InfoCommand) {
   }
 
   async run(args: any): Promise<ExitCodeEnum | number> {
-    return this.kernel.container.resolve(InfoCommand).run(args);
+    return this.delegate.run(args);
   }
 }

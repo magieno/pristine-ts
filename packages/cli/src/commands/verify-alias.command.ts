@@ -1,14 +1,13 @@
 import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {injectable} from "tsyringe";
-import {Kernel} from "@pristine-ts/core";
 import {CommandInterface} from "../interfaces/command.interface";
 import {ExitCodeEnum} from "../enums/exit-code.enum";
 import {CliModuleKeyname} from "../cli.module.keyname";
 import {VerifyCommand} from "./verify.command";
 
 /**
- * Top-level alias for the framework-reserved `p:verify` command. Lazy delegate resolution —
- * see `HelpAliasCommand` for the rationale.
+ * Top-level alias for the framework-reserved `p:verify` command. Injects the delegate
+ * directly via standard DI.
  */
 @tag(ServiceDefinitionTagEnum.Command)
 @moduleScoped(CliModuleKeyname)
@@ -18,10 +17,10 @@ export class VerifyAliasCommand implements CommandInterface<null> {
   name = "verify";
   description = "Alias for p:verify.";
 
-  constructor(private readonly kernel: Kernel) {
+  constructor(private readonly delegate: VerifyCommand) {
   }
 
   async run(args: any): Promise<ExitCodeEnum | number> {
-    return this.kernel.container.resolve(VerifyCommand).run(args);
+    return this.delegate.run(args);
   }
 }
