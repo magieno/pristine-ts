@@ -32,12 +32,13 @@ jobs:
           node-version: ${{ matrix.node-version }}
           registry-url: https://registry.npmjs.org
           scope: '@pristine-ts'
-      - run: npm install -g npm@8.19.2
-      - run: npm -v
-      - run: npm ci
-#      - run: npm install
-#        env:
-#          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # Caches the npm download/registry tarballs (~/.npm) keyed off the lockfile hash.
+          # Cache hit drops `npm ci` from ~60s to ~5s. Verified by `npm ci`'s own integrity
+          # check against package-lock.json so cache poisoning isn't a risk.
+          cache: 'npm'
+      # `--no-audit --no-fund` skip the audit pass and the funding-message banner. Both are
+      # noise in CI output (we audit separately) and shave a few seconds per install.
+      - run: npm ci --no-audit --no-fund
       - run: npm run build
       - run: npx eslint --ext .ts packages/**
       - run: npm run test
@@ -51,7 +52,7 @@ jobs:
     # Set the type of machine to run on
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    
+
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js 24.x
@@ -60,13 +61,9 @@ jobs:
           node-version: 24.x
           registry-url: https://registry.npmjs.org
           scope: '@pristine-ts'
-      - run: npm install -g npm@latest
-      - run: npm ci
-#      - run: npm install
-#        env:
-#          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          cache: 'npm'
+      - run: npm ci --no-audit --no-fund
       - run: git config --global user.name 'ima-bot'
       - run: git config --global user.email 'ima-bot@ima-tech.ca'
       - run: npm run bump-patch
-      #- run: npm whoami
       - run: npm run publish-ci
