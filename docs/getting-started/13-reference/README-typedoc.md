@@ -18,8 +18,10 @@ JSDoc comments under `packages/*/src/`.
 npm run docs:reference
 ```
 
-The output is written into the same directory as this README (`docs/getting-started/13-reference/api/`).
-The contents are git-ignored — regenerate them locally or in CI.
+The script invokes TypeDoc through `npx` so no `npm install` is required just for docs.
+The output is written into the same directory as this README
+(`docs/getting-started/13-reference/api/`) and is git-ignored — regenerate locally or
+in CI.
 
 ## Coverage
 
