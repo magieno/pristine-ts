@@ -12,6 +12,11 @@ import {AppModuleCache} from "./app-module-cache";
 import {AppModuleDiscoverer} from "./app-module-discoverer";
 import {AppModuleDiscoveryCandidate} from "./app-module-discovery-candidate";
 import {AppModulePrompt} from "./app-module-prompt";
+import {BuildManifestChecker} from "./build-manifest-checker";
+import {BuildManifestReader} from "./build-manifest-reader";
+import {BuildManifestStalenessEnum} from "./build-manifest-staleness.enum";
+import {BuildRunner} from "./build-runner";
+import {BuildStalenessPrompt} from "./build-staleness-prompt";
 import {DynamicImporter} from "./dynamic-importer";
 import {LoadedAppModule} from "./loaded-app-module";
 import {LoadedPlugin} from "./loaded-plugin";
@@ -19,16 +24,19 @@ import {PluginLoader} from "./plugin-loader";
 
 /**
  * Resolves the consumer's AppModule and produces the default kernel configuration the CLI
- * uses. Orchestrates the full discovery cascade across the bootstrap-layer collaborators
- * (config loader, cache, discoverer, prompt, plugin loader).
+ * uses. Orchestrates the full discovery cascade across the bootstrap-layer collaborators.
  *
  * Discovery cascade (first match wins):
- *   1. `pristine.config.{ts,…}`'s `appModule.path` — canonical user config.
- *   2. `pristine.appModule.path` (or deprecated `cjsPath`) in package.json — legacy.
- *   3. `.pristine/last-app-module` — previous TTY selection cached for re-runs.
- *   4. Convention scan via `AppModuleDiscoverer`. Single match → use it. Multiple matches
- *      → prompt (TTY) or fail with an actionable error (non-TTY).
- *   5. Legacy auto-discovery from `node_modules/@pristine-ts/`, falling back to a CliModule-
+ *   1. `pristine.config.{ts,…}`'s `appModule.{sourcePath, outputPath}` — canonical path
+ *      when using `pristine build`. The build manifest is checked for staleness; stale →
+ *      prompt (TTY) or fail with actionable error (non-TTY).
+ *   2. `pristine.config.{ts,…}`'s `appModule.outputPath` alone (no sourcePath) — direct
+ *      load without manifest involvement; for users who compile externally.
+ *   3. Deprecated `appModule.path` from config — load with deprecation warning.
+ *   4. `pristine.appModule.{path, cjsPath}` in package.json — legacy.
+ *   5. `.pristine/last-app-module` — previous TTY selection cached for re-runs.
+ *   6. Convention scan via `AppModuleDiscoverer` — depth-1 fallback for greenfield projects.
+ *   7. Legacy auto-discovery from `node_modules/@pristine-ts/`, falling back to a CliModule-
  *      only synthetic AppModule so built-in commands always remain runnable.
  */
 @injectable()
@@ -43,6 +51,10 @@ export class AppModuleLoader {
     private readonly prompt: AppModulePrompt,
     private readonly pluginLoader: PluginLoader,
     private readonly dynamicImporter: DynamicImporter,
+    private readonly buildManifestReader: BuildManifestReader,
+    private readonly buildManifestChecker: BuildManifestChecker,
+    private readonly buildStalenessPrompt: BuildStalenessPrompt,
+    private readonly buildRunner: BuildRunner,
   ) {
   }
 
@@ -55,24 +67,57 @@ export class AppModuleLoader {
     let appModuleExportName = this.defaultExportName;
 
     const resolvedConfig = await this.configLoader.load({startDir: projectRoot});
-    if (resolvedConfig.config.appModule?.path !== undefined) {
+    const appModuleConfig = resolvedConfig.config.appModule;
+
+    if (appModuleConfig?.export !== undefined) {
+      appModuleExportName = appModuleConfig.export;
+    }
+
+    // Tier 1: source + output configured → manifest-aware load.
+    if (appModuleConfig?.sourcePath !== undefined && appModuleConfig?.outputPath !== undefined) {
+      const ensured = await this.ensureFreshBuild(projectRoot, appModuleConfig.sourcePath, appModuleConfig.outputPath);
+      if (ensured === false) {
+        // User declined to rebuild (or non-TTY exit). Stop the load entirely — the bin can
+        // still run a fallback CliModule for built-in commands.
+        const fallback = await this.buildAutoDiscoveredAppModule(projectRoot);
+        return new LoadedAppModule(
+          fallback.appModule,
+          this.buildKernelConfiguration(fallback.isLoggingModulePresent, resolvedConfig.config.kernelConfiguration),
+          fallback.isLoggingModulePresent,
+          [],
+        );
+      }
+      resolvedPath = path.resolve(projectRoot, appModuleConfig.outputPath);
+    }
+
+    // Tier 2: outputPath alone (no sourcePath) → direct load, no manifest involvement.
+    if (resolvedPath === undefined && appModuleConfig?.outputPath !== undefined) {
+      resolvedPath = path.resolve(projectRoot, appModuleConfig.outputPath);
+    }
+
+    // Tier 3: deprecated `appModule.path` from config.
+    if (resolvedPath === undefined && appModuleConfig?.path !== undefined) {
+      process.stderr.write(
+        "[pristine] DEPRECATED: pristine.config.ts `appModule.path` will be removed in a future release. " +
+        "Run `pristine init` to migrate to `appModule.sourcePath` + `appModule.outputPath`.\n",
+      );
       const configDir = resolvedConfig.configFilePath !== undefined
         ? path.dirname(resolvedConfig.configFilePath)
         : projectRoot;
-      resolvedPath = path.resolve(configDir, resolvedConfig.config.appModule.path);
-      if (resolvedConfig.config.appModule.export !== undefined) {
-        appModuleExportName = resolvedConfig.config.appModule.export;
-      }
+      resolvedPath = path.resolve(configDir, appModuleConfig.path);
     }
 
+    // Tier 4: package.json legacy fields.
     if (resolvedPath === undefined) {
       resolvedPath = this.readPackageJsonAppModulePath(projectRoot);
     }
 
+    // Tier 5: cached selection from a prior TTY prompt.
     if (resolvedPath === undefined) {
       resolvedPath = this.cache.read(projectRoot);
     }
 
+    // Tier 6: convention-based discovery.
     if (resolvedPath === undefined) {
       resolvedPath = await this.runConventionDiscovery(projectRoot);
     }
@@ -95,6 +140,7 @@ export class AppModuleLoader {
         isLoggingModulePresent = fallback.isLoggingModulePresent;
       }
     } else {
+      // Tier 7: node_modules/@pristine-ts/* + CliModule-only fallback.
       const fallback = await this.buildAutoDiscoveredAppModule(projectRoot);
       appModule = fallback.appModule;
       isLoggingModulePresent = fallback.isLoggingModulePresent;
@@ -110,7 +156,6 @@ export class AppModuleLoader {
 
     if (plugins.length > 0) {
       appModule = this.pluginLoader.wrap(appModule, plugins);
-      // Re-check for LoggingModule — a plugin could legitimately contribute it.
       if (isLoggingModulePresent === false) {
         isLoggingModulePresent = (appModule.importModules ?? []).find(m => m.keyname === LoggingModuleKeyname) !== undefined;
       }
@@ -118,6 +163,56 @@ export class AppModuleLoader {
 
     const configuration = this.buildKernelConfiguration(isLoggingModulePresent, resolvedConfig.config.kernelConfiguration);
     return new LoadedAppModule(appModule, configuration, isLoggingModulePresent, plugins);
+  }
+
+  /**
+   * Tier 1's manifest gate. Checks whether the build manifest still describes the current
+   * source/output paths and source content. If not, prompts the user (TTY) or fails (non-TTY)
+   * with a clear explanation. On a successful inline rebuild, returns true.
+   *
+   * Returns true when the build is fresh or just got rebuilt; false when the user declined to
+   * rebuild or when non-TTY hit a stale state. Callers should treat false as "stop the load".
+   * @private
+   */
+  private async ensureFreshBuild(projectRoot: string, sourcePath: string, outputPath: string): Promise<boolean> {
+    const manifest = this.buildManifestReader.read(projectRoot);
+    const staleness = this.buildManifestChecker.check(manifest, projectRoot, sourcePath, outputPath);
+
+    if (staleness === BuildManifestStalenessEnum.Fresh) {
+      return true;
+    }
+
+    const explanation = this.buildStalenessPrompt.describe(staleness);
+
+    if (this.buildStalenessPrompt.isInteractive() === false) {
+      process.stderr.write(`[pristine] ${explanation}\n`);
+      return false;
+    }
+
+    const shouldRebuild = await this.buildStalenessPrompt.prompt(staleness);
+    if (shouldRebuild !== true) {
+      process.stderr.write(`[pristine] ${explanation}\n`);
+      return false;
+    }
+
+    process.stderr.write(`[pristine] Rebuilding...\n`);
+    const buildSucceeded = this.buildRunner.run();
+    if (buildSucceeded === false) {
+      process.stderr.write(`[pristine] Rebuild failed. Fix the build error and re-run.\n`);
+      return false;
+    }
+
+    // After a successful rebuild, re-check that the manifest now passes — guards against the
+    // edge case where `pristine build` ran but, for whatever reason (unconfigured paths,
+    // tsconfig mismatch), didn't write a fresh manifest.
+    const reReadManifest = this.buildManifestReader.read(projectRoot);
+    const recheckStaleness = this.buildManifestChecker.check(reReadManifest, projectRoot, sourcePath, outputPath);
+    if (recheckStaleness !== BuildManifestStalenessEnum.Fresh) {
+      process.stderr.write(`[pristine] Build ran but manifest is still stale: ${this.buildStalenessPrompt.describe(recheckStaleness)}\n`);
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -147,7 +242,7 @@ export class AppModuleLoader {
     if (typeof pristine.cjsPath === "string" && pristine.cjsPath.length > 0) {
       process.stderr.write(
         "[pristine] DEPRECATED: package.json `pristine.appModule.cjsPath` will be removed in a future release. " +
-        "Rename to `pristine.appModule.path` (it accepts any module format: .js, .mjs, .cjs).\n",
+        "Run `pristine init` to migrate to a `pristine.config.ts`.\n",
       );
       return path.resolve(projectRoot, pristine.cjsPath);
     }
@@ -160,9 +255,6 @@ export class AppModuleLoader {
     if (candidates.length === 0) return undefined;
     if (candidates.length === 1) return candidates[0].absolutePath;
 
-    // Multiple candidates: if one strictly outranks the rest (e.g. one `app.module.js` plus
-    // other `*.module.*` files that happen to export an AppModule symbol), pick the top one
-    // without asking. Otherwise prompt the user (TTY) or fail with an actionable error.
     const top = candidates[0];
     const tied = candidates.filter(c => c.score === top.score);
     if (tied.length === 1) return top.absolutePath;
@@ -176,8 +268,8 @@ export class AppModuleLoader {
       throw new Error(
         `[pristine] Found ${candidates.length} AppModule candidates and cannot prompt (no interactive terminal):\n` +
         `${list}\n\n` +
-        `Disambiguate by setting \`pristine.appModule.path\` in package.json, e.g.:\n` +
-        `  "pristine": { "appModule": { "path": "${candidates[0].displayPath}" } }`,
+        `Disambiguate by setting \`pristine.appModule.outputPath\` in pristine.config.ts (run \`pristine init\` to scaffold), e.g.:\n` +
+        `  appModule: { outputPath: "${candidates[0].displayPath}" }`,
       );
     }
 
@@ -189,12 +281,6 @@ export class AppModuleLoader {
     return selected;
   }
 
-  /**
-   * Imports the AppModule from an absolute path. Wraps the path in a `file://` URL — bare
-   * absolute paths cannot be passed to dynamic `import()` for ESM resolution, and on Windows
-   * raw paths break altogether. Accepts `.js`, `.mjs`, `.cjs`.
-   * @private
-   */
   private async importAppModule(absolutePath: string, exportName: string): Promise<AppModuleInterface> {
     const url = pathToFileURL(absolutePath).href;
     const loaded = await this.dynamicImporter.import(url);
@@ -209,13 +295,6 @@ export class AppModuleLoader {
     return loaded[exportName] as AppModuleInterface;
   }
 
-  /**
-   * Last-resort fallback. Scans `node_modules/@pristine-ts/` for every `*.module.js` it can
-   * find and synthesizes an AppModule from the harvested exports. When no such packages
-   * exist either (e.g. the bin was invoked outside any project), falls back further to a
-   * CliModule-only synthetic AppModule so built-in commands always remain runnable.
-   * @private
-   */
   private async buildAutoDiscoveredAppModule(projectRoot: string): Promise<{appModule: AppModuleInterface; isLoggingModulePresent: boolean}> {
     const pristineNodeModulesPath = path.resolve(projectRoot, "node_modules", "@pristine-ts");
     const modules: any[] = [];
@@ -262,9 +341,6 @@ export class AppModuleLoader {
       configuration[LoggingModuleKeyname + ".logSeverityLevelConfiguration"] = SeverityEnum.Error;
     }
 
-    // User-supplied kernelConfiguration overrides the CLI defaults. This is how a consumer
-    // can opt back into JSON logging or raise verbosity for the CLI specifically without
-    // touching their AppModule's configuration definitions.
     if (userKernelConfiguration !== undefined) {
       Object.assign(configuration, userKernelConfiguration);
     }

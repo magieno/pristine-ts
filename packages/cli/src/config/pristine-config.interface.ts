@@ -10,20 +10,35 @@
  * import {defineConfig} from "@pristine-ts/cli";
  *
  * export default defineConfig({
- *   appModule: { path: "dist/app.module.js" },
- *   build: { outDir: "dist", format: "esm" },
+ *   appModule: {
+ *     sourcePath: "src/app.module.ts",
+ *     outputPath: "dist/app.module.js",
+ *   },
  * });
  * ```
+ *
+ * Run `pristine init` to generate this file interactively.
  */
 export interface PristineConfig {
   /**
-   * Where the AppModule lives. The CLI imports this file and reads the `AppModule` named
-   * export (or the export named by `export`). Path is resolved relative to the directory
-   * containing the config file.
+   * Where the AppModule lives. Both `sourcePath` and `outputPath` should be set when you
+   * want `pristine build` to manage compilation; `outputPath` alone is enough when you
+   * compile externally and just want the CLI to load the result.
+   *
+   * Paths are resolved relative to the directory containing the config file.
+   *
+   * The legacy `path` field (single field meaning "the compiled artifact") still works for
+   * one minor cycle with a deprecation warning. Run `pristine init` to migrate.
    */
   appModule?: {
-    path: string;
+    /** Source TypeScript file the build should compile. Required when using `pristine build`. */
+    sourcePath?: string;
+    /** Compiled JavaScript file the runtime should load. Required for `pristine start`/`verify`/etc. */
+    outputPath?: string;
+    /** Name of the export holding the AppModule definition. Default: `AppModule`. */
     export?: string;
+    /** @deprecated Use `outputPath` instead. Will be removed in a future minor release. */
+    path?: string;
   };
 
   /** Build pipeline configuration. Used by `pristine build`. */

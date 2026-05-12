@@ -76,17 +76,8 @@ becomes available everywhere. This is the Angular/Nest/Vue CLI pattern.
 
 ## A 5-minute tour
 
-Let's walk through what the CLI looks like in practice. Assume you have a brand-new Pristine
-project with this layout:
-
-```
-my-app/
-├── package.json
-├── tsconfig.json
-└── src/
-    ├── app.module.ts
-    └── main.ts
-```
+Let's walk through what the CLI looks like in practice. Assume you have a brand-new
+project with just `package.json` and `tsconfig.json`.
 
 ### 1. Install the CLI
 
@@ -94,23 +85,50 @@ my-app/
 npm install --save-dev @pristine-ts/cli
 ```
 
-### 2. Initialize a config file
+### 2. Run `pristine init`
 
 ```sh
-npx pristine p:config:init
+npx pristine init
 ```
 
-This creates `pristine.config.ts` at your project root with sensible defaults. It looks
-like this (with comments trimmed):
+`pristine init` is the canonical setup command. It interactively (or via flags in CI):
+
+- Asks where your AppModule source file lives (default: `src/app.module.ts`)
+- Asks where the compiled output should land (default: `dist/app.module.js`)
+- Asks which tsconfig to use (default: `tsconfig.json`) and build format (default: `esm`)
+- Writes `pristine.config.ts` with both `sourcePath` AND `outputPath` populated
+- Optionally scaffolds a starter AppModule at the source path (only if it doesn't exist)
+- Optionally adds `build`/`start`/`verify` scripts to your `package.json` (only ones that
+  don't already exist — never overwritten)
+- Adds `.pristine/` to your `.gitignore` if one is present
+
+The generated config:
 
 ```ts
 import {defineConfig} from "@pristine-ts/cli";
 
 export default defineConfig({
   appModule: {
-    path: "dist/app.module.js",
+    sourcePath: "src/app.module.ts",
+    outputPath: "dist/app.module.js",
+  },
+  build: {
+    tsconfig: "tsconfig.json",
+    format: "esm",
   },
 });
+```
+
+For non-interactive use:
+
+```sh
+pristine init \
+  --source-path=src/app.module.ts \
+  --output-path=dist/app.module.js \
+  --tsconfig=tsconfig.json \
+  --format=esm \
+  --scaffold \
+  --scripts
 ```
 
 ### 3. Build your project
@@ -283,8 +301,11 @@ options into `run`. Validation failures exit non-zero and print the constraint e
 
 ### Recipe: Build your TypeScript
 
-`pristine build` is a `tsc` wrapper. For most projects, the only thing you need is the
-default config:
+`pristine build` is a `tsc` wrapper that ALSO writes a build manifest at
+`.pristine/build-manifest.json` so downstream commands can detect when the build is
+stale (source edited, output deleted, paths reconfigured).
+
+For most projects, the only thing you need is the default config produced by `pristine init`:
 
 ```ts
 // pristine.config.ts
@@ -325,6 +346,44 @@ build: {
   tsconfig: "tsconfig.build.json",
 }
 ```
+
+#### The build manifest
+
+After a successful build, `pristine build` writes
+`<project>/.pristine/build-manifest.json`:
+
+```json
+{
+  "appModuleSourcePath": "/abs/path/src/app.module.ts",
+  "appModuleOutputPath": "/abs/path/dist/app.module.js",
+  "sourceHash": "sha256:...",
+  "builtAt": "2026-05-11T00:00:00.000Z"
+}
+```
+
+Every command that loads your AppModule (`pristine start`, `pristine verify`, etc.) reads
+this file to confirm the compiled output matches your current source. If the manifest is
+**stale** (source edited since last build, output deleted, paths reconfigured), the CLI:
+
+- **In a TTY**: prints what's stale and prompts: "Run `pristine build` now to refresh? [Y/n]".
+  On Yes, runs the build inline and continues. On No, exits.
+- **Non-TTY** (CI, Docker): prints the same explanation and exits non-zero. CI never
+  auto-rebuilds — that hides bugs.
+
+Examples of stale states and what they mean:
+
+| Reason | What happened |
+|--------|---------------|
+| `Missing` | No manifest yet. Run `pristine build`. |
+| `SourcePathChanged` | You edited `appModule.sourcePath` in the config. Rebuild. |
+| `OutputPathChanged` | You edited `appModule.outputPath` in the config. Rebuild. |
+| `SourceContentChanged` | The source file's bytes don't match the hash from the last build. Rebuild. |
+| `OutputMissing` | The compiled file referenced by the manifest is no longer on disk. Rebuild. |
+
+The manifest only ships when both `appModule.sourcePath` and `appModule.outputPath` are
+configured (which `pristine init` does for you). Without them, `pristine build` still works
+as a thin `tsc` wrapper but doesn't produce a manifest, and downstream commands skip the
+staleness check.
 
 ---
 
@@ -772,13 +831,14 @@ alias. Use whichever you prefer.
 
 | Command | Alias | What it does |
 |---------|-------|--------------|
+| `pristine p:init` | `init` | Scaffold a new project setup interactively (or via flags). Writes `pristine.config.ts`, optional starter AppModule, optional npm scripts. Refuses to overwrite an existing config. |
 | `pristine p:help` | `help` | Print usage and list every registered command (built-in + custom) with descriptions. |
 | `pristine p:list` | `list` | Print every registered command name (compact form). |
 | `pristine p:info` | `info` | Print framework version, Node, OS, resolved config path, AppModule location, imported module list. Useful for support tickets. |
-| `pristine p:build` | `build` | Compile your TypeScript via `tsc`. Reads `build.{outDir,tsconfig,format,clean}` from config. |
-| `pristine p:start` | `start` | Boot the AppModule and run until SIGTERM/SIGINT. Auto-starts every registered `RuntimeServer` (HTTP, etc.). Production-grade. Supports `--port` / `--address`. |
+| `pristine p:build` | `build` | Compile your TypeScript via `tsc` and write the build manifest. Reads `build.{outDir,tsconfig,format,clean}` and `appModule.{sourcePath,outputPath}` from config. |
+| `pristine p:start` | `start` | Boot the AppModule and run until SIGTERM/SIGINT. Auto-starts every registered `RuntimeServer` (HTTP, etc.). Production-grade. Supports `--port` / `--address`. Prompts to rebuild if the manifest is stale. |
 | `pristine p:verify` | `verify` | Boot a fresh kernel of your AppModule, run all registered `InstantiationTest`s. Exits non-zero on failure. `--skip-tests` skips the test phase. |
-| `pristine p:config:init` | — | Generate a starter `pristine.config.ts`. Migrates from `package.json` `pristine.appModule.{path,cjsPath}` if present. Refuses to overwrite an existing config. |
+| `pristine p:config:init` | — | Legacy helper that migrates a `pristine.appModule.{path,cjsPath}` field from `package.json` to a minimal config file. Prefer `pristine init` for new projects. |
 | `pristine p:config:print` | — | Print the resolved config + file path it loaded from + per-field provenance. |
 
 `config:*` commands intentionally don't have top-level aliases — they're sub-commands by
@@ -901,7 +961,27 @@ routing pipeline (no behavior changes).
 
 ## What changed (versus pre-1.0.440)
 
-**Phase 6 (this release):**
+**Phase 7 (this release):**
+
+- **`pristine init` command.** Interactive (or flag-driven) scaffold: writes
+  `pristine.config.ts` with both `sourcePath` and `outputPath`, optionally creates a starter
+  AppModule, optionally adds `build`/`start`/`verify` scripts to `package.json`, optionally
+  adds `.pristine/` to `.gitignore`. Never overwrites existing files.
+- **Explicit source + output paths in config.** `appModule.path` deprecated;
+  `appModule.sourcePath` (what `pristine build` compiles) and `appModule.outputPath`
+  (what runtime commands load) replace it. Old `path` field still works for one minor
+  cycle with a warning.
+- **Build manifest at `.pristine/build-manifest.json`.** Written atomically by
+  `pristine build` after successful compile. Records source path, output path, source
+  content hash, build timestamp.
+- **Staleness detection.** `pristine start`/`verify`/etc. read the manifest before loading
+  the AppModule. Stale manifests (source edited, output missing, paths reconfigured) are
+  detected and surfaced with a specific reason. In a TTY, the user is prompted to rebuild
+  inline; in CI, the bin exits non-zero with the explanation.
+- **Legacy `path` field still works.** With a deprecation warning pointing users at
+  `pristine init` for migration.
+
+**Phase 6:**
 
 - **End-to-end smoke tests for the bin.** `tests/cli` exercises every command via the
   actual built `pristine` binary spawned by jest.

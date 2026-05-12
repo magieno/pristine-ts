@@ -8,12 +8,18 @@ import {ShellManager} from "../managers/shell.manager";
 import {ExitCodeEnum} from "../enums/exit-code.enum";
 import {CliModuleKeyname} from "../cli.module.keyname";
 import {ConfigLoader} from "../config/config-loader";
+import {BuildManifestWriter} from "../bootstrap/build-manifest-writer";
 
 /**
- * Compiles the consumer's TypeScript project. Reads `build.{outDir,tsconfig,format,clean}` from
- * `pristine.config.ts` and applies sensible defaults when fields are omitted. Today this is a
- * `tsc` wrapper — esbuild/swc support can be added later behind the same `format` flag without
- * changing the CLI surface.
+ * Compiles the consumer's TypeScript project. Reads `build.{outDir,tsconfig,format,clean}`
+ * and `appModule.{sourcePath,outputPath}` from `pristine.config.ts`. After a successful
+ * compile, writes a build manifest at `<projectRoot>/.pristine/build-manifest.json` so
+ * downstream commands (`pristine start`, `pristine verify`) can detect when the build is
+ * stale (source edited, output deleted, paths reconfigured).
+ *
+ * The manifest is only written when both `appModule.sourcePath` and `appModule.outputPath`
+ * are configured. Without both, there's nothing to fingerprint and downstream commands fall
+ * through to the next layer of the loader cascade.
  *
  * Defaults (when not configured):
  *   - tsconfig: "tsconfig.json"
@@ -31,10 +37,14 @@ export class BuildCommand implements CommandInterface<null> {
   name = "p:build";
   description = "Compile the project's TypeScript using tsc.";
 
+  private readonly defaultTsconfig: string = "tsconfig.json";
+  private readonly defaultFormat: "esm" | "cjs" | "both" = "esm";
+
   constructor(
     private readonly consoleManager: ConsoleManager,
     private readonly shellManager: ShellManager,
     private readonly configLoader: ConfigLoader,
+    private readonly buildManifestWriter: BuildManifestWriter,
   ) {
   }
 
@@ -43,8 +53,8 @@ export class BuildCommand implements CommandInterface<null> {
     const resolvedConfig = await this.configLoader.load({startDir: projectRoot});
     const buildConfig = resolvedConfig.config.build ?? {};
 
-    const tsconfig = buildConfig.tsconfig ?? "tsconfig.json";
-    const format = buildConfig.format ?? "esm";
+    const tsconfig = buildConfig.tsconfig ?? this.defaultTsconfig;
+    const format = buildConfig.format ?? this.defaultFormat;
     const clean = buildConfig.clean ?? false;
     const outDir = buildConfig.outDir;
 
@@ -59,7 +69,7 @@ export class BuildCommand implements CommandInterface<null> {
     const invocations = this.resolveTscInvocations(projectRoot, tsconfig, format);
     if (invocations.length === 0) {
       this.consoleManager.writeError(
-        `No tsconfig found. Looked for: ${this.expectedTsconfigsForFormat(tsconfig, format).join(", ")}`
+        `No tsconfig found. Looked for: ${this.expectedTsconfigsForFormat(tsconfig, format).join(", ")}`,
       );
       return ExitCodeEnum.Error;
     }
@@ -69,8 +79,8 @@ export class BuildCommand implements CommandInterface<null> {
       this.consoleManager.writeInfo(`Compiling with ${relTsconfig}`);
       try {
         // The shell command runs in the current process's CWD, which is already projectRoot.
-        // Don't pass `directory` here — ShellManager's PathManager resolution would double the
-        // absolute path back onto itself producing /private/tmp/.../private/tmp/...
+        // Don't pass `directory` here — ShellManager's PathManager resolution would double
+        // the absolute path back onto itself producing /private/tmp/.../private/tmp/...
         await this.shellManager.execute(`npx tsc -p ${relTsconfig}`, {
           streamStdout: true,
           outputDuration: false,
@@ -82,14 +92,46 @@ export class BuildCommand implements CommandInterface<null> {
       }
     }
 
+    this.writeManifestIfConfigured(projectRoot, resolvedConfig.config.appModule);
+
     this.consoleManager.writeSuccess(`Build complete (${invocations.length} tsconfig${invocations.length > 1 ? "s" : ""}).`);
     return ExitCodeEnum.Success;
   }
 
+  private writeManifestIfConfigured(projectRoot: string, appModule: { sourcePath?: string; outputPath?: string } | undefined): void {
+    if (appModule?.sourcePath === undefined || appModule?.outputPath === undefined) {
+      // No source/output pair configured — nothing to fingerprint. The user is on the
+      // legacy `appModule.path` path or relying on convention discovery; either way the
+      // manifest layer is a no-op for them.
+      return;
+    }
+
+    const absoluteSource = path.resolve(projectRoot, appModule.sourcePath);
+    const absoluteOutput = path.resolve(projectRoot, appModule.outputPath);
+
+    if (fs.existsSync(absoluteSource) === false) {
+      this.consoleManager.writeWarning(
+        `Build succeeded but appModule.sourcePath '${appModule.sourcePath}' does not exist; skipping manifest.`,
+      );
+      return;
+    }
+    if (fs.existsSync(absoluteOutput) === false) {
+      this.consoleManager.writeWarning(
+        `Build succeeded but appModule.outputPath '${appModule.outputPath}' was not produced; skipping manifest. ` +
+        `Check your tsconfig outDir / file layout.`,
+      );
+      return;
+    }
+
+    const manifest = this.buildManifestWriter.write(projectRoot, appModule.sourcePath, appModule.outputPath);
+    this.consoleManager.writeInfo(`Manifest written: .pristine/build-manifest.json (built at ${manifest.builtAt})`);
+  }
+
   /**
-   * For `format: "both"`, we run two passes: the primary tsconfig (assumed ESM-ish), then the
-   * `.cjs.json` sibling. For `cjs`/`esm`, we run only the matching one. Returns the absolute
-   * tsconfig paths in the order they should run.
+   * For `format: "both"`, we run two passes: the primary tsconfig (assumed ESM-ish), then
+   * the `.cjs.json` sibling. For `cjs`/`esm`, we run only the matching one. Returns the
+   * absolute tsconfig paths in the order they should run.
+   * @private
    */
   private resolveTscInvocations(projectRoot: string, primary: string, format: "esm" | "cjs" | "both"): string[] {
     const primaryAbs = path.resolve(projectRoot, primary);

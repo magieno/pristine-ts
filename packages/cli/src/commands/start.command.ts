@@ -38,7 +38,7 @@ import {StartCommandOptions} from "./start.command-options";
 @moduleScoped(CliModuleKeyname)
 @injectable()
 export class StartCommand implements CommandInterface<StartCommandOptions> {
-  optionsType: StartCommandOptions = new StartCommandOptions();
+  optionsType = StartCommandOptions;
   name = "p:start";
   description = "Boot the AppModule and run until SIGTERM/SIGINT. Production-grade entry point.";
 

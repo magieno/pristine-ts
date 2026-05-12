@@ -5,8 +5,13 @@ import {AppModuleCache} from "./bootstrap/app-module-cache";
 import {AppModuleDiscoverer} from "./bootstrap/app-module-discoverer";
 import {AppModuleLoader} from "./bootstrap/app-module-loader";
 import {AppModulePrompt} from "./bootstrap/app-module-prompt";
+import {BuildManifestChecker} from "./bootstrap/build-manifest-checker";
+import {BuildManifestReader} from "./bootstrap/build-manifest-reader";
+import {BuildRunner} from "./bootstrap/build-runner";
+import {BuildStalenessPrompt} from "./bootstrap/build-staleness-prompt";
 import {DynamicImporter} from "./bootstrap/dynamic-importer";
 import {PluginLoader} from "./bootstrap/plugin-loader";
+import {SourceHasher} from "./bootstrap/source-hasher";
 import {ConfigLoader} from "./config/config-loader";
 
 /**
@@ -50,7 +55,23 @@ const buildAppModuleLoader = (): AppModuleLoader => {
   const discoverer = new AppModuleDiscoverer();
   const prompt = new AppModulePrompt(dynamicImporter);
   const pluginLoader = new PluginLoader(dynamicImporter);
-  return new AppModuleLoader(configLoader, cache, discoverer, prompt, pluginLoader, dynamicImporter);
+  const sourceHasher = new SourceHasher();
+  const buildManifestReader = new BuildManifestReader();
+  const buildManifestChecker = new BuildManifestChecker(sourceHasher);
+  const buildStalenessPrompt = new BuildStalenessPrompt(dynamicImporter);
+  const buildRunner = new BuildRunner();
+  return new AppModuleLoader(
+    configLoader,
+    cache,
+    discoverer,
+    prompt,
+    pluginLoader,
+    dynamicImporter,
+    buildManifestReader,
+    buildManifestChecker,
+    buildStalenessPrompt,
+    buildRunner,
+  );
 }
 
 /**
