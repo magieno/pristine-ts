@@ -39,6 +39,21 @@ jobs:
       # `--no-audit --no-fund` skip the audit pass and the funding-message banner. Both are
       # noise in CI output (we audit separately) and shave a few seconds per install.
       - run: npm ci --no-audit --no-fund
+      # Caches each package's `dist/` output across runs so TypeScript's incremental
+      # compilation (enabled via `incremental: true` in root tsconfig) can skip unchanged
+      # files. The cache key includes the commit SHA so a successful run uniquely fingerprints
+      # the build; restore-keys allow partial hits from any previous build for the same Node
+      # version, which is exactly what tsc's incremental algorithm needs to know what's stale.
+      #
+      # Cache size is ~30-60MB total (well under GitHub's 10GB limit). On a typical "edit one
+      # file" PR this cuts the build step from ~120s to ~15-30s.
+      - uses: actions/cache@v4
+        with:
+          path: |
+            packages/*/dist
+          key: pristine-build-${{ matrix.node-version }}-${{ github.sha }}
+          restore-keys: |
+            pristine-build-${{ matrix.node-version }}-
       - run: npm run build
       - run: npx eslint --ext .ts packages/**
       - run: npm run test
