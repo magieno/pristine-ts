@@ -207,7 +207,6 @@ export class Router implements RouterInterface {
             rootNode: this.root,
             request,
           },
-          eventId: request.id,
         });
 
         routerRequestExecutionSpan.end();
@@ -251,7 +250,6 @@ export class Router implements RouterInterface {
           }, extra: {
             identity,
           },
-          eventId: request.id,
         });
       } catch (error: any) {
         this.loghandler.error("Authentication error", {
@@ -264,7 +262,6 @@ export class Router implements RouterInterface {
             context: methodNode.route.context,
             container
           },
-          eventId: request.id,
         });
 
         // Todo: check if the error is an UnauthorizedHttpError, else create one.
@@ -301,7 +298,6 @@ export class Router implements RouterInterface {
             request,
             interceptedRequest,
           },
-          eventId: request.id,
         })
 
         // Resolve the value to inject in the method arguments that have a decorator resolver
@@ -314,7 +310,6 @@ export class Router implements RouterInterface {
               request,
               interceptedRequest,
             },
-            eventId: request.id,
           });
           resolvedMethodArguments = [];
 
@@ -345,7 +340,6 @@ export class Router implements RouterInterface {
 
         this.loghandler.debug("Router - The response returned by the controller", {
           extra: {response},
-          eventId: request.id,
         })
 
         let returnedResponse: Response;
@@ -353,7 +347,6 @@ export class Router implements RouterInterface {
         if (response instanceof Response) {
           this.loghandler.debug("Router - Response returned by the controller is a Response object", {
             extra: {response},
-            eventId: request.id,
           })
           returnedResponse = response;
         } else {
@@ -368,7 +361,6 @@ export class Router implements RouterInterface {
               response,
               returnedResponse,
             },
-            eventId: request.id,
           })
         }
 
@@ -377,7 +369,6 @@ export class Router implements RouterInterface {
             response,
             returnedResponse,
           },
-          eventId: request.id,
         })
 
         const responseInterceptorsSpan = tracingManager.startSpan(SpanKeynameEnum.ResponseInterceptors, SpanKeynameEnum.RouterRequestExecution);
@@ -394,7 +385,6 @@ export class Router implements RouterInterface {
           extra: {
             error,
           },
-          eventId: request.id,
         })
 
         // Execute router interceptors for the error response;
@@ -443,7 +433,6 @@ export class Router implements RouterInterface {
         request,
         methodNode,
       },
-      eventId: request.id,
     })
 
     // Execute all the request interceptors
@@ -470,8 +459,6 @@ export class Router implements RouterInterface {
             extra: {
               interceptor
             },
-            eventId: request.id,
-
           });
           continue;
         }
@@ -489,7 +476,6 @@ export class Router implements RouterInterface {
               error,
               interceptor,
             },
-            eventId: request.id,
           });
           throw error;
         }
@@ -502,7 +488,6 @@ export class Router implements RouterInterface {
         interceptedRequest,
         methodNode,
       },
-      eventId: request.id,
     })
 
     return interceptedRequest;
@@ -525,7 +510,6 @@ export class Router implements RouterInterface {
         request,
         methodNode,
       },
-      eventId: request.id,
     })
 
     // Execute all the request interceptors
@@ -552,7 +536,6 @@ export class Router implements RouterInterface {
             extra: {
               interceptor
             },
-            eventId: request.id,
           });
           continue;
         }
@@ -568,7 +551,6 @@ export class Router implements RouterInterface {
               error,
               interceptor,
             },
-            eventId: request.id,
           });
           throw error;
         }
@@ -582,7 +564,6 @@ export class Router implements RouterInterface {
         request,
         methodNode,
       },
-      eventId: request.id,
     })
 
     return interceptedResponse;
@@ -644,7 +625,6 @@ export class Router implements RouterInterface {
             extra: {
               interceptor
             },
-            eventId: request.id,
           });
           continue;
         }
@@ -658,7 +638,6 @@ export class Router implements RouterInterface {
               interceptorName: interceptor.constructor.name,
             },
             extra: {error},
-            eventId: request.id,
           });
           throw error;
         }
@@ -674,7 +653,6 @@ export class Router implements RouterInterface {
         request,
         methodNode,
       },
-      eventId: request.id,
     })
 
     return interceptedResponse;

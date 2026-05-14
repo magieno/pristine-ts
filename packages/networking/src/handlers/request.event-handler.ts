@@ -49,7 +49,6 @@ export class RequestEventHandler implements EventHandlerInterface<Request, Respo
       extra: {
         event,
       },
-      eventId: event.id,
       breadcrumb: `${NetworkingModuleKeyname}:request.event-handler:handle`,
     },)
 
@@ -66,7 +65,6 @@ export class RequestEventHandler implements EventHandlerInterface<Request, Respo
         responseBody: response.body,
         responseHeaders: response.headers,
       },
-      eventId: event.id,
       extra: {
         event,
         response,

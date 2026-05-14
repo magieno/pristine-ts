@@ -75,7 +75,6 @@ export class BodyValidationRequestInterceptor implements RequestInterceptorInter
 
 
     this.loghandler.error(`Error validating body of request.`, {
-      eventId: request.id,
       eventGroupId: request.groupId,
       highlights: {
         errors,

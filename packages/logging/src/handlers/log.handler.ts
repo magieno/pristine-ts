@@ -4,7 +4,7 @@ import {LoggingConfigurationKeys} from "../logging.configuration-keys";
 import {SeverityEnum} from "../enums/severity.enum";
 import {LogModel} from "../models/log.model";
 import {LoggerInterface} from "../interfaces/logger.interface";
-import {injectConfig, InternalContainerParameterEnum, moduleScoped, ServiceDefinitionTagEnum, tag, TracingContext} from "@pristine-ts/common";
+import {EventContextManager, injectConfig, InternalContainerParameterEnum, moduleScoped, ServiceDefinitionTagEnum, tag, TracingContext} from "@pristine-ts/common";
 import {LogHandlerInterface} from "../interfaces/log-handler.interface";
 import {BreadcrumbHandlerInterface} from "../interfaces/breadcrumb-handler.interface";
 import {Utils} from "../utils/utils";
@@ -114,24 +114,33 @@ export class LogHandler implements LogHandlerInterface {
     log.traceId = this.tracingContext.traceId;
     log.date = new Date();
 
+    // Resolve the eventId once. Explicit `data.eventId` always wins (callers that want
+    // to log against a different event — e.g. a parent log line during fan-out — keep
+    // their override). When the caller didn't pass one, fall back to the active
+    // EventContext so we don't have to thread `eventId: request.id` through every call
+    // site. Outside any EventContext (e.g. logs from boot, before the pipeline starts),
+    // both are undefined and the field is omitted from the output — same as today.
+    const resolvedEventId = data?.eventId ?? EventContextManager.eventId();
+
     // Handle the data parameter to extract highlights and extra information.
     if (data) {
       // Check if data is in the structured format { highlights, extra }
       if (typeof data === 'object' && data !== null && !Array.isArray(data) && (data.hasOwnProperty('highlights') || data.hasOwnProperty('extra') || data.hasOwnProperty('eventId'))) {
         log.highlights = data.highlights ?? {};
         log.extra = data.extra;
-        log.eventId = data.eventId;
+        log.eventId = resolvedEventId;
       } else {
         // Otherwise, treat the entire data object as 'extra'
         log.extra = data;
+        log.eventId = resolvedEventId;
       }
 
       if (data.breadcrumb) {
-        this.breadcrumbHandler.add(data.eventId, data.breadcrumb);
+        this.breadcrumbHandler.add(resolvedEventId, data.breadcrumb);
       }
 
-      if (data.eventId) {
-        log.breadcrumbs = this.breadcrumbHandler.breadcrumbs[data.eventId];
+      if (resolvedEventId) {
+        log.breadcrumbs = this.breadcrumbHandler.breadcrumbs[resolvedEventId];
       }
 
       if (data.outputHints) {
@@ -140,6 +149,13 @@ export class LogHandler implements LogHandlerInterface {
 
       if (data.eventGroupId) {
         log.eventGroupId = data.eventGroupId;
+      }
+    } else {
+      // No `data` arg at all — still try to attach the eventId from the active context
+      // so a bare `logHandler.info("...")` from within a request gets correlated.
+      log.eventId = resolvedEventId;
+      if (resolvedEventId) {
+        log.breadcrumbs = this.breadcrumbHandler.breadcrumbs[resolvedEventId];
       }
     }
 
