@@ -2,10 +2,12 @@ import {defineConfig} from "@pristine-ts/cli";
 
 /**
  * Test fixture for `@pristine-ts/cli` — exercises the canonical config-file path that
- * `pristine.appModule.path` lookup, jiti loading, and command dispatch all rely on.
+ * jiti loading and command dispatch rely on. Both `sourcePath` and `outputPath` are
+ * required when `appModule` is set, so the build manifest can fingerprint freshness.
  */
 export default defineConfig({
   appModule: {
-    path: "dist/lib/cjs/app.module.js",
+    sourcePath: "src/app.module.ts",
+    outputPath: "dist/lib/cjs/app.module.js",
   },
 });

@@ -48,6 +48,28 @@ export class AppModuleLoader {
   ) {
   }
 
+  /**
+   * Resolves the consumer's AppModule and the kernel configuration the CLI should boot
+   * with. The flow has five stages, executed in order:
+   *
+   *   1. **Read pristine.config.{ts,js}** — single source of truth for where the
+   *      AppModule lives and what plugins to wire in.
+   *   2. **Build manifest gate** — when `appModule.{sourcePath, outputPath}` is set,
+   *      check whether the compiled output is fresh against its source. Stale → prompt
+   *      to rebuild (TTY) or fail with an actionable error (non-TTY).
+   *   3. **Import the AppModule** — dynamically load the compiled `outputPath` and pull
+   *      out the configured export (default `AppModule`).
+   *   4. **Safety net** — when there is no config, no `appModule` block, or the import
+   *      fails, fall back to a CliModule-only synthetic AppModule so the bin remains
+   *      usable. This is the only escape hatch — there is no convention scan and no
+   *      package.json discovery.
+   *   5. **Plugin wrap** — load plugins declared in the config and wrap the AppModule
+   *      so plugin-contributed modules end up in the kernel's import graph.
+   *
+   * Final output: a `LoadedAppModule` carrying the (possibly wrapped) AppModule, the
+   * kernel configuration overlay, the logging-module-present flag, and the loaded
+   * plugin list.
+   */
   async load(): Promise<LoadedAppModule> {
     const projectRoot = process.cwd();
     let appModule: AppModuleInterface;
@@ -56,18 +78,25 @@ export class AppModuleLoader {
     let resolvedPath: string | undefined;
     let appModuleExportName = this.defaultExportName;
 
+    // ── Stage 1: read the config file (pristine.config.ts or pristine.config.js). ──
+    // Walks up from cwd; returns an empty config when no file is found, which lets the
+    // safety net in Stage 4 take over instead of erroring out.
     const resolvedConfig = await this.configLoader.load({startDir: projectRoot});
     const appModuleConfig = resolvedConfig.config.appModule;
 
+    // Honor `appModule.export` for projects whose AppModule isn't named `AppModule`.
     if (appModuleConfig?.export !== undefined) {
       appModuleExportName = appModuleConfig.export;
     }
 
+    // ── Stage 2: build manifest gate. ──
+    // Only runs when both sourcePath + outputPath are configured (the canonical setup).
+    // `ensureFreshBuild` returns false when the user declined to rebuild a stale output,
+    // or when we're non-interactive and stale. In either case we bail to the safety net
+    // so commands like `pristine init` and `pristine help` still work.
     if (appModuleConfig?.sourcePath !== undefined && appModuleConfig?.outputPath !== undefined) {
       const ensured = await this.ensureFreshBuild(projectRoot, appModuleConfig.sourcePath, appModuleConfig.outputPath);
       if (ensured === false) {
-        // User declined to rebuild (or non-TTY exit). Fall through to the safety net so the
-        // bin still runs `pristine init` / `pristine help`.
         const fallback = await this.buildFallbackAppModule(projectRoot);
         return new LoadedAppModule(
           fallback.appModule,
@@ -79,14 +108,19 @@ export class AppModuleLoader {
       resolvedPath = path.resolve(projectRoot, appModuleConfig.outputPath);
     }
 
+    // ── Stage 3: dynamic import of the AppModule, OR Stage 4 safety net. ──
     if (resolvedPath !== undefined) {
+      // Stage 3: dynamic import. The compiled output is a regular JS module; we pull
+      // out the named export and detect LoggingModule presence so Stage 5 can decide
+      // whether to install the CLI's default console-logger configuration overlay.
       try {
         appModule = await this.importAppModule(resolvedPath, appModuleExportName);
         isLoggingModulePresent = (appModule.importModules ?? []).find(m => m.keyname === LoggingModuleKeyname) !== undefined;
       } catch (error) {
-        // The configured AppModule file is missing or broken. Rather than crashing the bin
-        // (which would prevent `pristine init` from running, leaving the user with no way to
-        // fix their config), warn loudly and fall back to a CliModule-only AppModule.
+        // Stage 4 (failure flavor): the configured AppModule file is missing or broken.
+        // We don't crash — that would prevent `pristine init` from running and leave
+        // the user with no way to fix their config. Warn loudly, fall back to the
+        // CliModule-only synthetic AppModule, and let the user re-run.
         process.stderr.write(
           `[pristine] Failed to load AppModule from '${resolvedPath}': ${(error as Error).message}\n` +
           `[pristine] Falling back to built-in commands only. Fix your AppModule config and re-run.\n`,
@@ -96,13 +130,18 @@ export class AppModuleLoader {
         isLoggingModulePresent = fallback.isLoggingModulePresent;
       }
     } else {
-      // No `appModule` block in the config (or no config file at all). Run with the safety
-      // net so the bin remains usable.
+      // Stage 4 (no-config flavor): no `appModule` block, or no config file at all.
+      // First-run case (`pristine init` from a fresh project) lands here. Same safety
+      // net so the bin can still bootstrap the user's project.
       const fallback = await this.buildFallbackAppModule(projectRoot);
       appModule = fallback.appModule;
       isLoggingModulePresent = fallback.isLoggingModulePresent;
     }
 
+    // ── Stage 5: plugin loading + wrap. ──
+    // Plugins declared in the config contribute additional modules (e.g. tooling-only
+    // modules a user doesn't want in their runtime AppModule). A failing plugin warns
+    // but doesn't abort — the bin stays usable so the user can fix the offending entry.
     let plugins: LoadedPlugin[] = [];
     try {
       plugins = await this.pluginLoader.load(resolvedConfig.config, resolvedConfig.configFilePath, projectRoot);
@@ -112,12 +151,19 @@ export class AppModuleLoader {
     }
 
     if (plugins.length > 0) {
+      // Wrap the AppModule with a synthetic outer module that imports both the user's
+      // module and every plugin. Re-detect logging because a plugin could have brought
+      // it in.
       appModule = this.pluginLoader.wrap(appModule, plugins);
       if (isLoggingModulePresent === false) {
         isLoggingModulePresent = (appModule.importModules ?? []).find(m => m.keyname === LoggingModuleKeyname) !== undefined;
       }
     }
 
+    // ── Final: assemble the kernel configuration overlay and return. ──
+    // The CLI installs sensible defaults for LoggingModule (simple output mode, error-
+    // level threshold) when LoggingModule is present, then layers the user's
+    // `kernelConfiguration` on top so they can override anything they want.
     const configuration = this.buildKernelConfiguration(isLoggingModulePresent, resolvedConfig.config.kernelConfiguration);
     return new LoadedAppModule(appModule, configuration, isLoggingModulePresent, plugins);
   }
@@ -137,6 +183,20 @@ export class AppModuleLoader {
 
     if (staleness === BuildManifestStalenessEnum.Fresh) {
       return true;
+    }
+
+    // No manifest on disk → user is building with their own pipeline (raw `tsc`, esbuild,
+    // a CI step, etc.) and never invoking `pristine build`. The manifest's purpose is to
+    // detect drift between source and a Pristine-managed build; with no manifest there is
+    // nothing to compare against, so we skip the gate. We still require the configured
+    // `outputPath` to exist — otherwise there's nothing to load.
+    if (staleness === BuildManifestStalenessEnum.Missing) {
+      const absoluteOutput = path.resolve(projectRoot, outputPath);
+      if (fs.existsSync(absoluteOutput)) {
+        return true;
+      }
+      // Fall through to the "stale" path below — the output is genuinely missing,
+      // which the prompt/non-TTY branches handle with the right error message.
     }
 
     const explanation = this.buildStalenessPrompt.describe(staleness);
