@@ -27,3 +27,40 @@ export const LoggingConfigurationKeys = {
   ActivateDiagnostics: "pristine.logging.activateDiagnostics",
   MaximumLogsPerSecond: "pristine.logging.maximumLogsPerSecond",
 } as const;
+
+import {OutputModeEnum} from "./enums/output-mode.enum";
+import {SeverityEnum} from "./enums/severity.enum";
+
+/**
+ * The expected runtime types for each configuration value defined by `@pristine-ts/logging`.
+ * See `AwsConfigurationValueMap` in `@pristine-ts/aws` for the full pattern + caveats.
+ */
+export interface LoggingConfigurationValueMap {
+  "pristine.logging.numberOfStackedLogs": number;
+  "pristine.logging.logSeverityLevelConfiguration": SeverityEnum;
+  "pristine.logging.logDebugDepthConfiguration": number;
+  "pristine.logging.logInfoDepthConfiguration": number;
+  "pristine.logging.logNoticeDepthConfiguration": number;
+  "pristine.logging.logWarningDepthConfiguration": number;
+  "pristine.logging.logErrorDepthConfiguration": number;
+  "pristine.logging.logCriticalDepthConfiguration": number;
+  "pristine.logging.consoleLoggerActivated": boolean;
+  "pristine.logging.consoleLoggerOutputMode": OutputModeEnum;
+  "pristine.logging.fileLoggerOutputMode": OutputModeEnum;
+  "pristine.logging.fileLoggerActivated": boolean;
+  "pristine.logging.filePath": string;
+  "pristine.logging.fileLoggerPretty": boolean;
+  "pristine.logging.activateDiagnostics": boolean;
+  "pristine.logging.maximumLogsPerSecond": number;
+}
+
+
+/**
+ * Augments the global `PristineConfigurationValueMap` (defined in `@pristine-ts/common`)
+ * with this package's keys. The `@pristine-ts/eslint-plugin` rule
+ * `inject-config-type-match` reads the merged map to enforce parameter types on
+ * `@injectConfig` calls.
+ */
+declare module "@pristine-ts/common" {
+  interface PristineConfigurationValueMap extends LoggingConfigurationValueMap {}
+}

@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.json",
+  "include": [
+    "src"
+  ],
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "module": "ES2020",
+    "declarationDir": "dist/types",
+    "outDir": "dist/lib/esm"
+  },
+  "exclude": [
+    "./**/*.spec.ts",
+    "dist"
+  ]
+}

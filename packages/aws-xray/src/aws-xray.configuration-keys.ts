@@ -12,3 +12,22 @@
 export const AwsXrayConfigurationKeys = {
   Debug: "pristine.aws-xray.debug",
 } as const;
+
+/**
+ * The expected runtime types for each configuration value defined by `@pristine-ts/aws-xray`.
+ * See `AwsConfigurationValueMap` in `@pristine-ts/aws` for the full pattern + caveats.
+ */
+export interface AwsXrayConfigurationValueMap {
+  "pristine.aws-xray.debug": boolean;
+}
+
+
+/**
+ * Augments the global `PristineConfigurationValueMap` (defined in `@pristine-ts/common`)
+ * with this package's keys. The `@pristine-ts/eslint-plugin` rule
+ * `inject-config-type-match` reads the merged map to enforce parameter types on
+ * `@injectConfig` calls.
+ */
+declare module "@pristine-ts/common" {
+  interface PristineConfigurationValueMap extends AwsXrayConfigurationValueMap {}
+}

@@ -14,3 +14,24 @@ export const RedisConfigurationKeys = {
   Port: "pristine.redis.port",
   Namespace: "pristine.redis.namespace",
 } as const;
+
+/**
+ * The expected runtime types for each configuration value defined by `@pristine-ts/redis`.
+ * See `AwsConfigurationValueMap` in `@pristine-ts/aws` for the full pattern + caveats.
+ */
+export interface RedisConfigurationValueMap {
+  "pristine.redis.host": string;
+  "pristine.redis.port": number;
+  "pristine.redis.namespace": string;
+}
+
+
+/**
+ * Augments the global `PristineConfigurationValueMap` (defined in `@pristine-ts/common`)
+ * with this package's keys. The `@pristine-ts/eslint-plugin` rule
+ * `inject-config-type-match` reads the merged map to enforce parameter types on
+ * `@injectConfig` calls.
+ */
+declare module "@pristine-ts/common" {
+  interface PristineConfigurationValueMap extends RedisConfigurationValueMap {}
+}
