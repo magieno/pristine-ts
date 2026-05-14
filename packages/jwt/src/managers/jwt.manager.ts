@@ -1,5 +1,6 @@
 import "reflect-metadata"
 import {inject, injectable} from "tsyringe";
+import {JwtConfigurationKeys} from "../jwt.configuration-keys";
 import {injectConfig, moduleScoped, Request, tag} from "@pristine-ts/common";
 
 import {Algorithm, verify} from "jsonwebtoken"
@@ -23,10 +24,10 @@ export class JwtManager implements JwtManagerInterface {
    * @param passphrase
    */
   public constructor(
-    @injectConfig("pristine.jwt.publicKey") private readonly publicKey: string,
-    @injectConfig("pristine.jwt.algorithm") private readonly algorithm: Algorithm,
-    @injectConfig("pristine.jwt.privateKey") private readonly privateKey?: string,
-    @injectConfig("pristine.jwt.passphrase") private readonly passphrase?: string,
+    @injectConfig(JwtConfigurationKeys.PublicKey) private readonly publicKey: string,
+    @injectConfig(JwtConfigurationKeys.Algorithm) private readonly algorithm: Algorithm,
+    @injectConfig(JwtConfigurationKeys.PrivateKey) private readonly privateKey?: string,
+    @injectConfig(JwtConfigurationKeys.Passphrase) private readonly passphrase?: string,
   ) {
   }
 

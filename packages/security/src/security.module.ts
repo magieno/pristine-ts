@@ -12,6 +12,7 @@ export * from "./interfaces/interfaces";
 export * from "./managers/managers";
 export * from "./security.module.keyname";
 
+export * from "./security.configuration-keys";
 export const SecurityModule: ModuleInterface = {
   keyname: SecurityModuleKeyname,
   importModules: [

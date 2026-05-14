@@ -1,4 +1,5 @@
 import {ApiGatewayEventsHandlingStrategyEnum} from "../enums/api-gateway-events-handling-strategy.enum";
+import {AwsApiGatewayConfigurationKeys} from "../aws-api-gateway.configuration-keys";
 import {
   Event,
   EventMapperInterface,
@@ -34,7 +35,7 @@ export class HttpApiEventMapper extends BaseApiEventMapper implements EventMappe
    * @param httpRequestsHandlingStrategy The handling strategy to use when handling http api events.
    */
   constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-              @injectConfig(AwsApiGatewayModuleKeyname + ".httpApiEvents.handlingStrategy") private readonly httpRequestsHandlingStrategy: ApiGatewayEventsHandlingStrategyEnum) {
+              @injectConfig(AwsApiGatewayConfigurationKeys.HttpApiEventsHandlingStrategy) private readonly httpRequestsHandlingStrategy: ApiGatewayEventsHandlingStrategyEnum) {
     super();
   }
 

@@ -1,5 +1,6 @@
 import "reflect-metadata"
 import {inject, injectable, injectAll, Lifecycle, scoped} from "tsyringe";
+import {LoggingConfigurationKeys} from "../logging.configuration-keys";
 import {SeverityEnum} from "../enums/severity.enum";
 import {LogModel} from "../models/log.model";
 import {LoggerInterface} from "../interfaces/logger.interface";
@@ -31,8 +32,8 @@ export class LogHandler implements LogHandlerInterface {
    * @param tracingContext The context of the tracing.
    */
   public constructor(@injectAll(ServiceDefinitionTagEnum.Logger) private readonly loggers: LoggerInterface[],
-                     @injectConfig("pristine.logging.logSeverityLevelConfiguration") private readonly logSeverityLevelConfiguration: number,
-                     @injectConfig("pristine.logging.activateDiagnostics") private readonly activateDiagnostics: boolean,
+                     @injectConfig(LoggingConfigurationKeys.LogSeverityLevelConfiguration) private readonly logSeverityLevelConfiguration: number,
+                     @injectConfig(LoggingConfigurationKeys.ActivateDiagnostics) private readonly activateDiagnostics: boolean,
                      @inject(InternalContainerParameterEnum.KernelInstantiationId) private readonly kernelInstantiationId: string,
                      @inject("BreadcrumbHandlerInterface") private readonly breadcrumbHandler: BreadcrumbHandlerInterface,
                      private readonly tracingContext: TracingContext) {

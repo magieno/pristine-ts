@@ -11,6 +11,7 @@ export * from "./managers/managers";
 export * from "./resolvers/resolvers";
 export * from "./jwt.module.keyname";
 
+export * from "./jwt.configuration-keys";
 export const JwtModule: ModuleInterface = {
   keyname: JwtModuleKeyname,
   configurationDefinitions: [

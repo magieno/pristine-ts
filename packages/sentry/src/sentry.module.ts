@@ -6,6 +6,7 @@ import {BooleanResolver, EnvironmentVariableResolver, NumberResolver} from "@pri
 export * from "./loggers/loggers";
 export * from "./sentry.module.keyname";
 
+export * from "./sentry.configuration-keys";
 export const SentryModule: ModuleInterface = {
   keyname: SentryModuleKeyname,
   configurationDefinitions: [

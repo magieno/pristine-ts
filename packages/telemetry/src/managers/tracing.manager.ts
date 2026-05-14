@@ -1,4 +1,5 @@
 import {inject, injectable, injectAll, singleton} from "tsyringe";
+import {TelemetryConfigurationKeys} from "../telemetry.configuration-keys";
 import {Trace} from "../models/trace.model";
 import {Span} from "../models/span.model";
 import {TracingManagerInterface} from "../interfaces/tracing-manager.interface";
@@ -41,8 +42,8 @@ export class TracingManager implements TracingManagerInterface {
    */
   public constructor(@injectAll(ServiceDefinitionTagEnum.Tracer) private readonly tracers: TracerInterface[],
                      @inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface,
-                     @injectConfig("pristine.telemetry.active") private readonly isActive: boolean,
-                     @injectConfig("pristine.telemetry.debug") private readonly debug: boolean,
+                     @injectConfig(TelemetryConfigurationKeys.Active) private readonly isActive: boolean,
+                     @injectConfig(TelemetryConfigurationKeys.Debug) private readonly debug: boolean,
                      private readonly tracingContext: TracingContext,) {
   }
 

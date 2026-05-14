@@ -1,4 +1,5 @@
 import {inject, injectable} from "tsyringe";
+import {NetworkingConfigurationKeys} from "../networking.configuration-keys";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {injectConfig, moduleScoped, Request, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {NetworkingModuleKeyname} from "../networking.module.keyname";
@@ -23,7 +24,7 @@ export class RequestBodyConverterInterceptor implements RequestInterceptorInterf
    * @param isActive Whether or not this interceptor is active.
    * @param logHandler The log handler to output logs.
    */
-  constructor(@injectConfig(NetworkingModuleKeyname + ".requestBodyConverter.isActive") private readonly isActive: boolean,
+  constructor(@injectConfig(NetworkingConfigurationKeys.RequestBodyConverterIsActive) private readonly isActive: boolean,
               @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface) {
   }
 

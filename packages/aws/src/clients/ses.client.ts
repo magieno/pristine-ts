@@ -1,4 +1,5 @@
 import {AwsModuleKeyname} from "../aws.module.keyname";
+import {AwsConfigurationKeys} from "../aws.configuration-keys";
 import {injectConfig, moduleScoped, tag} from "@pristine-ts/common";
 import {inject, injectable} from "tsyringe";
 import {SesClientInterface} from "../interfaces/ses-client.interface";
@@ -20,7 +21,7 @@ export class SesClient implements SesClientInterface {
    */
   constructor(
     @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-    @injectConfig("pristine.aws.region") private readonly region: string,
+    @injectConfig(AwsConfigurationKeys.Region) private readonly region: string,
   ) {
   }
 

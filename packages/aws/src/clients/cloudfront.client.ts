@@ -1,4 +1,5 @@
 import {inject, injectable} from "tsyringe";
+import {AwsConfigurationKeys} from "../aws.configuration-keys";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {injectConfig, moduleScoped, tag} from "@pristine-ts/common";
 import {AwsModuleKeyname} from "../aws.module.keyname";
@@ -37,7 +38,7 @@ export class CloudfrontClient implements CloudfrontClientInterface {
    */
   constructor(
     @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-    @injectConfig("pristine.aws.region") public region: string,
+    @injectConfig(AwsConfigurationKeys.Region) public region: string,
   ) {
   }
 

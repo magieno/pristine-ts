@@ -1,4 +1,5 @@
 import {inject, injectable, singleton} from "tsyringe";
+import {LoggingConfigurationKeys} from "../logging.configuration-keys";
 import {SeverityEnum} from "../enums/severity.enum";
 import {LogModel} from "../models/log.model";
 import {LoggerInterface} from "../interfaces/logger.interface";
@@ -51,17 +52,17 @@ export class ConsoleLogger extends BaseLogger implements LoggerInterface {
    * @param outputMode The output mode, that the logger should use.
    * @param maximumLogsPerSecond The maximum numner of logs per second that can be outputted
    */
-  public constructor(@injectConfig("pristine.logging.numberOfStackedLogs") numberOfStackedLogs: number,
-                     @injectConfig("pristine.logging.logSeverityLevelConfiguration") logSeverityLevelConfiguration: number,
-                     @injectConfig("pristine.logging.logDebugDepthConfiguration") logDebugDepthConfiguration: number,
-                     @injectConfig("pristine.logging.logInfoDepthConfiguration") logInfoDepthConfiguration: number,
-                     @injectConfig("pristine.logging.logNoticeDepthConfiguration") logNoticeDepthConfiguration: number,
-                     @injectConfig("pristine.logging.logWarningDepthConfiguration") logWarningDepthConfiguration: number,
-                     @injectConfig("pristine.logging.logErrorDepthConfiguration") logErrorDepthConfiguration: number,
-                     @injectConfig("pristine.logging.logCriticalDepthConfiguration") logCriticalDepthConfiguration: number,
-                     @injectConfig("pristine.logging.consoleLoggerActivated") isActivated: boolean,
-                     @injectConfig("pristine.logging.consoleLoggerOutputMode") outputMode: OutputModeEnum,
-                     @injectConfig("pristine.logging.maximumLogsPerSecond") private readonly maximumLogsPerSecond: number,
+  public constructor(@injectConfig(LoggingConfigurationKeys.NumberOfStackedLogs) numberOfStackedLogs: number,
+                     @injectConfig(LoggingConfigurationKeys.LogSeverityLevelConfiguration) logSeverityLevelConfiguration: number,
+                     @injectConfig(LoggingConfigurationKeys.LogDebugDepthConfiguration) logDebugDepthConfiguration: number,
+                     @injectConfig(LoggingConfigurationKeys.LogInfoDepthConfiguration) logInfoDepthConfiguration: number,
+                     @injectConfig(LoggingConfigurationKeys.LogNoticeDepthConfiguration) logNoticeDepthConfiguration: number,
+                     @injectConfig(LoggingConfigurationKeys.LogWarningDepthConfiguration) logWarningDepthConfiguration: number,
+                     @injectConfig(LoggingConfigurationKeys.LogErrorDepthConfiguration) logErrorDepthConfiguration: number,
+                     @injectConfig(LoggingConfigurationKeys.LogCriticalDepthConfiguration) logCriticalDepthConfiguration: number,
+                     @injectConfig(LoggingConfigurationKeys.ConsoleLoggerActivated) isActivated: boolean,
+                     @injectConfig(LoggingConfigurationKeys.ConsoleLoggerOutputMode) outputMode: OutputModeEnum,
+                     @injectConfig(LoggingConfigurationKeys.MaximumLogsPerSecond) private readonly maximumLogsPerSecond: number,
   ) {
     super(numberOfStackedLogs,
       logSeverityLevelConfiguration,

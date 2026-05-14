@@ -17,6 +17,7 @@ export * from "./servers/servers";
 export * from "./utils/utils";
 export * from "./wrappers/wrappers";
 
+export * from "./http.configuration-keys";
 export const HttpModule: ModuleInterface = {
   keyname: HttpModuleKeyname,
   importModules: [LoggingModule, CliModule],

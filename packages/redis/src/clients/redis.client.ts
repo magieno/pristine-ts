@@ -1,4 +1,5 @@
 import {inject, injectable} from "tsyringe";
+import {RedisConfigurationKeys} from "../redis.configuration-keys";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {RedisError} from "../errors/redis.error";
 import {injectConfig, tag} from "@pristine-ts/common";
@@ -26,9 +27,9 @@ export class RedisClient implements RedisClientInterface {
    * @param namespace The namespace to use when saving a key in Redis. Our keys are creating using this pattern namespace:table:key.
    * @param logHandler The log handler to use to output logs.
    */
-  public constructor(@injectConfig("pristine.redis.host") private readonly host: string,
-                     @injectConfig("pristine.redis.port") private readonly port: number,
-                     @injectConfig("pristine.redis.namespace") private readonly namespace: string,
+  public constructor(@injectConfig(RedisConfigurationKeys.Host) private readonly host: string,
+                     @injectConfig(RedisConfigurationKeys.Port) private readonly port: number,
+                     @injectConfig(RedisConfigurationKeys.Namespace) private readonly namespace: string,
                      @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface) {
   }
 

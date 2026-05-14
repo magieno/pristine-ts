@@ -1,4 +1,5 @@
 import {inject, injectable, singleton} from "tsyringe";
+import {LoggingConfigurationKeys} from "../logging.configuration-keys";
 import {SeverityEnum} from "../enums/severity.enum";
 import {LogModel} from "../models/log.model";
 import {LoggerInterface} from "../interfaces/logger.interface";
@@ -53,18 +54,18 @@ export class FileLogger extends BaseLogger implements LoggerInterface {
    * @param fileLoggerPretty Whether or not the file logger should prettify the output.
    * @param filePath The file path where to output the log.
    */
-  public constructor(@injectConfig("pristine.logging.numberOfStackedLogs") numberOfStackedLogs: number,
-                     @injectConfig("pristine.logging.logSeverityLevelConfiguration") logSeverityLevelConfiguration: number,
-                     @injectConfig("pristine.logging.logDebugDepthConfiguration") logDebugDepthConfiguration: number,
-                     @injectConfig("pristine.logging.logInfoDepthConfiguration") logInfoDepthConfiguration: number,
-                     @injectConfig("pristine.logging.logNoticeDepthConfiguration") logNoticeDepthConfiguration: number,
-                     @injectConfig("pristine.logging.logWarningDepthConfiguration") logWarningDepthConfiguration: number,
-                     @injectConfig("pristine.logging.logErrorDepthConfiguration") logErrorDepthConfiguration: number,
-                     @injectConfig("pristine.logging.logCriticalDepthConfiguration") logCriticalDepthConfiguration: number,
-                     @injectConfig("pristine.logging.fileLoggerActivated") isActivated: boolean,
-                     @injectConfig("pristine.logging.fileLoggerOutputMode") outputMode: OutputModeEnum,
-                     @injectConfig("pristine.logging.fileLoggerPretty") fileLoggerPretty: boolean,
-                     @injectConfig("pristine.logging.filePath") private readonly filePath: string,
+  public constructor(@injectConfig(LoggingConfigurationKeys.NumberOfStackedLogs) numberOfStackedLogs: number,
+                     @injectConfig(LoggingConfigurationKeys.LogSeverityLevelConfiguration) logSeverityLevelConfiguration: number,
+                     @injectConfig(LoggingConfigurationKeys.LogDebugDepthConfiguration) logDebugDepthConfiguration: number,
+                     @injectConfig(LoggingConfigurationKeys.LogInfoDepthConfiguration) logInfoDepthConfiguration: number,
+                     @injectConfig(LoggingConfigurationKeys.LogNoticeDepthConfiguration) logNoticeDepthConfiguration: number,
+                     @injectConfig(LoggingConfigurationKeys.LogWarningDepthConfiguration) logWarningDepthConfiguration: number,
+                     @injectConfig(LoggingConfigurationKeys.LogErrorDepthConfiguration) logErrorDepthConfiguration: number,
+                     @injectConfig(LoggingConfigurationKeys.LogCriticalDepthConfiguration) logCriticalDepthConfiguration: number,
+                     @injectConfig(LoggingConfigurationKeys.FileLoggerActivated) isActivated: boolean,
+                     @injectConfig(LoggingConfigurationKeys.FileLoggerOutputMode) outputMode: OutputModeEnum,
+                     @injectConfig(LoggingConfigurationKeys.FileLoggerPretty) fileLoggerPretty: boolean,
+                     @injectConfig(LoggingConfigurationKeys.FilePath) private readonly filePath: string,
   ) {
     super(numberOfStackedLogs,
       logSeverityLevelConfiguration,

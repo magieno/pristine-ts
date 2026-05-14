@@ -1,4 +1,5 @@
 import {inject, injectable} from "tsyringe";
+import {AwsConfigurationKeys} from "../aws.configuration-keys";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {MessageAttributeValue, SendMessageCommand, SQSClient, SQSClientConfig} from "@aws-sdk/client-sqs";
 import {SqsMessageSentConfirmationModel} from "../models/sqs-message-sent-confirmation.model";
@@ -24,7 +25,7 @@ export class SqsClient implements SqsClientInterface {
    */
   constructor(
     @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-    @injectConfig("pristine.aws.region") private readonly region: string,
+    @injectConfig(AwsConfigurationKeys.Region) private readonly region: string,
   ) {
   }
 

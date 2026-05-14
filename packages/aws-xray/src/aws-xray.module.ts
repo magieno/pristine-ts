@@ -6,6 +6,7 @@ import {BooleanResolver, EnvironmentVariableResolver} from "@pristine-ts/configu
 
 export * from "./tracers/tracers";
 
+export * from "./aws-xray.configuration-keys";
 export const AwsXrayModule: ModuleInterface = {
   keyname: AwsXrayModuleKeyname,
   configurationDefinitions: [

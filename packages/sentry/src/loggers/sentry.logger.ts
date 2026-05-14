@@ -1,4 +1,5 @@
 import {inject, injectable} from "tsyringe";
+import {SentryConfigurationKeys} from "../sentry.configuration-keys";
 import * as Sentry from "@sentry/node";
 import {Readable} from "stream";
 import {LoggerInterface, LogModel, SeverityEnum} from "@pristine-ts/logging";
@@ -28,10 +29,10 @@ export class SentryLogger implements LoggerInterface {
    * Should be between 0 and 1. If no value or a value outside this range is provided, the default value of 0.1 will be used.
    * @param sentryActivated Whether or not logs should be captured and sent to Sentry.
    */
-  constructor(@injectConfig("pristine.sentry.sentryDsn") private readonly sentryDsn: string,
-              @injectConfig("pristine.sentry.tagRelease") private readonly tagRelease: string,
-              @injectConfig("pristine.sentry.sentrySampleRate") private readonly sentrySampleRate?: number,
-              @injectConfig("pristine.sentry.sentryActivated") private readonly sentryActivated?: boolean) {
+  constructor(@injectConfig(SentryConfigurationKeys.SentryDsn) private readonly sentryDsn: string,
+              @injectConfig(SentryConfigurationKeys.TagRelease) private readonly tagRelease: string,
+              @injectConfig(SentryConfigurationKeys.SentrySampleRate) private readonly sentrySampleRate?: number,
+              @injectConfig(SentryConfigurationKeys.SentryActivated) private readonly sentryActivated?: boolean) {
     this.initialize();
   }
 

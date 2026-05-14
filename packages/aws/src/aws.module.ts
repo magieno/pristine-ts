@@ -21,6 +21,7 @@ export * from "./results/results";
 
 export * from "./aws.module.keyname";
 
+export * from "./aws.configuration-keys";
 export const AwsModule: ModuleInterface = {
   keyname: AwsModuleKeyname,
   configurationDefinitions: [

@@ -10,6 +10,7 @@ export * from "./event-payloads/event-payloads";
 export * from "./event-response-payloads/event-response-payloads";
 export * from "./mappers/mappers";
 
+export * from "./aws-api-gateway.configuration-keys";
 export const AwsApiGatewayModule: ModuleInterface = {
   keyname: AwsApiGatewayModuleKeyname,
   configurationDefinitions: [

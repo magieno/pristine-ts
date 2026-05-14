@@ -1,4 +1,5 @@
 import {DynamoDB} from "@aws-sdk/client-dynamodb";
+import {AwsConfigurationKeys} from "../aws.configuration-keys";
 import {
   DataMapper,
   DynamoDbTable,
@@ -49,7 +50,7 @@ export class DynamodbClient implements DynamodbClientInterface {
    */
   constructor(
     @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-    @injectConfig("pristine.aws.region") private readonly region: string,
+    @injectConfig(AwsConfigurationKeys.Region) private readonly region: string,
   ) {
   }
 
