@@ -1,6 +1,6 @@
 import {AsyncLocalStorage} from "async_hooks";
 import {injectable} from "tsyringe";
-import {IdentityInterface, Request} from "@pristine-ts/common";
+import {EventContextManager, IdentityInterface, Request} from "@pristine-ts/common";
 import {RequestContext} from "../contexts/request-context";
 import {MethodRouterNode} from "../nodes/method-router.node";
 
@@ -45,6 +45,18 @@ export class RequestContextManager {
     return this.current()?.identity;
   }
 
+  /**
+   * Convenience alias for `EventContextManager.eventId()`. The framework's correlation
+   * id (`eventId`) is the same value HTTP people often call "request id" — exposing it
+   * here as `requestId()` makes it discoverable next to `request()` / `identity()`
+   * without duplicating storage. There is no `RequestContext.requestId` field — the
+   * canonical slot lives on `EventContext` and we delegate at lookup time, so the two
+   * values can never drift.
+   */
+  requestId(): string | undefined {
+    return EventContextManager.eventId();
+  }
+
   bind<F extends (...args: any[]) => any>(fn: F): F {
     const ctx = this.current();
     if (ctx === undefined) return fn;
@@ -68,6 +80,10 @@ export class RequestContextManager {
 
   static identity(): IdentityInterface | undefined {
     return RequestContextManager.current()?.identity;
+  }
+
+  static requestId(): string | undefined {
+    return EventContextManager.eventId();
   }
 
   static bind<F extends (...args: any[]) => any>(fn: F): F {

@@ -108,6 +108,48 @@ describe("RequestContextManager", () => {
     });
   });
 
+  describe("requestId delegation", () => {
+    it("returns the EventContext's eventId — no duplicate storage", () => {
+      const ecm = new EventContextManager();
+      const eventCtx = new EventContext();
+      eventCtx.eventId = "evt-correlated";
+
+      const reqCtx = new RequestContext();
+      reqCtx.request = buildRequest();
+
+      ecm.run(eventCtx, () => manager.run(reqCtx, () => {
+        expect(manager.requestId()).toBe("evt-correlated");
+        expect(RequestContextManager.requestId()).toBe("evt-correlated");
+      }));
+    });
+
+    it("returns undefined when no EventContext is active, even if a RequestContext is", () => {
+      const reqCtx = new RequestContext();
+      reqCtx.request = buildRequest();
+
+      manager.run(reqCtx, () => {
+        expect(manager.requestId()).toBeUndefined();
+      });
+    });
+
+    it("tracks changes to EventContext.eventId at lookup time (no install-time copy)", () => {
+      const ecm = new EventContextManager();
+      const eventCtx = new EventContext();
+      eventCtx.eventId = "initial";
+
+      const reqCtx = new RequestContext();
+      reqCtx.request = buildRequest();
+
+      ecm.run(eventCtx, () => manager.run(reqCtx, () => {
+        expect(manager.requestId()).toBe("initial");
+        // Mutating the EventContext's id should be visible immediately through requestId.
+        // (Not something app code is expected to do — proves there's no drift.)
+        eventCtx.eventId = "mutated";
+        expect(manager.requestId()).toBe("mutated");
+      }));
+    });
+  });
+
   describe("static accessors", () => {
     it("static methods see the same store as instance methods", () => {
       const ctx = new RequestContext();
