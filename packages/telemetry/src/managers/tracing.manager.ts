@@ -1,4 +1,4 @@
-import {inject, injectable, injectAll, singleton} from "tsyringe";
+import {inject, injectable, injectAll, Lifecycle, scoped} from "tsyringe";
 import {TelemetryConfigurationKeys} from "../telemetry.configuration-keys";
 import {Trace} from "../models/trace.model";
 import {Span} from "../models/span.model";
@@ -13,10 +13,18 @@ import {LogHandlerInterface} from "@pristine-ts/logging";
  * The Tracing Manager provides methods to help with tracing.
  * It is tagged and can be injected using TracingManagerInterface which facilitates mocking.
  * It is module scoped to the TelemetryModuleKeyname.
+ *
+ * **Lifecycle: container-scoped, not singleton.** Each per-event DI child container gets
+ * its own `TracingManager` instance with its own `trace` and `spans` state. Earlier
+ * versions used `@singleton()` — a single instance shared across every event — which
+ * was a latent bug: parallel events would clobber each other's `this.trace`. Resolving
+ * `TracingManager` from the root container still returns the root instance (used for
+ * kernel-initialization spans before any event has started); resolving from a child
+ * container returns the per-event instance, which is what application code wants.
  */
 @moduleScoped(TelemetryModuleKeyname)
 @tag("TracingManagerInterface")
-@singleton()
+@scoped(Lifecycle.ContainerScoped)
 @injectable()
 export class TracingManager implements TracingManagerInterface {
   /**

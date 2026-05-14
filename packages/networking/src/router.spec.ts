@@ -18,6 +18,7 @@ import {Span, TracingManagerInterface} from "@pristine-ts/telemetry";
 import {container, DependencyContainer} from "tsyringe";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {RouterCache} from "./cache/router.cache";
+import {RequestContextManager} from "./managers/request-context.manager";
 
 describe("Router.spec", () => {
   let root: PathRouterNode;
@@ -162,7 +163,7 @@ describe("Router.spec", () => {
       authenticate(request: Request, routeContext: any, container): Promise<IdentityInterface | undefined> {
         return Promise.resolve(undefined);
       }
-    }, new RouterCache(activateCache));
+    }, new RouterCache(activateCache), new RequestContextManager());
 
     router["root"] = root;
 

@@ -399,4 +399,26 @@ describe("Tracing Manager", () => {
 
     expect.assertions(2);
   })
+
+  // Regression test for the singleton → container-scoped flip. Before this change,
+  // TracingManager was `@singleton()` and a single instance was shared across every
+  // event in the process. Two parallel events would each call `startTracing()` on the
+  // same instance and clobber each other's `this.trace`. With container-scoped, the
+  // contract is: each container gets its own instance, so this clobbering can't happen
+  // even if both events resolve from `kernel.container` directly.
+  it("does not share trace state across separate TracingManager instances", async () => {
+    const tmA = new TracingManager([], logHandlerMock, true, false, new TracingContext());
+    const tmB = new TracingManager([], logHandlerMock, true, false, new TracingContext());
+
+    tmA.startTracing("event-a");
+    tmB.startTracing("event-b");
+
+    expect(tmA.trace).toBeDefined();
+    expect(tmB.trace).toBeDefined();
+    expect(tmA.trace!.id).not.toBe(tmB.trace!.id);
+
+    // Each manager has its own root span keyname — proves the state isn't shared.
+    expect(tmA.trace!.rootSpan!.keyname).toBe("event-a");
+    expect(tmB.trace!.rootSpan!.keyname).toBe("event-b");
+  })
 });

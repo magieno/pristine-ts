@@ -3,7 +3,7 @@ import {Readable} from "stream";
 import {LogHandler} from "./log.handler";
 import {LoggerInterface} from "../interfaces/logger.interface";
 import {BreadcrumbHandlerInterface} from "../interfaces/breadcrumb-handler.interface";
-import {TracingContext} from "@pristine-ts/common";
+import {EventContext, EventContextManager, TracingContext} from "@pristine-ts/common";
 
 /**
  * Builds a Readable that synchronously throws inside its 'data' listener — the worst
@@ -125,5 +125,104 @@ describe("LogHandler crash isolation", () => {
 
     expect(() => handler.error("hello")).not.toThrow();
     expect(received).toHaveLength(1);
+  });
+});
+
+describe("LogHandler eventId + traceId resolution", () => {
+  let breadcrumb: BreadcrumbHandlerInterface;
+  let tracing: TracingContext;
+
+  beforeEach(() => {
+    breadcrumb = {
+      breadcrumbs: {},
+      add: jest.fn(),
+    } as unknown as BreadcrumbHandlerInterface;
+    tracing = new TracingContext();
+  });
+
+  function captureFirstLog(handler: LogHandler, received: any[]): void {
+    handler.info("captured");
+    // entry is captured by the buildCapturingStream-backed logger.
+  }
+
+  function buildHandlerWithCapture(): {handler: LogHandler; received: any[]} {
+    const received: any[] = [];
+    const logger: LoggerInterface = {
+      readableStream: buildCapturingStream(received),
+      isActive: () => true,
+      terminate: () => undefined,
+    };
+    const handler = new LogHandler(
+      [logger],
+      0,
+      false,
+      "kernel-id",
+      breadcrumb,
+      tracing,
+    );
+    return {handler, received};
+  }
+
+  it("auto-fills eventId from the active EventContext when caller didn't pass one", () => {
+    const {handler, received} = buildHandlerWithCapture();
+    const manager = new EventContextManager();
+    const ctx = new EventContext();
+    ctx.eventId = "evt-from-als";
+
+    manager.run(ctx, () => handler.info("hello", {extra: {foo: "bar"}}));
+
+    expect(received).toHaveLength(1);
+    expect(received[0].eventId).toBe("evt-from-als");
+  });
+
+  it("explicit eventId in the call wins over the EventContext value", () => {
+    const {handler, received} = buildHandlerWithCapture();
+    const manager = new EventContextManager();
+    const ctx = new EventContext();
+    ctx.eventId = "evt-from-als";
+
+    manager.run(ctx, () => handler.info("hello", {eventId: "evt-explicit"}));
+
+    expect(received).toHaveLength(1);
+    expect(received[0].eventId).toBe("evt-explicit");
+  });
+
+  it("omits eventId when there's no EventContext and no explicit value", () => {
+    const {handler, received} = buildHandlerWithCapture();
+    handler.info("hello");
+    expect(received).toHaveLength(1);
+    expect(received[0].eventId).toBeUndefined();
+  });
+
+  it("auto-fills traceId from the active EventContext", () => {
+    const {handler, received} = buildHandlerWithCapture();
+    const manager = new EventContextManager();
+    const ctx = new EventContext();
+    ctx.eventId = "evt-x";
+    ctx.traceId = "trace-from-als";
+
+    manager.run(ctx, () => handler.info("hello"));
+
+    expect(received[0].traceId).toBe("trace-from-als");
+  });
+
+  it("falls back to TracingContext.traceId when EventContext has none (back-compat path)", () => {
+    const {handler, received} = buildHandlerWithCapture();
+    tracing.traceId = "trace-from-legacy-context";
+    handler.info("hello");
+    expect(received[0].traceId).toBe("trace-from-legacy-context");
+  });
+
+  it("EventContext traceId wins over TracingContext when both are set", () => {
+    const {handler, received} = buildHandlerWithCapture();
+    tracing.traceId = "trace-legacy";
+    const manager = new EventContextManager();
+    const ctx = new EventContext();
+    ctx.eventId = "evt-x";
+    ctx.traceId = "trace-modern";
+
+    manager.run(ctx, () => handler.info("hello"));
+
+    expect(received[0].traceId).toBe("trace-modern");
   });
 });

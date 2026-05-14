@@ -31,6 +31,8 @@ import {CachedRouterRoute} from "./cache/cached.router-route";
 import {RouterCache} from "./cache/router.cache";
 import {ClassMetadata, MethodMetadata} from "@pristine-ts/metadata";
 import {RequestInterceptorPriorityEnum} from "./enums/request-interceptor-priority.enum";
+import {RequestContext} from "./contexts/request-context";
+import {RequestContextManager} from "./managers/request-context.manager";
 
 /**
  * The router service is the service that creates the routing tree from the controllers.
@@ -57,7 +59,8 @@ export class Router implements RouterInterface {
                      private readonly controllerMethodParameterDecoratorResolver: ControllerMethodParameterDecoratorResolver,
                      @inject("AuthorizerManagerInterface") private readonly authorizerManager: AuthorizerManagerInterface,
                      @inject("AuthenticationManagerInterface") private readonly authenticationManager: AuthenticationManagerInterface,
-                     private readonly cache: RouterCache) {
+                     private readonly cache: RouterCache,
+                     private readonly requestContextManager: RequestContextManager) {
   }
 
   /**
@@ -220,6 +223,18 @@ export class Router implements RouterInterface {
         cachedRouterRoute.routeParameters = routeParameters;
       }
 
+      // Install the per-request ALS context. Once installed, any code reached from here
+      // (controller method, services it calls, request/response interceptors, etc.) can
+      // read the request, methodNode, and (after auth) identity via
+      // `RequestContextManager.request()` / `.methodNode()` / `.identity()` without
+      // them being threaded through every parameter. `identity` is populated below
+      // after the authentication pipeline runs.
+      const requestContext = new RequestContext();
+      requestContext.request = request;
+      requestContext.methodNode = methodNode;
+
+      return this.requestContextManager.run(requestContext, async () => {
+
       // Instantiate the controller
       const routerControllerResolverSpan = tracingManager.startSpan(SpanKeynameEnum.RouterControllerResolver, SpanKeynameEnum.RouterRequestExecution);
       this.loghandler.debug("Router - Will resolve the controller from the container", {
@@ -243,6 +258,11 @@ export class Router implements RouterInterface {
         const routerRequestAuthenticationSpan = tracingManager.startSpan(SpanKeynameEnum.RouterRequestAuthentication, SpanKeynameEnum.RouterRequestExecution);
         identity = await this.authenticationManager.authenticate(request, methodNode.route.context, container);
         routerRequestAuthenticationSpan.end();
+
+        // Make the resolved identity available to downstream code via the RequestContext.
+        // Services deep in the stack (voters, audit loggers, etc.) can read it from
+        // `RequestContextManager.identity()` without needing it passed as a parameter.
+        requestContext.identity = identity;
 
         this.loghandler.debug("Router - Found identity.", {
           highlights: {
@@ -393,6 +413,8 @@ export class Router implements RouterInterface {
 
         return resolve(this.executeErrorResponseInterceptors(error as Error, request, container, methodNode));
       }
+
+      });  // closes requestContextManager.run(requestContext, async () => ...)
     })
   }
 

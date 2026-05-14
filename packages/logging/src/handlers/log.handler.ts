@@ -111,7 +111,14 @@ export class LogHandler implements LogHandlerInterface {
   private log(message: string, severity: SeverityEnum, data?: LogData): void {
     const log = new LogModel(severity, message);
     log.kernelInstantiationId = this.kernelInstantiationId;
-    log.traceId = this.tracingContext.traceId;
+    // Resolve the trace id from the active EventContext first (the path forward), with a
+    // fallback to the legacy `TracingContext` (the per-child-container service that was
+    // the original mechanism). Code that goes through `TracingManager.startTracing` writes
+    // both, so the common path works through either branch; the fallback exists for
+    // pre-ALS code that sets `tracingContext.traceId` directly without involving the
+    // manager. Once `TracingContext` is removed in a future major, this collapses to just
+    // the EventContext read.
+    log.traceId = EventContextManager.traceId() ?? this.tracingContext.traceId;
     log.date = new Date();
 
     // Resolve the eventId once. Explicit `data.eventId` always wins (callers that want
