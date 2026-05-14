@@ -26,9 +26,9 @@ jobs:
 
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: https://registry.npmjs.org
@@ -48,7 +48,7 @@ jobs:
       #
       # Cache size is ~30-60MB total (well under GitHub's 10GB limit). On a typical "edit one
       # file" PR this cuts the build step from ~120s to ~15-30s.
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: |
             packages/*/dist
@@ -59,7 +59,7 @@ jobs:
       # Cache eslint's per-file analysis so re-lints only check changed files. `.eslintcache`
       # is small (~tens of KB) so cache size is negligible. The `--cache-location` flag pins
       # the file to a known path; `--cache` enables cache use for this run.
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: .eslintcache
           key: eslint-${{ matrix.node-version }}-${{ github.sha }}
@@ -70,7 +70,7 @@ jobs:
       # run hashes the project root and writes to /tmp/jest_<hash>; the glob covers every
       # package's slot. Skipping ts-jest re-compilation of unchanged sources is the bulk of
       # the savings here.
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: /tmp/jest_*
           key: jest-${{ matrix.node-version }}-${{ github.sha }}
@@ -89,9 +89,9 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Use Node.js 24.x
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24.x
           registry-url: https://registry.npmjs.org
