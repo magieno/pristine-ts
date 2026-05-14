@@ -19,18 +19,22 @@ export const AwsXrayModule: ModuleInterface = {
       ]
     },
     /**
-     * Whether the X-Ray tracer should actually export traces. When `false`, the tracer
-     * is still constructed (it has to be — its constructor wires up the stream listener
-     * the framework pushes traces into), but the listener early-returns instead of
-     * touching the AWS X-Ray SDK. Lets consumers keep `@pristine-ts/aws-xray` in their
-     * AppModule's import graph (or have it pulled in transitively) without exporting
-     * traces in environments where X-Ray isn't reachable (local dev, tests, etc.).
+     * Whether the X-Ray tracer should actually export traces. **Default `false`** —
+     * importing `@pristine-ts/aws-xray` (directly or transitively) is no longer enough
+     * on its own to start exporting; you must explicitly opt in by setting this to
+     * `true` (or `PRISTINE_AWS_XRAY_ACTIVATED=true`).
      *
-     * Default `true` for back-compat; will flip to `false` in a future major.
+     * The tracer is always constructed when the package is in the import graph (it has
+     * to be — the constructor wires up the stream listener the framework pushes traces
+     * into). When `activated === false`, the listener early-returns instead of touching
+     * the AWS X-Ray SDK. No segments are sent, no AWS credentials are required.
+     *
+     * This default-off model means local dev, tests, and CI environments don't
+     * accidentally try to ship segments to X-Ray when AWS isn't reachable.
      */
     {
       parameterName: AwsXrayModuleKeyname + ".activated",
-      defaultValue: true,
+      defaultValue: false,
       isRequired: false,
       defaultResolvers: [
         new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_AWS_XRAY_ACTIVATED")),

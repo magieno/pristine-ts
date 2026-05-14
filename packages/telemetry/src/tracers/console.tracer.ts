@@ -7,7 +7,7 @@ import {Trace} from "../models/trace.model";
 import {ConsoleTracerOutputModeEnum} from "../enums/console-tracer-output-mode.enum";
 import {TelemetryConfigurationKeys} from "../telemetry.configuration-keys";
 import {TelemetryModuleKeyname} from "../telemetry.module.keyname";
-import {renderTraceAsFlat, renderTraceAsJson, renderTraceAsTree} from "../utils/trace-renderer";
+import {traceRenderer} from "../utils/trace-renderer";
 
 /**
  * `ConsoleTracer` prints a completed trace to stdout when the trace ends. Its main purpose
@@ -65,14 +65,14 @@ export class ConsoleTracer implements TracerInterface {
     let output: string;
     switch (this.outputMode) {
       case ConsoleTracerOutputModeEnum.Json:
-        output = renderTraceAsJson(trace);
+        output = traceRenderer.renderJson(trace);
         break;
       case ConsoleTracerOutputModeEnum.Flat:
-        output = renderTraceAsFlat(trace);
+        output = traceRenderer.renderFlat(trace);
         break;
       case ConsoleTracerOutputModeEnum.Tree:
       default:
-        output = renderTraceAsTree(trace);
+        output = traceRenderer.renderTree(trace);
         break;
     }
 

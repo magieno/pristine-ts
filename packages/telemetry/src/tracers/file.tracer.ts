@@ -9,7 +9,7 @@ import {Trace} from "../models/trace.model";
 import {ConsoleTracerOutputModeEnum} from "../enums/console-tracer-output-mode.enum";
 import {TelemetryConfigurationKeys} from "../telemetry.configuration-keys";
 import {TelemetryModuleKeyname} from "../telemetry.module.keyname";
-import {renderTraceAsFlat, renderTraceAsJson, renderTraceAsTree} from "../utils/trace-renderer";
+import {traceRenderer} from "../utils/trace-renderer";
 
 /**
  * `FileTracer` writes one file per completed trace to a configured directory. Files are
@@ -86,12 +86,12 @@ export class FileTracer implements TracerInterface {
   private renderTrace(trace: Trace): string {
     switch (this.outputMode) {
       case ConsoleTracerOutputModeEnum.Tree:
-        return renderTraceAsTree(trace);
+        return traceRenderer.renderTree(trace);
       case ConsoleTracerOutputModeEnum.Flat:
-        return renderTraceAsFlat(trace);
+        return traceRenderer.renderFlat(trace);
       case ConsoleTracerOutputModeEnum.Json:
       default:
-        return renderTraceAsJson(trace);
+        return traceRenderer.renderJson(trace);
     }
   }
 
