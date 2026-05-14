@@ -1,5 +1,5 @@
 import {ExecutionContextKeynameEnum, Kernel} from "@pristine-ts/core";
-import {ServiceDefinitionTagEnum} from "@pristine-ts/common";
+import {AppModuleInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {CommandInterface} from "./interfaces/command.interface";
 import {AppModuleLoader} from "./bootstrap/app-module-loader";
 import {BuildManifestChecker} from "./bootstrap/build-manifest-checker";
@@ -10,6 +10,7 @@ import {DynamicImporter} from "./bootstrap/dynamic-importer";
 import {PluginLoader} from "./bootstrap/plugin-loader";
 import {SourceHasher} from "./bootstrap/source-hasher";
 import {ConfigLoader} from "./config/config-loader";
+import {CliModule} from "./cli.module";
 
 /**
  * Boots the CLI: discovers the consumer's AppModule, starts the kernel, and dispatches
@@ -28,7 +29,13 @@ export const bootstrap = async (): Promise<void> => {
   const {appModule, configuration} = await appModuleLoader.load();
 
   const kernel = new Kernel();
-  await kernel.start(appModule, configuration);
+  // Wrap the user's AppModule with CliModule so the CLI's own commands (`build`,
+  // `start`, `verify`, `init`, `help`, `list`, `info`, custom commands) are always
+  // registered when the bin is the entry point — regardless of whether the user's
+  // AppModule already imports CliModule. The kernel dedupes modules by keyname during
+  // start, so wrapping when CliModule is already in the graph is a no-op; we don't
+  // bother walking the graph to detect that case.
+  await kernel.start(wrapWithCliModule(appModule), configuration);
 
   // Make the running kernel resolvable from within commands so things like `pristine start`
   // and the alias commands can register signal handlers and resolve their delegates.
@@ -45,6 +52,21 @@ export const bootstrap = async (): Promise<void> => {
  * wiring stays readable. Each class is `@injectable()` so DI resolution would also work if
  * we ever moved this into a kernel-pre-boot container.
  */
+/**
+ * Builds a synthetic outer AppModule that imports both the user's AppModule and CliModule.
+ * The wrap is unconditional — the kernel dedupes module imports by keyname, so adding
+ * CliModule on top of a graph that already contains it is a no-op rather than an error
+ * or duplicate registration. Cheaper than walking the user's import tree to detect the
+ * already-present case.
+ */
+const wrapWithCliModule = (appModule: AppModuleInterface): AppModuleInterface => {
+  return {
+    keyname: `${appModule.keyname}.with-cli`,
+    importModules: [appModule, CliModule],
+    importServices: appModule.importServices ?? [],
+  };
+}
+
 const buildAppModuleLoader = (): AppModuleLoader => {
   const dynamicImporter = new DynamicImporter();
   const configLoader = new ConfigLoader(dynamicImporter);

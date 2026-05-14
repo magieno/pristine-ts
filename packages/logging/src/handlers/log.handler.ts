@@ -168,21 +168,37 @@ export class LogHandler implements LogHandlerInterface {
       log.extra["__diagnostics"] = diagnostics;
     }
 
-    // Log in every logger that is activated. Each logger's push is isolated: a throwing
-    // logger writes to stderr but does not propagate the error back to the caller and
-    // does not prevent the other loggers from receiving the entry.
+    // Log in every logger that is activated. Each logger's dispatch is isolated: a
+    // throwing logger writes to stderr but does not propagate the error back to the
+    // caller and does not prevent the other loggers from receiving the entry.
+    //
+    // Implementation note: we deliberately bypass `readableStream.push(log)` here.
+    // Calling push() schedules the 'data' emission via Node's microtask queue
+    // (processTicksAndRejections), which means a throwing 'data' listener escapes
+    // as an uncaughtException — the synchronous try/catch we want around it cannot
+    // catch what runs in a later tick. By invoking the data listeners directly we
+    // keep execution in this tick, where try/catch actually works. Every existing
+    // logger (BaseLogger and external implementations alike) does its work inside
+    // a 'data' listener, so the observable behavior is identical.
     for (const logger of this.loggers) {
       if (logger.isActive() === false) {
         continue;
       }
 
+      const stream = logger.readableStream;
+      if (stream === undefined) {
+        continue;
+      }
+
       try {
-        logger.readableStream?.push(log);
+        for (const listener of stream.listeners("data")) {
+          (listener as (chunk: any) => void)(log);
+        }
       } catch (error) {
         const name = (logger as any)?.constructor?.name ?? "UnknownLogger";
         const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
         try {
-          process.stderr.write(`[pristine][log-handler] logger '${name}' threw during push: ${message}\n`);
+          process.stderr.write(`[pristine][log-handler] logger '${name}' threw during dispatch: ${message}\n`);
         } catch {
           // Nothing useful left to do if stderr is unavailable.
         }
