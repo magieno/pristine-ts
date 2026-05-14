@@ -12,7 +12,16 @@
 export const TelemetryConfigurationKeys = {
   Active: "pristine.telemetry.active",
   Debug: "pristine.telemetry.debug",
+  ConsoleTracerActivated: "pristine.telemetry.console-tracer.activated",
+  ConsoleTracerOutputMode: "pristine.telemetry.console-tracer.output-mode",
+  ConsoleTracerMinimumDurationMs: "pristine.telemetry.console-tracer.minimum-duration-ms",
+  FileTracerActivated: "pristine.telemetry.file-tracer.activated",
+  FileTracerOutputMode: "pristine.telemetry.file-tracer.output-mode",
+  FileTracerDirectory: "pristine.telemetry.file-tracer.directory",
+  FileTracerFilenamePattern: "pristine.telemetry.file-tracer.filename-pattern",
 } as const;
+
+import {ConsoleTracerOutputModeEnum} from "./enums/console-tracer-output-mode.enum";
 
 /**
  * The expected runtime types for each configuration value defined by `@pristine-ts/telemetry`.
@@ -21,6 +30,13 @@ export const TelemetryConfigurationKeys = {
 export interface TelemetryConfigurationValueMap {
   "pristine.telemetry.active": boolean;
   "pristine.telemetry.debug": boolean;
+  "pristine.telemetry.console-tracer.activated": boolean;
+  "pristine.telemetry.console-tracer.output-mode": ConsoleTracerOutputModeEnum;
+  "pristine.telemetry.console-tracer.minimum-duration-ms": number;
+  "pristine.telemetry.file-tracer.activated": boolean;
+  "pristine.telemetry.file-tracer.output-mode": ConsoleTracerOutputModeEnum;
+  "pristine.telemetry.file-tracer.directory": string;
+  "pristine.telemetry.file-tracer.filename-pattern": string;
 }
 
 

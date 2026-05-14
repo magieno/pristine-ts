@@ -1,1 +1,2 @@
-export * from "./basic.tracer"
+export * from "./console.tracer";
+export * from "./file.tracer";

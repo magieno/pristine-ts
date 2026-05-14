@@ -11,6 +11,7 @@
  */
 export const AwsXrayConfigurationKeys = {
   Debug: "pristine.aws-xray.debug",
+  Activated: "pristine.aws-xray.activated",
 } as const;
 
 /**
@@ -19,6 +20,7 @@ export const AwsXrayConfigurationKeys = {
  */
 export interface AwsXrayConfigurationValueMap {
   "pristine.aws-xray.debug": boolean;
+  "pristine.aws-xray.activated": boolean;
 }
 
 
