@@ -9,6 +9,7 @@ export * from "./managers/managers";
 export * from "./models/models";
 export * from "./tracers/tracers";
 
+export * from "./telemetry.configuration-keys";
 export const TelemetryModule: ModuleInterface = {
   keyname: TelemetryModuleKeyname,
   importModules: [

@@ -1,5 +1,6 @@
 import {inject, injectable} from "tsyringe";
-import {IdentityInterface, Request} from "@pristine-ts/common";
+import {SecurityConfigurationKeys} from "../security.configuration-keys";
+import {IdentityInterface, injectConfig, Request} from "@pristine-ts/common";
 import {GuardInterface} from "../interfaces/guard.interface";
 import {GuardContextInterface} from "../interfaces/guard-context.interface";
 import {LogHandlerInterface} from "@pristine-ts/logging";
@@ -23,7 +24,7 @@ export class RoleGuard implements GuardInterface {
    * The role guard is a guard that validates if the identity making the request has the required roles.
    * @param rolesClaimKey The key in the claims of the access token where the roles are defined.
    */
-  constructor(@inject("%pristine.security.rolesClaimKey%") private readonly rolesClaimKey: string,
+  constructor(@injectConfig(SecurityConfigurationKeys.RolesClaimKey) private readonly rolesClaimKey: string,
               @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface) {
   }
 

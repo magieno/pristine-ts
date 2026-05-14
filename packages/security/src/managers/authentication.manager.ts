@@ -25,7 +25,7 @@ export class AuthenticationManager implements AuthenticationManagerInterface {
    * @param authenticatorFactory The factory to create the authenticator.
    */
   public constructor(
-    @injectAll(ServiceDefinitionTagEnum.IdentityProvider) private readonly identityProviders: IdentityProviderInterface[],
+    @injectAll(ServiceDefinitionTagEnum.IdentityProvider, {isOptional: true}) private readonly identityProviders: IdentityProviderInterface[],
     @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
     private readonly authenticatorFactory: AuthenticatorFactory,
     @inject("BreadcrumbHandlerInterface") private readonly breadcrumbHandler: BreadcrumbHandlerInterface) {

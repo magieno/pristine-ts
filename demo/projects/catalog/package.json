@@ -1,0 +1,31 @@
+{
+  "name": "@pristine-ts/demo-catalog",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The carry-through example used by the Pristine Getting Started tutorial (chapters 10, 11, 01, 05, 03). A small product-catalog API.",
+  "scripts": {
+    "build": "pristine build",
+    "start": "pristine start",
+    "verify": "pristine verify",
+    "sync-catalog": "pristine sync-catalog"
+  },
+  "dependencies": {
+    "@pristine-ts/cli": "file:../../../packages/cli",
+    "@pristine-ts/common": "file:../../../packages/common",
+    "@pristine-ts/core": "file:../../../packages/core",
+    "@pristine-ts/configuration": "file:../../../packages/configuration",
+    "@pristine-ts/data-mapping": "file:../../../packages/data-mapping",
+    "@pristine-ts/data-mapping-common": "file:../../../packages/data-mapping-common",
+    "@pristine-ts/http": "file:../../../packages/http",
+    "@pristine-ts/logging": "file:../../../packages/logging",
+    "@pristine-ts/networking": "file:../../../packages/networking",
+    "@pristine-ts/validation": "file:../../../packages/validation",
+    "@pristine-ts/class-validator": "^2.0.4",
+    "class-transformer": "^0.5.1",
+    "reflect-metadata": "^0.1.13",
+    "tsyringe": "^4.8.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2"
+  }
+}

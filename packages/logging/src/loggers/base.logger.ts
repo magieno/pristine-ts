@@ -3,6 +3,7 @@ import {SeverityEnum} from "../enums/severity.enum";
 import {Utils} from "../utils/utils";
 import {CommonModuleKeyname} from "@pristine-ts/common";
 import {OutputModeEnum} from "../enums/output-mode.enum";
+import {Readable} from "stream";
 
 /**
  * The BaseLogger is the base abstract class that all internal loggers should extend.
@@ -91,6 +92,57 @@ export abstract class BaseLogger {
    * @protected
    */
   protected abstract initialize(): void;
+
+  /**
+   * Builds a Readable stream wired to this logger's `captureLog` and isolates any throw
+   * raised by the concrete `log()` implementation. A failing logger writes its error
+   * to `process.stderr` and continues — it never propagates back to the caller of
+   * `LogHandler.log()` and never affects the other registered loggers.
+   *
+   * Concrete loggers should use this helper from their `initialize()` instead of
+   * constructing a Readable manually.
+   * @protected
+   */
+  protected createSafeReadableStream(): Readable {
+    const stream = new Readable({
+      objectMode: true,
+      read(_size: number) {
+        return true;
+      },
+    });
+
+    stream.on("data", (chunk: LogModel) => {
+      try {
+        this.captureLog(chunk);
+      } catch (error) {
+        this.reportLoggerFailure(error);
+      }
+    });
+
+    // An 'error' listener is required: without one, an emitted error becomes an uncaught
+    // exception and the process exits. We absorb it the same way as a thrown captureLog.
+    stream.on("error", (error) => {
+      this.reportLoggerFailure(error);
+    });
+
+    return stream;
+  }
+
+  /**
+   * Writes a logger failure to stderr in a recognizable, non-fatal format. Used by the
+   * stream wiring set up in `createSafeReadableStream`.
+   * @protected
+   */
+  protected reportLoggerFailure(error: unknown): void {
+    const name = (this as any)?.constructor?.name ?? "UnknownLogger";
+    const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+    const stack = error instanceof Error && error.stack ? `\n${error.stack}` : "";
+    try {
+      process.stderr.write(`[pristine][logger:${name}] ${message}${stack}\n`);
+    } catch {
+      // If even stderr write fails (closed stream, etc.), there is nothing useful left to do.
+    }
+  }
 
   /**
    * Actually outputs the log. To be implemented in each logger.

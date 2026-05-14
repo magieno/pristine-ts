@@ -6,6 +6,7 @@
   "types": "dist/types/cli.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
+    "test": "npm run build && jest",
     "sample": "pristine sample",
     "help": "pristine help"
   },
@@ -23,11 +24,6 @@
   "devDependencies": {
     "@types/uuid": "^9.0.6"
   },
-  "pristine": {
-    "appModule": {
-      "cjsPath": "./dist/lib/cjs/app.module.js"
-    }
-  },
   "jest": {
     "transform": {
       ".(ts|tsx)": "ts-jest"
@@ -40,7 +36,7 @@
       }
     },
     "testEnvironment": "node",
-    "testRegex": "(/__tests__/.*|\\.(test|spec|e2e))\\.(ts|tsx|js)$",
+    "testRegex": "src/.*\\.(test|spec|e2e)\\.(ts|tsx)$",
     "moduleFileExtensions": [
       "ts",
       "tsx",

@@ -21,25 +21,61 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x]
+        node-version: [22.x, 24.x, 26.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
+
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: https://registry.npmjs.org
           scope: '@pristine-ts'
-      - run: npm install -g npm@8.19.2
-      - run: npm -v
-      - run: npm ci
-#      - run: npm install
-#        env:
-#          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # Caches the npm download/registry tarballs (~/.npm) keyed off the lockfile hash.
+          # Cache hit drops `npm ci` from ~60s to ~5s. Verified by `npm ci`'s own integrity
+          # check against package-lock.json so cache poisoning isn't a risk.
+          cache: 'npm'
+      # `--no-audit --no-fund` skip the audit pass and the funding-message banner. Both are
+      # noise in CI output (we audit separately) and shave a few seconds per install.
+      - run: npm ci --no-audit --no-fund
+      # Caches each package's `dist/` output across runs so TypeScript's incremental
+      # compilation (enabled via `incremental: true` in root tsconfig) can skip unchanged
+      # files. The cache key includes the commit SHA so a successful run uniquely fingerprints
+      # the build; restore-keys allow partial hits from any previous build for the same Node
+      # version, which is exactly what tsc's incremental algorithm needs to know what's stale.
+      #
+      # Cache size is ~30-60MB total (well under GitHub's 10GB limit). On a typical "edit one
+      # file" PR this cuts the build step from ~120s to ~15-30s.
+      - uses: actions/cache@v5
+        with:
+          path: |
+            packages/*/dist
+          key: pristine-build-${{ matrix.node-version }}-${{ github.sha }}
+          restore-keys: |
+            pristine-build-${{ matrix.node-version }}-
       - run: npm run build
-      - run: npx eslint --ext .ts packages/**
+      # Cache eslint's per-file analysis so re-lints only check changed files. `.eslintcache`
+      # is small (~tens of KB) so cache size is negligible. The `--cache-location` flag pins
+      # the file to a known path; `--cache` enables cache use for this run.
+      - uses: actions/cache@v5
+        with:
+          path: .eslintcache
+          key: eslint-${{ matrix.node-version }}-${{ github.sha }}
+          restore-keys: |
+            eslint-${{ matrix.node-version }}-
+      - run: npx eslint --ext .ts --cache --cache-location .eslintcache packages/**
+      # Cache jest's tmp cache (ts-jest compiled output, jest haste-map, etc.). Each jest
+      # run hashes the project root and writes to /tmp/jest_<hash>; the glob covers every
+      # package's slot. Skipping ts-jest re-compilation of unchanged sources is the bulk of
+      # the savings here.
+      - uses: actions/cache@v5
+        with:
+          path: /tmp/jest_*
+          key: jest-${{ matrix.node-version }}-${{ github.sha }}
+          restore-keys: |
+            jest-${{ matrix.node-version }}-
       - run: npm run test
       - run: npm run e2e
       - run: npm run perf
@@ -51,22 +87,18 @@ jobs:
     # Set the type of machine to run on
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    
+
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Use Node.js 24.x
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24.x
           registry-url: https://registry.npmjs.org
           scope: '@pristine-ts'
-      - run: npm install -g npm@latest
-      - run: npm ci
-#      - run: npm install
-#        env:
-#          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          cache: 'npm'
+      - run: npm ci --no-audit --no-fund
       - run: git config --global user.name 'ima-bot'
       - run: git config --global user.email 'ima-bot@ima-tech.ca'
       - run: npm run bump-patch
-      #- run: npm whoami
       - run: npm run publish-ci

@@ -1,9 +1,10 @@
 import {inject, injectable, singleton} from "tsyringe";
+import {LoggingConfigurationKeys} from "../logging.configuration-keys";
 import {SeverityEnum} from "../enums/severity.enum";
 import {LogModel} from "../models/log.model";
 import {LoggerInterface} from "../interfaces/logger.interface";
 import {Readable, Writable} from "stream";
-import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {injectConfig, moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import fs from 'fs';
 import {LoggingModuleKeyname} from "../logging.module.keyname";
 import {OutputModeEnum} from "../enums/output-mode.enum";
@@ -53,18 +54,18 @@ export class FileLogger extends BaseLogger implements LoggerInterface {
    * @param fileLoggerPretty Whether or not the file logger should prettify the output.
    * @param filePath The file path where to output the log.
    */
-  public constructor(@inject("%pristine.logging.numberOfStackedLogs%") numberOfStackedLogs: number,
-                     @inject("%pristine.logging.logSeverityLevelConfiguration%") logSeverityLevelConfiguration: number,
-                     @inject("%pristine.logging.logDebugDepthConfiguration%") logDebugDepthConfiguration: number,
-                     @inject("%pristine.logging.logInfoDepthConfiguration%") logInfoDepthConfiguration: number,
-                     @inject("%pristine.logging.logNoticeDepthConfiguration%") logNoticeDepthConfiguration: number,
-                     @inject("%pristine.logging.logWarningDepthConfiguration%") logWarningDepthConfiguration: number,
-                     @inject("%pristine.logging.logErrorDepthConfiguration%") logErrorDepthConfiguration: number,
-                     @inject("%pristine.logging.logCriticalDepthConfiguration%") logCriticalDepthConfiguration: number,
-                     @inject("%pristine.logging.fileLoggerActivated%") isActivated: boolean,
-                     @inject("%pristine.logging.fileLoggerOutputMode%") outputMode: OutputModeEnum,
-                     @inject("%pristine.logging.fileLoggerPretty%") fileLoggerPretty: boolean,
-                     @inject("%pristine.logging.filePath%") private readonly filePath: string,
+  public constructor(@injectConfig(LoggingConfigurationKeys.NumberOfStackedLogs) numberOfStackedLogs: number,
+                     @injectConfig(LoggingConfigurationKeys.LogSeverityLevelConfiguration) logSeverityLevelConfiguration: number,
+                     @injectConfig(LoggingConfigurationKeys.LogDebugDepthConfiguration) logDebugDepthConfiguration: number,
+                     @injectConfig(LoggingConfigurationKeys.LogInfoDepthConfiguration) logInfoDepthConfiguration: number,
+                     @injectConfig(LoggingConfigurationKeys.LogNoticeDepthConfiguration) logNoticeDepthConfiguration: number,
+                     @injectConfig(LoggingConfigurationKeys.LogWarningDepthConfiguration) logWarningDepthConfiguration: number,
+                     @injectConfig(LoggingConfigurationKeys.LogErrorDepthConfiguration) logErrorDepthConfiguration: number,
+                     @injectConfig(LoggingConfigurationKeys.LogCriticalDepthConfiguration) logCriticalDepthConfiguration: number,
+                     @injectConfig(LoggingConfigurationKeys.FileLoggerActivated) isActivated: boolean,
+                     @injectConfig(LoggingConfigurationKeys.FileLoggerOutputMode) outputMode: OutputModeEnum,
+                     @injectConfig(LoggingConfigurationKeys.FileLoggerPretty) fileLoggerPretty: boolean,
+                     @injectConfig(LoggingConfigurationKeys.FilePath) private readonly filePath: string,
   ) {
     super(numberOfStackedLogs,
       logSeverityLevelConfiguration,
@@ -95,16 +96,8 @@ export class FileLogger extends BaseLogger implements LoggerInterface {
    */
   protected initialize() {
     if (this.isActive()) {
-      this.readableStream = new Readable({
-        objectMode: true,
-        read(size: number) {
-          return true;
-        }
-      });
+      this.readableStream = this.createSafeReadableStream();
       this.writableStream = fs.createWriteStream(this.filePath);
-      this.readableStream.on('data', chunk => {
-        this.captureLog(chunk);
-      });
     }
   }
 

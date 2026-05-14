@@ -18,7 +18,8 @@
       "node_modules/@types"
     ],
     "skipLibCheck": true,
-    "allowJs": true
+    "allowJs": true,
+    "incremental": true
   },
   "include": [
     "src"

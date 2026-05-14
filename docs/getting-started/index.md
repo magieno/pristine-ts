@@ -4,43 +4,39 @@
 
 # Getting Started
 
-Pristine is a [Typescript](https://www.typescriptlang.org) framework for [NodeJS](https://nodejs.org/en/) that is
-extremely lightweight with a few external dependencies. Additionally, Pristine offers incredible performance while
-coming out of the box with all the features you expect from a full-fledge framework.
+Pristine is a [TypeScript](https://www.typescriptlang.org) framework for [Node.js](https://nodejs.org/en/) that is
+extremely lightweight, has very few external dependencies, and ships with the features you expect from a full
+framework (DI, modules, routing, event handling, configuration, auth, logging, tracing).
 
-This Getting Started Guide is divided in chapters so we encourage you to read them in order to understand fully how to
-begin using Pristine in your project.
+This Getting Started guide is a tutorial. Read the chapters in order — each one builds on the previous, and chapters
+10 and 11 (Quick start + CLI) walk you through scaffolding a real app you'll carry through the rest of the guide.
 
-## Chapters
+## Tutorial track (recommended for new readers)
 
+If you've never used Pristine before, follow these in order. You'll have a running app by the end of chapter 11.
 
-1. [Overview](01-overview/00.index.md)
-    1. [Setup](01-overview/01.setup.md)
-    2. [Hosting](01-overview/02.hosting.md)
-    3. [Dependency Injection](01-overview/03.dependency-injection.md)
-    4. [Decorators](01-overview/04.decorators.md)
-2. [Controllers](docs/getting-started/03-controllers/00.index.md)
-    1. [Request](docs/getting-started/03-controllers/02.request.md)
-    2. [Response](docs/getting-started/03-controllers/03.response.md)
-    3. [Decorators](docs/getting-started/03-controllers/04.decorators.md)
-    4. [Validation](docs/getting-started/03-controllers/05.validation.md)
-    5. [Interceptors](docs/getting-started/03-controllers/06.interceptors.md)
-    6. [Guards](docs/getting-started/03-controllers/07.guards.md)
-    7. [Enrichers](docs/getting-started/03-controllers/08.enrichers.md)
-3. [Module](docs/getting-started/04-configuration/00.index.md)
-4. [Configuration](docs/getting-started/04-configuration/00.index.md)
-    1. [Define your module's configuration](docs/getting-started/04-configuration/)
-    2. [](docs/getting-started/04-configuration/)
-    3. [](docs/getting-started/04-configuration/)
-5. [Events](docs/getting-started/02-events/00.index.md)
-6. [Authentication](docs/getting-started/06-authentication/00.index.md)
-7. [Logging](docs/getting-started/07-logging/00.index.md)
-8. [Authorization](docs/getting-started/08-authorization/00.index.md)
-9. [Telemetry](docs/getting-started/09-telemetry/00.index.md)
+1. [Quick start](10-quick-start/00.index.md) — 5 minutes from `npm install` to a running HTTP server.
+2. [The Pristine CLI](11-cli/00.index.md) — `pristine init`, `build`, `start`, `verify`, custom commands, plugins.
+3. [Overview](01-overview/00.index.md) — the kernel, DI, decorators (what makes the framework tick).
+4. [Modules](05-modules/00.index.md) — how to compose your app from reusable pieces.
+5. [Controllers](03-controllers/00.index.md) — HTTP requests, routes, validation.
+
+## Reference track (chapters you'll come back to)
+
+6. [Configuration](04-configuration/00.index.md) — declaring and resolving config values.
+7. [Events](02-events/00.index.md) — listeners, interceptors, the event pipeline.
+8. [Authentication](06-authentication/00.index.md) — identity providers, JWT, OAuth2.
+9. [Authorization](08-authorization/00.index.md) — voters, permissions.
+10. [Logging](07-logging/00.index.md) — the log handler, loggers, transports.
+11. [Telemetry](09-telemetry/00.index.md) — traces, spans, tracers.
+
+## Operations track
+
+12. [Production](12-production/00.index.md) — deployment patterns, graceful shutdown, health checks.
+13. [API reference](13-reference/00.index.md) — auto-generated decorator + class reference.
 
 ---
 
 <p align="right">
-   <strong>Next chapter: </strong> <a href="01-overview/00.index.md">Overview</a>
+   <strong>Start here: </strong> <a href="10-quick-start/00.index.md">Quick start</a>
 </p>
-

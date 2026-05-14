@@ -45,3 +45,10 @@ yarn.lock
 tests/perf/generation/output/*
 
 .npmrc
+
+# CLI tool caches
+.eslintcache
+.pristine
+
+# Auto-generated API reference (regenerate with `npm run docs:reference`)
+docs/getting-started/13-reference/api

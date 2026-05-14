@@ -10,9 +10,9 @@ export * from "./factories/factories";
 export * from "./guards/guards";
 export * from "./interfaces/interfaces";
 export * from "./managers/managers";
-export * from "./providers/providers";
 export * from "./security.module.keyname";
 
+export * from "./security.configuration-keys";
 export const SecurityModule: ModuleInterface = {
   keyname: SecurityModuleKeyname,
   importModules: [

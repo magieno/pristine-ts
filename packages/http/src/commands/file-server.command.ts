@@ -10,7 +10,7 @@ import {FileServerCommandOptions} from "./file-server.command-options";
 @moduleScoped(HttpModuleKeyname)
 @injectable()
 export class FileServerCommand implements CommandInterface<FileServerCommandOptions> {
-  optionsType: FileServerCommandOptions = new FileServerCommandOptions()
+  optionsType = FileServerCommandOptions;
   name = "file-server:start";
 
   constructor(

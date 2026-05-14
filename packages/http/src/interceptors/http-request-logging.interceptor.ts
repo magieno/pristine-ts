@@ -1,6 +1,7 @@
 import {inject, injectable} from "tsyringe";
+import {HttpConfigurationKeys} from "../http.configuration-keys";
 import {HttpRequestInterceptorInterface} from "../interfaces/http-request-interceptor.interface";
-import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {injectConfig, moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {HttpRequestInterface} from "../interfaces/http-request.interface";
 import {HttpRequestOptions} from "../options/http-request.options.";
 import {LogHandlerInterface} from "@pristine-ts/logging";
@@ -17,7 +18,7 @@ import {HttpModuleKeyname} from "../http.module.keyname";
 export class HttpRequestLoggingInterceptor implements HttpRequestInterceptorInterface {
   constructor(
     @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-    @inject("%pristine.http.logging-enabled%") private readonly loggingEnabled: boolean,
+    @injectConfig(HttpConfigurationKeys.LoggingEnabled) private readonly loggingEnabled: boolean,
   ) {
   }
 

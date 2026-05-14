@@ -1,19 +1,22 @@
 {
   "name": "pristine-ts",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "The Pristine TS Framework.",
   "main": "index.js",
   "scripts": {
     "bootstrap": "lerna bootstrap",
     "build": "lerna run build",
     "test": "lerna run test",
-    "e2e": "cd tests/e2e && jest && cd ..",
+    "test:cli": "cd tests/cli && npm test",
+    "e2e": "cd tests/e2e && jest && cd ../.. && npm run test:cli",
     "perf": "cd tests/perf && jest && cd ..",
     "bump-patch": "lerna version patch --yes",
     "publish-ci": "lerna publish from-git --yes",
     "prune": "rm -rf `find . -type d -name node_modules` && rm -rf `find . -type d -name dist`",
     "install-all": " for dir in packages/*/; do\n  (cd -- \"$dir\" && echo \"$dir\" && npm install)\ndone",
-    "ci-all": " for dir in packages/*/; do\n  (cd -- \"$dir\" && echo \"$dir\" && npm ci)\ndone"
+    "ci-all": " for dir in packages/*/; do\n  (cd -- \"$dir\" && echo \"$dir\" && npm ci)\ndone",
+    "docs:reference": "npx --yes typedoc@^0.26.0",
+    "docs:reference:watch": "npx --yes typedoc@^0.26.0 --watch"
   },
   "repository": {
     "type": "git",

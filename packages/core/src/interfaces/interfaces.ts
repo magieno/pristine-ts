@@ -5,4 +5,8 @@ export * from "./event-listener.interface";
 export * from "./event-mapper.interface";
 export * from "./events-execution-options.interface";
 export * from "./execution-context.interface";
+export * from "./instantiation-test.interface";
+export * from "./instantiation-test-result.interface";
 export * from "./options-mapper.interface";
+export * from "./runtime-server.interface";
+export * from "./serialized-error.interface";

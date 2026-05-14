@@ -21,6 +21,7 @@ export * from "./utils/utils";
 
 export * from "./router";
 
+export * from "./networking.configuration-keys";
 export const NetworkingModule: ModuleInterface = {
   keyname: NetworkingModuleKeyname,
   importModules: [

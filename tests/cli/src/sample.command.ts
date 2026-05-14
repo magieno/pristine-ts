@@ -6,7 +6,7 @@ import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 @injectable()
 export class SampleCommand implements CommandInterface<any> {
     name: string = "sample";
-    optionsType: any;
+    optionsType = null;
 
     run(args: { new(...args: any[]): void }): Promise<ExitCodeEnum | number> {
         console.log("should run");

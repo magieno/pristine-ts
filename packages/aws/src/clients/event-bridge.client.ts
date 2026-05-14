@@ -1,10 +1,11 @@
 import {inject, injectable} from "tsyringe";
+import {AwsConfigurationKeys} from "../aws.configuration-keys";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {EventBridgeClient as AwsEventBridgeClient, PutEventsCommand} from "@aws-sdk/client-eventbridge";
 import {EventBridgeMessageModel} from "../models/event-bridge-message.model";
 import {EventBridgeSendMessageError} from "../errors/event-bridge-send-message.error";
 import {EventBridgeClientInterface} from "../interfaces/event-bridge-client.interface";
-import {moduleScoped, tag} from "@pristine-ts/common";
+import {injectConfig, moduleScoped, tag} from "@pristine-ts/common";
 import {AwsModuleKeyname} from "../aws.module.keyname";
 import {ClientOptionsInterface} from "../interfaces/client-options.interface";
 
@@ -24,7 +25,7 @@ export class EventBridgeClient implements EventBridgeClientInterface {
    */
   constructor(
     @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-    @inject("%pristine.aws.region%") private readonly region: string,
+    @injectConfig(AwsConfigurationKeys.Region) private readonly region: string,
   ) {
   }
 

@@ -6,11 +6,10 @@
   "main": "dist/lib/cjs/cli.module.js",
   "types": "dist/types/cli.module.d.ts",
   "bin": {
-    "pristine": "dist/lib/cjs/bin.js"
+    "pristine": "dist/bin/pristine.cjs"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
-    "postbuild": "chmod +x dist/lib/cjs/bin.js",
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json && node scripts/build-bin.mjs",
     "prepublish": "npm run build",
     "test": "jest",
     "test:cov": "jest --coverage",
@@ -25,6 +24,7 @@
     "access": "public"
   },
   "dependencies": {
+    "@inquirer/prompts": "^7.2.0",
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/core": "file:../core",
     "@pristine-ts/data-mapping": "file:../data-mapping",
@@ -32,8 +32,11 @@
     "@pristine-ts/file": "file:../file",
     "@pristine-ts/logging": "file:../logging",
     "@pristine-ts/validation": "file:../validation",
-    "class-transformer": "^0.5.1",
+    "jiti": "^2.4.0",
     "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0"
   },
   "jest": {
     "transform": {

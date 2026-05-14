@@ -7,6 +7,7 @@ export * from "./clients/clients";
 export * from "./errors/errors";
 export * from "./interfaces/interfaces";
 
+export * from "./redis.configuration-keys";
 export const RedisModule: ModuleInterface = {
   keyname: RedisModuleKeyname,
   importModules: [

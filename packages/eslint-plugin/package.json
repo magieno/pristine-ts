@@ -1,0 +1,49 @@
+{
+  "name": "@pristine-ts/eslint-plugin",
+  "version": "1.0.440",
+  "description": "ESLint rules for projects using the Pristine framework. Currently ships one rule: inject-config-type-match.",
+  "module": "dist/lib/esm/index.js",
+  "main": "dist/lib/cjs/index.js",
+  "types": "dist/types/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
+    "prepublish": "npm run build",
+    "test": "jest"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "eslint",
+    "eslintplugin",
+    "pristine-ts"
+  ],
+  "author": "",
+  "license": "ISC",
+  "publishConfig": {
+    "access": "public"
+  },
+  "peerDependencies": {
+    "eslint": ">=8.0.0",
+    "typescript": ">=5.0.0"
+  },
+  "dependencies": {
+    "@typescript-eslint/utils": "^7.0.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/parser": "^7.0.0",
+    "@typescript-eslint/rule-tester": "^7.0.0"
+  },
+  "jest": {
+    "transform": {
+      ".(ts|tsx)": "ts-jest"
+    },
+    "testEnvironment": "node",
+    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ]
+  }
+}

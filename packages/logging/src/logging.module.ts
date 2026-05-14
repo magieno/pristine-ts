@@ -20,6 +20,7 @@ export * from "./types/types";
 export * from "./utils/utils";
 
 
+export * from "./logging.configuration-keys";
 export const LoggingModule: ModuleInterface = {
   keyname: LoggingModuleKeyname,
   configurationDefinitions: [

@@ -1,5 +1,6 @@
 import {AwsModuleKeyname} from "../aws.module.keyname";
-import {moduleScoped, tag} from "@pristine-ts/common";
+import {AwsConfigurationKeys} from "../aws.configuration-keys";
+import {injectConfig, moduleScoped, tag} from "@pristine-ts/common";
 import {inject, injectable} from "tsyringe";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {SecretsManagerClientInterface} from "../interfaces/secrets-manager-client.interface";
@@ -18,7 +19,7 @@ export class SecretsManagerClient implements SecretsManagerClientInterface {
    */
   constructor(
     @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-    @inject("%pristine.aws.region%") private readonly region: string,
+    @injectConfig(AwsConfigurationKeys.Region) private readonly region: string,
   ) {
   }
 
