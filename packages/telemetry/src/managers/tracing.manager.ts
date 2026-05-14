@@ -2,7 +2,7 @@ import {inject, injectable, injectAll, singleton} from "tsyringe";
 import {Trace} from "../models/trace.model";
 import {Span} from "../models/span.model";
 import {TracingManagerInterface} from "../interfaces/tracing-manager.interface";
-import {moduleScoped, ServiceDefinitionTagEnum, tag, TracingContext} from "@pristine-ts/common";
+import {injectConfig, moduleScoped, ServiceDefinitionTagEnum, tag, TracingContext} from "@pristine-ts/common";
 import {SpanKeynameEnum} from "../enums/span-keyname.enum";
 import {TelemetryModuleKeyname} from "../telemetry.module.keyname";
 import {TracerInterface} from "../interfaces/tracer.interface";
@@ -41,8 +41,8 @@ export class TracingManager implements TracingManagerInterface {
    */
   public constructor(@injectAll(ServiceDefinitionTagEnum.Tracer) private readonly tracers: TracerInterface[],
                      @inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface,
-                     @inject("%pristine.telemetry.active%") private readonly isActive: boolean,
-                     @inject("%pristine.telemetry.debug%") private readonly debug: boolean,
+                     @injectConfig("pristine.telemetry.active") private readonly isActive: boolean,
+                     @injectConfig("pristine.telemetry.debug") private readonly debug: boolean,
                      private readonly tracingContext: TracingContext,) {
   }
 

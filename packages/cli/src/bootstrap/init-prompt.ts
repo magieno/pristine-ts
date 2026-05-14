@@ -17,8 +17,7 @@ export interface InitAnswers {
 
 /**
  * Interactive Q&A for `pristine init`. Lazy-loads `@inquirer/prompts` so the dep cost is
- * only paid when actually prompting (the same pattern as `AppModulePrompt` and
- * `BuildStalenessPrompt` use).
+ * only paid when actually prompting (the same pattern as `BuildStalenessPrompt` uses).
  *
  * Each method takes a "current value" so callers can pre-fill answers from CLI flags and
  * only prompt for the gaps. Returning the same value the user passed in is intentional —

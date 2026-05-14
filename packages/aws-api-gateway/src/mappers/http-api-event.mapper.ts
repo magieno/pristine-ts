@@ -7,7 +7,7 @@ import {
   ExecutionContextInterface
 } from "@pristine-ts/core";
 import {inject, injectable} from "tsyringe";
-import {moduleScoped, Request, Response, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {injectConfig, moduleScoped, Request, Response, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {HttpApiEventPayload} from "../event-payloads/http-api.event-payload";
 import {HttpApiEventResponsePayload} from "../event-response-payloads/http-api.event-response-payload";
 import {AwsApiGatewayModuleKeyname} from "../aws-api-gateway.module.keyname";
@@ -34,7 +34,7 @@ export class HttpApiEventMapper extends BaseApiEventMapper implements EventMappe
    * @param httpRequestsHandlingStrategy The handling strategy to use when handling http api events.
    */
   constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-              @inject("%" + AwsApiGatewayModuleKeyname + ".httpApiEvents.handlingStrategy%") private readonly httpRequestsHandlingStrategy: ApiGatewayEventsHandlingStrategyEnum) {
+              @injectConfig(AwsApiGatewayModuleKeyname + ".httpApiEvents.handlingStrategy") private readonly httpRequestsHandlingStrategy: ApiGatewayEventsHandlingStrategyEnum) {
     super();
   }
 

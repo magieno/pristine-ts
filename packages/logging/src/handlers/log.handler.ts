@@ -3,13 +3,7 @@ import {inject, injectable, injectAll, Lifecycle, scoped} from "tsyringe";
 import {SeverityEnum} from "../enums/severity.enum";
 import {LogModel} from "../models/log.model";
 import {LoggerInterface} from "../interfaces/logger.interface";
-import {
-  InternalContainerParameterEnum,
-  moduleScoped,
-  ServiceDefinitionTagEnum,
-  tag,
-  TracingContext
-} from "@pristine-ts/common";
+import {injectConfig, InternalContainerParameterEnum, moduleScoped, ServiceDefinitionTagEnum, tag, TracingContext} from "@pristine-ts/common";
 import {LogHandlerInterface} from "../interfaces/log-handler.interface";
 import {BreadcrumbHandlerInterface} from "../interfaces/breadcrumb-handler.interface";
 import {Utils} from "../utils/utils";
@@ -37,8 +31,8 @@ export class LogHandler implements LogHandlerInterface {
    * @param tracingContext The context of the tracing.
    */
   public constructor(@injectAll(ServiceDefinitionTagEnum.Logger) private readonly loggers: LoggerInterface[],
-                     @inject("%pristine.logging.logSeverityLevelConfiguration%") private readonly logSeverityLevelConfiguration: number,
-                     @inject("%pristine.logging.activateDiagnostics%") private readonly activateDiagnostics: boolean,
+                     @injectConfig("pristine.logging.logSeverityLevelConfiguration") private readonly logSeverityLevelConfiguration: number,
+                     @injectConfig("pristine.logging.activateDiagnostics") private readonly activateDiagnostics: boolean,
                      @inject(InternalContainerParameterEnum.KernelInstantiationId) private readonly kernelInstantiationId: string,
                      @inject("BreadcrumbHandlerInterface") private readonly breadcrumbHandler: BreadcrumbHandlerInterface,
                      private readonly tracingContext: TracingContext) {
@@ -173,10 +167,24 @@ export class LogHandler implements LogHandlerInterface {
       log.extra["__diagnostics"] = diagnostics;
     }
 
-    // Log in every logger that is activated.
+    // Log in every logger that is activated. Each logger's push is isolated: a throwing
+    // logger writes to stderr but does not propagate the error back to the caller and
+    // does not prevent the other loggers from receiving the entry.
     for (const logger of this.loggers) {
-      if (logger.isActive()) {
+      if (logger.isActive() === false) {
+        continue;
+      }
+
+      try {
         logger.readableStream?.push(log);
+      } catch (error) {
+        const name = (logger as any)?.constructor?.name ?? "UnknownLogger";
+        const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+        try {
+          process.stderr.write(`[pristine][log-handler] logger '${name}' threw during push: ${message}\n`);
+        } catch {
+          // Nothing useful left to do if stderr is unavailable.
+        }
       }
     }
   }

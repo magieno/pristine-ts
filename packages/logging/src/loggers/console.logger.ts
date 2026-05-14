@@ -3,7 +3,7 @@ import {SeverityEnum} from "../enums/severity.enum";
 import {LogModel} from "../models/log.model";
 import {LoggerInterface} from "../interfaces/logger.interface";
 import {Readable} from "stream";
-import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {injectConfig, moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {OutputModeEnum} from "../enums/output-mode.enum";
 import {LoggingModuleKeyname} from "../logging.module.keyname";
 import {BaseLogger} from "./base.logger";
@@ -51,17 +51,17 @@ export class ConsoleLogger extends BaseLogger implements LoggerInterface {
    * @param outputMode The output mode, that the logger should use.
    * @param maximumLogsPerSecond The maximum numner of logs per second that can be outputted
    */
-  public constructor(@inject("%pristine.logging.numberOfStackedLogs%") numberOfStackedLogs: number,
-                     @inject("%pristine.logging.logSeverityLevelConfiguration%") logSeverityLevelConfiguration: number,
-                     @inject("%pristine.logging.logDebugDepthConfiguration%") logDebugDepthConfiguration: number,
-                     @inject("%pristine.logging.logInfoDepthConfiguration%") logInfoDepthConfiguration: number,
-                     @inject("%pristine.logging.logNoticeDepthConfiguration%") logNoticeDepthConfiguration: number,
-                     @inject("%pristine.logging.logWarningDepthConfiguration%") logWarningDepthConfiguration: number,
-                     @inject("%pristine.logging.logErrorDepthConfiguration%") logErrorDepthConfiguration: number,
-                     @inject("%pristine.logging.logCriticalDepthConfiguration%") logCriticalDepthConfiguration: number,
-                     @inject("%pristine.logging.consoleLoggerActivated%") isActivated: boolean,
-                     @inject("%pristine.logging.consoleLoggerOutputMode%") outputMode: OutputModeEnum,
-                     @inject("%pristine.logging.maximumLogsPerSecond%") private readonly maximumLogsPerSecond: number,
+  public constructor(@injectConfig("pristine.logging.numberOfStackedLogs") numberOfStackedLogs: number,
+                     @injectConfig("pristine.logging.logSeverityLevelConfiguration") logSeverityLevelConfiguration: number,
+                     @injectConfig("pristine.logging.logDebugDepthConfiguration") logDebugDepthConfiguration: number,
+                     @injectConfig("pristine.logging.logInfoDepthConfiguration") logInfoDepthConfiguration: number,
+                     @injectConfig("pristine.logging.logNoticeDepthConfiguration") logNoticeDepthConfiguration: number,
+                     @injectConfig("pristine.logging.logWarningDepthConfiguration") logWarningDepthConfiguration: number,
+                     @injectConfig("pristine.logging.logErrorDepthConfiguration") logErrorDepthConfiguration: number,
+                     @injectConfig("pristine.logging.logCriticalDepthConfiguration") logCriticalDepthConfiguration: number,
+                     @injectConfig("pristine.logging.consoleLoggerActivated") isActivated: boolean,
+                     @injectConfig("pristine.logging.consoleLoggerOutputMode") outputMode: OutputModeEnum,
+                     @injectConfig("pristine.logging.maximumLogsPerSecond") private readonly maximumLogsPerSecond: number,
   ) {
     super(numberOfStackedLogs,
       logSeverityLevelConfiguration,
@@ -90,15 +90,7 @@ export class ConsoleLogger extends BaseLogger implements LoggerInterface {
    */
   protected initialize() {
     if (this.isActive()) {
-      this.readableStream = new Readable({
-        objectMode: true,
-        read(size: number) {
-          return true;
-        }
-      });
-      this.readableStream.on('data', chunk => {
-        this.captureLog(chunk);
-      });
+      this.readableStream = this.createSafeReadableStream();
     }
   }
 

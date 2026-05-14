@@ -1,10 +1,7 @@
 import {ExecutionContextKeynameEnum, Kernel} from "@pristine-ts/core";
 import {ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {CommandInterface} from "./interfaces/command.interface";
-import {AppModuleCache} from "./bootstrap/app-module-cache";
-import {AppModuleDiscoverer} from "./bootstrap/app-module-discoverer";
 import {AppModuleLoader} from "./bootstrap/app-module-loader";
-import {AppModulePrompt} from "./bootstrap/app-module-prompt";
 import {BuildManifestChecker} from "./bootstrap/build-manifest-checker";
 import {BuildManifestReader} from "./bootstrap/build-manifest-reader";
 import {BuildRunner} from "./bootstrap/build-runner";
@@ -51,9 +48,6 @@ export const bootstrap = async (): Promise<void> => {
 const buildAppModuleLoader = (): AppModuleLoader => {
   const dynamicImporter = new DynamicImporter();
   const configLoader = new ConfigLoader(dynamicImporter);
-  const cache = new AppModuleCache();
-  const discoverer = new AppModuleDiscoverer();
-  const prompt = new AppModulePrompt(dynamicImporter);
   const pluginLoader = new PluginLoader(dynamicImporter);
   const sourceHasher = new SourceHasher();
   const buildManifestReader = new BuildManifestReader();
@@ -62,9 +56,6 @@ const buildAppModuleLoader = (): AppModuleLoader => {
   const buildRunner = new BuildRunner();
   return new AppModuleLoader(
     configLoader,
-    cache,
-    discoverer,
-    prompt,
     pluginLoader,
     dynamicImporter,
     buildManifestReader,

@@ -100,9 +100,8 @@ export class BuildCommand implements CommandInterface<null> {
 
   private writeManifestIfConfigured(projectRoot: string, appModule: { sourcePath?: string; outputPath?: string } | undefined): void {
     if (appModule?.sourcePath === undefined || appModule?.outputPath === undefined) {
-      // No source/output pair configured — nothing to fingerprint. The user is on the
-      // legacy `appModule.path` path or relying on convention discovery; either way the
-      // manifest layer is a no-op for them.
+      // No `appModule` block in the config — nothing to fingerprint. The manifest layer
+      // is a no-op until the user runs `pristine init`.
       return;
     }
 

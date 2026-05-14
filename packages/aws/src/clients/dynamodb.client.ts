@@ -15,7 +15,7 @@ import {DynamodbTableNotFoundError} from "../errors/dynamodb-table-not-found.err
 import {DynamodbValidationError} from "../errors/dynamodb-validation.error";
 import {DynamodbError} from "../errors/dynamodb.error";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import {tag} from "@pristine-ts/common";
+import {injectConfig, tag} from "@pristine-ts/common";
 import {DynamodbClientInterface} from "../interfaces/dynamodb-client.interface";
 import {ListOptions} from "../options/list.options";
 import {FindBySecondaryIndexOptions} from "../options/find-by-secondary-index.options";
@@ -49,7 +49,7 @@ export class DynamodbClient implements DynamodbClientInterface {
    */
   constructor(
     @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-    @inject("%pristine.aws.region%") private readonly region: string,
+    @injectConfig("pristine.aws.region") private readonly region: string,
   ) {
   }
 

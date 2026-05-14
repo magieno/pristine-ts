@@ -1,6 +1,6 @@
 import {inject, injectable} from "tsyringe";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import {moduleScoped, tag} from "@pristine-ts/common";
+import {injectConfig, moduleScoped, tag} from "@pristine-ts/common";
 import {AwsModuleKeyname} from "../aws.module.keyname";
 import {
   Capability,
@@ -68,7 +68,7 @@ export class CloudformationClient implements CloudformationClientInterface {
    */
   constructor(
     @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-    @inject("%pristine.aws.region%") public region: string,
+    @injectConfig("pristine.aws.region") public region: string,
   ) {
   }
 

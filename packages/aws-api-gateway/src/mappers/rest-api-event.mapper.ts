@@ -1,4 +1,4 @@
-import {moduleScoped, Request, Response, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {injectConfig, moduleScoped, Request, Response, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {inject, injectable} from "tsyringe";
 import {
   Event,
@@ -35,7 +35,7 @@ export class RestApiEventMapper extends BaseApiEventMapper implements EventMappe
    * @param restApiEventsHandlingStrategy The handling strategy to use when handling rest api events.
    */
   constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-              @inject("%" + AwsApiGatewayModuleKeyname + ".restApiEvents.handlingStrategy%") private readonly restApiEventsHandlingStrategy: ApiGatewayEventsHandlingStrategyEnum) {
+              @injectConfig(AwsApiGatewayModuleKeyname + ".restApiEvents.handlingStrategy") private readonly restApiEventsHandlingStrategy: ApiGatewayEventsHandlingStrategyEnum) {
     super();
   }
 

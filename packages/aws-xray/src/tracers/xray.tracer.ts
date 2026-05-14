@@ -1,6 +1,6 @@
 import {inject, injectable} from "tsyringe";
 import {Span, Trace, TracerInterface} from "@pristine-ts/telemetry";
-import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {injectConfig, moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {Readable} from "stream";
 import AWSXRay, {Segment, SegmentUtils, Subsegment} from "aws-xray-sdk";
 import {AwsXrayModuleKeyname} from "../aws-xray.module.keyname";
@@ -15,7 +15,7 @@ import {LogHandlerInterface} from "@pristine-ts/logging";
 export class XrayTracer implements TracerInterface {
   traceEndedStream: Readable;
 
-  public constructor(@inject("%pristine.telemetry.debug%") private readonly debug: boolean,
+  public constructor(@injectConfig("pristine.telemetry.debug") private readonly debug: boolean,
                      @inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface) {
     this.traceEndedStream = new Readable({
       objectMode: true,

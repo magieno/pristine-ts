@@ -7,9 +7,9 @@ import {ResolvedPristineConfig} from "./resolved-pristine-config";
 import {DynamicImporter} from "../bootstrap/dynamic-importer";
 
 /**
- * Loads `pristine.config.{ts,mts,cts,js,mjs,cjs}`. Walks up from `process.cwd()` looking
- * for a config file, then loads it through `jiti` (for TypeScript variants) or Node's
- * dynamic `import()` (for JavaScript variants).
+ * Loads `pristine.config.ts` (preferred) or `pristine.config.js` (escape hatch for
+ * pure-JS projects). Walks up from `process.cwd()` looking for the file, then loads it
+ * through `jiti` (for `.ts`) or Node's dynamic `import()` (for `.js`).
  *
  * Returns a `ResolvedPristineConfig` carrying the file path (when found) and per-field
  * provenance, which `pristine p:config:print` uses to render an annotated dump.
@@ -17,17 +17,14 @@ import {DynamicImporter} from "../bootstrap/dynamic-importer";
 @injectable()
 export class ConfigLoader {
   /**
-   * File names searched for, in order. `.ts` first because every Pristine project is already
-   * a TS project and the typed config gives the best DX. The `.{js,mjs,cjs}` variants exist
-   * for non-TS projects or for users who prefer to skip the runtime TS load entirely.
+   * File names searched for, in order. `.ts` is the canonical form — `defineConfig()`
+   * gives full IDE autocomplete and every Pristine project ships a TS toolchain anyway.
+   * `.js` is the escape hatch for the rare pure-JS project that cannot have a `.ts`
+   * file at the root.
    */
   private readonly configFileNames: ReadonlyArray<string> = [
     "pristine.config.ts",
-    "pristine.config.mts",
-    "pristine.config.cts",
     "pristine.config.js",
-    "pristine.config.mjs",
-    "pristine.config.cjs",
   ];
 
   constructor(private readonly dynamicImporter: DynamicImporter) {
@@ -85,16 +82,16 @@ export class ConfigLoader {
   }
 
   /**
-   * Loads a config file from `absolutePath`. `.ts` and `.mts`/`.cts` go through `jiti`; the
-   * other formats use Node's native dynamic `import()`. Extracts the default export, falling
-   * back to a named `pristineConfig` export for users who prefer not to use `export default`.
+   * Loads a config file from `absolutePath`. `.ts` goes through `jiti`; `.js` uses Node's
+   * native dynamic `import()`. Extracts the default export, falling back to a named
+   * `pristineConfig` export for users who prefer not to use `export default`.
    * @private
    */
   private async importConfigFile(absolutePath: string): Promise<PristineConfig> {
     const ext = path.extname(absolutePath).toLowerCase();
     let loaded: any;
 
-    if (ext === ".ts" || ext === ".mts" || ext === ".cts") {
+    if (ext === ".ts") {
       const jitiModule = await this.dynamicImporter.import("jiti");
       const createJiti = jitiModule.default ?? jitiModule.createJiti ?? jitiModule;
       const jiti = createJiti(absolutePath, {interopDefault: true});

@@ -3,7 +3,7 @@ import {LogHandlerInterface} from "@pristine-ts/logging";
 import {MessageAttributeValue, SendMessageCommand, SQSClient, SQSClientConfig} from "@aws-sdk/client-sqs";
 import {SqsMessageSentConfirmationModel} from "../models/sqs-message-sent-confirmation.model";
 import {SqsSendMessageError} from "../errors/sqs-send-message.error";
-import {moduleScoped, tag} from "@pristine-ts/common";
+import {injectConfig, moduleScoped, tag} from "@pristine-ts/common";
 import {AwsModuleKeyname} from "../aws.module.keyname";
 import {SqsClientInterface} from "../interfaces/sqs-client.interface";
 import {SqsClientOptions} from "../options/sqs-client.options";
@@ -24,7 +24,7 @@ export class SqsClient implements SqsClientInterface {
    */
   constructor(
     @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-    @inject("%pristine.aws.region%") private readonly region: string,
+    @injectConfig("pristine.aws.region") private readonly region: string,
   ) {
   }
 

@@ -1,6 +1,5 @@
 export * from "./build-alias.command";
 export * from "./build.command";
-export * from "./config-init.command";
 export * from "./config-print.command";
 export * from "./help-alias.command";
 export * from "./help.command";
