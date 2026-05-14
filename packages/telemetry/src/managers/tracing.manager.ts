@@ -1,9 +1,9 @@
-import {inject, injectable, injectAll, singleton} from "tsyringe";
+import {inject, injectable, injectAll, Lifecycle, scoped} from "tsyringe";
 import {TelemetryConfigurationKeys} from "../telemetry.configuration-keys";
 import {Trace} from "../models/trace.model";
 import {Span} from "../models/span.model";
 import {TracingManagerInterface} from "../interfaces/tracing-manager.interface";
-import {injectConfig, moduleScoped, ServiceDefinitionTagEnum, tag, TracingContext} from "@pristine-ts/common";
+import {EventContextManager, injectConfig, moduleScoped, ServiceDefinitionTagEnum, tag, TracingContext} from "@pristine-ts/common";
 import {SpanKeynameEnum} from "../enums/span-keyname.enum";
 import {TelemetryModuleKeyname} from "../telemetry.module.keyname";
 import {TracerInterface} from "../interfaces/tracer.interface";
@@ -13,10 +13,18 @@ import {LogHandlerInterface} from "@pristine-ts/logging";
  * The Tracing Manager provides methods to help with tracing.
  * It is tagged and can be injected using TracingManagerInterface which facilitates mocking.
  * It is module scoped to the TelemetryModuleKeyname.
+ *
+ * **Lifecycle: container-scoped, not singleton.** Each per-event DI child container gets
+ * its own `TracingManager` instance with its own `trace` and `spans` state. Earlier
+ * versions used `@singleton()` — a single instance shared across every event — which
+ * was a latent bug: parallel events would clobber each other's `this.trace`. Resolving
+ * `TracingManager` from the root container still returns the root instance (used for
+ * kernel-initialization spans before any event has started); resolving from a child
+ * container returns the per-event instance, which is what application code wants.
  */
 @moduleScoped(TelemetryModuleKeyname)
 @tag("TracingManagerInterface")
-@singleton()
+@scoped(Lifecycle.ContainerScoped)
 @injectable()
 export class TracingManager implements TracingManagerInterface {
   /**
@@ -59,8 +67,16 @@ export class TracingManager implements TracingManagerInterface {
     this.trace = new Trace(traceId, context);
     const span = new Span(spanRootKeyname, undefined, context);
 
-    // Set the trace id into the Tracing Context. This can be used to retrieve the current trace.
+    // Mirror the trace id into both the legacy `TracingContext` (back-compat for any
+    // existing consumer that still injects it) and the new ALS-propagated `EventContext`
+    // (the path forward; what `LogHandler` and other ALS-aware consumers will read).
+    // Both writes are cheap; the dual write is just a transition aid until TracingContext
+    // is fully removed in a later major.
     this.tracingContext.traceId = this.trace.id;
+    const eventContext = EventContextManager.current();
+    if (eventContext !== undefined) {
+      eventContext.traceId = this.trace.id;
+    }
 
     // If the tracing is not active, simply return the created span but don't send to the tracers.
     if (this.isActive === false) {

@@ -131,3 +131,54 @@ describe("SpanRunner.runWithSpan", () => {
     expect(r2).toBe("b");
   });
 });
+
+describe("SpanRunner.runWithSpan — ALS auto-resolve form", () => {
+  it("auto-resolves TracingManager from the active EventContext", async () => {
+    const {tm, spans} = buildStubTracingManager();
+    const containerStub = {resolve: jest.fn(() => tm)} as unknown as import("tsyringe").DependencyContainer;
+    const ecm = new (require("@pristine-ts/common").EventContextManager)();
+    const ctx = new (require("@pristine-ts/common").EventContext)();
+    ctx.eventId = "evt-als";
+    ctx.container = containerStub;
+
+    const result = await ecm.run(ctx, () => spanRunner.runWithSpan("auto-resolved.op", async () => "ok"));
+
+    expect(result).toBe("ok");
+    expect(containerStub.resolve).toHaveBeenCalledWith("TracingManagerInterface");
+    expect(spans).toHaveLength(1);
+    expect(spans[0].keyname).toBe("auto-resolved.op");
+  });
+
+  it("runs the function unchanged when no EventContext is active", async () => {
+    const result = await spanRunner.runWithSpan("no-context.op", () => 42);
+    expect(result).toBe(42);
+    // No span created — and notably, no throw.
+  });
+
+  it("runs the function unchanged when the container has no TracingManager", async () => {
+    const containerStub = {resolve: jest.fn(() => { throw new Error("not registered"); })} as unknown as import("tsyringe").DependencyContainer;
+    const ecm = new (require("@pristine-ts/common").EventContextManager)();
+    const ctx = new (require("@pristine-ts/common").EventContext)();
+    ctx.eventId = "evt-no-tm";
+    ctx.container = containerStub;
+
+    const result = await ecm.run(ctx, () => spanRunner.runWithSpan("missing-tm.op", () => "value"));
+    expect(result).toBe("value");
+  });
+
+  it("forwards options (parent + context) when in ALS form", async () => {
+    const {tm} = buildStubTracingManager();
+    const containerStub = {resolve: () => tm} as unknown as import("tsyringe").DependencyContainer;
+    const ecm = new (require("@pristine-ts/common").EventContextManager)();
+    const ctx = new (require("@pristine-ts/common").EventContext)();
+    ctx.eventId = "evt-opts";
+    ctx.container = containerStub;
+
+    await ecm.run(ctx, () => spanRunner.runWithSpan<void>("child", async (): Promise<void> => undefined, {
+      parentKeyname: "outer",
+      context: {tenant: "acme"},
+    }));
+
+    expect(tm.startSpan).toHaveBeenCalledWith("child", "outer", undefined, {tenant: "acme"});
+  });
+});

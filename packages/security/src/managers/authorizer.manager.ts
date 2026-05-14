@@ -64,7 +64,6 @@ export class AuthorizerManager implements AuthorizerManagerInterface {
             identityId: identity?.id ?? "No Identity Id found",
             identityClaims: identity?.claims ?? "No claims found",
           },
-          eventId: request.id,
           extra: {
             error: e,
             request,
@@ -79,14 +78,12 @@ export class AuthorizerManager implements AuthorizerManagerInterface {
       this.logHandler.info(`User authorized`, {
         headlights: {isAuthorized},
         extra: {request, routeContext},
-        eventId: request.id,
         breadcrumb: `${SecurityModuleKeyname}:authorizer.manager:isAuthorized:return`
       });
     } else {
       this.logHandler.info(`User authorized`, {
         headlights: {isAuthorized},
         extra: {request, routeContext},
-        eventId: request.id,
         breadcrumb: `${SecurityModuleKeyname}:authorizer.manager:isAuthorized:return`
       });
     }

@@ -1,7 +1,7 @@
 import {LoggingModuleKeyname} from "../logging.module.keyname";
 import {BreadcrumbHandlerInterface} from "../interfaces/breadcrumb-handler.interface";
 import {injectable, Lifecycle, scoped} from "tsyringe";
-import {moduleScoped, tag} from "@pristine-ts/common";
+import {EventContextManager, moduleScoped, tag} from "@pristine-ts/common";
 import {BreadcrumbModel} from "../models/breadcrumb.model";
 
 @moduleScoped(LoggingModuleKeyname)
@@ -11,8 +11,13 @@ import {BreadcrumbModel} from "../models/breadcrumb.model";
 export class BreadcrumbHandler implements BreadcrumbHandlerInterface {
   public breadcrumbs: { [eventId in string]: BreadcrumbModel[] } = {};
 
-  add(eventId: string, message: string, extra?: any) {
-    this.addBreadcrumb(eventId, new BreadcrumbModel(message, extra));
+  add(eventId: string | undefined, message: string, extra?: any) {
+    const resolvedEventId = eventId ?? EventContextManager.eventId();
+    if (resolvedEventId === undefined) {
+      // No id to file the breadcrumb under and no active event context — drop silently.
+      return;
+    }
+    this.addBreadcrumb(resolvedEventId, new BreadcrumbModel(message, extra));
   }
 
   reset(eventId: string) {

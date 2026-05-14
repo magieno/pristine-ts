@@ -70,7 +70,6 @@ export class AuthenticationManager implements AuthenticationManagerInterface {
 
     } catch (e) {
       this.logHandler.error("AuthenticationManager: Error authenticating the request.", {
-        eventId: request.id,
         extra: {error: e}
       });
       throw e;
@@ -81,7 +80,6 @@ export class AuthenticationManager implements AuthenticationManagerInterface {
         identity,
       },
       breadcrumb: `${SecurityModuleKeyname}:authentication.manager:authenticate:return`,
-      eventId: request.id,
       extra: {
         request,
         routeContext,

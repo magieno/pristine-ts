@@ -7,7 +7,7 @@ import {BreadcrumbHandlerInterface, LogHandlerInterface} from "@pristine-ts/logg
 import {EventsExecutionOptionsInterface} from "../interfaces/events-execution-options.interface";
 import {EventResponse} from "../models/event.response";
 import {EventDispatcherInterface} from "../interfaces/event-dispatcher.interface";
-import {ServiceDefinitionTagEnum} from "@pristine-ts/common";
+import {EventContext, EventContextManager, ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {EventMappingError} from "../errors/event-mapping.error";
 import {EventPreMappingInterceptionError} from "../errors/event-pre-mapping-interception.error";
 import {EventPostMappingInterceptionError} from "../errors/event-post-mapping-interception.error";
@@ -26,7 +26,22 @@ export class EventPipeline {
     @inject('LogHandlerInterface') private readonly logHandler: LogHandlerInterface,
     @inject("TracingManagerInterface") private readonly tracingManager: TracingManagerInterface,
     @inject("BreadcrumbHandlerInterface") private readonly breadcrumbHandler: BreadcrumbHandlerInterface,
+    private readonly eventContextManager: EventContextManager,
   ) {
+  }
+
+  /**
+   * Builds the per-event `EventContext` and runs `fn` inside it. Centralizes the ALS
+   * boundary so the sequential and parallel execution paths in `execute()` install the
+   * same shape of context. Downstream code (`LogHandler.eventId` fallback, `@traced`,
+   * `runWithSpan(name, fn)`) reads from this context instead of receiving everything
+   * threaded through method parameters.
+   */
+  private runWithEventContext<T>(event: Event<any>, childContainer: DependencyContainer, fn: () => Promise<T>): Promise<T> {
+    const ctx = new EventContext();
+    ctx.eventId = event.id;
+    ctx.container = childContainer;
+    return this.eventContextManager.run(ctx, fn);
   }
 
   /**
@@ -109,7 +124,12 @@ export class EventPipeline {
               span.end();
 
               try {
-                eventResponses.push(await this.executeEvent(event, eventDispatcher));
+                // Install the per-event ALS context so downstream code (LogHandler
+                // eventId fallback, `@traced`, etc.) sees the right values without
+                // needing them threaded through every call site.
+                eventResponses.push(await this.runWithEventContext(event, childContainer, () =>
+                  this.executeEvent(event, eventDispatcher)
+                ));
               } catch (error) {
                 return reject(error);
               }
@@ -138,7 +158,12 @@ export class EventPipeline {
               const eventDispatcher = childContainer.resolve("EventDispatcherInterface") as EventDispatcherInterface;
               span.end();
 
-              this.executeEvent(event, eventDispatcher).then(eventResponse => resolve(eventResponse)).catch(error => reject(error));
+              // Install the per-event ALS context for parallel-path execution too. Each
+              // event in the batch gets its own EventContext (concurrent run() calls
+              // are isolated by AsyncLocalStorage).
+              this.runWithEventContext(event, childContainer, () =>
+                this.executeEvent(event, eventDispatcher)
+              ).then(eventResponse => resolve(eventResponse)).catch(error => reject(error));
             }));
           }
           break;
@@ -288,7 +313,6 @@ export class EventPipeline {
       eventExecutionSpan.end();
 
       this.logHandler.debug("EventPipeline: Event dispatched successfully.", {
-        eventId: event.id,
         breadcrumb: `${CoreModuleKeyname}:event.pipeline:executeEvent:return`,
         extra: {
           event,
@@ -305,7 +329,6 @@ export class EventPipeline {
           error,
           interceptedEvent,
         },
-        eventId: event.id,
       })
       throw new EventDispatchingError(`There was an error while dispatching the event: '${error}'`, error as Error, interceptedEvent);
     }
