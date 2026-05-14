@@ -40,7 +40,7 @@ export class TracingManager implements TracingManagerInterface {
    * This can be set to false to prevent having to much logs for every single span created.
    * @param tracingContext The tracing context.
    */
-  public constructor(@injectAll(ServiceDefinitionTagEnum.Tracer) private readonly tracers: TracerInterface[],
+  public constructor(@injectAll(ServiceDefinitionTagEnum.Tracer, {isOptional: true}) private readonly tracers: TracerInterface[],
                      @inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface,
                      @injectConfig(TelemetryConfigurationKeys.Active) private readonly isActive: boolean,
                      @injectConfig(TelemetryConfigurationKeys.Debug) private readonly debug: boolean,
@@ -99,48 +99,60 @@ export class TracingManager implements TracingManagerInterface {
    * @param parentId The id of the parent span.
    * @param context The context if there is one.
    */
-  public startSpan(keyname: string, parentKeyname?: string, parentId?: string, context?: any): Span {
-    // Check if there's an active trace. If not, start one.
+  public startSpan(keyname: string, parentKeyname?: string, parentId?: string, context?: { [key: string]: string }): Span {
+    // Make sure a trace exists. `startTracing` is the canonical entry point, but a direct
+    // `startSpan` call (e.g. from project code) should auto-start a trace rather than fail.
     if (this.trace === undefined) {
       this.startTracing(SpanKeynameEnum.RootExecution, undefined, context);
     }
 
-    // Create the new span
-    const span = new Span(keyname, context);
+    // Construct the span. NOTE the third constructor argument: `Span(keyname, id?, context?)`.
+    // A previous version of this code passed `context` in the `id` slot, which corrupted span
+    // identities and broke parent-by-id lookup at line 133 silently. Always pass `undefined`
+    // for the id so a fresh UUID is generated, and put context in the third slot.
+    const span = new Span(keyname, undefined, context);
 
+    // Defensive: tracing must never throw. If the trace is somehow still undefined here
+    // (an exception inside `startTracing` that we swallowed and logged), return the bare
+    // span so the caller can still call `.end()` on it without exploding.
     if (this.trace === undefined) {
-      this.loghandler.error("The trace should not be undefined at this point.")
-      return span; // Return because tracing should not throw.
+      this.loghandler.error("Trace is undefined after startTracing; returning unattached span.", {span});
+      return span;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    span.trace = this.trace!;
+    span.trace = this.trace;
 
-    // Retrieve the parent and add it to the span.
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    let parentSpan: Span = this.trace!.rootSpan!;
+    // Resolve the parent span. The default parent is the trace's rootSpan, but we may not
+    // have one if the trace was started via a path that didn't set it (programming error
+    // upstream, but we tolerate it). When no rootSpan exists, attach the new span as a
+    // top-level orphan and warn-log once instead of crashing.
+    let parentSpan: Span | undefined = this.trace.rootSpan;
 
-    // Check to find the parentKeyname in our internal map of spans. If n ot, the rootSpan will be the parent since every span
-    // needs at least one parent.
     if (parentKeyname) {
       const parentSpans = this.spans[parentKeyname];
-      // If multiple spans have the same keyname we need an id to find the parent
       if (parentSpans) {
         if (parentSpans.length > 1) {
-          if (!parentId) {
-            //this.loghandler.error("Error finding the parent span, there are multiple spans with that keyname and no id is provided.", {parentKeyname});
-          } else {
+          if (parentId) {
             parentSpan = parentSpans.find(span => span.id === parentId) ?? parentSpan;
           }
+          // If multiple parents exist with the same keyname and no id was provided, fall back
+          // to the existing default (rootSpan or whatever parentSpan was) — silent rather
+          // than noisy because this is recoverable.
         } else if (parentSpans.length === 1) {
-          // If only one span has the keyname we can use it
           parentSpan = parentSpans[0];
         }
       }
     }
 
-    // Add the new span as a child of its parent.
-    parentSpan.addChild(span);
+    if (parentSpan === undefined) {
+      this.loghandler.warning("startSpan: no parent span available (rootSpan is undefined). Attaching as orphan.", {
+        keyname,
+        parentKeyname,
+        traceId: this.trace.id,
+      });
+    } else {
+      parentSpan.addChild(span);
+    }
 
     this.addSpan(span);
 
@@ -152,23 +164,16 @@ export class TracingManager implements TracingManagerInterface {
    * @param span The span to add.
    */
   public addSpan(span: Span): Span {
-    // Check if there's an active trace. If not, log an error and return;
+    // Tracing must never throw. If there's no active trace, log and return the span
+    // unchanged — caller can still call `.end()` on it because Span.end uses optional
+    // chaining on tracingManager.
     if (this.trace === undefined) {
       this.loghandler.error("You cannot call 'addSpan' without having an existing Trace.", {span});
-
       return span;
     }
 
-    // Assign the tracing manager and the current trace to the span.
     span.tracingManager = this;
-
-    if (this.trace === undefined) {
-      this.loghandler.error("The trace should not be undefined at this point.")
-      return span; // Return because tracing should not throw.
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    span.trace = this.trace!;
+    span.trace = this.trace;
 
     // Add it to the map of spans
     if (!this.spans[span.keyname]) {
@@ -279,24 +284,12 @@ export class TracingManager implements TracingManagerInterface {
       return;
     }
 
-    // Notify the TraceListeners that the Trace was ended.
+    // Notify every registered tracer that the trace ended. The tracers handle their own
+    // formatting + transport (console pretty-print, file dump, X-Ray export, etc.). The
+    // manager itself no longer logs a summary here — `ConsoleTracer` produces a richer
+    // tree-formatted output when the user opts into it.
     this.tracers.forEach((tracer: TracerInterface) => {
       tracer.traceEndedStream?.push(this.trace);
     })
-
-    // Trace time
-    // Top 5 longest spans
-    const longestSpans = Object.values(this.spans).flat(2).sort((a, b) => b.getDuration() - a.getDuration());
-    longestSpans.splice(5);
-
-    this.loghandler.debug("Ending the trace. \n" +
-      "Trace duration: " + this.trace.getDuration() + " ms \n" +
-      "Top 5 longest spans: \n" + longestSpans.map(span => "\t" + span.getDuration() + " ms - " + span.keyname).join("\n")
-      , {
-        extra: {
-          trace: this.trace,
-        },
-        eventId: this.trace.id,
-      })
   }
 }

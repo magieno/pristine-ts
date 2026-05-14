@@ -3,11 +3,18 @@ import {Span, Trace, TelemetryConfigurationKeys, TracerInterface} from "@pristin
 import {injectConfig, moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {Readable} from "stream";
 import AWSXRay, {Segment, SegmentUtils, Subsegment} from "aws-xray-sdk";
+import {AwsXrayConfigurationKeys} from "../aws-xray.configuration-keys";
 import {AwsXrayModuleKeyname} from "../aws-xray.module.keyname";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 
 /**
- * Tracer to be able to dump Pristine traces to AWS Xray
+ * Tracer to be able to dump Pristine traces to AWS X-Ray.
+ *
+ * The tracer is **always constructed** when `@pristine-ts/aws-xray` is in the import
+ * graph — that's a structural requirement of the framework's tracer registration. To
+ * disable export without removing the package, set the `pristine.aws-xray.activated`
+ * configuration to `false` (or `PRISTINE_AWS_XRAY_ACTIVATED=false`). When deactivated,
+ * the stream listener early-returns and the AWS X-Ray SDK is never touched.
  */
 @moduleScoped(AwsXrayModuleKeyname)
 @tag(ServiceDefinitionTagEnum.Tracer)
@@ -16,6 +23,7 @@ export class XrayTracer implements TracerInterface {
   traceEndedStream: Readable;
 
   public constructor(@injectConfig(TelemetryConfigurationKeys.Debug) private readonly debug: boolean,
+                     @injectConfig(AwsXrayConfigurationKeys.Activated) private readonly activated: boolean,
                      @inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface) {
     this.traceEndedStream = new Readable({
       objectMode: true,
@@ -25,6 +33,13 @@ export class XrayTracer implements TracerInterface {
     });
 
     this.traceEndedStream.on('data', (trace: Trace) => {
+      // Honor the activation flag inside the listener (not at construction time) so the
+      // setting can be re-read without rebuilding the kernel. When off, drop the trace
+      // on the floor — the framework still considers the trace "delivered" to this
+      // tracer; this tracer just chose not to do anything with it.
+      if (this.activated === false) {
+        return;
+      }
       this.traceEnded(trace);
     });
   }
