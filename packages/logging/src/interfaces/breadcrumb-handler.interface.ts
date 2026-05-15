@@ -1,5 +1,19 @@
 import {BreadcrumbModel} from "../models/breadcrumb.model";
 
+/**
+ * @deprecated Prefer the spans-based path going forward:
+ *
+ *   - For method-boundary entries (today's `:enter` / `:return` / `:error` style), use
+ *     `@traced` or `runWithSpan` in `@pristine-ts/telemetry`. The framework's auto-spans
+ *     and any user spans flow into the breadcrumb trail of error logs automatically.
+ *   - For mid-method markers, use `TracingManager.addEventToCurrentSpan(message, attributes?)`.
+ *     It pushes a `SpanEvent` onto the active span; the LogHandler interleaves them with
+ *     spans by timestamp when rendering the trail.
+ *
+ * This interface and its implementation survive as a back-compat shim — existing code
+ * that calls `breadcrumbHandler.add(...)` keeps working, and entries still appear in
+ * trails alongside span-derived entries. The class will be removed in a future major.
+ */
 export interface BreadcrumbHandlerInterface {
   /**
    * The list of breadcrumbs that led to this point.
@@ -8,10 +22,9 @@ export interface BreadcrumbHandlerInterface {
 
   /**
    * Adds a new breadcrumb to the trail. When `eventId` is omitted, the implementation
-   * falls back to the active `EventContext.eventId` (if any) — so callers running
-   * inside an event don't have to thread `request.id` through every call site.
-   * Outside any event context AND with no explicit eventId, the breadcrumb is dropped
-   * silently (we have no key to file it under).
+   * falls back to the active `EventContext.eventId` (if any).
+   *
+   * @deprecated Use `tracingManager.addEventToCurrentSpan(message, extra)` instead.
    */
   add(eventId: string | undefined, message: string, extra?: any): void;
 

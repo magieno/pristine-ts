@@ -226,3 +226,113 @@ describe("LogHandler eventId + traceId resolution", () => {
     expect(received[0].traceId).toBe("trace-modern");
   });
 });
+
+describe("LogHandler breadcrumb trail merging", () => {
+  let stderrSpy: jest.SpyInstance;
+  let breadcrumb: BreadcrumbHandlerInterface;
+  let tracing: TracingContext;
+
+  beforeEach(() => {
+    stderrSpy = jest.spyOn(process.stderr, "write").mockImplementation(() => true);
+    breadcrumb = {
+      breadcrumbs: {},
+      add: jest.fn(),
+      reset: jest.fn(),
+    } as unknown as BreadcrumbHandlerInterface;
+    tracing = new TracingContext();
+  });
+
+  afterEach(() => {
+    stderrSpy.mockRestore();
+  });
+
+  function buildHandlerWithCapture(): {handler: LogHandler; received: any[]} {
+    const received: any[] = [];
+    const logger: LoggerInterface = {
+      readableStream: buildCapturingStream(received),
+      isActive: () => true,
+      terminate: () => undefined,
+    };
+    const handler = new LogHandler([logger], 0, false, "kernel-id", breadcrumb, tracing);
+    return {handler, received};
+  }
+
+  it("uses manual breadcrumbs alone when no SpanTrailProvider is registered", () => {
+    const {handler, received} = buildHandlerWithCapture();
+    const manual = new (require("../models/breadcrumb.model").BreadcrumbModel)("manual-only");
+    manual.date = new Date(1000);
+
+    const manager = new EventContextManager();
+    const ctx = new EventContext();
+    ctx.eventId = "evt-manual";
+    // ctx.container is undefined — no provider lookup possible.
+    breadcrumb.breadcrumbs["evt-manual"] = [manual];
+
+    manager.run(ctx, () => handler.info("hello"));
+
+    expect(received[0].breadcrumbs).toHaveLength(1);
+    expect(received[0].breadcrumbs[0].message).toBe("manual-only");
+  });
+
+  it("merges manual and span-derived entries by timestamp", () => {
+    const {handler, received} = buildHandlerWithCapture();
+
+    // Simulate a SpanTrailProvider via a fake container.
+    const BreadcrumbModel = require("../models/breadcrumb.model").BreadcrumbModel;
+    const spanCrumb = new BreadcrumbModel("span-derived", {kind: "span"});
+    spanCrumb.date = new Date(2000);
+    const provider = {getCurrentTrail: () => [spanCrumb]};
+    const containerStub = {resolve: (token: string) => {
+      if (token === "SpanTrailProviderInterface") return provider;
+      throw new Error("unexpected token: " + token);
+    }};
+
+    const manager = new EventContextManager();
+    const ctx = new EventContext();
+    ctx.eventId = "evt-merged";
+    ctx.container = containerStub as any;
+
+    const manual = new BreadcrumbModel("manual-1");
+    manual.date = new Date(1000);
+    breadcrumb.breadcrumbs["evt-merged"] = [manual];
+
+    manager.run(ctx, () => handler.info("hello"));
+
+    expect(received[0].breadcrumbs).toHaveLength(2);
+    // Sorted by date: manual (1000ms) before span-derived (2000ms).
+    expect(received[0].breadcrumbs[0].message).toBe("manual-1");
+    expect(received[0].breadcrumbs[1].message).toBe("span-derived");
+  });
+
+  it("returns an empty trail when neither source has entries", () => {
+    const {handler, received} = buildHandlerWithCapture();
+    const manager = new EventContextManager();
+    const ctx = new EventContext();
+    ctx.eventId = "evt-empty";
+
+    manager.run(ctx, () => handler.info("hello"));
+
+    expect(received[0].breadcrumbs).toEqual([]);
+  });
+
+  it("ignores a SpanTrailProvider that throws on resolve", () => {
+    const {handler, received} = buildHandlerWithCapture();
+    const containerStub = {resolve: () => { throw new Error("not registered"); }};
+
+    const manager = new EventContextManager();
+    const ctx = new EventContext();
+    ctx.eventId = "evt-no-provider";
+    ctx.container = containerStub as any;
+
+    const BreadcrumbModel = require("../models/breadcrumb.model").BreadcrumbModel;
+    const manual = new BreadcrumbModel("manual-fallback");
+    manual.date = new Date(1000);
+    breadcrumb.breadcrumbs["evt-no-provider"] = [manual];
+
+    manager.run(ctx, () => handler.info("hello"));
+
+    // Only the manual entry — provider lookup failure didn't bubble up.
+    expect(received[0].breadcrumbs).toHaveLength(1);
+    expect(received[0].breadcrumbs[0].message).toBe("manual-fallback");
+  });
+});

@@ -50,4 +50,12 @@ export interface TracingManagerInterface {
    * @param keyname The keyname of the span to end.
    */
   endSpanKeyname(keyname: string): void;
+
+  /**
+   * Attaches a named, timestamped event to the most-recently-started in-progress span.
+   * Use for noteworthy moments inside a span's lifetime that don't warrant their own
+   * child span — "validation passed", "found 50 rows", etc. Silent no-op if no span is
+   * currently active.
+   */
+  addEventToCurrentSpan(message: string, attributes?: { [key: string]: string }): void;
 }

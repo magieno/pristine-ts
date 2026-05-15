@@ -421,4 +421,89 @@ describe("Tracing Manager", () => {
     expect(tmA.trace!.rootSpan!.keyname).toBe("event-a");
     expect(tmB.trace!.rootSpan!.keyname).toBe("event-b");
   })
+
+  describe("addEventToCurrentSpan", () => {
+    it("attaches an event to the most-recently-started in-progress span", () => {
+      const tm = new TracingManager([], logHandlerMock, true, false, new TracingContext());
+      tm.startTracing("root");
+      const child = tm.startSpan("child");
+
+      tm.addEventToCurrentSpan("validation passed", {field: "email"});
+
+      expect(child.events).toHaveLength(1);
+      expect(child.events[0].message).toBe("validation passed");
+      expect(child.events[0].attributes).toEqual({field: "email"});
+    });
+
+    it("falls back to the root span if it's the only one open", () => {
+      const tm = new TracingManager([], logHandlerMock, true, false, new TracingContext());
+      const root = tm.startTracing("root");
+
+      tm.addEventToCurrentSpan("starting up");
+
+      expect(root.events).toHaveLength(1);
+      expect(root.events[0].message).toBe("starting up");
+    });
+
+    it("does not attach to spans that have already ended", () => {
+      const tm = new TracingManager([], logHandlerMock, true, false, new TracingContext());
+      const root = tm.startTracing("root");
+      const child = tm.startSpan("child");
+      child.end();
+
+      tm.addEventToCurrentSpan("after-child-ended");
+
+      // Should attach to root (still in progress), not child (ended).
+      expect(child.events).toHaveLength(0);
+      expect(root.events).toHaveLength(1);
+    });
+
+    it("is a silent no-op when no trace is active", () => {
+      const tm = new TracingManager([], logHandlerMock, true, false, new TracingContext());
+      expect(() => tm.addEventToCurrentSpan("nope")).not.toThrow();
+    });
+  });
+
+  describe("getCurrentTrail (SpanTrailProviderInterface)", () => {
+    it("returns an empty trail when no trace is active", () => {
+      const tm = new TracingManager([], logHandlerMock, true, false, new TracingContext());
+      expect(tm.getCurrentTrail()).toEqual([]);
+    });
+
+    it("flattens spans + events sorted by timestamp", () => {
+      const tm = new TracingManager([], logHandlerMock, true, false, new TracingContext());
+      tm.startTracing("root");
+      tm.addEventToCurrentSpan("about-to-fork");
+      const child1 = tm.startSpan("child-1");
+      tm.addEventToCurrentSpan("inside-child-1");
+      child1.end();
+      tm.startSpan("child-2");
+
+      const trail = tm.getCurrentTrail();
+      expect(trail.length).toBe(5);
+
+      const messages = trail.map(e => e.message);
+      expect(messages).toContain("root (active)");
+      expect(messages).toContain("about-to-fork");
+      expect(messages).toContain("child-1");                  // ended, no suffix
+      expect(messages).toContain("inside-child-1");
+      expect(messages).toContain("child-2 (active)");
+
+      // First entry is the root (started first).
+      expect(trail[0].message).toBe("root (active)");
+    });
+
+    it("annotates entries with kind discriminator (span vs event)", () => {
+      const tm = new TracingManager([], logHandlerMock, true, false, new TracingContext());
+      tm.startTracing("root");
+      tm.addEventToCurrentSpan("marker");
+
+      const trail = tm.getCurrentTrail();
+      const spanEntry = trail.find(e => e.message.startsWith("root"));
+      const eventEntry = trail.find(e => e.message === "marker");
+
+      expect(spanEntry?.extra?.kind).toBe("span");
+      expect(eventEntry?.extra?.kind).toBe("event");
+    });
+  });
 });

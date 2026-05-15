@@ -7,7 +7,8 @@ import {EventContextManager, injectConfig, moduleScoped, ServiceDefinitionTagEnu
 import {SpanKeynameEnum} from "../enums/span-keyname.enum";
 import {TelemetryModuleKeyname} from "../telemetry.module.keyname";
 import {TracerInterface} from "../interfaces/tracer.interface";
-import {LogHandlerInterface} from "@pristine-ts/logging";
+import {BreadcrumbModel, LogHandlerInterface, SpanTrailProviderInterface} from "@pristine-ts/logging";
+import {SpanEvent} from "../models/span-event.model";
 
 /**
  * The Tracing Manager provides methods to help with tracing.
@@ -24,9 +25,10 @@ import {LogHandlerInterface} from "@pristine-ts/logging";
  */
 @moduleScoped(TelemetryModuleKeyname)
 @tag("TracingManagerInterface")
+@tag("SpanTrailProviderInterface")
 @scoped(Lifecycle.ContainerScoped)
 @injectable()
-export class TracingManager implements TracingManagerInterface {
+export class TracingManager implements TracingManagerInterface, SpanTrailProviderInterface {
   /**
    * This property contains a reference to the active trace.
    */
@@ -307,5 +309,93 @@ export class TracingManager implements TracingManagerInterface {
     this.tracers.forEach((tracer: TracerInterface) => {
       tracer.traceEndedStream?.push(this.trace);
     })
+  }
+
+  /**
+   * Attaches a named, timestamped event to the most-recently-started in-progress span.
+   * Use for noteworthy moments that don't warrant a child span — "validation passed",
+   * "found 50 rows", "rate limit ok". Cheap (just pushes onto an array); shows up in
+   * the breadcrumb trail of any error log within the same trace.
+   *
+   * If no span is currently active (no trace started, or every span has already ended),
+   * the call is a silent no-op — same defensive contract as the rest of tracing.
+   */
+  public addEventToCurrentSpan(message: string, attributes?: { [key: string]: string }): void {
+    const target = this.findActiveLeafSpan();
+    if (target === undefined) return;
+    target.events.push(new SpanEvent(message, attributes));
+  }
+
+  /**
+   * SpanTrailProviderInterface — produces a flat, timestamp-sorted list of span and
+   * span-event entries for the active trace, formatted as `BreadcrumbModel`s so the
+   * LogHandler can merge them into the breadcrumb trail at log time.
+   */
+  public getCurrentTrail(): BreadcrumbModel[] {
+    if (this.trace?.rootSpan === undefined) return [];
+
+    const out: BreadcrumbModel[] = [];
+
+    const walk = (span: Span): void => {
+      const suffix = span.inProgress ? " (active)" : "";
+      const spanCrumb = new BreadcrumbModel(`${span.keyname}${suffix}`, {
+        kind: "span",
+        spanId: span.id,
+        ...(span.context ?? {}),
+      });
+      // Override the auto-set `date` so the merged trail orders correctly.
+      spanCrumb.date = new Date(span.startDate);
+      out.push(spanCrumb);
+
+      for (const event of span.events) {
+        const eventCrumb = new BreadcrumbModel(event.message, {
+          kind: "event",
+          spanKeyname: span.keyname,
+          ...(event.attributes ?? {}),
+        });
+        eventCrumb.date = new Date(event.timestamp);
+        out.push(eventCrumb);
+      }
+
+      for (const child of span.children) {
+        walk(child);
+      }
+    };
+    walk(this.trace.rootSpan);
+
+    out.sort((a, b) => a.date.getTime() - b.date.getTime());
+    return out;
+  }
+
+  /**
+   * Finds the deepest in-progress span — the leaf of the still-open subtree. Used as
+   * the target for `addEventToCurrentSpan`. Intuition: events attach to whatever is
+   * currently open at the bottom of the call stack.
+   *
+   * Walking the in-progress subtree (rather than ranking all spans by start date)
+   * avoids the edge case where a parent and child have the same `Date.now()` value —
+   * picking the "latest started" by raw timestamp would incorrectly attach to the
+   * parent. Depth-first traversal of in-progress children naturally lands on the
+   * deepest leaf. Tie-broken by latest start date when multiple leaves exist.
+   *
+   * Returns undefined when nothing is in progress (no trace, or every span has ended).
+   * @private
+   */
+  private findActiveLeafSpan(): Span | undefined {
+    if (this.trace?.rootSpan === undefined) return undefined;
+    let best: Span | undefined;
+    const walk = (span: Span): void => {
+      const inProgressChildren = span.children.filter(c => c.inProgress);
+      if (span.inProgress && inProgressChildren.length === 0) {
+        // This span is a leaf of the in-progress subtree. Among multiple such leaves,
+        // prefer the latest-started one (most recent in time).
+        if (best === undefined || span.startDate >= best.startDate) {
+          best = span;
+        }
+      }
+      for (const child of inProgressChildren) walk(child);
+    };
+    walk(this.trace.rootSpan);
+    return best;
   }
 }

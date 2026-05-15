@@ -146,10 +146,6 @@ export class LogHandler implements LogHandlerInterface {
         this.breadcrumbHandler.add(resolvedEventId, data.breadcrumb);
       }
 
-      if (resolvedEventId) {
-        log.breadcrumbs = this.breadcrumbHandler.breadcrumbs[resolvedEventId];
-      }
-
       if (data.outputHints) {
         log.outputHints = data.outputHints;
       }
@@ -158,13 +154,19 @@ export class LogHandler implements LogHandlerInterface {
         log.eventGroupId = data.eventGroupId;
       }
     } else {
-      // No `data` arg at all — still try to attach the eventId from the active context
-      // so a bare `logHandler.info("...")` from within a request gets correlated.
+      // No `data` arg at all — still attach the eventId from the active context so a
+      // bare `logHandler.info("...")` from within a request gets correlated.
       log.eventId = resolvedEventId;
-      if (resolvedEventId) {
-        log.breadcrumbs = this.breadcrumbHandler.breadcrumbs[resolvedEventId];
-      }
     }
+
+    // Build the breadcrumb trail by merging two sources (each silently absent when
+    // unavailable):
+    //   1. Manual entries from `BreadcrumbHandler` — the legacy explicit API.
+    //   2. The active trace's spans + span events from any registered
+    //      `SpanTrailProviderInterface` (today: TracingManager). This is the path
+    //      forward; manual breadcrumbs and the explicit `breadcrumb: "..."` LogData
+    //      field stay supported but are no longer the only source.
+    log.breadcrumbs = this.buildBreadcrumbTrail(resolvedEventId);
 
 
     // If the activateDiagnostics configuration is set to true, we will include additional information into a __diagnostics path into extra.
@@ -227,5 +229,43 @@ export class LogHandler implements LogHandlerInterface {
         }
       }
     }
+  }
+
+  /**
+   * Builds the breadcrumb trail attached to a log entry. Merges two sources by date:
+   *
+   *   1. Manual entries from `BreadcrumbHandler.breadcrumbs[eventId]` — the legacy
+   *      explicit API (`breadcrumbHandler.add(...)`).
+   *   2. The active trace's spans + span events, fetched from any registered
+   *      `SpanTrailProviderInterface` (today: TracingManager). When telemetry isn't
+   *      part of the app, this source is silently empty.
+   *
+   * Returns an empty array when neither source has anything — callers that don't have
+   * an active EventContext also get an empty trail.
+   */
+  private buildBreadcrumbTrail(resolvedEventId: string | undefined): import("../models/breadcrumb.model").BreadcrumbModel[] {
+    const manual = (resolvedEventId !== undefined)
+      ? (this.breadcrumbHandler.breadcrumbs[resolvedEventId] ?? [])
+      : [];
+
+    let fromSpans: import("../models/breadcrumb.model").BreadcrumbModel[] = [];
+    const container = EventContextManager.container();
+    if (container !== undefined) {
+      try {
+        const provider = container.resolve<import("../interfaces/span-trail-provider.interface").SpanTrailProviderInterface>(
+          "SpanTrailProviderInterface",
+        );
+        fromSpans = provider.getCurrentTrail();
+      } catch {
+        // No SpanTrailProviderInterface registered (telemetry module not loaded, or
+        // app deliberately doesn't register one). Trail is just the manual entries.
+      }
+    }
+
+    if (manual.length === 0 && fromSpans.length === 0) {
+      return [];
+    }
+
+    return [...manual, ...fromSpans].sort((a, b) => a.date.getTime() - b.date.getTime());
   }
 }

@@ -20,6 +20,7 @@ function buildStubTracingManager(): {tm: TracingManagerInterface; spans: Span[];
       return s;
     }),
     endSpan: jest.fn((s: Span) => { ended.push(s); }),
+    addEventToCurrentSpan: jest.fn(),
   };
   return {tm, spans, ended};
 }

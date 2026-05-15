@@ -1,5 +1,6 @@
 import {Trace} from "./trace.model";
 import {TracingManagerInterface} from "../interfaces/tracing-manager.interface";
+import {SpanEvent} from "./span-event.model";
 import {v4 as uuidv4} from 'uuid';
 
 /**
@@ -40,6 +41,14 @@ export class Span {
    * The children spans.
    */
   public children: Span[] = [];
+
+  /**
+   * Named, timestamped markers attached to this span. Use these for noteworthy moments
+   * inside the span's lifetime that don't warrant their own child span — e.g.
+   * "validation passed", "found 50 rows in DB". Empty by default; populated by
+   * `TracingManager.addEventToCurrentSpan(...)`.
+   */
+  public events: SpanEvent[] = [];
 
   /**
    * The context associated with the span.
