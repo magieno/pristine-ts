@@ -300,7 +300,9 @@ export class EventPipeline {
    * @private
    */
   private async executeEvent(event: Event<any>, eventDispatcher: EventDispatcherInterface): Promise<EventResponse<any, any>> {
-    this.breadcrumbHandler.add(event.id, `${CoreModuleKeyname}:event.pipeline:executeEvent:enter`)
+    // The :enter and :return breadcrumbs that used to live here have been removed —
+    // the surrounding `event.execution` span (started below) and the framework's other
+    // auto-spans cover this method's lifecycle in the breadcrumb trail automatically.
     // 1 - Run the post mapped interceptors on every single event before they get executed.
     const interceptedEvent = await this.postMappingIntercept(event)
 
@@ -313,7 +315,6 @@ export class EventPipeline {
       eventExecutionSpan.end();
 
       this.logHandler.debug("EventPipeline: Event dispatched successfully.", {
-        breadcrumb: `${CoreModuleKeyname}:event.pipeline:executeEvent:return`,
         extra: {
           event,
           response,

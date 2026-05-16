@@ -49,7 +49,6 @@ export class RequestEventHandler implements EventHandlerInterface<Request, Respo
       extra: {
         event,
       },
-      breadcrumb: `${NetworkingModuleKeyname}:request.event-handler:handle`,
     },)
 
     const start = performance.now();

@@ -81,7 +81,6 @@ export class Auth0Authenticator implements AuthenticatorInterface {
       extra: {
         claim,
       },
-      breadcrumb: `${Auth0ModuleKeyname}:auth0.authenticator:authenticate:success`
     });
 
     return {

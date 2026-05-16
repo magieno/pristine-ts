@@ -38,10 +38,9 @@ export class AuthenticationManager implements AuthenticationManagerInterface {
    * @param container The dependency container from which to resolve the authenticator.
    */
   public async authenticate(request: Request, routeContext: any, container: DependencyContainer): Promise<IdentityInterface | undefined> {
-    this.breadcrumbHandler.add(request.id, `${SecurityModuleKeyname}:authentication.manager:authenticate:enter`, {
-      request,
-      routeContext
-    });
+    // The :enter breadcrumb that used to be added here is now covered by the surrounding
+    // `router.request.authentication` auto-span — visible in the trail of any error log
+    // emitted within this method's lifetime.
     if (!routeContext || routeContext[authenticatorMetadataKeyname] === undefined) {
       return undefined;
     }
@@ -79,7 +78,6 @@ export class AuthenticationManager implements AuthenticationManagerInterface {
       highlights: {
         identity,
       },
-      breadcrumb: `${SecurityModuleKeyname}:authentication.manager:authenticate:return`,
       extra: {
         request,
         routeContext,

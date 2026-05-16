@@ -39,7 +39,6 @@ export class SchedulerManager implements SchedulerInterface {
     this.logHandler.info("SchedulerManager: Starting the execution of the tasks.", {
       extra: {scheduledTasks: this.scheduledTasks},
       eventId,
-      breadcrumb: `${SchedulingModuleKeyname}:scheduler.manager:enter`
     });
 
     return new Promise(resolve => {
@@ -52,7 +51,6 @@ export class SchedulerManager implements SchedulerInterface {
       this.logHandler.info("SchedulerManager: Completed triggering all the tasks.", {
         extra: {scheduledTasks: this.scheduledTasks},
         eventId,
-        breadcrumb: `${SchedulingModuleKeyname}:scheduler.manager:return`
       });
 
       Promise.allSettled(promises).then(results => {
