@@ -3,6 +3,8 @@ import {Readable} from "stream";
 import {LogHandler} from "./log.handler";
 import {LoggerInterface} from "../interfaces/logger.interface";
 import {BreadcrumbHandlerInterface} from "../interfaces/breadcrumb-handler.interface";
+import {SpanTrailProviderInterface} from "../interfaces/span-trail-provider.interface";
+import {BreadcrumbModel} from "../models/breadcrumb.model";
 import {EventContext, EventContextManager, TracingContext} from "@pristine-ts/common";
 
 /**
@@ -257,15 +259,31 @@ describe("LogHandler breadcrumb trail merging", () => {
     return {handler, received};
   }
 
+  // Builds a fake DependencyContainer-shaped object whose resolve() returns the given
+  // provider for the "SpanTrailProviderInterface" token. Stubs the per-event container
+  // that LogHandler reads from at log time (see the in-source comment on
+  // `buildBreadcrumbTrail` for the justification of that dynamic lookup).
+  function fakeContainerWithProvider(provider: SpanTrailProviderInterface | undefined): any {
+    return {
+      resolve: (token: string) => {
+        if (token === "SpanTrailProviderInterface") {
+          if (provider === undefined) throw new Error("no provider registered");
+          return provider;
+        }
+        throw new Error("unexpected token: " + token);
+      },
+    };
+  }
+
   it("uses manual breadcrumbs alone when no SpanTrailProvider is registered", () => {
     const {handler, received} = buildHandlerWithCapture();
-    const manual = new (require("../models/breadcrumb.model").BreadcrumbModel)("manual-only");
+    const manual = new BreadcrumbModel("manual-only");
     manual.date = new Date(1000);
 
     const manager = new EventContextManager();
     const ctx = new EventContext();
     ctx.eventId = "evt-manual";
-    // ctx.container is undefined — no provider lookup possible.
+    ctx.container = fakeContainerWithProvider(undefined);
     breadcrumb.breadcrumbs["evt-manual"] = [manual];
 
     manager.run(ctx, () => handler.info("hello"));
@@ -275,26 +293,20 @@ describe("LogHandler breadcrumb trail merging", () => {
   });
 
   it("merges manual and span-derived entries by timestamp", () => {
-    const {handler, received} = buildHandlerWithCapture();
-
-    // Simulate a SpanTrailProvider via a fake container.
-    const BreadcrumbModel = require("../models/breadcrumb.model").BreadcrumbModel;
     const spanCrumb = new BreadcrumbModel("span-derived", {kind: "span"});
     spanCrumb.date = new Date(2000);
-    const provider = {getCurrentTrail: () => [spanCrumb]};
-    const containerStub = {resolve: (token: string) => {
-      if (token === "SpanTrailProviderInterface") return provider;
-      throw new Error("unexpected token: " + token);
-    }};
+    const provider: SpanTrailProviderInterface = {getCurrentTrail: () => [spanCrumb]};
 
-    const manager = new EventContextManager();
-    const ctx = new EventContext();
-    ctx.eventId = "evt-merged";
-    ctx.container = containerStub as any;
+    const {handler, received} = buildHandlerWithCapture();
 
     const manual = new BreadcrumbModel("manual-1");
     manual.date = new Date(1000);
     breadcrumb.breadcrumbs["evt-merged"] = [manual];
+
+    const manager = new EventContextManager();
+    const ctx = new EventContext();
+    ctx.eventId = "evt-merged";
+    ctx.container = fakeContainerWithProvider(provider);
 
     manager.run(ctx, () => handler.info("hello"));
 
@@ -315,24 +327,21 @@ describe("LogHandler breadcrumb trail merging", () => {
     expect(received[0].breadcrumbs).toEqual([]);
   });
 
-  it("ignores a SpanTrailProvider that throws on resolve", () => {
+  it("silently falls back to manual entries when the provider lookup throws", () => {
     const {handler, received} = buildHandlerWithCapture();
-    const containerStub = {resolve: () => { throw new Error("not registered"); }};
-
-    const manager = new EventContextManager();
-    const ctx = new EventContext();
-    ctx.eventId = "evt-no-provider";
-    ctx.container = containerStub as any;
-
-    const BreadcrumbModel = require("../models/breadcrumb.model").BreadcrumbModel;
     const manual = new BreadcrumbModel("manual-fallback");
     manual.date = new Date(1000);
     breadcrumb.breadcrumbs["evt-no-provider"] = [manual];
 
+    const manager = new EventContextManager();
+    const ctx = new EventContext();
+    ctx.eventId = "evt-no-provider";
+    ctx.container = fakeContainerWithProvider(undefined);
+
     manager.run(ctx, () => handler.info("hello"));
 
-    // Only the manual entry — provider lookup failure didn't bubble up.
     expect(received[0].breadcrumbs).toHaveLength(1);
     expect(received[0].breadcrumbs[0].message).toBe("manual-fallback");
   });
 });
+

@@ -77,9 +77,14 @@ export class SpanRunner {
       spanKeyname = tracingManagerOrSpanKeyname;
       fn = spanKeynameOrFn as () => Promise<T> | T;
       options = fnOrOptions as SpanRunnerOptions | undefined;
-      // Resolve the manager from the active event context. If there isn't one (e.g. a
-      // unit test calling this directly), fall back to running the function without a
-      // span — tracing must never throw or change semantics.
+      // ── container.resolve, justified ──────────────────────────────────────────────
+      // This is one of the documented "legitimate exception" cases (see CLAUDE.md):
+      // SpanRunner is a stateless utility class with static-ish methods invoked from
+      // free functions / decorators that have no constructor to inject through. The
+      // ALS-form overload exists precisely so callers don't have to thread a
+      // TracingManager reference everywhere. If there's no active event context (e.g. a
+      // unit test calling this directly), the lookup is skipped and the function runs
+      // without a span — tracing must never throw or change semantics.
       const container = EventContextManager.container();
       if (container !== undefined) {
         try {

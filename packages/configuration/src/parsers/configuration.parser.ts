@@ -29,7 +29,10 @@ export class ConfigurationParser {
       if (dynamicConfigurationResolver.dynamicResolve !== undefined && typeof dynamicConfigurationResolver.dynamicResolve === "function") {
         let instantiatedClass;
 
-        // Resolve the instantiated class from the dependency container based on the injection token provided.
+        // ── container.resolve, justified ──────────────────────────────────────────
+        // Per CLAUDE.md: framework-internal dynamic resolution. The injection token
+        // is data carried on the configuration definition — not known when this parser
+        // was constructed and resolvable only at parse time. Standard factory pattern.
         if (dynamicConfigurationResolver.injectionToken) {
           instantiatedClass = container.resolve(dynamicConfigurationResolver.injectionToken);
         }

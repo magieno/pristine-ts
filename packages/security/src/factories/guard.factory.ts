@@ -19,8 +19,12 @@ export class GuardFactory {
     // Check if the guard needs to be instantiated
     let instantiatedGuard: GuardInterface = guardContext.guard as GuardInterface;
 
-    // If guardContext.guard  is a function, we resolve that function through the container.
-    // TODO: validate if this is good.
+    // ── container.resolve, justified ────────────────────────────────────────────
+    // Per CLAUDE.md: this is a factory whose target class is data carried on the
+    // route's metadata (the `@guard(SomeGuard)` decorator value). The token isn't
+    // known at factory construction; the factory's whole job is to look it up. The
+    // per-event child container is passed in by the router so the resolved guard
+    // sees the correct request-scoped dependencies.
     if (typeof instantiatedGuard === 'function') {
       instantiatedGuard = container.resolve(instantiatedGuard);
     }

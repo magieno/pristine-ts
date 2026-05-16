@@ -35,6 +35,11 @@ export class HelpCommand implements CommandInterface<null> {
   }
 
   async run(args: any): Promise<ExitCodeEnum | number> {
+    // ── container.resolveAll, justified ─────────────────────────────────────────
+    // Per CLAUDE.md: constructor-time `@injectAll(Command)` would create a self-
+    // referential cycle since `HelpCommand` is itself a `Command`-tagged service.
+    // The lazy resolve breaks the cycle. The child container is constructor-
+    // injected, so only the enumeration is late-bound.
     const commands: CommandInterface<any>[] = this.container.resolveAll(ServiceDefinitionTagEnum.Command);
 
     this.consoleManager.writeLine("Pristine CLI");

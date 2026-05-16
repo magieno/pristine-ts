@@ -120,6 +120,12 @@ export class EventPipeline {
               span.end();
 
               span = this.tracingManager.startSpan(SpanKeynameEnum.EventDispatcherResolver);
+              // ── container.resolve, justified ──────────────────────────────────
+              // Per CLAUDE.md: framework-internal per-event dispatch. The child
+              // container was just created on the line above; the dispatcher must
+              // come from THAT container so it sees the right per-event services.
+              // Constructor-injecting it would bind to the kernel container's
+              // instance, not the per-event one.
               const eventDispatcher = childContainer.resolve("EventDispatcherInterface") as EventDispatcherInterface;
               span.end();
 
@@ -155,6 +161,12 @@ export class EventPipeline {
               span.end();
 
               span = this.tracingManager.startSpan(SpanKeynameEnum.EventDispatcherResolver);
+              // ── container.resolve, justified ──────────────────────────────────
+              // Per CLAUDE.md: framework-internal per-event dispatch. The child
+              // container was just created on the line above; the dispatcher must
+              // come from THAT container so it sees the right per-event services.
+              // Constructor-injecting it would bind to the kernel container's
+              // instance, not the per-event one.
               const eventDispatcher = childContainer.resolve("EventDispatcherInterface") as EventDispatcherInterface;
               span.end();
 

@@ -7,6 +7,8 @@ import {LoggerInterface} from "../interfaces/logger.interface";
 import {EventContextManager, injectConfig, InternalContainerParameterEnum, moduleScoped, ServiceDefinitionTagEnum, tag, TracingContext} from "@pristine-ts/common";
 import {LogHandlerInterface} from "../interfaces/log-handler.interface";
 import {BreadcrumbHandlerInterface} from "../interfaces/breadcrumb-handler.interface";
+import {SpanTrailProviderInterface} from "../interfaces/span-trail-provider.interface";
+import {BreadcrumbModel} from "../models/breadcrumb.model";
 import {Utils} from "../utils/utils";
 import {LoggingModuleKeyname} from "../logging.module";
 import {LogData} from "../types/log-data.type";
@@ -236,29 +238,40 @@ export class LogHandler implements LogHandlerInterface {
    *
    *   1. Manual entries from `BreadcrumbHandler.breadcrumbs[eventId]` — the legacy
    *      explicit API (`breadcrumbHandler.add(...)`).
-   *   2. The active trace's spans + span events, fetched from any registered
-   *      `SpanTrailProviderInterface` (today: TracingManager). When telemetry isn't
-   *      part of the app, this source is silently empty.
+   *   2. The active trace's spans + span events, fetched from any
+   *      `SpanTrailProviderInterface` registered in the per-event DI container.
    *
    * Returns an empty array when neither source has anything — callers that don't have
    * an active EventContext also get an empty trail.
    */
-  private buildBreadcrumbTrail(resolvedEventId: string | undefined): import("../models/breadcrumb.model").BreadcrumbModel[] {
+  private buildBreadcrumbTrail(resolvedEventId: string | undefined): BreadcrumbModel[] {
     const manual = (resolvedEventId !== undefined)
       ? (this.breadcrumbHandler.breadcrumbs[resolvedEventId] ?? [])
       : [];
 
-    let fromSpans: import("../models/breadcrumb.model").BreadcrumbModel[] = [];
+    const fromSpans: BreadcrumbModel[] = [];
+
+    // ── container.resolve, justified ──────────────────────────────────────────────
+    // Per CLAUDE.md the default rule is "no container.resolve outside services."
+    // This is one of the documented exceptions: there is a genuine **circular
+    // dependency** between `LogHandler` and `TracingManager` (LogHandler would want
+    // to inject SpanTrailProvider → implemented by TracingManager → which injects
+    // every tracer → tracers inject LogHandler → cycle). Constructor injection cannot
+    // resolve this cycle without lazy proxies that obscure the wiring more than the
+    // explicit lookup here does.
+    //
+    // We look the provider up at log time from the per-event container (which is
+    // already established by the time any logging happens inside an event), so the
+    // lookup is cheap and well-scoped. If no provider is registered (telemetry module
+    // not loaded), we fall back to manual breadcrumbs alone — tracing must never make
+    // logging throw.
     const container = EventContextManager.container();
     if (container !== undefined) {
       try {
-        const provider = container.resolve<import("../interfaces/span-trail-provider.interface").SpanTrailProviderInterface>(
-          "SpanTrailProviderInterface",
-        );
-        fromSpans = provider.getCurrentTrail();
+        const provider = container.resolve<SpanTrailProviderInterface>("SpanTrailProviderInterface");
+        fromSpans.push(...provider.getCurrentTrail());
       } catch {
-        // No SpanTrailProviderInterface registered (telemetry module not loaded, or
-        // app deliberately doesn't register one). Trail is just the manual entries.
+        // No provider registered — silently fall back to manual entries.
       }
     }
 

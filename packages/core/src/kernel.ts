@@ -107,6 +107,12 @@ export class Kernel {
 
     this.initializationSpan.endDate = Date.now();
 
+    // ── container.resolve, justified ────────────────────────────────────────────
+    // Per CLAUDE.md: the Kernel IS the framework bootstrap. Construction-time
+    // resolution would create a chicken-and-egg problem — the LogHandler is one of
+    // the things this method just finished registering, and the Kernel itself is
+    // hand-constructed (`new Kernel()`) without DI. Resolving from `this.container`
+    // here is the legitimate "pre-DI-of-the-target-class" path.
     const logHandler: LogHandlerInterface = this.container.resolve("LogHandlerInterface");
 
     logHandler.debug("Kernel: The Kernel was instantiated in '" + ((this.initializationSpan.endDate - this.initializationSpan.startDate) / 1000) + "' seconds.", {
@@ -239,8 +245,11 @@ export class Kernel {
     }
 
     const bootProbeOk = await this.runPhase(report, InstantiationPhaseEnum.BootProbe, async () => {
-      // Mirror the cosmetic LogHandler resolve at the end of `start()`. If LoggingModule wasn't imported,
-      // the resolve will throw and the phase is marked Failed.
+      // ── container.resolve, justified ────────────────────────────────────────
+      // Per CLAUDE.md: framework bootstrap. `verifyInstantiation` is a sibling of
+      // `start()` that runs in a throwaway kernel — same chicken-and-egg as
+      // `start()`. Resolving here probes whether LoggingModule is wired up at all;
+      // failure becomes a BootProbe failure surfaced in the report.
       this.container.resolve<LogHandlerInterface>("LogHandlerInterface");
     });
 
@@ -248,6 +257,10 @@ export class Kernel {
     // can route through the project's logging stack without callers having to pass one in.
     if (bootProbeOk) {
       try {
+        // ── container.resolve, justified ──────────────────────────────────────
+        // Per CLAUDE.md: framework bootstrap. The report is built outside any
+        // DI-injected service; stamping the LogHandler onto it after BootProbe
+        // confirmed it's resolvable is the framework's wiring step.
         report.logHandler = this.container.resolve<LogHandlerInterface>("LogHandlerInterface");
       } catch {
         // Should not happen since BootProbe already succeeded, but defensive.
@@ -258,6 +271,11 @@ export class Kernel {
       await this.runPhase(report, InstantiationPhaseEnum.InstantiationTests, async () => {
         let tests: InstantiationTestInterface[] = [];
         try {
+          // ── container.resolveAll, justified ────────────────────────────────
+          // Per CLAUDE.md: framework bootstrap. This collects every
+          // `InstantiationTest`-tagged service registered across all loaded
+          // modules. The kernel itself isn't DI-injected, and the report is also
+          // hand-constructed, so collection-injection has no constructor to live in.
           tests = this.container.resolveAll<InstantiationTestInterface>(ServiceDefinitionTagEnum.InstantiationTest);
         } catch {
           // resolveAll throws when nothing is registered for the token. That's not a failure — there are simply no tests.
@@ -303,6 +321,11 @@ export class Kernel {
 
     let logHandler: LogHandlerInterface | undefined;
     try {
+      // ── container.resolve, justified ──────────────────────────────────────────
+      // Per CLAUDE.md: framework bootstrap. `stop()` runs from signal handlers
+      // outside any DI-injected context — the Kernel is hand-constructed and may
+      // have started in a broken state where LogHandler isn't registered. Try-catch
+      // around the resolve is how we tolerate that.
       logHandler = this.container.resolve<LogHandlerInterface>("LogHandlerInterface");
     } catch {
       // Logging may not have booted (e.g. start() failed mid-flight). Fall back to stderr.
@@ -373,6 +396,10 @@ export class Kernel {
    */
   public async handle<T>(event: any | Request | Event<any>, executionContext: ExecutionContextInterface<T>): Promise<object> {
     // Start the tracing
+    // ── container.resolve, justified ──────────────────────────────────────────────
+    // Per CLAUDE.md: framework bootstrap. The Kernel is hand-constructed, has no
+    // constructor for DI. The root-container TracingManager is what starts the trace
+    // for this `handle()` call before any child container has been created.
     const tracingManager: TracingManagerInterface = this.container.resolve("TracingManagerInterface");
     tracingManager.startTracing();
 
@@ -388,6 +415,9 @@ export class Kernel {
     }
 
     // Retrieve the EventPipeline. It's the class responsible for executing all the events successfully.
+    // ── container.resolve, justified ──────────────────────────────────────────────
+    // Per CLAUDE.md: framework bootstrap. Kernel is hand-constructed; the pipeline
+    // is the next layer it dispatches into.
     const eventPipeline = this.container.resolve(EventPipeline);
 
     const response = await eventPipeline.execute(event, executionContext, this.container);
@@ -491,6 +521,10 @@ export class Kernel {
    * @private
    */
   private registerConfigurationDefinitions(): ConfigurationManager {
+    // ── container.resolve, justified ────────────────────────────────────────────
+    // Per CLAUDE.md: framework bootstrap. Kernel is hand-constructed; this method
+    // runs during the registration phase before the kernel itself participates in
+    // DI as anything more than a container owner.
     const configurationManager: ConfigurationManager = this.container.resolve(ConfigurationManager);
 
     for (const key in this.instantiatedModules) {
