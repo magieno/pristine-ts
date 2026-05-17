@@ -1,6 +1,7 @@
 import {AppModuleInterface, CommonModule} from "@pristine-ts/common";
 import {CliModule} from "@pristine-ts/cli";
 import {SampleCommand} from "./sample.command";
+import {TraceCheckCommand} from "./trace-check.command";
 import {CoreModule} from "@pristine-ts/core";
 
 export const AppModule: AppModuleInterface = {
@@ -17,5 +18,6 @@ export const AppModule: AppModuleInterface = {
     ],
     importServices: [
         SampleCommand,
+        TraceCheckCommand,
     ],
 };

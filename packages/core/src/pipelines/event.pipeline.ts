@@ -3,7 +3,7 @@ import {ExecutionContextInterface} from "../interfaces/execution-context.interfa
 import {EventInterceptorInterface} from "../interfaces/event-interceptor.interface";
 import {EventMapperInterface} from "../interfaces/event-mapper.interface";
 import {Event} from "../models/event";
-import {BreadcrumbHandlerInterface, LogHandlerInterface} from "@pristine-ts/logging";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 import {EventsExecutionOptionsInterface} from "../interfaces/events-execution-options.interface";
 import {EventResponse} from "../models/event.response";
 import {EventDispatcherInterface} from "../interfaces/event-dispatcher.interface";
@@ -25,7 +25,6 @@ export class EventPipeline {
     @injectAll(ServiceDefinitionTagEnum.EventMapper) private readonly eventMappers: EventMapperInterface<any, any>[],
     @inject('LogHandlerInterface') private readonly logHandler: LogHandlerInterface,
     @inject("TracingManagerInterface") private readonly tracingManager: TracingManagerInterface,
-    @inject("BreadcrumbHandlerInterface") private readonly breadcrumbHandler: BreadcrumbHandlerInterface,
     private readonly eventContextManager: EventContextManager,
   ) {
   }
@@ -41,6 +40,13 @@ export class EventPipeline {
     const ctx = new EventContext();
     ctx.eventId = event.id;
     ctx.container = childContainer;
+    // Propagate the kernel-started trace into the EventContext so any TracingManager
+    // instance resolved from a child container (controllers, CLI commands, etc.) sees
+    // the same active trace as the kernel did when it called startTracing(). Without
+    // this, the kernel writes the trace to its root-container TracingManager's
+    // `this.trace` fallback, but per-event code reads from EventContext.trace and
+    // finds nothing — addEventToCurrentSpan would warn "outside any active trace."
+    ctx.trace = this.tracingManager.trace;
     return this.eventContextManager.run(ctx, fn);
   }
 
@@ -312,9 +318,6 @@ export class EventPipeline {
    * @private
    */
   private async executeEvent(event: Event<any>, eventDispatcher: EventDispatcherInterface): Promise<EventResponse<any, any>> {
-    // The :enter and :return breadcrumbs that used to live here have been removed —
-    // the surrounding `event.execution` span (started below) and the framework's other
-    // auto-spans cover this method's lifecycle in the breadcrumb trail automatically.
     // 1 - Run the post mapped interceptors on every single event before they get executed.
     const interceptedEvent = await this.postMappingIntercept(event)
 
@@ -332,8 +335,6 @@ export class EventPipeline {
           response,
         },
       })
-
-      this.breadcrumbHandler.reset(event.id);
 
       return response;
     } catch (error) {

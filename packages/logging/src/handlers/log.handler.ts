@@ -6,17 +6,15 @@ import {LogModel} from "../models/log.model";
 import {LoggerInterface} from "../interfaces/logger.interface";
 import {EventContextManager, injectConfig, InternalContainerParameterEnum, moduleScoped, ServiceDefinitionTagEnum, tag, TracingContext} from "@pristine-ts/common";
 import {LogHandlerInterface} from "../interfaces/log-handler.interface";
-import {BreadcrumbHandlerInterface} from "../interfaces/breadcrumb-handler.interface";
-import {SpanTrailProviderInterface} from "../interfaces/span-trail-provider.interface";
-import {BreadcrumbModel} from "../models/breadcrumb.model";
 import {Utils} from "../utils/utils";
 import {LoggingModuleKeyname} from "../logging.module";
 import {LogData} from "../types/log-data.type";
 
 /**
- * The LogHandler to use when we want to output some logs.
- * This handler makes sure that only the right level of logs are outputted, stacks logs, and logs with different loggers.
- * It is registered with the tag LogHandlerInterface so that it can be injected as a LogHandlerInterface to facilitate mocking.
+ * The LogHandler emits structured log entries through every registered `LoggerInterface`.
+ * Logs carry their own content (message, severity, eventId, traceId, extra, highlights) —
+ * nothing more. "What happened around this log" lives in the trace, not the log: use the
+ * registered tracers (ConsoleTracer, FileTracer, X-Ray, etc.) to render the span tree.
  */
 @moduleScoped(LoggingModuleKeyname)
 @tag("LogHandlerInterface")
@@ -30,14 +28,12 @@ export class LogHandler implements LogHandlerInterface {
    * @param logSeverityLevelConfiguration The severity from which to start logging the logs.
    * @param activateDiagnostics Whether or not the outputted logs should contain the diagnostic part. This is an intensive process and can dramatically reduce the performance of the code.
    * @param kernelInstantiationId The id of instantiation of the kernel.
-   * @param breadcrumbHandler The Breadcrumb handler to get all the latest breadcrumbs.
    * @param tracingContext The context of the tracing.
    */
   public constructor(@injectAll(ServiceDefinitionTagEnum.Logger) private readonly loggers: LoggerInterface[],
                      @injectConfig(LoggingConfigurationKeys.LogSeverityLevelConfiguration) private readonly logSeverityLevelConfiguration: number,
                      @injectConfig(LoggingConfigurationKeys.ActivateDiagnostics) private readonly activateDiagnostics: boolean,
                      @inject(InternalContainerParameterEnum.KernelInstantiationId) private readonly kernelInstantiationId: string,
-                     @inject("BreadcrumbHandlerInterface") private readonly breadcrumbHandler: BreadcrumbHandlerInterface,
                      private readonly tracingContext: TracingContext) {
   }
 
@@ -144,10 +140,6 @@ export class LogHandler implements LogHandlerInterface {
         log.eventId = resolvedEventId;
       }
 
-      if (data.breadcrumb) {
-        this.breadcrumbHandler.add(resolvedEventId, data.breadcrumb);
-      }
-
       if (data.outputHints) {
         log.outputHints = data.outputHints;
       }
@@ -160,16 +152,6 @@ export class LogHandler implements LogHandlerInterface {
       // bare `logHandler.info("...")` from within a request gets correlated.
       log.eventId = resolvedEventId;
     }
-
-    // Build the breadcrumb trail by merging two sources (each silently absent when
-    // unavailable):
-    //   1. Manual entries from `BreadcrumbHandler` — the legacy explicit API.
-    //   2. The active trace's spans + span events from any registered
-    //      `SpanTrailProviderInterface` (today: TracingManager). This is the path
-    //      forward; manual breadcrumbs and the explicit `breadcrumb: "..."` LogData
-    //      field stay supported but are no longer the only source.
-    log.breadcrumbs = this.buildBreadcrumbTrail(resolvedEventId);
-
 
     // If the activateDiagnostics configuration is set to true, we will include additional information into a __diagnostics path into extra.
     // This is an intensive process so be careful, it will dramatically slow down your calls.
@@ -231,54 +213,5 @@ export class LogHandler implements LogHandlerInterface {
         }
       }
     }
-  }
-
-  /**
-   * Builds the breadcrumb trail attached to a log entry. Merges two sources by date:
-   *
-   *   1. Manual entries from `BreadcrumbHandler.breadcrumbs[eventId]` — the legacy
-   *      explicit API (`breadcrumbHandler.add(...)`).
-   *   2. The active trace's spans + span events, fetched from any
-   *      `SpanTrailProviderInterface` registered in the per-event DI container.
-   *
-   * Returns an empty array when neither source has anything — callers that don't have
-   * an active EventContext also get an empty trail.
-   */
-  private buildBreadcrumbTrail(resolvedEventId: string | undefined): BreadcrumbModel[] {
-    const manual = (resolvedEventId !== undefined)
-      ? (this.breadcrumbHandler.breadcrumbs[resolvedEventId] ?? [])
-      : [];
-
-    const fromSpans: BreadcrumbModel[] = [];
-
-    // ── container.resolve, justified ──────────────────────────────────────────────
-    // Per CLAUDE.md the default rule is "no container.resolve outside services."
-    // This is one of the documented exceptions: there is a genuine **circular
-    // dependency** between `LogHandler` and `TracingManager` (LogHandler would want
-    // to inject SpanTrailProvider → implemented by TracingManager → which injects
-    // every tracer → tracers inject LogHandler → cycle). Constructor injection cannot
-    // resolve this cycle without lazy proxies that obscure the wiring more than the
-    // explicit lookup here does.
-    //
-    // We look the provider up at log time from the per-event container (which is
-    // already established by the time any logging happens inside an event), so the
-    // lookup is cheap and well-scoped. If no provider is registered (telemetry module
-    // not loaded), we fall back to manual breadcrumbs alone — tracing must never make
-    // logging throw.
-    const container = EventContextManager.container();
-    if (container !== undefined) {
-      try {
-        const provider = container.resolve<SpanTrailProviderInterface>("SpanTrailProviderInterface");
-        fromSpans.push(...provider.getCurrentTrail());
-      } catch {
-        // No provider registered — silently fall back to manual entries.
-      }
-    }
-
-    if (manual.length === 0 && fromSpans.length === 0) {
-      return [];
-    }
-
-    return [...manual, ...fromSpans].sort((a, b) => a.date.getTime() - b.date.getTime());
   }
 }

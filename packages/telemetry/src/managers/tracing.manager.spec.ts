@@ -105,7 +105,7 @@ describe("Tracing Manager", () => {
     tracingManager.startTracing();
 
     expect(tracingManager.trace).toBeDefined();
-    expect(tracingManager.spans[SpanKeynameEnum.RootExecution]).toBeDefined();
+    expect(tracingManager.trace!.spansByKeyname[SpanKeynameEnum.RootExecution]).toBeDefined();
   })
 
   it("should call the tracers when the startSpan method is called", async () => {
@@ -458,13 +458,19 @@ describe("Tracing Manager", () => {
       expect(root.events).toHaveLength(1);
     });
 
-    it("is a silent no-op when no trace is active", () => {
+    it("warns and drops the marker when no trace is active", () => {
       const tm = new TracingManager([], logHandlerMock, true, false, new TracingContext());
+      const warningSpy = jest.spyOn(logHandlerMock, "warning");
       expect(() => tm.addEventToCurrentSpan("nope")).not.toThrow();
+      expect(warningSpy).toHaveBeenCalledWith(
+        expect.stringContaining("addEventToCurrentSpan called outside any active trace"),
+        expect.objectContaining({extra: expect.objectContaining({message: "nope"})}),
+      );
+      warningSpy.mockRestore();
     });
   });
 
-  describe("getCurrentTrail (SpanTrailProviderInterface)", () => {
+  describe("getCurrentTrail", () => {
     it("returns an empty trail when no trace is active", () => {
       const tm = new TracingManager([], logHandlerMock, true, false, new TracingContext());
       expect(tm.getCurrentTrail()).toEqual([]);
@@ -482,15 +488,15 @@ describe("Tracing Manager", () => {
       const trail = tm.getCurrentTrail();
       expect(trail.length).toBe(5);
 
-      const messages = trail.map(e => e.message);
-      expect(messages).toContain("root (active)");
-      expect(messages).toContain("about-to-fork");
-      expect(messages).toContain("child-1");                  // ended, no suffix
-      expect(messages).toContain("inside-child-1");
-      expect(messages).toContain("child-2 (active)");
+      const names = trail.map(e => e.name);
+      expect(names).toContain("root (active)");
+      expect(names).toContain("about-to-fork");
+      expect(names).toContain("child-1");                  // ended, no suffix
+      expect(names).toContain("inside-child-1");
+      expect(names).toContain("child-2 (active)");
 
       // First entry is the root (started first).
-      expect(trail[0].message).toBe("root (active)");
+      expect(trail[0].name).toBe("root (active)");
     });
 
     it("annotates entries with kind discriminator (span vs event)", () => {
@@ -499,11 +505,35 @@ describe("Tracing Manager", () => {
       tm.addEventToCurrentSpan("marker");
 
       const trail = tm.getCurrentTrail();
-      const spanEntry = trail.find(e => e.message.startsWith("root"));
-      const eventEntry = trail.find(e => e.message === "marker");
+      const spanEntry = trail.find(e => e.name.startsWith("root"));
+      const eventEntry = trail.find(e => e.name === "marker");
 
-      expect(spanEntry?.extra?.kind).toBe("span");
-      expect(eventEntry?.extra?.kind).toBe("event");
+      expect(spanEntry?.kind).toBe("span");
+      expect(eventEntry?.kind).toBe("event");
+    });
+  });
+
+  describe("EventContext-shared trace (cross-instance continuity)", () => {
+    it("two TracingManager instances inside the same EventContext see the same trace", async () => {
+      const {EventContext, EventContextManager} = require("@pristine-ts/common");
+      const ecm = new EventContextManager();
+      const ctx = new EventContext();
+      ctx.eventId = "evt-shared";
+
+      await ecm.run(ctx, async () => {
+        const tmA = new TracingManager([], logHandlerMock, true, false, new TracingContext());
+        const tmB = new TracingManager([], logHandlerMock, true, false, new TracingContext());
+
+        const rootSpan = tmA.startTracing("root");
+        // Different instance, but inside the same EventContext, should see the same trace.
+        expect(tmB.getCurrentTrail().length).toBeGreaterThan(0);
+
+        tmB.addEventToCurrentSpan("from-instance-B");
+
+        // The marker should be reachable from tmA's view of the trace.
+        expect(rootSpan.events.length).toBe(1);
+        expect(rootSpan.events[0].message).toBe("from-instance-B");
+      });
     });
   });
 });

@@ -21,6 +21,7 @@ function buildStubTracingManager(): {tm: TracingManagerInterface; spans: Span[];
     }),
     endSpan: jest.fn((s: Span) => { ended.push(s); }),
     addEventToCurrentSpan: jest.fn(),
+    getCurrentTrail: jest.fn((): any[] => []),
   };
   return {tm, spans, ended};
 }

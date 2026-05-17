@@ -54,8 +54,21 @@ export interface TracingManagerInterface {
   /**
    * Attaches a named, timestamped event to the most-recently-started in-progress span.
    * Use for noteworthy moments inside a span's lifetime that don't warrant their own
-   * child span — "validation passed", "found 50 rows", etc. Silent no-op if no span is
-   * currently active.
+   * child span — "validation passed", "found 50 rows", etc. Logs a warning and drops
+   * the marker if no span is currently active.
    */
   addEventToCurrentSpan(message: string, attributes?: { [key: string]: string }): void;
+
+  /**
+   * Returns the active trace's spans + their events as a flat, timestamp-sorted list.
+   * Public utility for custom tracers, debug endpoints, test helpers, or any consumer
+   * who wants "the active trace as a flat list" without walking the span tree manually.
+   * Returns an empty array when no active trace exists.
+   */
+  getCurrentTrail(): Array<{
+    kind: "span" | "event";
+    name: string;
+    date: Date;
+    attributes: { [key: string]: string };
+  }>;
 }

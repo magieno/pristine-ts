@@ -1,5 +1,5 @@
 import "reflect-metadata"
-import {BreadcrumbHandlerInterface, LogHandlerInterface} from "@pristine-ts/logging";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 import {AuthenticationManager} from "./authentication.manager";
 import {AuthenticatorContextInterface} from "../interfaces/authenticator-context.interface";
 import {AuthenticatorInterface} from "../interfaces/authenticator.interface";
@@ -19,13 +19,6 @@ describe("AuthenticationManager", () => {
     }, terminate() {
     }
   }
-  const breadcrumbHandlerMock: BreadcrumbHandlerInterface = {
-    breadcrumbs: {},
-    add(message: string, extra?: any): void {
-    },
-    reset(): void {
-    },
-  }
 
   const requestMock: Request = new Request("", "", "");
   requestMock.body = {};
@@ -44,7 +37,7 @@ describe("AuthenticationManager", () => {
           }
         };
       }
-    }, breadcrumbHandlerMock)
+    })
 
     expect(await authenticationManager.authenticate(requestMock, undefined, container)).toBeUndefined()
     expect(await authenticationManager.authenticate(requestMock, {
@@ -69,7 +62,7 @@ describe("AuthenticationManager", () => {
           }
         };
       }
-    }, breadcrumbHandlerMock)
+    })
 
     expect(await authenticationManager.authenticate(requestMock, {
       [authenticatorMetadataKeyname]: {}
@@ -99,7 +92,7 @@ describe("AuthenticationManager", () => {
           }
         };
       }
-    }, breadcrumbHandlerMock)
+    })
 
     await authenticationManager.authenticate(requestMock, {
       [authenticatorMetadataKeyname]: {}
@@ -133,7 +126,7 @@ describe("AuthenticationManager", () => {
           }
         };
       }
-    }, breadcrumbHandlerMock)
+    })
 
     await authenticationManager.authenticate(requestMock, {
       [authenticatorMetadataKeyname]: {}

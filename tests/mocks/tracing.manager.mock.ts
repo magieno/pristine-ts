@@ -28,4 +28,13 @@ export class TracingManagerMock implements TracingManagerInterface {
 
     addEventToCurrentSpan(message: string, attributes?: { [p: string]: string }): void {
     }
+
+    getCurrentTrail(): Array<{
+        kind: "span" | "event";
+        name: string;
+        date: Date;
+        attributes: { [key: string]: string };
+    }> {
+        return [];
+    }
 }

@@ -3,7 +3,7 @@ import {AuthenticationManagerInterface} from "../interfaces/authentication-manag
 import {IdentityInterface, moduleScoped, Request, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {AuthenticatorInterface} from "../interfaces/authenticator.interface";
 import {AuthenticatorContextInterface} from "../interfaces/authenticator-context.interface";
-import {BreadcrumbHandlerInterface, LogHandlerInterface} from "@pristine-ts/logging";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 import {AuthenticatorFactory} from "../factories/authenticator.factory";
 import {SecurityModuleKeyname} from "../security.module.keyname";
 import {IdentityProviderInterface} from "../interfaces/identity-provider.interface";
@@ -27,8 +27,7 @@ export class AuthenticationManager implements AuthenticationManagerInterface {
   public constructor(
     @injectAll(ServiceDefinitionTagEnum.IdentityProvider, {isOptional: true}) private readonly identityProviders: IdentityProviderInterface[],
     @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-    private readonly authenticatorFactory: AuthenticatorFactory,
-    @inject("BreadcrumbHandlerInterface") private readonly breadcrumbHandler: BreadcrumbHandlerInterface) {
+    private readonly authenticatorFactory: AuthenticatorFactory) {
   }
 
   /**
@@ -38,9 +37,6 @@ export class AuthenticationManager implements AuthenticationManagerInterface {
    * @param container The dependency container from which to resolve the authenticator.
    */
   public async authenticate(request: Request, routeContext: any, container: DependencyContainer): Promise<IdentityInterface | undefined> {
-    // The :enter breadcrumb that used to be added here is now covered by the surrounding
-    // `router.request.authentication` auto-span — visible in the trail of any error log
-    // emitted within this method's lifetime.
     if (!routeContext || routeContext[authenticatorMetadataKeyname] === undefined) {
       return undefined;
     }

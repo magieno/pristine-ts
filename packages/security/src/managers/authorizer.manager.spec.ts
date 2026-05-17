@@ -1,7 +1,7 @@
 import "reflect-metadata"
 import {container, injectable} from "tsyringe";
 import {AuthorizerManager} from "./authorizer.manager";
-import {BreadcrumbHandlerInterface, LogHandlerInterface} from "@pristine-ts/logging";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 import {IdentityInterface, Request} from "@pristine-ts/common";
 import {GuardFactory} from "../factories/guard.factory";
 import {GuardInterface} from "../interfaces/guard.interface";
@@ -18,13 +18,6 @@ describe("AuthorizerManager", () => {
     }, warning(message: string, extra?: any): void {
     }, terminate() {
     }
-  }
-  const breadcrumbHandlerMock: BreadcrumbHandlerInterface = {
-    breadcrumbs: {},
-    add(message: string, extra?: any): void {
-    },
-    reset(): void {
-    },
   }
 
   const requestMock: Request = new Request("", "", "uuid");
@@ -61,7 +54,7 @@ describe("AuthorizerManager", () => {
   }
 
   it("should authorize if there are no guards defined in the context or if the route context is not properly defined", () => {
-    const authorizerManager = new AuthorizerManager(logHandlerMock, new GuardFactory(), breadcrumbHandlerMock);
+    const authorizerManager = new AuthorizerManager(logHandlerMock, new GuardFactory());
 
     expect(authorizerManager.isAuthorized(requestMock, {}, container)).toBeTruthy()
   })
@@ -72,7 +65,7 @@ describe("AuthorizerManager", () => {
         // @ts-ignore
         return guardContext.guard;
       }
-    }, breadcrumbHandlerMock);
+    });
 
     const guard1 = new Guard1();
     const spy1 = jest.spyOn(guard1, "isAuthorized");
@@ -110,7 +103,7 @@ describe("AuthorizerManager", () => {
         // @ts-ignore
         return guardContext.guard;
       }
-    }, breadcrumbHandlerMock);
+    });
 
     const guard1 = new Guard1();
     const spy1 = jest.spyOn(guard1, "isAuthorized");
@@ -150,7 +143,7 @@ describe("AuthorizerManager", () => {
         // @ts-ignore
         return guardContext.guard;
       }
-    }, breadcrumbHandlerMock);
+    });
 
     const guard1 = new Guard1();
     const spy1 = jest.spyOn(guard1, "isAuthorized");
@@ -207,7 +200,7 @@ describe("AuthorizerManager", () => {
           }
         };
       }
-    }, breadcrumbHandlerMock);
+    });
 
     await authorizerManager.isAuthorized(requestMock, {
       [guardMetadataKeyname]: [{}],

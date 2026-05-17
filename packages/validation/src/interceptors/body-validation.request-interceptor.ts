@@ -8,7 +8,7 @@ import {Validator} from "@pristine-ts/class-validator";
 import {moduleScoped, Request, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {ValidationModuleKeyname} from "../validation.module.keyname";
 import {inject, injectable} from "tsyringe";
-import {BreadcrumbHandlerInterface, LogHandlerInterface} from "@pristine-ts/logging";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 import {bodyValidationMetadataKeyname} from "../decorators/body-validation.decorator";
 import {DataMapper} from "@pristine-ts/data-mapping-common";
 
@@ -31,12 +31,10 @@ export class BodyValidationRequestInterceptor implements RequestInterceptorInter
    * @param loghandler The log handler to output logs.
    * @param validator The validator that validates objects.
    * @param dataMapper
-   * @param breadcrumbHandler
    */
   constructor(@inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface,
               private readonly validator: Validator,
               private readonly dataMapper: DataMapper,
-              @inject("BreadcrumbHandlerInterface") private readonly breadcrumbHandler: BreadcrumbHandlerInterface,
   ) {
   }
 
@@ -47,9 +45,6 @@ export class BodyValidationRequestInterceptor implements RequestInterceptorInter
    * @param methodNode The method node.
    */
   async interceptRequest(request: Request, methodNode: MethodRouterNode): Promise<Request> {
-    // The :enter breadcrumb that used to be added here is now covered by the
-    // surrounding `request.interceptors` auto-span — visible in the trail of any
-    // error log emitted within this method's lifetime.
     const bodyValidator = methodNode.route.context[bodyValidationMetadataKeyname];
 
     if (bodyValidator === undefined || bodyValidator.classType === undefined) {

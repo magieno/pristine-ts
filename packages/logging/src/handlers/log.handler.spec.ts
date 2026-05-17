@@ -2,9 +2,6 @@ import "reflect-metadata";
 import {Readable} from "stream";
 import {LogHandler} from "./log.handler";
 import {LoggerInterface} from "../interfaces/logger.interface";
-import {BreadcrumbHandlerInterface} from "../interfaces/breadcrumb-handler.interface";
-import {SpanTrailProviderInterface} from "../interfaces/span-trail-provider.interface";
-import {BreadcrumbModel} from "../models/breadcrumb.model";
 import {EventContext, EventContextManager, TracingContext} from "@pristine-ts/common";
 
 /**
@@ -39,15 +36,10 @@ function buildCapturingStream(received: any[]): Readable {
 
 describe("LogHandler crash isolation", () => {
   let stderrSpy: jest.SpyInstance;
-  let breadcrumb: BreadcrumbHandlerInterface;
   let tracing: TracingContext;
 
   beforeEach(() => {
     stderrSpy = jest.spyOn(process.stderr, "write").mockImplementation(() => true);
-    breadcrumb = {
-      breadcrumbs: {},
-      add: jest.fn(),
-    } as unknown as BreadcrumbHandlerInterface;
     tracing = new TracingContext();
   });
 
@@ -67,7 +59,6 @@ describe("LogHandler crash isolation", () => {
       0,
       false,
       "kernel-id",
-      breadcrumb,
       tracing,
     );
 
@@ -93,7 +84,6 @@ describe("LogHandler crash isolation", () => {
       0,
       false,
       "kernel-id",
-      breadcrumb,
       tracing,
     );
 
@@ -121,7 +111,6 @@ describe("LogHandler crash isolation", () => {
       0,
       false,
       "kernel-id",
-      breadcrumb,
       tracing,
     );
 
@@ -131,21 +120,11 @@ describe("LogHandler crash isolation", () => {
 });
 
 describe("LogHandler eventId + traceId resolution", () => {
-  let breadcrumb: BreadcrumbHandlerInterface;
   let tracing: TracingContext;
 
   beforeEach(() => {
-    breadcrumb = {
-      breadcrumbs: {},
-      add: jest.fn(),
-    } as unknown as BreadcrumbHandlerInterface;
     tracing = new TracingContext();
   });
-
-  function captureFirstLog(handler: LogHandler, received: any[]): void {
-    handler.info("captured");
-    // entry is captured by the buildCapturingStream-backed logger.
-  }
 
   function buildHandlerWithCapture(): {handler: LogHandler; received: any[]} {
     const received: any[] = [];
@@ -159,7 +138,6 @@ describe("LogHandler eventId + traceId resolution", () => {
       0,
       false,
       "kernel-id",
-      breadcrumb,
       tracing,
     );
     return {handler, received};
@@ -228,120 +206,3 @@ describe("LogHandler eventId + traceId resolution", () => {
     expect(received[0].traceId).toBe("trace-modern");
   });
 });
-
-describe("LogHandler breadcrumb trail merging", () => {
-  let stderrSpy: jest.SpyInstance;
-  let breadcrumb: BreadcrumbHandlerInterface;
-  let tracing: TracingContext;
-
-  beforeEach(() => {
-    stderrSpy = jest.spyOn(process.stderr, "write").mockImplementation(() => true);
-    breadcrumb = {
-      breadcrumbs: {},
-      add: jest.fn(),
-      reset: jest.fn(),
-    } as unknown as BreadcrumbHandlerInterface;
-    tracing = new TracingContext();
-  });
-
-  afterEach(() => {
-    stderrSpy.mockRestore();
-  });
-
-  function buildHandlerWithCapture(): {handler: LogHandler; received: any[]} {
-    const received: any[] = [];
-    const logger: LoggerInterface = {
-      readableStream: buildCapturingStream(received),
-      isActive: () => true,
-      terminate: () => undefined,
-    };
-    const handler = new LogHandler([logger], 0, false, "kernel-id", breadcrumb, tracing);
-    return {handler, received};
-  }
-
-  // Builds a fake DependencyContainer-shaped object whose resolve() returns the given
-  // provider for the "SpanTrailProviderInterface" token. Stubs the per-event container
-  // that LogHandler reads from at log time (see the in-source comment on
-  // `buildBreadcrumbTrail` for the justification of that dynamic lookup).
-  function fakeContainerWithProvider(provider: SpanTrailProviderInterface | undefined): any {
-    return {
-      resolve: (token: string) => {
-        if (token === "SpanTrailProviderInterface") {
-          if (provider === undefined) throw new Error("no provider registered");
-          return provider;
-        }
-        throw new Error("unexpected token: " + token);
-      },
-    };
-  }
-
-  it("uses manual breadcrumbs alone when no SpanTrailProvider is registered", () => {
-    const {handler, received} = buildHandlerWithCapture();
-    const manual = new BreadcrumbModel("manual-only");
-    manual.date = new Date(1000);
-
-    const manager = new EventContextManager();
-    const ctx = new EventContext();
-    ctx.eventId = "evt-manual";
-    ctx.container = fakeContainerWithProvider(undefined);
-    breadcrumb.breadcrumbs["evt-manual"] = [manual];
-
-    manager.run(ctx, () => handler.info("hello"));
-
-    expect(received[0].breadcrumbs).toHaveLength(1);
-    expect(received[0].breadcrumbs[0].message).toBe("manual-only");
-  });
-
-  it("merges manual and span-derived entries by timestamp", () => {
-    const spanCrumb = new BreadcrumbModel("span-derived", {kind: "span"});
-    spanCrumb.date = new Date(2000);
-    const provider: SpanTrailProviderInterface = {getCurrentTrail: () => [spanCrumb]};
-
-    const {handler, received} = buildHandlerWithCapture();
-
-    const manual = new BreadcrumbModel("manual-1");
-    manual.date = new Date(1000);
-    breadcrumb.breadcrumbs["evt-merged"] = [manual];
-
-    const manager = new EventContextManager();
-    const ctx = new EventContext();
-    ctx.eventId = "evt-merged";
-    ctx.container = fakeContainerWithProvider(provider);
-
-    manager.run(ctx, () => handler.info("hello"));
-
-    expect(received[0].breadcrumbs).toHaveLength(2);
-    // Sorted by date: manual (1000ms) before span-derived (2000ms).
-    expect(received[0].breadcrumbs[0].message).toBe("manual-1");
-    expect(received[0].breadcrumbs[1].message).toBe("span-derived");
-  });
-
-  it("returns an empty trail when neither source has entries", () => {
-    const {handler, received} = buildHandlerWithCapture();
-    const manager = new EventContextManager();
-    const ctx = new EventContext();
-    ctx.eventId = "evt-empty";
-
-    manager.run(ctx, () => handler.info("hello"));
-
-    expect(received[0].breadcrumbs).toEqual([]);
-  });
-
-  it("silently falls back to manual entries when the provider lookup throws", () => {
-    const {handler, received} = buildHandlerWithCapture();
-    const manual = new BreadcrumbModel("manual-fallback");
-    manual.date = new Date(1000);
-    breadcrumb.breadcrumbs["evt-no-provider"] = [manual];
-
-    const manager = new EventContextManager();
-    const ctx = new EventContext();
-    ctx.eventId = "evt-no-provider";
-    ctx.container = fakeContainerWithProvider(undefined);
-
-    manager.run(ctx, () => handler.info("hello"));
-
-    expect(received[0].breadcrumbs).toHaveLength(1);
-    expect(received[0].breadcrumbs[0].message).toBe("manual-fallback");
-  });
-});
-

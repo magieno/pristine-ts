@@ -1,5 +1,5 @@
 import {DependencyContainer, inject, injectable} from "tsyringe";
-import {BreadcrumbHandlerInterface, LogHandlerInterface} from "@pristine-ts/logging";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 import {IdentityInterface, moduleScoped, Request, tag} from "@pristine-ts/common";
 import {AuthorizerManagerInterface} from "../interfaces/authorizer-manager.interface";
 import {GuardFactory} from "../factories/guard.factory";
@@ -19,11 +19,9 @@ export class AuthorizerManager implements AuthorizerManagerInterface {
    * The authorizer manager provides authorization by authorizing the action.
    * @param logHandler The log handler to output logs.
    * @param guardFactory The factory to create the guard.
-   * @param breadcrumbHandler
    */
   public constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-                     private readonly guardFactory: GuardFactory,
-                     @inject("BreadcrumbHandlerInterface") private readonly breadcrumbHandler: BreadcrumbHandlerInterface) {
+                     private readonly guardFactory: GuardFactory) {
   }
 
   /**
@@ -34,9 +32,6 @@ export class AuthorizerManager implements AuthorizerManagerInterface {
    * @param identity The identity making the request.
    */
   public async isAuthorized(request: Request, routeContext: any, container: DependencyContainer, identity?: IdentityInterface): Promise<boolean> {
-    // The :enter / :return breadcrumbs that used to be added here are now covered by
-    // the surrounding router auto-spans (`router.request.execution`, etc.) which appear
-    // in the breadcrumb trail of any error log emitted within this method's lifetime.
     if (!routeContext || routeContext[guardMetadataKeyname] === undefined || Array.isArray(routeContext[guardMetadataKeyname]) === false) {
       return true;
     }
