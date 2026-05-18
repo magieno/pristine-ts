@@ -1,9 +1,8 @@
-import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {moduleScoped, ServiceDefinitionTagEnum, tag, ExitCode} from "@pristine-ts/common";
 import {inject, injectable} from "tsyringe";
 import {Kernel} from "@pristine-ts/core";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {CommandInterface} from "../interfaces/command.interface";
-import {ExitCodeEnum} from "../enums/exit-code.enum";
 import {CliModuleKeyname} from "../cli.module.keyname";
 import {AppModuleLoader} from "../bootstrap/app-module-loader";
 
@@ -32,7 +31,7 @@ export class VerifyCommand implements CommandInterface<null> {
   ) {
   }
 
-  async run(args: any): Promise<ExitCodeEnum | number> {
+  async run(args: any): Promise<ExitCode | number> {
     const skipTests = args?.["skip-tests"] === true || args?.skipTests === true;
 
     const {appModule, configuration} = await this.appModuleLoader.load();
@@ -44,6 +43,6 @@ export class VerifyCommand implements CommandInterface<null> {
 
     report.log(this.logHandler);
 
-    return report.hasErrors ? ExitCodeEnum.Error : ExitCodeEnum.Success;
+    return report.hasErrors ? ExitCode.Error : ExitCode.Success;
   }
 }

@@ -7,7 +7,7 @@ import {LogHandlerInterface} from "@pristine-ts/logging";
 import {EventsExecutionOptionsInterface} from "../interfaces/events-execution-options.interface";
 import {EventResponse} from "../models/event.response";
 import {EventDispatcherInterface} from "../interfaces/event-dispatcher.interface";
-import {EventContext, EventContextManager, PristineError, ServiceDefinitionTagEnum} from "@pristine-ts/common";
+import {EventContext, EventContextManager, PristineError, PristineErrorKind, ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {SpanKeynameEnum, TracingManagerInterface} from "@pristine-ts/telemetry";
 import {CoreModuleKeyname} from "../core.module.keyname";
 
@@ -82,14 +82,14 @@ export class EventPipeline {
         span.end();
       } catch (error) {
         throw new PristineError("There was an error mapping the event into an Event object", {
-          code: "EVENT_MAPPING_FAILED", expected: false, cause: error as Error,
+          code: "EVENT_MAPPING_FAILED", kind: PristineErrorKind.SystemError, cause: error as Error,
           details: {event, interceptedEvent, executionContext},
         })
       }
 
       if (numberOfEventMappers === 0) {
         throw new PristineError("There are no Event Mappers that support the event", {
-          code: "EVENT_NO_MAPPER_SUPPORTS", expected: false,
+          code: "EVENT_NO_MAPPER_SUPPORTS", kind: PristineErrorKind.SystemError,
           details: {event, interceptedEvent, executionContext},
         });
       }
@@ -98,7 +98,7 @@ export class EventPipeline {
         return agg + eventExecution.events.length;
       }, 0) === 0) {
         throw new PristineError("There are no events to execute.", {
-          code: "EVENT_NO_EVENTS", expected: false,
+          code: "EVENT_NO_EVENTS", kind: PristineErrorKind.SystemError,
           details: {event, interceptedEvent, executionContext},
         })
       }
@@ -230,7 +230,7 @@ export class EventPipeline {
         interceptedEvent = await eventInterceptor.preMappingIntercept?.(interceptedEvent, executionContext) ?? interceptedEvent;
       } catch (error) {
         throw new PristineError("There was an error while executing the PreMapping Event interceptors", {
-          code: "EVENT_PRE_MAPPING_INTERCEPTOR_FAILED", expected: false, cause: error as Error,
+          code: "EVENT_PRE_MAPPING_INTERCEPTOR_FAILED", kind: PristineErrorKind.SystemError, cause: error as Error,
           details: {interceptorName: eventInterceptor.constructor.name, event, executionContext},
         });
       }
@@ -258,7 +258,7 @@ export class EventPipeline {
         interceptedEvent = await eventInterceptor.postMappingIntercept?.(interceptedEvent) ?? interceptedEvent;
       } catch (error) {
         throw new PristineError("There was an error while executing the PostMapping Event interceptors", {
-          code: "EVENT_POST_MAPPING_INTERCEPTOR_FAILED", expected: false, cause: error as Error,
+          code: "EVENT_POST_MAPPING_INTERCEPTOR_FAILED", kind: PristineErrorKind.SystemError, cause: error as Error,
           details: {interceptorName: eventInterceptor.constructor.name, event},
         });
       }
@@ -286,7 +286,7 @@ export class EventPipeline {
         interceptedEventResponse = await eventInterceptor.preResponseMappingIntercept?.(interceptedEventResponse) ?? interceptedEventResponse;
       } catch (error) {
         throw new PristineError("There was an error while executing the PreResponseMapping Event interceptors", {
-          code: "EVENT_PRE_RESPONSE_INTERCEPTOR_FAILED", expected: false, cause: error as Error,
+          code: "EVENT_PRE_RESPONSE_INTERCEPTOR_FAILED", kind: PristineErrorKind.SystemError, cause: error as Error,
           details: {interceptorName: eventInterceptor.constructor.name, eventResponse},
         });
       }
@@ -314,7 +314,7 @@ export class EventPipeline {
         interceptedEventResponse = await eventInterceptor.postResponseMappingIntercept?.(interceptedEventResponse) ?? interceptedEventResponse;
       } catch (error) {
         throw new PristineError("There was an error while executing the PostResponseMapping Event interceptors", {
-          code: "EVENT_POST_RESPONSE_INTERCEPTOR_FAILED", expected: false, cause: error as Error,
+          code: "EVENT_POST_RESPONSE_INTERCEPTOR_FAILED", kind: PristineErrorKind.SystemError, cause: error as Error,
           details: {interceptorName: eventInterceptor.constructor.name, eventResponse},
         });
       }

@@ -1,4 +1,4 @@
-import {PristineError} from "@pristine-ts/common";
+import {ExitCode, PristineError, PristineErrorKind} from "@pristine-ts/common";
 
 /**
  * This Error represents an error when authenticating with Stripe. Wraps the underlying
@@ -10,8 +10,8 @@ export class StripeAuthenticationError extends PristineError {
     super(message, {
       code: "STRIPE_AUTHENTICATION_FAILED",
       httpStatus,
-      exitCode: 1,
-      expected: true,
+      exitCode: ExitCode.Error,
+      kind: PristineErrorKind.UserError,
       details: errors ? {errors} : undefined,
     });
   }

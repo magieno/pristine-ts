@@ -1,9 +1,8 @@
-import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {moduleScoped, ServiceDefinitionTagEnum, tag, ExitCode} from "@pristine-ts/common";
 import {injectable, injectAll} from "tsyringe";
 import {Kernel, RuntimeServerInterface} from "@pristine-ts/core";
 import {CommandInterface} from "../interfaces/command.interface";
 import {ConsoleManager} from "../managers/console.manager";
-import {ExitCodeEnum} from "../enums/exit-code.enum";
 import {CliModuleKeyname} from "../cli.module.keyname";
 import {StartCommandOptions} from "./start.command-options";
 
@@ -63,7 +62,7 @@ export class StartCommand implements CommandInterface<StartCommandOptions> {
   ) {
   }
 
-  async run(args: StartCommandOptions): Promise<ExitCodeEnum | number> {
+  async run(args: StartCommandOptions): Promise<ExitCode | number> {
     const servers = this.servers.filter(s => s.name !== this.defaultRuntimeServerName);
 
     const overrides = (args.port !== undefined || args.address !== undefined)
@@ -80,7 +79,7 @@ export class StartCommand implements CommandInterface<StartCommandOptions> {
           if (started === server) break;
           try { await started.stop(); } catch { /* swallow */ }
         }
-        return ExitCodeEnum.Error;
+        return ExitCode.Error;
       }
     }
 
@@ -91,7 +90,7 @@ export class StartCommand implements CommandInterface<StartCommandOptions> {
       this.consoleManager.writeSuccess(`Pristine app running with ${servers.length} server(s): ${labels}. Send SIGTERM (or Ctrl+C) to stop.`);
     }
 
-    return new Promise<ExitCodeEnum | number>((resolve) => {
+    return new Promise<ExitCode | number>((resolve) => {
       let shuttingDown = false;
 
       // Keep the event loop alive. Without this, Node would exit as soon as it noticed nothing
@@ -129,12 +128,12 @@ export class StartCommand implements CommandInterface<StartCommandOptions> {
           this.consoleManager.writeSuccess("Shutdown complete.");
           clearTimeout(hardExitTimer);
           clearInterval(heartbeat);
-          resolve(ExitCodeEnum.Success);
+          resolve(ExitCode.Success);
         } catch (error) {
           this.consoleManager.writeError(`Shutdown error: ${(error as Error).message}`);
           clearTimeout(hardExitTimer);
           clearInterval(heartbeat);
-          resolve(ExitCodeEnum.Error);
+          resolve(ExitCode.Error);
         }
       };
 

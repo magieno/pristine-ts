@@ -4,12 +4,11 @@ import {CommandEventPayload} from "../event-payloads/command.event-payload";
 import {CommandEvent} from "../types/command-event.type";
 import {CommandEventResponse} from "../types/command-event-response.type";
 import {CommandInterface} from "../interfaces/command.interface";
-import {moduleScoped, ServiceDefinitionTagEnum, tag, UsageError, ValidationError} from "@pristine-ts/common";
+import {moduleScoped, ServiceDefinitionTagEnum, tag, UsageError, ValidationError, ExitCode} from "@pristine-ts/common";
 import {CommandNotFoundError} from "../errors/command-not-found.error";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {Validator} from "@pristine-ts/class-validator";
 import {ConsoleManager} from "../managers/console.manager";
-import {ExitCodeEnum} from "../enums/exit-code.enum";
 import {CliModuleKeyname} from "../cli.module.keyname";
 import {plainToInstance} from "class-transformer";
 
@@ -110,8 +109,8 @@ export class CliEventHandler implements EventHandlerInterface<any, any> {
     return event.payload instanceof CommandEventPayload;
   }
 
-  private logExitStatus(commandName: string, exitCode: ExitCodeEnum | number): void {
-    const status = exitCode === ExitCodeEnum.Success ? "Success" : "Error";
+  private logExitStatus(commandName: string, exitCode: ExitCode | number): void {
+    const status = exitCode === ExitCode.Success ? "Success" : "Error";
     this.consoleManager.writeLine(`[status:'${status}', code:'${exitCode}'] - Command '${commandName}' exited.`);
   }
 }

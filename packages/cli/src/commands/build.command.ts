@@ -1,11 +1,10 @@
 import fs from "fs";
 import path from "path";
-import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {moduleScoped, ServiceDefinitionTagEnum, tag, ExitCode} from "@pristine-ts/common";
 import {injectable} from "tsyringe";
 import {CommandInterface} from "../interfaces/command.interface";
 import {ConsoleManager} from "../managers/console.manager";
 import {ShellManager} from "../managers/shell.manager";
-import {ExitCodeEnum} from "../enums/exit-code.enum";
 import {CliModuleKeyname} from "../cli.module.keyname";
 import {ConfigLoader} from "../config/config-loader";
 import {BuildManifestWriter} from "../bootstrap/build-manifest-writer";
@@ -48,7 +47,7 @@ export class BuildCommand implements CommandInterface<null> {
   ) {
   }
 
-  async run(args: any): Promise<ExitCodeEnum | number> {
+  async run(args: any): Promise<ExitCode | number> {
     const projectRoot = process.cwd();
     const resolvedConfig = await this.configLoader.load({startDir: projectRoot});
     const buildConfig = resolvedConfig.config.build ?? {};
@@ -71,7 +70,7 @@ export class BuildCommand implements CommandInterface<null> {
       this.consoleManager.writeError(
         `No tsconfig found. Looked for: ${this.expectedTsconfigsForFormat(tsconfig, format).join(", ")}`,
       );
-      return ExitCodeEnum.Error;
+      return ExitCode.Error;
     }
 
     for (const tsconfigPath of invocations) {
@@ -88,14 +87,14 @@ export class BuildCommand implements CommandInterface<null> {
         });
       } catch (error) {
         this.consoleManager.writeError(`tsc failed for ${relTsconfig}`);
-        return ExitCodeEnum.Error;
+        return ExitCode.Error;
       }
     }
 
     this.writeManifestIfConfigured(projectRoot, resolvedConfig.config.appModule);
 
     this.consoleManager.writeSuccess(`Build complete (${invocations.length} tsconfig${invocations.length > 1 ? "s" : ""}).`);
-    return ExitCodeEnum.Success;
+    return ExitCode.Success;
   }
 
   private writeManifestIfConfigured(projectRoot: string, appModule: { sourcePath?: string; outputPath?: string } | undefined): void {

@@ -1,8 +1,7 @@
 import {DependencyContainer, inject, injectable} from "tsyringe";
-import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {moduleScoped, ServiceDefinitionTagEnum, tag, ExitCode} from "@pristine-ts/common";
 import {CommandInterface} from "../interfaces/command.interface";
 import {ConsoleManager} from "../managers/console.manager";
-import {ExitCodeEnum} from "../enums/exit-code.enum";
 import {CliModuleKeyname} from "../cli.module.keyname";
 
 /**
@@ -34,7 +33,7 @@ export class HelpCommand implements CommandInterface<null> {
   ) {
   }
 
-  async run(args: any): Promise<ExitCodeEnum | number> {
+  async run(args: any): Promise<ExitCode | number> {
     // ── container.resolveAll, justified ─────────────────────────────────────────
     // Per CLAUDE.md: constructor-time `@injectAll(Command)` would create a self-
     // referential cycle since `HelpCommand` is itself a `Command`-tagged service.
@@ -65,6 +64,6 @@ export class HelpCommand implements CommandInterface<null> {
     this.consoleManager.writeLine("  3. Make sure your AppModule's import graph reaches the file");
     this.consoleManager.writeLine("  4. Invoke as: pristine <your-command-name>");
 
-    return ExitCodeEnum.Success;
+    return ExitCode.Success;
   }
 }

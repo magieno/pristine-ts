@@ -1,4 +1,4 @@
-import {PristineError} from "@pristine-ts/common";
+import {PristineError, PristineErrorKind} from "@pristine-ts/common";
 import {EmailModel} from "../models/email.model";
 
 /**
@@ -16,7 +16,7 @@ export class SesSendError extends PristineError {
   ) {
     super("There was an error sending an email to SES", {
       code: "SES_SEND_FAILED",
-      expected: false,
+      kind: PristineErrorKind.SystemError,
       cause: originalError,
       details: {email},
     });

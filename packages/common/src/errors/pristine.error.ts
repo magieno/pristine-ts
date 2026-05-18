@@ -1,15 +1,24 @@
+import {ExitCode} from "./exit-code.enum";
+import {PristineErrorCode} from "./pristine-error-code.enum";
+import {PristineErrorKind} from "./pristine-error-kind.enum";
+
 /**
  * Options carried by every `PristineError`. All fields optional — defaults give a sensible
- * "expected user-facing error with 500 / exit 1" shape when none are set.
+ * "user error with 500 / exit 1" shape when none are set.
  */
 export interface PristineErrorOptions {
   /**
-   * Stable slug for the error category, e.g. `"AUTH_TOKEN_INVALID"`, `"RESOURCE_NOT_FOUND"`.
-   * Surfaces in HTTP response bodies and CLI stderr; safe to use as the join key for i18n,
-   * log queries, and alerting rules. Defaults to `"INTERNAL_ERROR"` at render time when
-   * absent.
+   * Stable slug for the error category. Surfaces in HTTP response bodies and CLI stderr;
+   * safe to use as the join key for i18n, log queries, and alerting rules.
+   *
+   * Accepts the framework's `PristineErrorCode` enum for standard categories, or any
+   * `SCREAMING_SNAKE_CASE` string for domain-specific codes (`"TOKEN_EXPIRED"`,
+   * `"STRIPE_CARD_DECLINED"`). The enum is the catalog of well-known codes; strings are
+   * the extensibility hatch.
+   *
+   * Defaults to `PristineErrorCode.InternalError` at render time when absent.
    */
-  code?: string;
+  code?: PristineErrorCode | string;
 
   /**
    * HTTP status when this error reaches the HTTP boundary. Omit when the error has no
@@ -19,10 +28,12 @@ export interface PristineErrorOptions {
   httpStatus?: number;
 
   /**
-   * Process exit code when this error reaches the CLI boundary. Omit to fall back to
-   * `1` for expected errors and `70` (`EX_SOFTWARE`) for unexpected ones.
+   * Process exit code when this error reaches the CLI boundary. Accepts the framework's
+   * `ExitCode` enum (sysexits.h-aligned) or any raw number for custom codes. Omit to fall
+   * back to `ExitCode.Error` (1) for user errors and `ExitCode.Software` (70) for system
+   * errors.
    */
-  exitCode?: number;
+  exitCode?: ExitCode | number;
 
   /**
    * Underlying error this one wraps. Uses the standard `Error.cause` slot (Node 16.9+),
@@ -34,22 +45,23 @@ export interface PristineErrorOptions {
   /**
    * Structured fields safe to surface in the response body / stderr. Per-error-class
    * schema — e.g. a `NotFoundError` may carry `{ resource, id }`. Surfaced to users
-   * only when `expected` is true (default) or `mode` is development.
+   * only when `kind === UserError` (the default) or `mode === development`.
    */
   details?: Record<string, unknown>;
 
   /**
-   * `true` (default): caller-induced, safe to surface verbatim. Production responses
-   * include the message and details; CLI prints the message and exits with `exitCode`.
+   * Categorizes the error by who caused it. Drives how the message is rendered in
+   * production mode:
    *
-   * `false`: framework/system bug. Production responses replace the message with a
-   * generic "Internal Server Error" / "Internal Error" and omit details + stack. The
-   * raw error is still logged via the normal LogHandler path for operators.
+   * - `UserError` (default): caller did something wrong. Message surfaced verbatim;
+   *   details exposed; production responses include both.
    *
-   * Raw `new Error("oops")` values get `expected: false` when run through
-   * `PristineError.from`, so "unknown error" defaults to the safe rendering.
+   * - `SystemError`: framework/system bug, not the caller's fault. Production responses
+   *   replace the message with a generic "Internal Server Error" / "Internal Error" and
+   *   omit details + stack. The raw error is still logged via the LogHandler for
+   *   operators. `PristineError.from` marks unknown throws as `SystemError`.
    */
-  expected?: boolean;
+  kind?: PristineErrorKind;
 }
 
 /**
@@ -58,30 +70,37 @@ export interface PristineErrorOptions {
  *
  * **What it gives you**:
  * - A structured `options` bag (`code`, `httpStatus`, `exitCode`, `details`, `cause`,
- *   `expected`) read by both the HTTP and CLI channel reporters.
+ *   `kind`) read by both the HTTP and CLI channel reporters.
  * - Automatic `error.name = ClassName` for subclasses.
  * - Automatic prototype-chain fix via `new.target.prototype` — subclasses never need to
- *   repeat the `Object.setPrototypeOf(this, FooError.prototype)` incantation.
+ *   repeat the `Object.setPrototypeOf(this, FooError.prototype)` incantation, AND
+ *   `instanceof` works correctly for direct/standard-library/custom subclasses at any
+ *   depth (verified by spec).
  * - Standard `Error.cause` propagation (Node 16.9+ native).
  *
  * **Subclass form** when a named class makes `instanceof` checks read better:
  *
  * ```ts
- * export class TokenExpiredError extends PristineError {
+ * export class TokenExpiredError extends UnauthorizedError {
  *   constructor(tokenId: string) {
  *     super("The token has expired", {
- *       code: "TOKEN_EXPIRED", httpStatus: 401, exitCode: 1,
+ *       code: "TOKEN_EXPIRED",
  *       details: { tokenId },
  *     });
  *   }
  * }
+ * // ...
+ * try { ... }
+ * catch (e) { if (e instanceof TokenExpiredError) ... }   // works.
  * ```
  *
  * **Direct form** when the call site self-documents:
  *
  * ```ts
  * throw new PristineError(`User '${id}' not found`, {
- *   code: "NOT_FOUND", httpStatus: 404, details: { resource: "User", id },
+ *   code: PristineErrorCode.NotFound,
+ *   httpStatus: 404,
+ *   details: { resource: "User", id },
  * });
  * ```
  *
@@ -93,7 +112,10 @@ export interface PristineErrorOptions {
  * try { await dispatcher.dispatch(event); }
  * catch (cause) {
  *   throw new PristineError("Event dispatch failed", {
- *     code: "EVENT_DISPATCH_FAILED", cause, details: { eventId: event.id },
+ *     code: "EVENT_DISPATCH_FAILED",
+ *     kind: PristineErrorKind.SystemError,
+ *     cause,
+ *     details: { eventId: event.id },
  *   });
  * }
  * ```
@@ -109,14 +131,14 @@ export class PristineError extends Error {
 
     // `new.target` is the actual class being constructed (subclass or PristineError
     // itself). Using it for both `name` and `setPrototypeOf` means subclasses never need
-    // to repeat the boilerplate.
+    // to repeat the boilerplate, and `instanceof` works correctly at every depth.
     this.name = new.target.name;
     Object.setPrototypeOf(this, new.target.prototype);
 
-    // `expected: true` is the default — most thrown errors in framework code are
-    // user-facing. Unexpected ones (raw `Error`s, third-party throws) get `expected: false`
-    // explicitly via `PristineError.from`.
-    this.options = { expected: true, ...options };
+    // `kind: UserError` is the default — most thrown errors are caller-induced. System
+    // errors get marked explicitly via `kind: PristineErrorKind.SystemError` (or by
+    // `PristineError.from` for unknown throws).
+    this.options = { kind: PristineErrorKind.UserError, ...options };
   }
 
   /**
@@ -125,11 +147,11 @@ export class PristineError extends Error {
    * unknown shapes.
    *
    * - `PristineError` instances pass through unchanged.
-   * - `Error` instances are wrapped with `expected: false` and propagated as `cause` —
+   * - `Error` instances are wrapped with `kind: SystemError` and propagated as `cause` —
    *   the wrapper preserves the original message and stack for `mode === Development`
    *   rendering.
    * - Anything else (strings, numbers, `throw {someObject}`) is coerced via `String(...)`
-   *   into a message with `expected: false`.
+   *   into a message with `kind: SystemError`.
    *
    * The standard `Error.cause` chain is preserved: if the input has a `cause`, it stays
    * on the wrapper (which itself has the input as its cause), so a debugger walking
@@ -142,11 +164,11 @@ export class PristineError extends Error {
     if (error instanceof Error) {
       return new PristineError(error.message, {
         cause: error,
-        expected: false,
+        kind: PristineErrorKind.SystemError,
       });
     }
     return new PristineError(String(error), {
-      expected: false,
+      kind: PristineErrorKind.SystemError,
     });
   }
 }

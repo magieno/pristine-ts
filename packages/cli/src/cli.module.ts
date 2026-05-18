@@ -8,7 +8,6 @@ import {DataMappingModule} from "@pristine-ts/data-mapping"
 export * from "./bootstrap/bootstrap";
 export * from "./commands/commands";
 export * from "./config/config";
-export * from "./enums/enums";
 export * from "./errors/errors";
 export * from "./event-handlers/event-handlers";
 export * from "./event-payloads/event-payloads";

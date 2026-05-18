@@ -1,7 +1,6 @@
-import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {moduleScoped, ServiceDefinitionTagEnum, tag, ExitCode} from "@pristine-ts/common";
 import {injectable} from "tsyringe";
 import {CommandInterface} from "../interfaces/command.interface";
-import {ExitCodeEnum} from "../enums/exit-code.enum";
 import {CliModuleKeyname} from "../cli.module.keyname";
 import {StartCommand} from "./start.command";
 import {StartCommandOptions} from "./start.command-options";
@@ -21,7 +20,7 @@ export class StartAliasCommand implements CommandInterface<StartCommandOptions> 
   constructor(private readonly delegate: StartCommand) {
   }
 
-  async run(args: StartCommandOptions): Promise<ExitCodeEnum | number> {
+  async run(args: StartCommandOptions): Promise<ExitCode | number> {
     return this.delegate.run(args);
   }
 }

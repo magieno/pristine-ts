@@ -1,8 +1,7 @@
 import "reflect-metadata";
 import {IsNumber, IsOptional, IsString, Validator} from "@pristine-ts/class-validator";
-import {PristineError, UsageError, ValidationError} from "@pristine-ts/common";
+import {PristineError, UsageError, ValidationError, ExitCode} from "@pristine-ts/common";
 import {CommandInterface} from "../interfaces/command.interface";
-import {ExitCodeEnum} from "../enums/exit-code.enum";
 import {CliEventHandler} from "./cli.event-handler";
 
 /**
@@ -64,7 +63,7 @@ const buildHandler = (): {handler: CliEventHandler; console: CapturingConsole} =
 const fixtureCommand = (overrides: Partial<CommandInterface<FixtureOptions>> = {}): CommandInterface<FixtureOptions> => ({
   name: "fixture",
   optionsType: FixtureOptions,
-  run: async () => ExitCodeEnum.Success,
+  run: async () => ExitCode.Success,
   ...overrides,
 });
 
@@ -75,7 +74,7 @@ describe("CliEventHandler.resolveArgs", () => {
       const command: CommandInterface<any> = {
         name: "legacy",
         optionsType: null,
-        run: async () => ExitCodeEnum.Success,
+        run: async () => ExitCode.Success,
       };
 
       const args = await handler.resolveArgs(command, {anything: 123, other: "string"});
@@ -88,7 +87,7 @@ describe("CliEventHandler.resolveArgs", () => {
       const command: CommandInterface<any> = {
         name: "legacy",
         optionsType: null,
-        run: async () => ExitCodeEnum.Success,
+        run: async () => ExitCode.Success,
       };
 
       const args = await handler.resolveArgs(command, {});
