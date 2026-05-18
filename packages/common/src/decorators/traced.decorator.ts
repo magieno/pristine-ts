@@ -31,6 +31,11 @@ import {spanRunner} from "../utils/span-runner";
  * static types are unchanged. Pair with explicit `: Promise<T>` annotations on the
  * method when you want the static type to match what's actually returned.
  *
+ * **Lives in `@pristine-ts/common`** so any package can use it without taking a direct
+ * dep on `@pristine-ts/telemetry`. The actual `TracingManager` implementation still
+ * lives in telemetry; this decorator only reads the active manager from the
+ * EventContext when one is present.
+ *
  * @param spanName Optional explicit name for the span. Defaults to
  *   `${ClassName}.${methodName}`.
  */

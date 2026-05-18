@@ -1,4 +1,4 @@
-import {moduleScoped, Request, Response, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {moduleScoped, Request, Response, ServiceDefinitionTagEnum, tag, traced} from "@pristine-ts/common";
 import {NetworkingModuleKeyname} from "../networking.module.keyname";
 import {MethodRouterNode} from "../nodes/method-router.node";
 import {RequestInterceptorInterface} from "../interfaces/request-interceptor.interface";
@@ -20,6 +20,7 @@ export class ResponseHeadersInterceptor implements RequestInterceptorInterface {
    * @param request The request that triggered this response.
    * @param methodNode The methode node.
    */
+  @traced()
   async interceptResponse(response: Response, request: Request, methodNode?: MethodRouterNode): Promise<Response> {
     if (methodNode && methodNode.route.context && methodNode.route.context.hasOwnProperty(responseHeaderMetadataKeyname)) {
       response.setHeaders({...response.headers, ...methodNode.route.context[responseHeaderMetadataKeyname]});

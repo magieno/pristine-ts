@@ -6,15 +6,15 @@ import {LogModel} from "../models/log.model";
 import {LoggerInterface} from "../interfaces/logger.interface";
 import {EventContextManager, injectConfig, InternalContainerParameterEnum, moduleScoped, ServiceDefinitionTagEnum, tag, TracingContext} from "@pristine-ts/common";
 import {LogHandlerInterface} from "../interfaces/log-handler.interface";
-import {BreadcrumbHandlerInterface} from "../interfaces/breadcrumb-handler.interface";
 import {Utils} from "../utils/utils";
 import {LoggingModuleKeyname} from "../logging.module";
 import {LogData} from "../types/log-data.type";
 
 /**
- * The LogHandler to use when we want to output some logs.
- * This handler makes sure that only the right level of logs are outputted, stacks logs, and logs with different loggers.
- * It is registered with the tag LogHandlerInterface so that it can be injected as a LogHandlerInterface to facilitate mocking.
+ * The LogHandler emits structured log entries through every registered `LoggerInterface`.
+ * Logs carry their own content (message, severity, eventId, traceId, extra, highlights) —
+ * nothing more. "What happened around this log" lives in the trace, not the log: use the
+ * registered tracers (ConsoleTracer, FileTracer, X-Ray, etc.) to render the span tree.
  */
 @moduleScoped(LoggingModuleKeyname)
 @tag("LogHandlerInterface")
@@ -28,14 +28,12 @@ export class LogHandler implements LogHandlerInterface {
    * @param logSeverityLevelConfiguration The severity from which to start logging the logs.
    * @param activateDiagnostics Whether or not the outputted logs should contain the diagnostic part. This is an intensive process and can dramatically reduce the performance of the code.
    * @param kernelInstantiationId The id of instantiation of the kernel.
-   * @param breadcrumbHandler The Breadcrumb handler to get all the latest breadcrumbs.
    * @param tracingContext The context of the tracing.
    */
   public constructor(@injectAll(ServiceDefinitionTagEnum.Logger) private readonly loggers: LoggerInterface[],
                      @injectConfig(LoggingConfigurationKeys.LogSeverityLevelConfiguration) private readonly logSeverityLevelConfiguration: number,
                      @injectConfig(LoggingConfigurationKeys.ActivateDiagnostics) private readonly activateDiagnostics: boolean,
                      @inject(InternalContainerParameterEnum.KernelInstantiationId) private readonly kernelInstantiationId: string,
-                     @inject("BreadcrumbHandlerInterface") private readonly breadcrumbHandler: BreadcrumbHandlerInterface,
                      private readonly tracingContext: TracingContext) {
   }
 
@@ -142,14 +140,6 @@ export class LogHandler implements LogHandlerInterface {
         log.eventId = resolvedEventId;
       }
 
-      if (data.breadcrumb) {
-        this.breadcrumbHandler.add(resolvedEventId, data.breadcrumb);
-      }
-
-      if (resolvedEventId) {
-        log.breadcrumbs = this.breadcrumbHandler.breadcrumbs[resolvedEventId];
-      }
-
       if (data.outputHints) {
         log.outputHints = data.outputHints;
       }
@@ -158,14 +148,10 @@ export class LogHandler implements LogHandlerInterface {
         log.eventGroupId = data.eventGroupId;
       }
     } else {
-      // No `data` arg at all — still try to attach the eventId from the active context
-      // so a bare `logHandler.info("...")` from within a request gets correlated.
+      // No `data` arg at all — still attach the eventId from the active context so a
+      // bare `logHandler.info("...")` from within a request gets correlated.
       log.eventId = resolvedEventId;
-      if (resolvedEventId) {
-        log.breadcrumbs = this.breadcrumbHandler.breadcrumbs[resolvedEventId];
-      }
     }
-
 
     // If the activateDiagnostics configuration is set to true, we will include additional information into a __diagnostics path into extra.
     // This is an intensive process so be careful, it will dramatically slow down your calls.

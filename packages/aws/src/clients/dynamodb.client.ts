@@ -16,7 +16,7 @@ import {DynamodbTableNotFoundError} from "../errors/dynamodb-table-not-found.err
 import {DynamodbValidationError} from "../errors/dynamodb-validation.error";
 import {DynamodbError} from "../errors/dynamodb.error";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import {injectConfig, tag} from "@pristine-ts/common";
+import {injectConfig, tag, traced} from "@pristine-ts/common";
 import {DynamodbClientInterface} from "../interfaces/dynamodb-client.interface";
 import {ListOptions} from "../options/list.options";
 import {FindBySecondaryIndexOptions} from "../options/find-by-secondary-index.options";
@@ -57,6 +57,7 @@ export class DynamodbClient implements DynamodbClientInterface {
   /**
    * Returns the DynamoDB client from the @aws-sdk/client-dynamodb library
    */
+  @traced()
   public async getClient(): Promise<DynamoDB> {
     return this.client = this.client ?? new DynamoDB({region: this.region});
   }
@@ -64,6 +65,7 @@ export class DynamodbClient implements DynamodbClientInterface {
   /**
    * Returns the mapper client from the @awslabs-community-fork/dynamodb-data-mapper library
    */
+  @traced()
   public async getMapperClient(): Promise<DataMapper> {
     return this.mapperClient = this.mapperClient ?? new DataMapper({client: await this.getClient()});
   }
@@ -74,6 +76,7 @@ export class DynamodbClient implements DynamodbClientInterface {
    * @param primaryKeyAndValue An object containing the primary key and the value of the object to get. (ie: {id: value})
    * @param additionalOptions
    */
+  @traced()
   public async get<T extends StringToAnyObjectMap>(classType: ZeroArgumentsConstructor<T>, primaryKeyAndValue: {
     [key: string]: string
   }, additionalOptions?: { eventId?: string, eventGroupId?: string }): Promise<T | null> {
@@ -122,6 +125,7 @@ export class DynamodbClient implements DynamodbClientInterface {
    * @param options The options to use to list.
    * @param additionalOptions
    */
+  @traced()
   public async list<T extends StringToAnyObjectMap>(options: ListOptions<T>, additionalOptions?: {
     eventId?: string,
     eventGroupId?: string
@@ -180,6 +184,7 @@ export class DynamodbClient implements DynamodbClientInterface {
    * @param item The item to create.
    * @param additionalOptions
    */
+  @traced()
   public async create<T extends StringToAnyObjectMap>(item: T, additionalOptions?: {
     eventId?: string,
     eventGroupId?: string
@@ -228,6 +233,7 @@ export class DynamodbClient implements DynamodbClientInterface {
    * @param item The item to update.
    * @param additionalOptions
    */
+  @traced()
   public async update<T extends StringToAnyObjectMap>(item: T, additionalOptions?: {
     eventId?: string,
     eventGroupId?: string
@@ -267,6 +273,7 @@ export class DynamodbClient implements DynamodbClientInterface {
    * @param item The item.
    * @param additionalOptions
    */
+  @traced()
   public async put<T extends StringToAnyObjectMap>(item: T, additionalOptions?: {
     eventId?: string,
     eventGroupId?: string
@@ -306,6 +313,7 @@ export class DynamodbClient implements DynamodbClientInterface {
    * @param primaryKeyAndValue An object containing the primary key and the value of this key of the object to delete. (ie: {id: value})
    * @param additionalOptions
    */
+  @traced()
   public async delete<T extends StringToAnyObjectMap>(classType: ZeroArgumentsConstructor<T>, primaryKeyAndValue: {
     [key: string]: string
   }, additionalOptions?: { eventId?: string, eventGroupId?: string }): Promise<void> {
@@ -342,6 +350,7 @@ export class DynamodbClient implements DynamodbClientInterface {
    * @param options The options to use.
    * @param additionalOptions
    */
+  @traced()
   public async findBySecondaryIndex<T extends StringToAnyObjectMap>(options: FindBySecondaryIndexOptions<T>, additionalOptions?: {
     eventId?: string,
     eventGroupId?: string

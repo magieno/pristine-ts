@@ -1,7 +1,7 @@
 import {inject, injectable} from "tsyringe";
 import {AwsConfigurationKeys} from "../aws.configuration-keys";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import {injectConfig, moduleScoped, tag} from "@pristine-ts/common";
+import {injectConfig, moduleScoped, tag, traced} from "@pristine-ts/common";
 import {AwsModuleKeyname} from "../aws.module.keyname";
 import {S3ClientInterface} from "../interfaces/s3-client.interface";
 import {
@@ -72,6 +72,7 @@ export class S3Client implements S3ClientInterface {
    * @param key The key of the object.
    * @param options
    */
+  @traced()
   async get(bucketName: string, key: string, options?: Partial<ClientOptionsInterface>): Promise<GetObjectCommandOutput> {
     this.logHandler.debug("S3Client: Getting item from S3.", {extra: {bucketName, key}});
     const command = new GetObjectCommand({
@@ -92,6 +93,7 @@ export class S3Client implements S3ClientInterface {
    * @param key The key of the object.
    * @param options
    */
+  @traced()
   async getObjectBodyAsArrayBuffer(bucketName: string, key: string, options?: Partial<ClientOptionsInterface>): Promise<ArrayBuffer> {
     try {
       const object = await this.get(bucketName, key, options);
@@ -107,6 +109,7 @@ export class S3Client implements S3ClientInterface {
    * @param bucketName The name of the bucket.
    * @param options
    */
+  @traced()
   async listKeys(bucketName: string, options?: Partial<ClientOptionsInterface>): Promise<string[]> {
     this.logHandler.debug("S3Client: Listing bucket keys.", {extra: {bucketName}});
     const objects = await this.listObjects(bucketName, options)
@@ -118,6 +121,7 @@ export class S3Client implements S3ClientInterface {
    * @param bucketName The name of the bucket.
    * @param options
    */
+  @traced()
   async listObjects(bucketName: string, options?: Partial<ClientOptionsInterface>): Promise<any[]> {
     this.logHandler.debug("S3Client: Listing bucket objects.", {extra: {bucketName}});
     const command = new ListObjectsCommand({
@@ -137,6 +141,7 @@ export class S3Client implements S3ClientInterface {
    * Lists the buckets.
    * @param options
    */
+  @traced()
   async listBuckets(options?: Partial<ClientOptionsInterface>): Promise<Bucket[]> {
     this.logHandler.debug("S3Client: Listing buckets.");
     const command = new ListBucketsCommand({});
@@ -154,6 +159,7 @@ export class S3Client implements S3ClientInterface {
    * @param bucketName The name of the bucket.
    * @param options
    */
+  @traced()
   async createBucket(bucketName: string, options?: Partial<ClientOptionsInterface>): Promise<void> {
     this.logHandler.debug("S3Client: Creating bucket.", {extra: {bucketName}});
     const command = new CreateBucketCommand({
@@ -172,6 +178,7 @@ export class S3Client implements S3ClientInterface {
    * @param bucketName The name of the bucket.
    * @param options
    */
+  @traced()
   async deleteBucket(bucketName: string, options?: Partial<ClientOptionsInterface>): Promise<void> {
     this.logHandler.debug("S3Client: Deleting bucket.", {extra: {bucketName}});
     const command = new DeleteBucketCommand({
@@ -191,6 +198,7 @@ export class S3Client implements S3ClientInterface {
    * @param key The key of the object.
    * @param options
    */
+  @traced()
   async deleteObject(bucketName: string, key: string, options?: Partial<ClientOptionsInterface>): Promise<void> {
     this.logHandler.debug("S3Client: Deleting object from S3.", {extra: {bucketName, key}});
     const command = new DeleteObjectCommand({
@@ -211,6 +219,7 @@ export class S3Client implements S3ClientInterface {
    * @param key The key of the object.
    * @param options
    */
+  @traced()
   async download(bucketName: string, key: string, options?: Partial<ClientOptionsInterface>): Promise<Readable | ReadableStream | Blob> {
     this.logHandler.debug("S3Client: Downloading object from S3.", {extra: {bucketName, key}});
     try {
@@ -230,6 +239,7 @@ export class S3Client implements S3ClientInterface {
    * @param maxKeys The maximum number of keys to return.
    * @param options
    */
+  @traced()
   async listDirectory(bucketName: string, prefix?: string, continuationToken?: string, maxKeys?: number, options?: Partial<ClientOptionsInterface>): Promise<ListObjectsV2CommandOutput> {
     this.logHandler.debug("S3Client: Listing directory in S3.", {
       extra: {
@@ -263,6 +273,7 @@ export class S3Client implements S3ClientInterface {
    * @param contentType The content type of the data to upload.
    * @param options
    */
+  @traced()
   async upload(bucketName: string, key: string, data: any, contentEncoding?: string, contentType?: string, options?: Partial<ClientOptionsInterface>): Promise<void> {
     this.logHandler.debug("S3Client: Uploading object to S3.", {
       extra: {
@@ -297,6 +308,7 @@ export class S3Client implements S3ClientInterface {
    * @param fileName If operation is Get, then a filename can be provided for the name of the file that will be downloaded.
    * @param expiresIn The amount on time in seconds before the pre signed url expires.
    */
+  @traced()
   async createSignedUrl(bucketName: string, key: string, operation: S3PresignedOperationTypeEnum, fileName?: string, expiresIn: number = 300): Promise<string> {
     this.logHandler.debug("S3Client: Creating pre-signed url.", {
       extra: {

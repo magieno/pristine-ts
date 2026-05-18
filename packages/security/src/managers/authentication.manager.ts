@@ -1,9 +1,9 @@
 import {DependencyContainer, inject, injectable, injectAll} from "tsyringe";
 import {AuthenticationManagerInterface} from "../interfaces/authentication-manager.interface";
-import {IdentityInterface, moduleScoped, Request, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {IdentityInterface, moduleScoped, Request, ServiceDefinitionTagEnum, tag, traced} from "@pristine-ts/common";
 import {AuthenticatorInterface} from "../interfaces/authenticator.interface";
 import {AuthenticatorContextInterface} from "../interfaces/authenticator-context.interface";
-import {BreadcrumbHandlerInterface, LogHandlerInterface} from "@pristine-ts/logging";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 import {AuthenticatorFactory} from "../factories/authenticator.factory";
 import {SecurityModuleKeyname} from "../security.module.keyname";
 import {IdentityProviderInterface} from "../interfaces/identity-provider.interface";
@@ -27,8 +27,7 @@ export class AuthenticationManager implements AuthenticationManagerInterface {
   public constructor(
     @injectAll(ServiceDefinitionTagEnum.IdentityProvider, {isOptional: true}) private readonly identityProviders: IdentityProviderInterface[],
     @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-    private readonly authenticatorFactory: AuthenticatorFactory,
-    @inject("BreadcrumbHandlerInterface") private readonly breadcrumbHandler: BreadcrumbHandlerInterface) {
+    private readonly authenticatorFactory: AuthenticatorFactory) {
   }
 
   /**
@@ -37,11 +36,8 @@ export class AuthenticationManager implements AuthenticationManagerInterface {
    * @param routeContext The context associated with the route.
    * @param container The dependency container from which to resolve the authenticator.
    */
+  @traced()
   public async authenticate(request: Request, routeContext: any, container: DependencyContainer): Promise<IdentityInterface | undefined> {
-    this.breadcrumbHandler.add(request.id, `${SecurityModuleKeyname}:authentication.manager:authenticate:enter`, {
-      request,
-      routeContext
-    });
     if (!routeContext || routeContext[authenticatorMetadataKeyname] === undefined) {
       return undefined;
     }
@@ -79,7 +75,6 @@ export class AuthenticationManager implements AuthenticationManagerInterface {
       highlights: {
         identity,
       },
-      breadcrumb: `${SecurityModuleKeyname}:authentication.manager:authenticate:return`,
       extra: {
         request,
         routeContext,

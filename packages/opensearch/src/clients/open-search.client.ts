@@ -1,6 +1,7 @@
 import {Query} from "../models/query.model";
 import {inject, injectable} from "tsyringe";
 import {LogHandlerInterface} from "@pristine-ts/logging";
+import {traced} from "@pristine-ts/common";
 import {SearchResult} from "../models/search-result.model";
 import {AwsModuleKeyname} from "@pristine-ts/aws";
 import {OpenSearchModuleKeyname} from "../open-search.module.keyname";
@@ -33,6 +34,7 @@ export class OpenSearchClient {
     });
   }
 
+  @traced()
   async parseResponse<T>(response: ApiResponse, currentPage?: number, maximumNumberOfResultsPerPage?: number): Promise<SearchResult<T>> {
     const searchResult = new SearchResult<T>();
     searchResult.currentPage = currentPage ?? searchResult.currentPage;
@@ -72,6 +74,7 @@ export class OpenSearchClient {
     return searchResult;
   }
 
+  @traced()
   async search<T>(indexName: string, query: Query): Promise<SearchResult<T>> {
     try {
       const client = this.getClient();
@@ -173,6 +176,7 @@ export class OpenSearchClient {
 
   }
 
+  @traced()
   async createIndex(name: string): Promise<void> {
     const response = await this.getClient().indices.create({
       index: name,
@@ -182,6 +186,7 @@ export class OpenSearchClient {
   }
 
 
+  @traced()
   async deleteIndex(name: string): Promise<void> {
     const response = await this.getClient().indices.delete({
       index: name,
@@ -190,6 +195,7 @@ export class OpenSearchClient {
     this.logHandler.debug("OpenSearchClient: Index deletion response.", {extra: {name, response}})
   }
 
+  @traced()
   async createDocument(indexName: string, id: string, document: any): Promise<void> {
     const response = this.getClient().create({
       index: indexName,
@@ -200,6 +206,7 @@ export class OpenSearchClient {
     this.logHandler.debug("OpenSearchClient: Create document response.", {extra: {indexName, id, document, response}})
   }
 
+  @traced()
   async indexDocument(indexName: string, id: string, document: any): Promise<void> {
     const response = await this.getClient().index({
       index: indexName,
@@ -210,6 +217,7 @@ export class OpenSearchClient {
     this.logHandler.debug("OpenSearchClient: Index document response.", {extra: {indexName, id, document, response}})
   }
 
+  @traced()
   async updateDocument(indexName: string, id: string, document: any): Promise<void> {
     const response = await this.getClient().update({
       index: indexName,
@@ -220,6 +228,7 @@ export class OpenSearchClient {
     this.logHandler.debug("OpenSearchClient: Update document response.", {extra: {indexName, id, document, response}})
   }
 
+  @traced()
   async deleteDocument(indexName: string, id: string): Promise<void> {
     const response = await this.getClient().delete({
       index: indexName,

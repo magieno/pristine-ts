@@ -6,7 +6,7 @@ import {URL} from 'url';
 import {ResponseTypeEnum} from "../enums/response-type.enum";
 import {HttpRequestOptions} from "../options/http-request.options.";
 import {assign} from "lodash";
-import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {ServiceDefinitionTagEnum, tag, traced} from "@pristine-ts/common";
 import {HttpRequestInterceptorInterface} from "../interfaces/http-request-interceptor.interface";
 import {HttpResponseInterceptorInterface} from "../interfaces/http-response-interceptor.interface";
 import {MathUtils} from "../utils/math.utils";
@@ -51,6 +51,7 @@ export class HttpClient implements HttpClientInterface {
    * @param request
    * @param options
    */
+  @traced("http.client.request")
   async request(request: HttpRequestInterface, options?: HttpRequestOptions): Promise<HttpResponseInterface> {
     const requestOptions: HttpRequestOptions = assign({}, this.defaultOptions, options);
 

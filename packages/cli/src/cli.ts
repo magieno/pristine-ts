@@ -97,6 +97,11 @@ const buildAppModuleLoader = (): AppModuleLoader => {
 const warnOnCommandCollisions = (kernel: Kernel): void => {
   let commands: CommandInterface<any>[];
   try {
+    // ── container.resolveAll, justified ───────────────────────────────────────
+    // Per CLAUDE.md: framework bootstrap. This runs from the bin's `bootstrap()`
+    // function — a top-level script with no class to constructor-inject into. The
+    // whole point is to enumerate every registered Command for collision detection,
+    // which is inherently a container-introspection operation.
     commands = kernel.container.resolveAll<CommandInterface<any>>(ServiceDefinitionTagEnum.Command);
   } catch {
     return;

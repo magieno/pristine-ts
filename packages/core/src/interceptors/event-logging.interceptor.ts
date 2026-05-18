@@ -1,5 +1,5 @@
 import {EventInterceptorInterface} from "../interfaces/event-interceptor.interface";
-import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {moduleScoped, ServiceDefinitionTagEnum, tag, traced} from "@pristine-ts/common";
 import {inject, injectable} from "tsyringe";
 import {CoreModuleKeyname} from "../core.module.keyname";
 import {LogHandlerInterface} from "@pristine-ts/logging";
@@ -18,6 +18,7 @@ export class EventLoggingInterceptor implements EventInterceptorInterface {
   constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface) {
   }
 
+  @traced()
   preMappingIntercept(event: object, executionContextInterface: ExecutionContextInterface<any>): Promise<object> {
     this.logHandler.debug("EventLoggingInterceptor: Event just before the EventMapping into an Event object.", {
       extra: {
@@ -29,6 +30,7 @@ export class EventLoggingInterceptor implements EventInterceptorInterface {
     return Promise.resolve(event);
   }
 
+  @traced()
   postMappingIntercept(event: Event<any>): Promise<Event<any>> {
     this.logHandler.debug("EventLoggingInterceptor: Event just after being mapped into an Event object.", {
       extra: {
@@ -39,6 +41,7 @@ export class EventLoggingInterceptor implements EventInterceptorInterface {
     return Promise.resolve(event);
   }
 
+  @traced()
   preResponseMappingIntercept(eventResponse: EventResponse<any, any>): Promise<EventResponse<any, any>> {
     this.logHandler.debug("EventLoggingInterceptor: Event response just after being dispatched to the Event Listeners.", {
       extra: {
@@ -49,6 +52,7 @@ export class EventLoggingInterceptor implements EventInterceptorInterface {
     return Promise.resolve(eventResponse);
   }
 
+  @traced()
   postResponseMappingIntercept(eventResponse: object): Promise<object> {
     this.logHandler.debug("EventLoggingInterceptor: Final event response that will be returned.", {
       extra: {

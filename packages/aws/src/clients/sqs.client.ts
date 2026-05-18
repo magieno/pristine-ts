@@ -4,7 +4,7 @@ import {LogHandlerInterface} from "@pristine-ts/logging";
 import {MessageAttributeValue, SendMessageCommand, SQSClient, SQSClientConfig} from "@aws-sdk/client-sqs";
 import {SqsMessageSentConfirmationModel} from "../models/sqs-message-sent-confirmation.model";
 import {SqsSendMessageError} from "../errors/sqs-send-message.error";
-import {injectConfig, moduleScoped, tag} from "@pristine-ts/common";
+import {injectConfig, moduleScoped, tag, traced} from "@pristine-ts/common";
 import {AwsModuleKeyname} from "../aws.module.keyname";
 import {SqsClientInterface} from "../interfaces/sqs-client.interface";
 import {SqsClientOptions} from "../options/sqs-client.options";
@@ -46,6 +46,7 @@ export class SqsClient implements SqsClientInterface {
    * @param body The body of the message to send in the queue.
    * @param options The options to customize the request.
    */
+  @traced()
   async send(queueUrl: string, body: string, options?: SqsClientOptions): Promise<SqsMessageSentConfirmationModel> {
     try {
       const client = this.getClient(options?.clientConfigs);

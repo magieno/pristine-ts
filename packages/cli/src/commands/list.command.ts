@@ -26,6 +26,13 @@ export class ListCommand implements CommandInterface<null> {
 
   async run(args: any): Promise<ExitCodeEnum | number> {
     this.consoleManager.writeLine("List of registered commands:");
+    // ── container.resolveAll, justified ─────────────────────────────────────────
+    // Per CLAUDE.md: constructor-time `@injectAll(Command)` would create a self-
+    // referential cycle since `ListCommand` is itself a `Command`-tagged service.
+    // The lazy resolve breaks the cycle. The child container is constructor-
+    // injected (not reached through `container.resolve("..Container")`), so the
+    // container itself is still acquired via proper DI — only the enumeration is
+    // late-bound.
     const commands: CommandInterface<any>[] = this.container.resolveAll(ServiceDefinitionTagEnum.Command);
     commands.forEach(command => this.consoleManager.writeLine(command.name));
 

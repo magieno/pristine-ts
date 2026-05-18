@@ -1,4 +1,4 @@
-import {moduleScoped, Request, Response, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {moduleScoped, Request, Response, ServiceDefinitionTagEnum, tag, traced} from "@pristine-ts/common";
 import {NetworkingModuleKeyname} from "../networking.module.keyname";
 import {MethodRouterNode} from "../nodes/method-router.node";
 import {RequestInterceptorInterface} from "../interfaces/request-interceptor.interface";
@@ -35,6 +35,7 @@ export class DefaultContentTypeResponseHeaderInterceptor implements RequestInter
    * @param request The request that triggered this response.
    * @param methodNode The methode node.
    */
+  @traced()
   async interceptResponse(response: Response, request: Request, methodNode?: MethodRouterNode): Promise<Response> {
     if (this.isActive === false) {
       return response;

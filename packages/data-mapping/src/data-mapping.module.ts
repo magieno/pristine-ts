@@ -45,6 +45,11 @@ export const DataMappingModule: ModuleInterface = {
     },
     {
       token: DataMapper,
+      // ── container.resolve / container.resolveAll, justified ───────────────────
+      // Per CLAUDE.md: a `useFactory` provider IS the framework's intended factory
+      // path. The factory receives the container as its only argument; resolving
+      // the DataMapper's dependencies through it is how DI factories work in
+      // tsyringe. There's no class to constructor-inject into.
       useFactory: (container: DependencyContainer) => {
         return new DataMapper(container.resolve(AutoDataMappingBuilder), container.resolveAll("DataNormalizerInterface"), container.resolveAll("DataMappingInterceptorInterface"));
       }

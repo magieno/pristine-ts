@@ -2,7 +2,6 @@ import "reflect-metadata";
 import {Readable} from "stream";
 import {LogHandler} from "./log.handler";
 import {LoggerInterface} from "../interfaces/logger.interface";
-import {BreadcrumbHandlerInterface} from "../interfaces/breadcrumb-handler.interface";
 import {EventContext, EventContextManager, TracingContext} from "@pristine-ts/common";
 
 /**
@@ -37,15 +36,10 @@ function buildCapturingStream(received: any[]): Readable {
 
 describe("LogHandler crash isolation", () => {
   let stderrSpy: jest.SpyInstance;
-  let breadcrumb: BreadcrumbHandlerInterface;
   let tracing: TracingContext;
 
   beforeEach(() => {
     stderrSpy = jest.spyOn(process.stderr, "write").mockImplementation(() => true);
-    breadcrumb = {
-      breadcrumbs: {},
-      add: jest.fn(),
-    } as unknown as BreadcrumbHandlerInterface;
     tracing = new TracingContext();
   });
 
@@ -65,7 +59,6 @@ describe("LogHandler crash isolation", () => {
       0,
       false,
       "kernel-id",
-      breadcrumb,
       tracing,
     );
 
@@ -91,7 +84,6 @@ describe("LogHandler crash isolation", () => {
       0,
       false,
       "kernel-id",
-      breadcrumb,
       tracing,
     );
 
@@ -119,7 +111,6 @@ describe("LogHandler crash isolation", () => {
       0,
       false,
       "kernel-id",
-      breadcrumb,
       tracing,
     );
 
@@ -129,21 +120,11 @@ describe("LogHandler crash isolation", () => {
 });
 
 describe("LogHandler eventId + traceId resolution", () => {
-  let breadcrumb: BreadcrumbHandlerInterface;
   let tracing: TracingContext;
 
   beforeEach(() => {
-    breadcrumb = {
-      breadcrumbs: {},
-      add: jest.fn(),
-    } as unknown as BreadcrumbHandlerInterface;
     tracing = new TracingContext();
   });
-
-  function captureFirstLog(handler: LogHandler, received: any[]): void {
-    handler.info("captured");
-    // entry is captured by the buildCapturingStream-backed logger.
-  }
 
   function buildHandlerWithCapture(): {handler: LogHandler; received: any[]} {
     const received: any[] = [];
@@ -157,7 +138,6 @@ describe("LogHandler eventId + traceId resolution", () => {
       0,
       false,
       "kernel-id",
-      breadcrumb,
       tracing,
     );
     return {handler, received};

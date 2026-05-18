@@ -162,6 +162,13 @@ export class Router implements RouterInterface {
     // This method cannot throw.
 
 
+    // ── container.resolve, justified ──────────────────────────────────────────────
+    // Per CLAUDE.md: the Router is `@singleton()` and lives for the whole process,
+    // but TracingManager is `@scoped(ContainerScoped)` — there's a different instance
+    // per per-event child container. The `container` parameter passed into execute()
+    // is that per-event child; resolving from it gives the right per-event manager.
+    // Constructor-injecting TracingManagerInterface on Router would freeze it to the
+    // root container's instance, defeating the per-event isolation.
     const tracingManager: TracingManagerInterface = container.resolve("TracingManagerInterface");
 
     const routerRequestExecutionSpan = tracingManager.startSpan(SpanKeynameEnum.RouterRequestExecution, SpanKeynameEnum.RequestExecution);
@@ -240,6 +247,11 @@ export class Router implements RouterInterface {
       this.loghandler.debug("Router - Will resolve the controller from the container", {
         routeParameters
       });
+      // ── container.resolve, justified ────────────────────────────────────────────
+      // Per CLAUDE.md: dynamic dispatch. The controller class to instantiate is data
+      // on the route's `controllerInstantiationToken` — a different class per matched
+      // route, unknowable at Router construction time. The router's whole job is to
+      // pick which controller to call; resolving by token IS that pick.
       const controller: any = container.resolve(methodNode.route.controllerInstantiationToken);
       this.loghandler.debug("Router - Controller resolved from the container", {
         routeParameters
@@ -462,6 +474,12 @@ export class Router implements RouterInterface {
 
     // Check first if there are any Request Interceptors
     if (container.isRegistered(ServiceDefinitionTagEnum.RequestInterceptor, true)) {
+      // ── container.resolveAll, justified ──────────────────────────────────────
+      // Per CLAUDE.md: collection-tagged per-event resolution. The interceptors are
+      // resolved from the per-event child container (`container` parameter) so each
+      // request sees the per-event instances of any container-scoped interceptors.
+      // Constructor-injecting on Router (which is `@singleton()`) would freeze them
+      // to the kernel container's instances.
       const interceptors: any[] = (container.resolveAll(ServiceDefinitionTagEnum.RequestInterceptor) as RequestInterceptorInterface[]).sort((a: RequestInterceptorInterface, b: RequestInterceptorInterface) => {
         const aPriority = a.priority ?? RequestInterceptorPriorityEnum.Default;
         const bPriority = b.priority ?? RequestInterceptorPriorityEnum.Default;
@@ -539,6 +557,12 @@ export class Router implements RouterInterface {
 
     // Check first if there are any Request interceptors
     if (container.isRegistered(ServiceDefinitionTagEnum.RequestInterceptor, true)) {
+      // ── container.resolveAll, justified ──────────────────────────────────────
+      // Per CLAUDE.md: collection-tagged per-event resolution. The interceptors are
+      // resolved from the per-event child container (`container` parameter) so each
+      // request sees the per-event instances of any container-scoped interceptors.
+      // Constructor-injecting on Router (which is `@singleton()`) would freeze them
+      // to the kernel container's instances.
       const interceptors: any[] = (container.resolveAll(ServiceDefinitionTagEnum.RequestInterceptor) as RequestInterceptorInterface[]).sort((a: RequestInterceptorInterface, b: RequestInterceptorInterface) => {
         const aPriority = a.priority ?? RequestInterceptorPriorityEnum.Default;
         const bPriority = b.priority ?? RequestInterceptorPriorityEnum.Default;
@@ -628,6 +652,12 @@ export class Router implements RouterInterface {
 
     // Check first if there are any Request interceptors
     if (container.isRegistered(ServiceDefinitionTagEnum.RequestInterceptor, true)) {
+      // ── container.resolveAll, justified ──────────────────────────────────────
+      // Per CLAUDE.md: collection-tagged per-event resolution. The interceptors are
+      // resolved from the per-event child container (`container` parameter) so each
+      // request sees the per-event instances of any container-scoped interceptors.
+      // Constructor-injecting on Router (which is `@singleton()`) would freeze them
+      // to the kernel container's instances.
       const interceptors: any[] = (container.resolveAll(ServiceDefinitionTagEnum.RequestInterceptor) as RequestInterceptorInterface[]).sort((a: RequestInterceptorInterface, b: RequestInterceptorInterface) => {
         const aPriority = a.priority ?? RequestInterceptorPriorityEnum.Default;
         const bPriority = b.priority ?? RequestInterceptorPriorityEnum.Default;

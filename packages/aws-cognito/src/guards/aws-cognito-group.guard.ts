@@ -1,5 +1,5 @@
 import {injectable} from "tsyringe";
-import {IdentityInterface, Request} from "@pristine-ts/common";
+import {IdentityInterface, Request, traced} from "@pristine-ts/common";
 import {GuardContextInterface, GuardInterface} from "@pristine-ts/security";
 
 /**
@@ -33,6 +33,7 @@ export class AwsCognitoGroupGuard implements GuardInterface {
    * @param request The request being made.
    * @param identity The identity making the request.
    */
+  @traced()
   async isAuthorized(request: Request, identity?: IdentityInterface): Promise<boolean> {
     const neededGroups: string[] = [];
     if (this.guardContext === undefined) {

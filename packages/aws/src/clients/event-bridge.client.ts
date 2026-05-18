@@ -5,7 +5,7 @@ import {EventBridgeClient as AwsEventBridgeClient, PutEventsCommand} from "@aws-
 import {EventBridgeMessageModel} from "../models/event-bridge-message.model";
 import {EventBridgeSendMessageError} from "../errors/event-bridge-send-message.error";
 import {EventBridgeClientInterface} from "../interfaces/event-bridge-client.interface";
-import {injectConfig, moduleScoped, tag} from "@pristine-ts/common";
+import {injectConfig, moduleScoped, tag, traced} from "@pristine-ts/common";
 import {AwsModuleKeyname} from "../aws.module.keyname";
 import {ClientOptionsInterface} from "../interfaces/client-options.interface";
 
@@ -48,6 +48,7 @@ export class EventBridgeClient implements EventBridgeClientInterface {
    * @param options
    * @param endpoint The endpoint for event bridge.
    */
+  @traced()
   async send(eventBridgeMessages: EventBridgeMessageModel | EventBridgeMessageModel[], eventBusName: string, endpoint?: string, options?: Partial<ClientOptionsInterface>): Promise<void> {
     try {
       const client = this.getClient(endpoint);

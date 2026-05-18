@@ -129,6 +129,19 @@ describe("pristine bin (end-to-end)", () => {
     });
   });
 
+  describe("trace propagation into CLI commands", () => {
+    it("addEventToCurrentSpan from a CLI command sees the kernel-started trace", async () => {
+      // Regression test for the EventContext-shared-trace fix. Without it, the kernel's
+      // TracingManager (root container) and the command's TracingManager (per-event child
+      // container) were separate instances each holding their own `this.trace`, so a
+      // marker added from a command couldn't find the trace the kernel started.
+      const {stdout, code} = await run("trace-check");
+      expect(code).toBe(0);
+      expect(stdout).toContain("TRACE_VISIBLE");
+      expect(stdout).not.toContain("TRACE_NOT_VISIBLE");
+    });
+  });
+
   describe("error handling", () => {
     it("returns non-zero exit and 'CommandNotFoundError' for unknown commands", async () => {
       const {stderr, code} = await run("this-command-does-not-exist");

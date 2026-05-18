@@ -100,6 +100,11 @@ export const HttpModule: ModuleInterface = {
     // never resolved it (e.g. an HTTP-less command like `pristine p:list` ran), stop() is a
     // no-op. So we can resolve unconditionally without worrying about creating a stray server.
     try {
+      // ── container.resolve, justified ────────────────────────────────────────
+      // Per CLAUDE.md: module lifecycle hook. `onShutdown` is a callback fired by
+      // the kernel with the container as its argument — there's no class to
+      // constructor-inject into. Same shape as a factory; resolving from the
+      // provided container is the framework's intended path.
       const server = container.resolve(KernelHttpServer);
       await server.stop();
     } catch {

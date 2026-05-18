@@ -1,4 +1,4 @@
-import {moduleScoped, Request, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {moduleScoped, Request, ServiceDefinitionTagEnum, tag, traced} from "@pristine-ts/common";
 import {inject, injectable} from "tsyringe";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {NetworkingModuleKeyname} from "../networking.module.keyname";
@@ -33,6 +33,7 @@ export class BodyMappingRequestInterceptor implements RequestInterceptorInterfac
    * @param request The request being intercepted.
    * @param methodNode The method node.
    */
+  @traced()
   async interceptRequest(request: Request, methodNode: MethodRouterNode): Promise<Request> {
     const bodyMapping: ClassTransformerBodyMappingContextInterface | FunctionBodyMappingContextInterface | DataMappingBuilderBodyMappingContextInterface = methodNode.route.context[bodyMappingDecoratorMetadataKeyname];
 

@@ -105,7 +105,7 @@ describe("Tracing Manager", () => {
     tracingManager.startTracing();
 
     expect(tracingManager.trace).toBeDefined();
-    expect(tracingManager.spans[SpanKeynameEnum.RootExecution]).toBeDefined();
+    expect(tracingManager.trace!.spansByKeyname[SpanKeynameEnum.RootExecution]).toBeDefined();
   })
 
   it("should call the tracers when the startSpan method is called", async () => {
@@ -421,4 +421,119 @@ describe("Tracing Manager", () => {
     expect(tmA.trace!.rootSpan!.keyname).toBe("event-a");
     expect(tmB.trace!.rootSpan!.keyname).toBe("event-b");
   })
+
+  describe("addEventToCurrentSpan", () => {
+    it("attaches an event to the most-recently-started in-progress span", () => {
+      const tm = new TracingManager([], logHandlerMock, true, false, new TracingContext());
+      tm.startTracing("root");
+      const child = tm.startSpan("child");
+
+      tm.addEventToCurrentSpan("validation passed", {field: "email"});
+
+      expect(child.events).toHaveLength(1);
+      expect(child.events[0].message).toBe("validation passed");
+      expect(child.events[0].attributes).toEqual({field: "email"});
+    });
+
+    it("falls back to the root span if it's the only one open", () => {
+      const tm = new TracingManager([], logHandlerMock, true, false, new TracingContext());
+      const root = tm.startTracing("root");
+
+      tm.addEventToCurrentSpan("starting up");
+
+      expect(root.events).toHaveLength(1);
+      expect(root.events[0].message).toBe("starting up");
+    });
+
+    it("does not attach to spans that have already ended", () => {
+      const tm = new TracingManager([], logHandlerMock, true, false, new TracingContext());
+      const root = tm.startTracing("root");
+      const child = tm.startSpan("child");
+      child.end();
+
+      tm.addEventToCurrentSpan("after-child-ended");
+
+      // Should attach to root (still in progress), not child (ended).
+      expect(child.events).toHaveLength(0);
+      expect(root.events).toHaveLength(1);
+    });
+
+    it("warns and drops the marker when no trace is active", () => {
+      const tm = new TracingManager([], logHandlerMock, true, false, new TracingContext());
+      const warningSpy = jest.spyOn(logHandlerMock, "warning");
+      expect(() => tm.addEventToCurrentSpan("nope")).not.toThrow();
+      expect(warningSpy).toHaveBeenCalledWith(
+        expect.stringContaining("addEventToCurrentSpan called outside any active trace"),
+        expect.objectContaining({extra: expect.objectContaining({message: "nope"})}),
+      );
+      warningSpy.mockRestore();
+    });
+  });
+
+  describe("getCurrentTrail", () => {
+    it("returns an empty trail when no trace is active", () => {
+      const tm = new TracingManager([], logHandlerMock, true, false, new TracingContext());
+      expect(tm.getCurrentTrail()).toEqual([]);
+    });
+
+    it("flattens spans + events sorted by timestamp", () => {
+      const tm = new TracingManager([], logHandlerMock, true, false, new TracingContext());
+      tm.startTracing("root");
+      tm.addEventToCurrentSpan("about-to-fork");
+      const child1 = tm.startSpan("child-1");
+      tm.addEventToCurrentSpan("inside-child-1");
+      child1.end();
+      tm.startSpan("child-2");
+
+      const trail = tm.getCurrentTrail();
+      expect(trail.length).toBe(5);
+
+      const names = trail.map(e => e.name);
+      expect(names).toContain("root (active)");
+      expect(names).toContain("about-to-fork");
+      expect(names).toContain("child-1");                  // ended, no suffix
+      expect(names).toContain("inside-child-1");
+      expect(names).toContain("child-2 (active)");
+
+      // First entry is the root (started first).
+      expect(trail[0].name).toBe("root (active)");
+    });
+
+    it("annotates entries with kind discriminator (span vs event)", () => {
+      const tm = new TracingManager([], logHandlerMock, true, false, new TracingContext());
+      tm.startTracing("root");
+      tm.addEventToCurrentSpan("marker");
+
+      const trail = tm.getCurrentTrail();
+      const spanEntry = trail.find(e => e.name.startsWith("root"));
+      const eventEntry = trail.find(e => e.name === "marker");
+
+      expect(spanEntry?.kind).toBe("span");
+      expect(eventEntry?.kind).toBe("event");
+    });
+  });
+
+  describe("EventContext-shared trace (cross-instance continuity)", () => {
+    it("two TracingManager instances inside the same EventContext see the same trace", async () => {
+      const {EventContext, EventContextManager} = require("@pristine-ts/common");
+      const ecm = new EventContextManager();
+      const ctx = new EventContext();
+      ctx.eventId = "evt-shared";
+
+      await ecm.run(ctx, async () => {
+        const tmA = new TracingManager([], logHandlerMock, true, false, new TracingContext());
+        const tmB = new TracingManager([], logHandlerMock, true, false, new TracingContext());
+
+        const rootSpan = tmA.startTracing("root");
+        // Different instance, but inside the same EventContext, should see the same trace.
+        expect(tmB.getCurrentTrail().length).toBeGreaterThan(0);
+
+        tmB.addEventToCurrentSpan("from-instance-B");
+
+        // The marker should be reachable from tmA's view of the trace.
+        expect(rootSpan.events.length).toBe(1);
+        expect(rootSpan.events[0].message).toBe("from-instance-B");
+      });
+    });
+  });
 });

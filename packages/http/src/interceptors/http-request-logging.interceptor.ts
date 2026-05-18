@@ -1,7 +1,7 @@
 import {inject, injectable} from "tsyringe";
 import {HttpConfigurationKeys} from "../http.configuration-keys";
 import {HttpRequestInterceptorInterface} from "../interfaces/http-request-interceptor.interface";
-import {injectConfig, moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {injectConfig, moduleScoped, ServiceDefinitionTagEnum, tag, traced} from "@pristine-ts/common";
 import {HttpRequestInterface} from "../interfaces/http-request.interface";
 import {HttpRequestOptions} from "../options/http-request.options.";
 import {LogHandlerInterface} from "@pristine-ts/logging";
@@ -27,6 +27,7 @@ export class HttpRequestLoggingInterceptor implements HttpRequestInterceptorInte
    * @param request
    * @param options
    */
+  @traced()
   async interceptRequest(request: HttpRequestInterface, options: HttpRequestOptions): Promise<HttpRequestInterface> {
     if (this.loggingEnabled) {
       // Eventually, add the execution time like this: `[OUTBOUND] GET https://api.stripe.com/v1/charges 200 112ms`

@@ -1,6 +1,5 @@
 import "reflect-metadata"
 import {EventPipeline} from "./event.pipeline";
-import {BreadcrumbHandlerInterface} from "@pristine-ts/logging";
 import {EventMappingError} from "../errors/event-mapping.error";
 import {ExecutionContextKeynameEnum} from "../enums/execution-context-keyname.enum";
 import {DependencyContainerMock} from "../../../../tests/mocks/dependency.container.mock";
@@ -24,13 +23,6 @@ describe("Event Pipeline", () => {
   const dependencyContainerMock = new DependencyContainerMock();
   const logHandlerMock = new LogHandlerMock();
 
-  const breadcrumbHandlerMock: BreadcrumbHandlerInterface = {
-    breadcrumbs: {},
-    add(eventId: string | undefined, message: string, extra?: any): void {
-    },
-    reset(): void {
-    },
-  }
   const tracingManagerMock = new TracingManagerMock();
   const eventContextManager = new EventContextManager();
 
@@ -71,7 +63,7 @@ describe("Event Pipeline", () => {
       eventInterceptor
     ], [
       eventMapper,
-    ], logHandlerMock, tracingManagerMock, breadcrumbHandlerMock, eventContextManager);
+    ], logHandlerMock, tracingManagerMock, eventContextManager);
 
     // @ts-ignore
     dependencyContainerMock.resolve = (token) => {
@@ -139,7 +131,7 @@ describe("Event Pipeline", () => {
       eventInterceptor
     ], [
       eventMapper,
-    ], logHandlerMock, tracingManagerMock, breadcrumbHandlerMock, eventContextManager);
+    ], logHandlerMock, tracingManagerMock, eventContextManager);
 
     // @ts-ignore
     dependencyContainerMock.resolve = (token) => {
@@ -198,7 +190,7 @@ describe("Event Pipeline", () => {
 
     const eventPipeline = new EventPipeline([], [
       eventMapper,
-    ], logHandlerMock, tracingManagerMock, breadcrumbHandlerMock, eventContextManager);
+    ], logHandlerMock, tracingManagerMock, eventContextManager);
 
     let executionOrder = 0;
 
@@ -283,7 +275,7 @@ describe("Event Pipeline", () => {
 
     const eventPipeline = new EventPipeline([], [
       eventMapper,
-    ], logHandlerMock, tracingManagerMock, breadcrumbHandlerMock, eventContextManager);
+    ], logHandlerMock, tracingManagerMock, eventContextManager);
 
     const executionOrders: Event<any>[] = [];
 
@@ -369,7 +361,7 @@ describe("Event Pipeline", () => {
       eventInterceptor
     ], [
       eventMapper,
-    ], logHandlerMock, tracingManagerMock, breadcrumbHandlerMock, eventContextManager);
+    ], logHandlerMock, tracingManagerMock, eventContextManager);
 
     // @ts-ignore
     dependencyContainerMock.resolve = (token) => {
@@ -432,7 +424,7 @@ describe("Event Pipeline", () => {
       eventInterceptor
     ], [
       eventMapper,
-    ], logHandlerMock, tracingManagerMock, breadcrumbHandlerMock, eventContextManager);
+    ], logHandlerMock, tracingManagerMock, eventContextManager);
 
     // @ts-ignore
     dependencyContainerMock.resolve = (token) => {
@@ -471,7 +463,7 @@ describe("Event Pipeline", () => {
     const eventPipeline = new EventPipeline([], [
       eventMapper,
       eventMapper,
-    ], logHandlerMock, tracingManagerMock, breadcrumbHandlerMock, eventContextManager);
+    ], logHandlerMock, tracingManagerMock, eventContextManager);
 
     // @ts-ignore
     dependencyContainerMock.resolve = (token) => {
@@ -488,7 +480,7 @@ describe("Event Pipeline", () => {
   })
 
   it("should throw an error if there are no events returned by any mappers", async () => {
-    const eventPipeline = new EventPipeline([], [], logHandlerMock, tracingManagerMock, breadcrumbHandlerMock, eventContextManager);
+    const eventPipeline = new EventPipeline([], [], logHandlerMock, tracingManagerMock, eventContextManager);
 
     // @ts-ignore
     dependencyContainerMock.resolve = (token) => {
@@ -505,7 +497,7 @@ describe("Event Pipeline", () => {
   })
 
   it("should throw an error if there are no events mapper", async () => {
-    const eventPipeline = new EventPipeline([], [], logHandlerMock, tracingManagerMock, breadcrumbHandlerMock, eventContextManager);
+    const eventPipeline = new EventPipeline([], [], logHandlerMock, tracingManagerMock, eventContextManager);
 
     // @ts-ignore
     dependencyContainerMock.resolve = (token) => {
@@ -537,7 +529,7 @@ describe("Event Pipeline", () => {
 
     const eventPipeline = new EventPipeline([], [
       eventMapper,
-    ], logHandlerMock, tracingManagerMock, breadcrumbHandlerMock, eventContextManager);
+    ], logHandlerMock, tracingManagerMock, eventContextManager);
 
     // @ts-ignore
     dependencyContainerMock.resolve = (token) => {
@@ -592,7 +584,7 @@ describe("Event Pipeline", () => {
       eventInterceptor
     ], [
       eventMapper,
-    ], logHandlerMock, tracingManagerMock, breadcrumbHandlerMock, eventContextManager);
+    ], logHandlerMock, tracingManagerMock, eventContextManager);
 
     // @ts-ignore
     dependencyContainerMock.resolve = (token) => {
@@ -645,7 +637,7 @@ describe("Event Pipeline", () => {
       eventInterceptor
     ], [
       eventMapper,
-    ], logHandlerMock, tracingManagerMock, breadcrumbHandlerMock, eventContextManager);
+    ], logHandlerMock, tracingManagerMock, eventContextManager);
 
     // @ts-ignore
     dependencyContainerMock.resolve = (token) => {
@@ -706,7 +698,7 @@ describe("Event Pipeline", () => {
       eventInterceptor
     ], [
       eventMapper,
-    ], logHandlerMock, tracingManagerMock, breadcrumbHandlerMock, eventContextManager);
+    ], logHandlerMock, tracingManagerMock, eventContextManager);
 
     // @ts-ignore
     dependencyContainerMock.resolve = (token) => {
@@ -770,7 +762,7 @@ describe("Event Pipeline", () => {
       eventInterceptor
     ], [
       eventMapper,
-    ], logHandlerMock, tracingManagerMock, breadcrumbHandlerMock, eventContextManager);
+    ], logHandlerMock, tracingManagerMock, eventContextManager);
 
     // @ts-ignore
     dependencyContainerMock.resolve = (token) => {
@@ -833,7 +825,7 @@ describe("Event Pipeline", () => {
       eventInterceptor
     ], [
       eventMapper,
-    ], logHandlerMock, tracingManagerMock, breadcrumbHandlerMock, eventContextManager);
+    ], logHandlerMock, tracingManagerMock, eventContextManager);
 
     // @ts-ignore
     dependencyContainerMock.resolve = (token) => {
@@ -888,7 +880,7 @@ describe("Event Pipeline", () => {
 
     const eventPipeline = new EventPipeline([], [
       eventMapper,
-    ], logHandlerMock, tracingManagerMock, breadcrumbHandlerMock, eventContextManager);
+    ], logHandlerMock, tracingManagerMock, eventContextManager);
 
     let executionOrder = 0;
 
@@ -938,7 +930,7 @@ describe("Event Pipeline", () => {
 
     const eventPipeline = new EventPipeline([], [
       eventMapper,
-    ], logHandlerMock, tracingManagerMock, breadcrumbHandlerMock, eventContextManager);
+    ], logHandlerMock, tracingManagerMock, eventContextManager);
 
 
     const event = {};

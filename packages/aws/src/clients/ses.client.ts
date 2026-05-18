@@ -1,6 +1,6 @@
 import {AwsModuleKeyname} from "../aws.module.keyname";
 import {AwsConfigurationKeys} from "../aws.configuration-keys";
-import {injectConfig, moduleScoped, tag} from "@pristine-ts/common";
+import {injectConfig, moduleScoped, tag, traced} from "@pristine-ts/common";
 import {inject, injectable} from "tsyringe";
 import {SesClientInterface} from "../interfaces/ses-client.interface";
 import {LogHandlerInterface} from "@pristine-ts/logging";
@@ -32,6 +32,7 @@ export class SesClient implements SesClientInterface {
     });
   }
 
+  @traced()
   async sendTemplate(email: EmailModel, templateName: string, templateData: { [key in string]: string }, endpoint?: string, options?: Partial<ClientOptionsInterface>): Promise<SesMessageSentConfirmationModel> {
     try {
       const client = this.getClient(endpoint);
@@ -66,6 +67,7 @@ export class SesClient implements SesClientInterface {
     }
   }
 
+  @traced()
   async send(email: EmailModel, endpoint?: string, options?: Partial<ClientOptionsInterface>): Promise<SesMessageSentConfirmationModel> {
     try {
       const client = this.getClient(endpoint);

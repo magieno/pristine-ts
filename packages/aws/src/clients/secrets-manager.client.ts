@@ -1,6 +1,6 @@
 import {AwsModuleKeyname} from "../aws.module.keyname";
 import {AwsConfigurationKeys} from "../aws.configuration-keys";
-import {injectConfig, moduleScoped, tag} from "@pristine-ts/common";
+import {injectConfig, moduleScoped, tag, traced} from "@pristine-ts/common";
 import {inject, injectable} from "tsyringe";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {SecretsManagerClientInterface} from "../interfaces/secrets-manager-client.interface";
@@ -36,6 +36,7 @@ export class SecretsManagerClient implements SecretsManagerClientInterface {
    * @param secretName
    * @param options
    */
+  @traced()
   async getSecret(secretName: string, options?: Partial<ClientOptionsInterface>): Promise<{ [key in string]: string }> {
     const command: GetSecretValueCommand = new GetSecretValueCommand({
       SecretId: secretName,
@@ -70,6 +71,7 @@ export class SecretsManagerClient implements SecretsManagerClientInterface {
    * @param secretName
    * @param key The key in the JSON object of the secret
    */
+  @traced()
   async getSecretKey(secretName: string, key: string): Promise<string> {
     const secret = await this.getSecret(secretName);
 

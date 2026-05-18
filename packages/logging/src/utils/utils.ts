@@ -153,13 +153,7 @@ export class Utils {
           }
         }
 
-        let breadcrumbs = "";
-        if (log.breadcrumbs && log.breadcrumbs.length > 0 && (log.outputHints.outputBreadcrumbs || log.severity >= SeverityEnum.Warning)) {
-          breadcrumbs += "\n  Breadcrumbs:";
-          breadcrumbs += "\n\t- " + log.breadcrumbs.map(breadcrumb => breadcrumb.message).join("\n\t- ");
-        }
-
-        return base + highlights + breadcrumbs;
+        return base + highlights;
     }
   }
 

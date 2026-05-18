@@ -1,7 +1,7 @@
 import {inject, injectable} from "tsyringe";
 import {AwsConfigurationKeys} from "../aws.configuration-keys";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import {injectConfig, moduleScoped, tag} from "@pristine-ts/common";
+import {injectConfig, moduleScoped, tag, traced} from "@pristine-ts/common";
 import {AwsModuleKeyname} from "../aws.module.keyname";
 import {
   CloudFrontClient as AWSCloudFrontClient,
@@ -64,6 +64,7 @@ export class CloudfrontClient implements CloudfrontClientInterface {
    * @param paths
    * @param options
    */
+  @traced()
   async invalidate(distributionId: string, paths: string[], options?: Partial<ClientOptionsInterface>): Promise<CreateInvalidationResult> {
     this.logHandler.debug("CloudfrontClient: Invalidating paths.", {extra: {distributionId, paths}});
     const command = new CreateInvalidationCommand({
@@ -97,6 +98,7 @@ export class CloudfrontClient implements CloudfrontClientInterface {
    * @param invalidationId
    * @param options
    */
+  @traced()
   async getInvalidation(distributionId: string, invalidationId: string, options?: Partial<ClientOptionsInterface>): Promise<GetInvalidationResult> {
     this.logHandler.debug("CloudfrontClient: Getting invalidation.", {extra: {distributionId, invalidationId}});
     const command = new GetInvalidationCommand({

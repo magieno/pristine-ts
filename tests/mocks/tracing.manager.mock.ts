@@ -22,8 +22,19 @@ export class TracingManagerMock implements TracingManagerInterface {
 
     startTracing(spanRootKeyname?: string, traceId?: string, context?: { [p: string]: string }): Span {
         const trace = new Trace();
-        
+
         return new Span("");
     }
 
+    addEventToCurrentSpan(message: string, attributes?: { [p: string]: string }): void {
+    }
+
+    getCurrentTrail(): Array<{
+        kind: "span" | "event";
+        name: string;
+        date: Date;
+        attributes: { [key: string]: string };
+    }> {
+        return [];
+    }
 }

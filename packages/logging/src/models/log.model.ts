@@ -1,10 +1,13 @@
 import {SeverityEnum} from "../enums/severity.enum";
-import {BreadcrumbModel} from "./breadcrumb.model";
 import {LogHighlights} from "../types/log-highlights.type";
 import {OutputHints} from "../types/output-hints.type";
 
 /**
- * The model that represents a log
+ * The model that represents a log.
+ *
+ * Logs carry their own content only — no inline breadcrumb trail. To reconstruct "what
+ * happened" around a log entry, look at the trace via the registered tracers
+ * (ConsoleTracer, FileTracer, X-Ray, etc.) using the `traceId`/`eventId` on the log.
  */
 export class LogModel {
   /**
@@ -35,7 +38,6 @@ export class LogModel {
   /**
    * The module from which the log originated.
    * By default it will be the application module.
-   * @deprecated: Use breadcrumbs instead.
    */
   module: string = "application";
 
@@ -45,23 +47,15 @@ export class LogModel {
   extra: any;
 
   /**
-   * The list of breadcrumbs that led to this log.
-   */
-  breadcrumbs: BreadcrumbModel[] = [];
-
-  /**
    * This is an object that is data that you want to "highlights" and show as logs. Select and be careful about what
    * you choose to highlight to avoid showing to many useless things.
    */
   highlights: LogHighlights = {};
 
   /**
-   * Define output hints that can be overriden. It's not authoritative. For example, even though outputBreadcrumbs might
-   * be false, if there's an error, the logger might decide to show them anyway.
+   * Output hints that loggers may use. Not authoritative; loggers retain final say.
    */
-  outputHints: OutputHints = {
-    outputBreadcrumbs: false,
-  }
+  outputHints: OutputHints = {};
 
   /**
    * The model that represents a log

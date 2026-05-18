@@ -1,5 +1,6 @@
 import "reflect-metadata";
-import {EventContext, EventContextManager} from "@pristine-ts/common";
+import {EventContext} from "../contexts/event-context";
+import {EventContextManager} from "../managers/event-context.manager";
 import {Span} from "../models/span.model";
 import {TracingManagerInterface} from "../interfaces/tracing-manager.interface";
 import {traced} from "./traced.decorator";
@@ -20,6 +21,8 @@ function buildStubTracingManager(): {tm: TracingManagerInterface; spans: Span[];
       return s;
     }),
     endSpan: jest.fn((s: Span) => { ended.push(s); }),
+    addEventToCurrentSpan: jest.fn(),
+    getCurrentTrail: jest.fn((): any[] => []),
   };
   return {tm, spans, ended};
 }

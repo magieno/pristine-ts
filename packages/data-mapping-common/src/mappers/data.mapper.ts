@@ -9,7 +9,7 @@ import {AutoDataMappingBuilder} from "../builders/auto-data-mapping.builder";
 import {AutoDataMappingBuilderOptions} from "../options/auto-data-mapping-builder.options";
 import {DataMapperOptions} from "../options/data-mapper.options";
 import {PrimitiveType} from "../enums/primitive-type.enum";
-import {EnumUtil} from "@pristine-ts/common";
+import {EnumUtil, traced} from "@pristine-ts/common";
 import {StringNormalizerUniqueKey} from "../normalizers/string.normalizer";
 import {AutoMapPrimitiveTypeNormalizerNotFoundError} from "../errors/auto-map-primitive-type-normalizer-not-found.error";
 import {NumberNormalizerUniqueKey} from "../normalizers/number.normalizer";
@@ -40,6 +40,7 @@ export class DataMapper {
    * @param source
    * @param destinationType
    */
+  @traced()
   public async mapAll(builder: DataMappingBuilder, source: any[], destinationType?: ClassConstructor<any>): Promise<any[]> {
     const destination = [];
 
@@ -56,6 +57,7 @@ export class DataMapper {
    * @param destinationType
    * @param options
    */
+  @traced()
   public async autoMap(source: any | any[], destinationType: ClassConstructor<any> | PrimitiveType, options?: AutoDataMappingBuilderOptions): Promise<any> {
     try {
       // Get the normalizer and automap for primitive values.
@@ -130,6 +132,7 @@ export class DataMapper {
    * @param destinationType
    * @param options
    */
+  @traced()
   public async map(builder: DataMappingBuilder, source: any, destinationType?: ClassConstructor<any>, options?: DataMapperOptions): Promise<any> {
     let destination: any = {};
 

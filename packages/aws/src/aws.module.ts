@@ -52,6 +52,13 @@ export const AwsModule: ModuleInterface = {
  * @param container The dependency container.
  */
 const registerDynamicTableNames = async (container: DependencyContainer) => {
+  // ── container.resolve / container.isRegistered, justified (entire function) ────
+  // Per CLAUDE.md: module lifecycle hook + dynamic registry. This is invoked from
+  // the AwsModule's lifecycle (not from any service), iterating over a registry of
+  // decorator-collected classes whose dynamic table tokens are data on the class.
+  // No class to constructor-inject into. The three container.resolve calls below
+  // all share this rationale: LogHandler for diagnostics, the dynamic token for
+  // the actual table name lookup.
   for (const dynamicTableName of dynamicTableNameRegistry) {
     // If the token name is not already registered in the container, we try to resolve it from the environment variables.
     if (container.isRegistered(dynamicTableName.tokenName) === false) {

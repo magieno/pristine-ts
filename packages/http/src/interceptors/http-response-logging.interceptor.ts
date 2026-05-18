@@ -1,6 +1,6 @@
 import {inject, injectable} from "tsyringe";
 import {HttpConfigurationKeys} from "../http.configuration-keys";
-import {injectConfig, moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {injectConfig, moduleScoped, ServiceDefinitionTagEnum, tag, traced} from "@pristine-ts/common";
 import {HttpRequestInterface} from "../interfaces/http-request.interface";
 import {HttpRequestOptions} from "../options/http-request.options.";
 import {LogHandlerInterface} from "@pristine-ts/logging";
@@ -29,6 +29,7 @@ export class HttpResponseLoggingInterceptor implements HttpResponseInterceptorIn
    * @param options
    * @param response
    */
+  @traced()
   async interceptResponse(request: HttpRequestInterface, options: HttpRequestOptions, response: HttpResponseInterface): Promise<HttpResponseInterface> {
     if (this.loggingEnabled) {
       const duration = response.responseTime !== undefined ? ` ${Math.trunc(response.responseTime)}ms` : "";

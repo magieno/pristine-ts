@@ -8,19 +8,30 @@ import {SpanKeynameEnum} from "../enums/span-keyname.enum";
 import {TelemetryModuleKeyname} from "../telemetry.module.keyname";
 import {TracerInterface} from "../interfaces/tracer.interface";
 import {LogHandlerInterface} from "@pristine-ts/logging";
+import {SpanEvent} from "../models/span-event.model";
 
 /**
  * The Tracing Manager provides methods to help with tracing.
  * It is tagged and can be injected using TracingManagerInterface which facilitates mocking.
  * It is module scoped to the TelemetryModuleKeyname.
  *
+ * **Where the active `Trace` lives.** The active trace is stored on `EventContext.trace`,
+ * propagated via `AsyncLocalStorage`. Every `TracingManager` instance — whether resolved
+ * from the root container (kernel boot) or from a per-event child container — reads and
+ * writes spans through the same `EventContext.trace` reference, so a span started in the
+ * kernel and an event added in a controller belong to the same trace tree.
+ *
+ * **Fallback `this.trace`.** During kernel boot (`Kernel.start()` and friends), there is
+ * no `EventContext` yet — the framework hasn't started handling an event. In that window
+ * the manager falls back to `this.trace`. This is the only time `this.trace` is touched.
+ *
  * **Lifecycle: container-scoped, not singleton.** Each per-event DI child container gets
- * its own `TracingManager` instance with its own `trace` and `spans` state. Earlier
- * versions used `@singleton()` — a single instance shared across every event — which
- * was a latent bug: parallel events would clobber each other's `this.trace`. Resolving
- * `TracingManager` from the root container still returns the root instance (used for
- * kernel-initialization spans before any event has started); resolving from a child
- * container returns the per-event instance, which is what application code wants.
+ * its own `TracingManager` instance. The per-instance `this.trace` fallback is what keeps
+ * parallel events isolated *if* tracing is somehow started outside an EventContext.
+ * Resolving `TracingManager` from the root container returns the root instance (used for
+ * kernel-initialization spans); resolving from a child container returns the per-event
+ * instance — both will agree on what trace is active inside an event because they read
+ * from EventContext.
  */
 @moduleScoped(TelemetryModuleKeyname)
 @tag("TracingManagerInterface")
@@ -28,14 +39,10 @@ import {LogHandlerInterface} from "@pristine-ts/logging";
 @injectable()
 export class TracingManager implements TracingManagerInterface {
   /**
-   * This property contains a reference to the active trace.
+   * Fallback trace used only during kernel boot when no `EventContext` is active.
+   * Inside an event, the active trace lives on `EventContext.trace` instead.
    */
   public trace?: Trace
-
-  /**
-   * This object contains a map of all the spans sorted by their keyname.
-   */
-  public spans: { [keyname: string]: Span[] } = {};
 
   /**
    * The Tracing Manager provides methods to help with tracing.
@@ -56,6 +63,27 @@ export class TracingManager implements TracingManagerInterface {
   }
 
   /**
+   * Returns the currently active trace from the EventContext, falling back to the
+   * per-instance `this.trace` when no EventContext is active (kernel boot).
+   */
+  private getActiveTrace(): Trace | undefined {
+    return EventContextManager.current()?.trace ?? this.trace;
+  }
+
+  /**
+   * Stores `trace` as the active trace — on `EventContext.trace` when an event is active,
+   * otherwise on the instance fallback `this.trace`.
+   */
+  private setActiveTrace(trace: Trace): void {
+    const eventContext = EventContextManager.current();
+    if (eventContext !== undefined) {
+      eventContext.trace = trace;
+    } else {
+      this.trace = trace;
+    }
+  }
+
+  /**
    * This methods starts the Tracing. This should be the first method called before doing anything else.
    * @param spanRootKeyname The keyname of the span at the root.
    * @param traceId The trace id if there is one.
@@ -64,7 +92,8 @@ export class TracingManager implements TracingManagerInterface {
   startTracing(spanRootKeyname: string = SpanKeynameEnum.RootExecution, traceId?: string, context?: {
     [key: string]: string
   }): Span {
-    this.trace = new Trace(traceId, context);
+    const trace = new Trace(traceId, context);
+    this.setActiveTrace(trace);
     const span = new Span(spanRootKeyname, undefined, context);
 
     // Mirror the trace id into both the legacy `TracingContext` (back-compat for any
@@ -72,10 +101,10 @@ export class TracingManager implements TracingManagerInterface {
     // (the path forward; what `LogHandler` and other ALS-aware consumers will read).
     // Both writes are cheap; the dual write is just a transition aid until TracingContext
     // is fully removed in a later major.
-    this.tracingContext.traceId = this.trace.id;
+    this.tracingContext.traceId = trace.id;
     const eventContext = EventContextManager.current();
     if (eventContext !== undefined) {
-      eventContext.traceId = this.trace.id;
+      eventContext.traceId = trace.id;
     }
 
     // If the tracing is not active, simply return the created span but don't send to the tracers.
@@ -89,18 +118,18 @@ export class TracingManager implements TracingManagerInterface {
         spanRootKeyname,
         traceId,
         context,
-        trace: this.trace,
+        trace,
         span,
       })
     }
 
     // Call the tracers and push the trace that was just started
     this.tracers.forEach((tracer: TracerInterface) => {
-      tracer.traceStartedStream?.push(this.trace);
+      tracer.traceStartedStream?.push(trace);
     })
 
     // Define the rootSpan of the trace as the newly created Span. This is the root span.
-    this.trace.rootSpan = span;
+    trace.rootSpan = span;
 
     // Call the addSpan method to ensure that the span will be added.
     this.addSpan(span);
@@ -118,34 +147,36 @@ export class TracingManager implements TracingManagerInterface {
   public startSpan(keyname: string, parentKeyname?: string, parentId?: string, context?: { [key: string]: string }): Span {
     // Make sure a trace exists. `startTracing` is the canonical entry point, but a direct
     // `startSpan` call (e.g. from project code) should auto-start a trace rather than fail.
-    if (this.trace === undefined) {
+    let trace = this.getActiveTrace();
+    if (trace === undefined) {
       this.startTracing(SpanKeynameEnum.RootExecution, undefined, context);
+      trace = this.getActiveTrace();
     }
 
     // Construct the span. NOTE the third constructor argument: `Span(keyname, id?, context?)`.
     // A previous version of this code passed `context` in the `id` slot, which corrupted span
-    // identities and broke parent-by-id lookup at line 133 silently. Always pass `undefined`
+    // identities and broke parent-by-id lookup silently. Always pass `undefined`
     // for the id so a fresh UUID is generated, and put context in the third slot.
     const span = new Span(keyname, undefined, context);
 
     // Defensive: tracing must never throw. If the trace is somehow still undefined here
     // (an exception inside `startTracing` that we swallowed and logged), return the bare
     // span so the caller can still call `.end()` on it without exploding.
-    if (this.trace === undefined) {
+    if (trace === undefined) {
       this.loghandler.error("Trace is undefined after startTracing; returning unattached span.", {span});
       return span;
     }
 
-    span.trace = this.trace;
+    span.trace = trace;
 
     // Resolve the parent span. The default parent is the trace's rootSpan, but we may not
     // have one if the trace was started via a path that didn't set it (programming error
     // upstream, but we tolerate it). When no rootSpan exists, attach the new span as a
     // top-level orphan and warn-log once instead of crashing.
-    let parentSpan: Span | undefined = this.trace.rootSpan;
+    let parentSpan: Span | undefined = trace.rootSpan;
 
     if (parentKeyname) {
-      const parentSpans = this.spans[parentKeyname];
+      const parentSpans = trace.spansByKeyname[parentKeyname];
       if (parentSpans) {
         if (parentSpans.length > 1) {
           if (parentId) {
@@ -164,7 +195,7 @@ export class TracingManager implements TracingManagerInterface {
       this.loghandler.warning("startSpan: no parent span available (rootSpan is undefined). Attaching as orphan.", {
         keyname,
         parentKeyname,
-        traceId: this.trace.id,
+        traceId: trace.id,
       });
     } else {
       parentSpan.addChild(span);
@@ -183,19 +214,21 @@ export class TracingManager implements TracingManagerInterface {
     // Tracing must never throw. If there's no active trace, log and return the span
     // unchanged — caller can still call `.end()` on it because Span.end uses optional
     // chaining on tracingManager.
-    if (this.trace === undefined) {
+    const trace = this.getActiveTrace();
+    if (trace === undefined) {
       this.loghandler.error("You cannot call 'addSpan' without having an existing Trace.", {span});
       return span;
     }
 
     span.tracingManager = this;
-    span.trace = this.trace;
+    span.trace = trace;
 
-    // Add it to the map of spans
-    if (!this.spans[span.keyname]) {
-      this.spans[span.keyname] = [span];
+    // Add it to the trace's by-keyname index so any TracingManager instance sharing this
+    // trace (via EventContext) can find it.
+    if (!trace.spansByKeyname[span.keyname]) {
+      trace.spansByKeyname[span.keyname] = [span];
     } else {
-      this.spans[span.keyname].push(span);
+      trace.spansByKeyname[span.keyname].push(span);
     }
 
     // If the tracing is deactivated, simply return the span and don't complain.
@@ -206,7 +239,7 @@ export class TracingManager implements TracingManagerInterface {
     if (this.debug) {
       this.loghandler.debug(`[span:start] - ${span.keyname}`, {
         keyname: span.keyname,
-        trace: this.trace,
+        trace,
         span,
       })
     }
@@ -227,11 +260,16 @@ export class TracingManager implements TracingManagerInterface {
    * @param keyname The keyname of the span to end.
    */
   public endSpanKeyname(keyname: string) {
-    if (this.spans.hasOwnProperty(keyname) === false) {
+    const trace = this.getActiveTrace();
+    if (trace === undefined) {
       return;
     }
-    if (this.spans[keyname] && this.spans[keyname].length === 1) {
-      return this.endSpan(this.spans[keyname][0]);
+    const spans = trace.spansByKeyname[keyname];
+    if (!spans) {
+      return;
+    }
+    if (spans.length === 1) {
+      return this.endSpan(spans[0]);
     }
     this.loghandler.error("Error ending span by keyname since multiple spans exist with this keyname");
   }
@@ -261,7 +299,7 @@ export class TracingManager implements TracingManagerInterface {
 
     if (this.debug) {
       this.loghandler.debug(`[span:end] - ${span.keyname}`, {
-        trace: this.trace,
+        trace: this.getActiveTrace(),
         span,
       })
     }
@@ -272,7 +310,8 @@ export class TracingManager implements TracingManagerInterface {
     })
 
     // If the span is the root span, the trace has ended
-    if (span.keyname === this.trace?.rootSpan?.keyname) {
+    const trace = this.getActiveTrace();
+    if (span.keyname === trace?.rootSpan?.keyname) {
       this.endTrace()
     }
   }
@@ -281,19 +320,20 @@ export class TracingManager implements TracingManagerInterface {
    * This method ends the trace entirely.
    */
   public endTrace() {
-    if (this.trace === undefined || this.trace.hasEnded) {
+    const trace = this.getActiveTrace();
+    if (trace === undefined || trace.hasEnded) {
       return;
     }
 
     // End the trace by setting the end date.
-    this.trace.endDate = Date.now();
+    trace.endDate = Date.now();
 
     // End the trace.
-    this.trace.hasEnded = true;
+    trace.hasEnded = true;
 
     // This method will recursively end all the spans
-    if (this.trace.rootSpan !== undefined) {
-      this.endSpan(this.trace.rootSpan);
+    if (trace.rootSpan !== undefined) {
+      this.endSpan(trace.rootSpan);
     }
 
     if (this.isActive === false) {
@@ -305,7 +345,114 @@ export class TracingManager implements TracingManagerInterface {
     // manager itself no longer logs a summary here — `ConsoleTracer` produces a richer
     // tree-formatted output when the user opts into it.
     this.tracers.forEach((tracer: TracerInterface) => {
-      tracer.traceEndedStream?.push(this.trace);
+      tracer.traceEndedStream?.push(trace);
     })
+  }
+
+  /**
+   * Attaches a named, timestamped event to the most-recently-started in-progress span.
+   * Use for noteworthy moments that don't warrant a child span — "validation passed",
+   * "found 50 rows", "rate limit ok". Cheap (just pushes onto an array); shows up in
+   * the trace rendered by tracers (ConsoleTracer, FileTracer, X-Ray, etc.).
+   *
+   * If no span is currently active (no trace started, or every span has already ended),
+   * a warning is logged and the marker is dropped. The warning is the explicit signal
+   * that "this marker call had nowhere to go" — usually the sign of a missing
+   * `startTracing()` call earlier in the flow.
+   */
+  public addEventToCurrentSpan(message: string, attributes?: { [key: string]: string }): void {
+    const target = this.findActiveLeafSpan();
+    if (target === undefined) {
+      this.loghandler.warning(
+        "TracingManager.addEventToCurrentSpan called outside any active trace; marker dropped.",
+        {extra: {message, attributes}},
+      );
+      return;
+    }
+    target.events.push(new SpanEvent(message, attributes));
+  }
+
+  /**
+   * Returns the active trace's spans + their events as a flat, timestamp-sorted list of
+   * `{kind, name, date, attributes}` entries. Public utility for custom tracers, debug
+   * endpoints, test helpers, or anyone who wants "the active trace as a flat list."
+   * Returns an empty array when no active trace exists.
+   */
+  public getCurrentTrail(): Array<{
+    kind: "span" | "event";
+    name: string;
+    date: Date;
+    attributes: { [key: string]: string };
+  }> {
+    const trace = this.getActiveTrace();
+    if (trace?.rootSpan === undefined) return [];
+
+    const out: Array<{ kind: "span" | "event"; name: string; date: Date; attributes: { [key: string]: string } }> = [];
+
+    const walk = (span: Span): void => {
+      const suffix = span.inProgress ? " (active)" : "";
+      out.push({
+        kind: "span",
+        name: `${span.keyname}${suffix}`,
+        date: new Date(span.startDate),
+        attributes: {
+          spanId: span.id,
+          ...(span.context ?? {}),
+        },
+      });
+
+      for (const event of span.events) {
+        out.push({
+          kind: "event",
+          name: event.message,
+          date: new Date(event.timestamp),
+          attributes: {
+            spanKeyname: span.keyname,
+            ...(event.attributes ?? {}),
+          },
+        });
+      }
+
+      for (const child of span.children) {
+        walk(child);
+      }
+    };
+    walk(trace.rootSpan);
+
+    out.sort((a, b) => a.date.getTime() - b.date.getTime());
+    return out;
+  }
+
+  /**
+   * Finds the deepest in-progress span — the leaf of the still-open subtree. Used as
+   * the target for `addEventToCurrentSpan`. Intuition: events attach to whatever is
+   * currently open at the bottom of the call stack.
+   *
+   * Walking the in-progress subtree (rather than ranking all spans by start date)
+   * avoids the edge case where a parent and child have the same `Date.now()` value —
+   * picking the "latest started" by raw timestamp would incorrectly attach to the
+   * parent. Depth-first traversal of in-progress children naturally lands on the
+   * deepest leaf. Tie-broken by latest start date when multiple leaves exist.
+   *
+   * Returns undefined when nothing is in progress (no trace, or every span has ended).
+   * @private
+   */
+  private findActiveLeafSpan(): Span | undefined {
+    const trace = this.getActiveTrace();
+    if (trace?.rootSpan === undefined) return undefined;
+    let best: Span | undefined;
+    const walk = (span: Span): void => {
+      const inProgressChildren = span.children.filter(c => c.inProgress);
+      if (span.inProgress && inProgressChildren.length === 0) {
+        // This span is a leaf of the in-progress subtree. Among multiple such leaves,
+        // prefer the latest-started one (most recent in time).
+        if (best === undefined || span.startDate >= best.startDate) {
+          best = span;
+        }
+      }
+      for (const child of inProgressChildren) walk(child);
+    };
+    walk(trace.rootSpan);
+    return best;
   }
 }

@@ -19,8 +19,11 @@ export class AuthenticatorFactory {
     // Check if the guard needs to be instantiated
     let instantiatedAuthenticator: AuthenticatorInterface = authenticatorContext.authenticator as AuthenticatorInterface;
 
-    // If authenticatorContext.authenticator is a function, we resolve that function through the container.
-    // TODO: validate if this is good.
+    // ── container.resolve, justified ────────────────────────────────────────────
+    // Per CLAUDE.md: factory whose target class is data carried on the route's
+    // `@authenticator(SomeAuth)` metadata. Token isn't known at factory construction;
+    // resolving it is the factory's entire purpose. Per-event container passed in by
+    // the router so the authenticator sees request-scoped dependencies.
     if (typeof instantiatedAuthenticator === 'function') {
       instantiatedAuthenticator = container.resolve(instantiatedAuthenticator);
     }
