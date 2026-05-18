@@ -8,7 +8,7 @@ import {createPool, Pool} from "mysql2/promise";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {DataMapper} from "@pristine-ts/data-mapping-common";
 import {FilteringOperatorEnum, SearchQuery, SearchResult} from "@pristine-ts/mysql-common";
-import {tag} from "@pristine-ts/common";
+import {tag, traced} from "@pristine-ts/common";
 import {MysqlConfig} from "../configs/mysql.config";
 import {MysqlConfigProviderInterface} from "../interfaces/mysql-config-provider.interface";
 
@@ -30,6 +30,7 @@ export class MysqlClient implements MysqlClientInterface {
    * @param configUniqueKeyname
    * @param force
    */
+  @traced()
   async getPool(configUniqueKeyname: string, force: boolean = false, options?: {
     eventId?: string,
     eventGroupId?: string
@@ -191,6 +192,7 @@ export class MysqlClient implements MysqlClientInterface {
    * @param sqlStatement
    * @param values
    */
+  @traced()
   async executeSql(configUniqueKeyname: string, sqlStatement: string, values: any[], options?: {
     eventId?: string,
     eventGroupId?: string
@@ -236,6 +238,7 @@ export class MysqlClient implements MysqlClientInterface {
    * @param sqlStatement
    * @param values
    */
+  @traced()
   async querySql(configUniqueKeyname: string, sqlStatement: string, values: any[], options?: {
     eventId?: string,
     eventGroupId?: string
@@ -279,6 +282,7 @@ export class MysqlClient implements MysqlClientInterface {
    * @param classType
    * @param results
    */
+  @traced()
   async mapResults(classType: { new(): any; }, results: any[], options?: {
     eventId?: string,
     eventGroupId?: string,
@@ -342,6 +346,7 @@ export class MysqlClient implements MysqlClientInterface {
    * @param classType
    * @param primaryKey
    */
+  @traced()
   async get<T extends { [key: string]: any; }>(configUniqueKeyname: string, classType: {
     new(): T;
   }, primaryKey: string | number, options?: {
@@ -361,6 +366,7 @@ export class MysqlClient implements MysqlClientInterface {
    * @param configUniqueKeyname
    * @param element
    */
+  @traced()
   async create<T extends { [key: string]: any; }>(configUniqueKeyname: string, element: T, options?: {
     eventId?: string,
     eventGroupId?: string,
@@ -396,6 +402,7 @@ export class MysqlClient implements MysqlClientInterface {
    * @param configUniqueKeyname
    * @param element
    */
+  @traced()
   async update<T extends { [key: string]: any; }>(configUniqueKeyname: string, element: T, options?: {
     eventId?: string,
     eventGroupId?: string,
@@ -436,6 +443,7 @@ export class MysqlClient implements MysqlClientInterface {
    * @param classType
    * @param primaryKey
    */
+  @traced()
   async delete<T extends { [key: string]: any; }>(configUniqueKeyname: string, classType: {
     new(): T;
   }, primaryKey: string | number, options?: {
@@ -454,6 +462,7 @@ export class MysqlClient implements MysqlClientInterface {
    * @param classType
    * @param query
    */
+  @traced()
   async search<T extends { [key: string]: any; }>(configUniqueKeyname: string, classType: {
     new(): T;
   }, query: SearchQuery, options?: {

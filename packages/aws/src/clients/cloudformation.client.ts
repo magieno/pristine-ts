@@ -1,7 +1,7 @@
 import {inject, injectable} from "tsyringe";
 import {AwsConfigurationKeys} from "../aws.configuration-keys";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import {injectConfig, moduleScoped, tag} from "@pristine-ts/common";
+import {injectConfig, moduleScoped, tag, traced} from "@pristine-ts/common";
 import {AwsModuleKeyname} from "../aws.module.keyname";
 import {
   Capability,
@@ -93,6 +93,7 @@ export class CloudformationClient implements CloudformationClientInterface {
    * @param stackName The stack name to retrieve the description of.
    * @param options
    */
+  @traced()
   async getStackDescription(stackName: string, options?: Partial<ClientOptionsInterface>): Promise<Stack | undefined> {
     this.logHandler.debug("CloudformationClient: Getting stack information.", {extra: {stackName}});
     const command = new DescribeStacksCommand({
@@ -128,6 +129,7 @@ export class CloudformationClient implements CloudformationClientInterface {
   /**
    * Gets the description and all its details from all the CloudFormation stacks.
    */
+  @traced()
   async listStacks(options?: Partial<ClientOptionsInterface>): Promise<Stack[]> {
     this.logHandler.debug("CloudformationClient: Getting list of stacks.", {extra: {}});
     const command = new DescribeStacksCommand({})
@@ -148,6 +150,7 @@ export class CloudformationClient implements CloudformationClientInterface {
    * @param input The input to create the new stack.
    * @param options
    */
+  @traced()
   async createStack(input: CreateStackCommandInput, options?: Partial<ClientOptionsInterface>): Promise<CreateStackCommandOutput> {
     this.logHandler.debug("CloudformationClient: Creating new stack.", {extra: {input}});
     const command = new CreateStackCommand(input)
@@ -173,6 +176,7 @@ export class CloudformationClient implements CloudformationClientInterface {
    * @param input The input to update the new stack.
    * @param options
    */
+  @traced()
   async updateStack(input: UpdateStackCommandInput, options?: Partial<ClientOptionsInterface>): Promise<UpdateStackCommandOutput> {
     this.logHandler.debug("CloudformationClient: Updating stack.", {extra: {input}});
     const command = new UpdateStackCommand(input)
@@ -205,6 +209,7 @@ export class CloudformationClient implements CloudformationClientInterface {
    * @param input The input to delete the new stack.
    * @param options
    */
+  @traced()
   async deleteStack(input: DeleteStackCommandInput, options?: Partial<ClientOptionsInterface>): Promise<DeleteStackCommandOutput> {
     this.logHandler.debug("CloudformationClient: Deleting stack.", {extra: {input}});
     const command = new DeleteStackCommand(input)
@@ -230,6 +235,7 @@ export class CloudformationClient implements CloudformationClientInterface {
    * @param input The input to create a change set.
    * @param options
    */
+  @traced()
   async createChangeSet(input: CreateChangeSetCommandInput, options?: Partial<ClientOptionsInterface>): Promise<CreateChangeSetCommandOutput> {
     this.logHandler.debug("CloudformationClient: Creating change set.", {extra: {input}});
     const command = new CreateChangeSetCommand(input)
@@ -258,6 +264,7 @@ export class CloudformationClient implements CloudformationClientInterface {
    * @param input The input to delete a change set.
    * @param options
    */
+  @traced()
   async deleteChangeSet(input: DeleteChangeSetCommandInput, options?: Partial<ClientOptionsInterface>): Promise<DeleteChangeSetCommandOutput> {
     this.logHandler.debug("CloudformationClient: Deleting change set.", {extra: {input}});
     const command = new DeleteChangeSetCommand(input)
@@ -287,6 +294,7 @@ export class CloudformationClient implements CloudformationClientInterface {
    * @param input The input to describe a change set.
    * @param options
    */
+  @traced()
   async describeChangeSet(input: DescribeChangeSetCommandInput, options?: Partial<ClientOptionsInterface>): Promise<DescribeChangeSetCommandOutput> {
     this.logHandler.debug("CloudformationClient: Describing change set.", {extra: {input}});
     const command = new DescribeChangeSetCommand(input)
@@ -317,6 +325,7 @@ export class CloudformationClient implements CloudformationClientInterface {
    * @param input The input to execute a change set.
    * @param options
    */
+  @traced()
   async executeChangeSet(input: ExecuteChangeSetCommandInput, options?: Partial<ClientOptionsInterface>): Promise<ExecuteChangeSetCommandOutput> {
     this.logHandler.debug("CloudformationClient: Executing change set.", {extra: {input}});
     const command = new ExecuteChangeSetCommand(input)
@@ -346,6 +355,7 @@ export class CloudformationClient implements CloudformationClientInterface {
    * @param input The input to list a change set.
    * @param options
    */
+  @traced()
   async listChangeSets(input: ListChangeSetsCommandInput, options?: Partial<ClientOptionsInterface>): Promise<ListChangeSetsCommandOutput> {
     this.logHandler.debug("CloudformationClient: Listing change sets.", {extra: {input}});
     const command = new ListChangeSetsCommand(input)
@@ -379,6 +389,7 @@ export class CloudformationClient implements CloudformationClientInterface {
    * @param capabilities
    * @param statusCallback
    */
+  @traced()
   async deployStack(stackName: string, cloudformationTemplateS3Url: string, stackParameters: { [key in string]: string }, capabilities: Capability[], statusCallback?: (status: CloudformationDeploymentStatusEnum, changeSetName?: string) => void, options?: Partial<ClientOptionsInterface>): Promise<CloudformationDeploymentStatusEnum> {
     const parameters: Parameter[] = [];
 

@@ -9,4 +9,5 @@ export * from "./module-scoped-registration.interface";
 export * from "./resolver.interface";
 export * from "./tagged-registration.interface";
 export * from "./token-provider-registration.interface";
+export * from "./tracing-manager.interface";
 export * from "./value-provider-registration.interface";

@@ -1,6 +1,6 @@
 import {inject, injectable} from "tsyringe";
 import {JwtManagerInterface} from "../interfaces/jwt-manager.interface";
-import {IdentityInterface, Request} from "@pristine-ts/common";
+import {IdentityInterface, Request, traced} from "@pristine-ts/common";
 import {GuardContextInterface, GuardInterface} from "@pristine-ts/security";
 
 /**
@@ -19,6 +19,7 @@ export class JwtProtectedGuard implements GuardInterface {
    * @param request
    * @param identity
    */
+  @traced()
   isAuthorized(request: Request, identity?: IdentityInterface): Promise<boolean> {
     return new Promise<boolean>((resolve) => {
       this.jwtManager.validateAndDecode(request)

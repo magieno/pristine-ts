@@ -1,6 +1,6 @@
 import {inject, injectable} from "tsyringe";
 import {SecurityConfigurationKeys} from "../security.configuration-keys";
-import {IdentityInterface, injectConfig, Request} from "@pristine-ts/common";
+import {IdentityInterface, injectConfig, Request, traced} from "@pristine-ts/common";
 import {GuardInterface} from "../interfaces/guard.interface";
 import {GuardContextInterface} from "../interfaces/guard-context.interface";
 import {LogHandlerInterface} from "@pristine-ts/logging";
@@ -47,6 +47,7 @@ export class RoleGuard implements GuardInterface {
    * @param request The request to authorize.
    * @param identity The identity making the request.
    */
+  @traced()
   async isAuthorized(request: Request, identity?: IdentityInterface): Promise<boolean> {
     const neededRoles: string[] = [];
 

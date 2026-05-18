@@ -1,6 +1,6 @@
 import {inject, injectable, injectAll} from "tsyringe";
 import {ScheduledTaskInterface} from "../interfaces/scheduled-task.interface";
-import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {moduleScoped, ServiceDefinitionTagEnum, tag, traced} from "@pristine-ts/common";
 import {SchedulingModuleKeyname} from "../scheduling.module.keyname";
 import {SchedulerInterface} from "../interfaces/scheduler.interface";
 import {LogHandlerInterface} from "@pristine-ts/logging";
@@ -35,6 +35,7 @@ export class SchedulerManager implements SchedulerInterface {
   /**
    * This method runs all the tasks that were registered.
    */
+  @traced()
   async runTasks(eventId: string): Promise<void> {
     this.logHandler.info("SchedulerManager: Starting the execution of the tasks.", {
       extra: {scheduledTasks: this.scheduledTasks},

@@ -1,5 +1,5 @@
 import {inject, injectable, injectAll} from "tsyringe";
-import {ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {ServiceDefinitionTagEnum, tag, traced} from "@pristine-ts/common";
 import {Event} from "../models/event";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {EventHandlerInterface} from "../interfaces/event-handler.interface";
@@ -35,6 +35,7 @@ export class EventDispatcher implements EventDispatcherInterface {
    *
    * @param event
    */
+  @traced()
   async dispatch(event: Event<any>): Promise<EventResponse<any, any>> {
     this.logHandler.debug("EventDispatcher: Dispatching event.", {
       highlights: {

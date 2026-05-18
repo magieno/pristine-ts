@@ -1,7 +1,7 @@
 import {inject, injectable} from "tsyringe";
 import {NetworkingConfigurationKeys} from "../networking.configuration-keys";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import {injectConfig, moduleScoped, Request, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {injectConfig, moduleScoped, Request, ServiceDefinitionTagEnum, tag, traced} from "@pristine-ts/common";
 import {NetworkingModuleKeyname} from "../networking.module.keyname";
 import {RequestInterceptorInterface} from "../interfaces/request-interceptor.interface";
 import {InvalidBodyHttpError} from "../errors/invalid-body.http-error";
@@ -32,6 +32,7 @@ export class RequestBodyConverterInterceptor implements RequestInterceptorInterf
    * Intercepts the request and parses the body based on it's Content-Type header.
    * @param request The request to intercept.
    */
+  @traced()
   async interceptRequest(request: Request): Promise<Request> {
     if (this.isActive === false) {
       return request;

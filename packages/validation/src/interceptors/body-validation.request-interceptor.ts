@@ -11,6 +11,7 @@ import {inject, injectable} from "tsyringe";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {bodyValidationMetadataKeyname} from "../decorators/body-validation.decorator";
 import {DataMapper} from "@pristine-ts/data-mapping-common";
+import {traced} from "@pristine-ts/telemetry";
 
 /**
  * This class is an interceptor to validate the body of an incoming request.
@@ -44,6 +45,7 @@ export class BodyValidationRequestInterceptor implements RequestInterceptorInter
    * @param request The request being intercepted.
    * @param methodNode The method node.
    */
+  @traced()
   async interceptRequest(request: Request, methodNode: MethodRouterNode): Promise<Request> {
     const bodyValidator = methodNode.route.context[bodyValidationMetadataKeyname];
 

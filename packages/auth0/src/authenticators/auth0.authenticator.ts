@@ -1,6 +1,6 @@
 import {inject, injectable, singleton} from "tsyringe";
 import * as jwt from "jsonwebtoken";
-import {HttpMethod, IdentityInterface, Request} from "@pristine-ts/common";
+import {HttpMethod, IdentityInterface, Request, traced} from "@pristine-ts/common";
 import {TokenHeaderInterface} from "../interfaces/token-header.interface";
 import {ClaimInterface} from "../interfaces/claim.interface";
 import {AuthenticatorInterface} from "@pristine-ts/security";
@@ -70,6 +70,7 @@ export class Auth0Authenticator implements AuthenticatorInterface {
    * Gets the identity from the request
    * @param request The request to authenticate.
    */
+  @traced()
   async authenticate(request: Request): Promise<IdentityInterface> {
     this.cachedPems = this.cachedPems ?? await this.getPems();
     const token = this.validateRequestAndReturnToken(request);

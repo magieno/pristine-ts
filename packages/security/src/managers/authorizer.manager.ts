@@ -1,6 +1,6 @@
 import {DependencyContainer, inject, injectable} from "tsyringe";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import {IdentityInterface, moduleScoped, Request, tag} from "@pristine-ts/common";
+import {IdentityInterface, moduleScoped, Request, tag, traced} from "@pristine-ts/common";
 import {AuthorizerManagerInterface} from "../interfaces/authorizer-manager.interface";
 import {GuardFactory} from "../factories/guard.factory";
 import {SecurityModuleKeyname} from "../security.module.keyname";
@@ -31,6 +31,7 @@ export class AuthorizerManager implements AuthorizerManagerInterface {
    * @param container The dependency container to resolve the guard from.
    * @param identity The identity making the request.
    */
+  @traced()
   public async isAuthorized(request: Request, routeContext: any, container: DependencyContainer, identity?: IdentityInterface): Promise<boolean> {
     if (!routeContext || routeContext[guardMetadataKeyname] === undefined || Array.isArray(routeContext[guardMetadataKeyname]) === false) {
       return true;
