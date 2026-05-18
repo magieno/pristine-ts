@@ -4,7 +4,6 @@ import {LoggingModule} from "@pristine-ts/logging";
 import {BooleanResolver, EnumResolver, EnvironmentVariableResolver, NumberResolver} from "@pristine-ts/configuration";
 import {ConsoleTracerOutputModeEnum} from "./enums/console-tracer-output-mode.enum";
 
-export * from "./decorators/decorators";
 export * from "./enums/enums";
 export * from "./interfaces/interfaces";
 export * from "./managers/managers";

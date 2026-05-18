@@ -5,13 +5,12 @@ import {
   RequestInterceptorPriorityEnum
 } from "@pristine-ts/networking";
 import {Validator} from "@pristine-ts/class-validator";
-import {moduleScoped, Request, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {moduleScoped, Request, ServiceDefinitionTagEnum, tag, traced} from "@pristine-ts/common";
 import {ValidationModuleKeyname} from "../validation.module.keyname";
 import {inject, injectable} from "tsyringe";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {bodyValidationMetadataKeyname} from "../decorators/body-validation.decorator";
 import {DataMapper} from "@pristine-ts/data-mapping-common";
-import {traced} from "@pristine-ts/telemetry";
 
 /**
  * This class is an interceptor to validate the body of an incoming request.

@@ -1,5 +1,6 @@
 import "reflect-metadata";
-import {EventContext, EventContextManager} from "@pristine-ts/common";
+import {EventContext} from "../contexts/event-context";
+import {EventContextManager} from "../managers/event-context.manager";
 import {Span} from "../models/span.model";
 import {TracingManagerInterface} from "../interfaces/tracing-manager.interface";
 import {traced} from "./traced.decorator";
