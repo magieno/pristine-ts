@@ -7,13 +7,7 @@ import {LogHandlerInterface} from "@pristine-ts/logging";
 import {EventsExecutionOptionsInterface} from "../interfaces/events-execution-options.interface";
 import {EventResponse} from "../models/event.response";
 import {EventDispatcherInterface} from "../interfaces/event-dispatcher.interface";
-import {EventContext, EventContextManager, ServiceDefinitionTagEnum} from "@pristine-ts/common";
-import {EventMappingError} from "../errors/event-mapping.error";
-import {EventPreMappingInterceptionError} from "../errors/event-pre-mapping-interception.error";
-import {EventPostMappingInterceptionError} from "../errors/event-post-mapping-interception.error";
-import {EventDispatchingError} from "../errors/event-dispatching.error";
-import {EventPreResponseMappingInterceptionError} from "../errors/event-pre-response-mapping-interception.error";
-import {EventPostResponseMappingInterceptionError} from "../errors/event-post-response-mapping-interception.error";
+import {EventContext, EventContextManager, PristineError, ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {SpanKeynameEnum, TracingManagerInterface} from "@pristine-ts/telemetry";
 import {CoreModuleKeyname} from "../core.module.keyname";
 
@@ -87,17 +81,26 @@ export class EventPipeline {
 
         span.end();
       } catch (error) {
-        throw new EventMappingError("There was an error mapping the event into an Event object", event, interceptedEvent, executionContext, error as Error)
+        throw new PristineError("There was an error mapping the event into an Event object", {
+          code: "EVENT_MAPPING_FAILED", expected: false, cause: error as Error,
+          details: {event, interceptedEvent, executionContext},
+        })
       }
 
       if (numberOfEventMappers === 0) {
-        throw new EventMappingError("There are no Event Mappers that support the event", event, interceptedEvent, executionContext);
+        throw new PristineError("There are no Event Mappers that support the event", {
+          code: "EVENT_NO_MAPPER_SUPPORTS", expected: false,
+          details: {event, interceptedEvent, executionContext},
+        });
       }
 
       if (eventExecutions.length === 0 || eventExecutions.reduce((agg, eventExecution) => {
         return agg + eventExecution.events.length;
       }, 0) === 0) {
-        throw new EventMappingError("There are no events to execute.", event, interceptedEvent, executionContext)
+        throw new PristineError("There are no events to execute.", {
+          code: "EVENT_NO_EVENTS", expected: false,
+          details: {event, interceptedEvent, executionContext},
+        })
       }
     }
 
@@ -226,7 +229,10 @@ export class EventPipeline {
       try {
         interceptedEvent = await eventInterceptor.preMappingIntercept?.(interceptedEvent, executionContext) ?? interceptedEvent;
       } catch (error) {
-        throw new EventPreMappingInterceptionError("There was an error while executing the PreMapping Event interceptors", error as Error, eventInterceptor.constructor.name, event, executionContext);
+        throw new PristineError("There was an error while executing the PreMapping Event interceptors", {
+          code: "EVENT_PRE_MAPPING_INTERCEPTOR_FAILED", expected: false, cause: error as Error,
+          details: {interceptorName: eventInterceptor.constructor.name, event, executionContext},
+        });
       }
     }
 
@@ -251,7 +257,10 @@ export class EventPipeline {
       try {
         interceptedEvent = await eventInterceptor.postMappingIntercept?.(interceptedEvent) ?? interceptedEvent;
       } catch (error) {
-        throw new EventPostMappingInterceptionError("There was an error while executing the PostMapping Event interceptors", error as Error, eventInterceptor.constructor.name, event);
+        throw new PristineError("There was an error while executing the PostMapping Event interceptors", {
+          code: "EVENT_POST_MAPPING_INTERCEPTOR_FAILED", expected: false, cause: error as Error,
+          details: {interceptorName: eventInterceptor.constructor.name, event},
+        });
       }
     }
 
@@ -276,7 +285,10 @@ export class EventPipeline {
       try {
         interceptedEventResponse = await eventInterceptor.preResponseMappingIntercept?.(interceptedEventResponse) ?? interceptedEventResponse;
       } catch (error) {
-        throw new EventPreResponseMappingInterceptionError("There was an error while executing the PreResponseMapping Event interceptors", error as Error, eventInterceptor.constructor.name, eventResponse);
+        throw new PristineError("There was an error while executing the PreResponseMapping Event interceptors", {
+          code: "EVENT_PRE_RESPONSE_INTERCEPTOR_FAILED", expected: false, cause: error as Error,
+          details: {interceptorName: eventInterceptor.constructor.name, eventResponse},
+        });
       }
     }
 
@@ -301,7 +313,10 @@ export class EventPipeline {
       try {
         interceptedEventResponse = await eventInterceptor.postResponseMappingIntercept?.(interceptedEventResponse) ?? interceptedEventResponse;
       } catch (error) {
-        throw new EventPostResponseMappingInterceptionError("There was an error while executing the PostResponseMapping Event interceptors", error as Error, eventInterceptor.constructor.name, eventResponse);
+        throw new PristineError("There was an error while executing the PostResponseMapping Event interceptors", {
+          code: "EVENT_POST_RESPONSE_INTERCEPTOR_FAILED", expected: false, cause: error as Error,
+          details: {interceptorName: eventInterceptor.constructor.name, eventResponse},
+        });
       }
     }
 
@@ -344,7 +359,10 @@ export class EventPipeline {
           interceptedEvent,
         },
       })
-      throw new EventDispatchingError(`There was an error while dispatching the event: '${error}'`, error as Error, interceptedEvent);
+      // Re-throw the original error so its type and `instanceof` identity survive — the
+      // typed PristineError (e.g. NotFoundError, ValidationError) thrown by the controller
+      // must reach the channel responders intact. Pipeline context is logged above.
+      throw error;
     }
   }
 }

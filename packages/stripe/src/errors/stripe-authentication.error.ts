@@ -1,15 +1,18 @@
-import {HttpError} from "@pristine-ts/networking";
+import {PristineError} from "@pristine-ts/common";
 
 /**
- * This Error represents an error when authenticating with Stripe.
+ * This Error represents an error when authenticating with Stripe. Wraps the underlying
+ * Stripe API response status in the `httpStatus` slot so the framework's
+ * `HttpErrorResponder` produces a meaningful response automatically.
  */
-export class StripeAuthenticationError extends HttpError {
-  public constructor(readonly httpStatus: number, readonly message: string, readonly errors?: any[] | undefined) {
-    super(httpStatus, message, errors);
-
-    // Set the prototype explicitly.
-    // As specified in the documentation in TypeScript
-    // https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
-    Object.setPrototypeOf(this, StripeAuthenticationError.prototype);
+export class StripeAuthenticationError extends PristineError {
+  public constructor(httpStatus: number, message: string, errors?: any[]) {
+    super(message, {
+      code: "STRIPE_AUTHENTICATION_FAILED",
+      httpStatus,
+      exitCode: 1,
+      expected: true,
+      details: errors ? {errors} : undefined,
+    });
   }
 }

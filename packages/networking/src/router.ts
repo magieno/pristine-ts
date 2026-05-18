@@ -1,19 +1,19 @@
 import "reflect-metadata"
 import {DependencyContainer, inject, singleton} from "tsyringe";
 import {UrlUtil} from "./utils/url.util";
-import {NotFoundHttpError} from "./errors/not-found.http-error";
 import {RouterInterface} from "./interfaces/router.interface";
 import {RouterNode} from "./nodes/router.node";
 import {PathRouterNode} from "./nodes/path-router.node";
 import {Route} from "./models/route";
 import {MethodRouterNode} from "./nodes/method-router.node";
-import {ForbiddenHttpError} from "./errors/forbidden.http-error";
 import {ControllerMethodParameterDecoratorResolver} from "./resolvers/controller-method-parameter-decorator.resolver";
 import {
+  ForbiddenError,
   HttpMethod,
   IdentityInterface,
   MetadataEnum,
   MetadataUtil,
+  NotFoundError,
   Request,
   Response,
   ServiceDefinitionTagEnum,
@@ -26,13 +26,13 @@ import {controllerRegistry} from "./decorators/controller.decorator";
 import {RouteMethodDecorator} from "./interfaces/route-method-decorator.interface";
 import {mergeWith} from "lodash";
 import {RequestInterceptorInterface} from "./interfaces/request-interceptor.interface";
-import {HttpError} from "./errors/http.error";
 import {CachedRouterRoute} from "./cache/cached.router-route";
 import {RouterCache} from "./cache/router.cache";
 import {ClassMetadata, MethodMetadata} from "@pristine-ts/metadata";
 import {RequestInterceptorPriorityEnum} from "./enums/request-interceptor-priority.enum";
 import {RequestContext} from "./contexts/request-context";
 import {RequestContextManager} from "./managers/request-context.manager";
+import {HttpErrorResponder} from "./responders/http-error.responder";
 
 /**
  * The router service is the service that creates the routing tree from the controllers.
@@ -60,7 +60,8 @@ export class Router implements RouterInterface {
                      @inject("AuthorizerManagerInterface") private readonly authorizerManager: AuthorizerManagerInterface,
                      @inject("AuthenticationManagerInterface") private readonly authenticationManager: AuthenticationManagerInterface,
                      private readonly cache: RouterCache,
-                     private readonly requestContextManager: RequestContextManager) {
+                     private readonly requestContextManager: RequestContextManager,
+                     private readonly httpErrorResponder: HttpErrorResponder) {
   }
 
   /**
@@ -220,7 +221,7 @@ export class Router implements RouterInterface {
         });
 
         routerRequestExecutionSpan.end();
-        return resolve(this.executeErrorResponseInterceptors(new NotFoundHttpError("No route found for method: '" + request.httpMethod + "' and path: '" + url.pathname + "'."), request, container));
+        return resolve(this.executeErrorResponseInterceptors(new NotFoundError("No route found for method: '" + request.httpMethod + "' and path: '" + url.pathname + "'."), request, container));
       }
 
       // Get the route parameters
@@ -297,8 +298,8 @@ export class Router implements RouterInterface {
         });
 
         // Todo: check if the error is an UnauthorizedHttpError, else create one.
-        if (error instanceof ForbiddenHttpError === false) {
-          error = new ForbiddenHttpError("You are not allowed to access this.");
+        if (error instanceof ForbiddenError === false) {
+          error = new ForbiddenError("You are not allowed to access this.");
         }
 
         routerRequestExecutionSpan.end();
@@ -317,7 +318,7 @@ export class Router implements RouterInterface {
           });
 
           routerRequestExecutionSpan.end();
-          return resolve(this.executeErrorResponseInterceptors(new ForbiddenHttpError("You are not allowed to access this."), request, container, methodNode));
+          return resolve(this.executeErrorResponseInterceptors(new ForbiddenError("You are not allowed to access this."), request, container, methodNode));
         }
 
         // Execute all the interceptors
@@ -632,22 +633,13 @@ export class Router implements RouterInterface {
       methodNode,
     })
 
-    // Execute all the request interceptors
+    // Single chokepoint for "thrown value → HTTP response body". Production mode
+    // (default) sanitizes internal errors and never leaks stacks; development mode
+    // surfaces everything. See `HttpErrorResponder` for the contract.
     let interceptedResponse = new Response();
-    if (error instanceof HttpError) {
-      interceptedResponse.status = error.httpStatus;
-      interceptedResponse.body = {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-        errors: error.errors,
-        extra: error.extra,
-      }
-    } else {
-      interceptedResponse.status = 500;
-      interceptedResponse.body = {name: error.name, message: error.message, stack: error.stack};
-    }
-
+    const {status, body} = this.httpErrorResponder.buildBody(error);
+    interceptedResponse.status = status;
+    interceptedResponse.body = body;
     interceptedResponse.request = request;
 
     // Check first if there are any Request interceptors

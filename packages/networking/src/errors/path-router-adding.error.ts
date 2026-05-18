@@ -1,4 +1,4 @@
-import {HttpMethod, LoggableError} from "@pristine-ts/common";
+import {HttpMethod, PristineError} from "@pristine-ts/common";
 import {PathRouterNode} from "../nodes/path-router.node";
 import {Route} from "../models/route";
 
@@ -6,19 +6,13 @@ import {Route} from "../models/route";
  * This Error is thrown when there's an error that happens when the networking is being initialized.
  * It is thrown when an error occurs when trying to add a child node to a PathRouterNode.
  */
-export class PathRouterAddingError extends LoggableError {
+export class PathRouterAddingError extends PristineError {
 
   public constructor(message: string, splitPaths: string[], method: HttpMethod | string, route: Route, pathRouterNode: PathRouterNode) {
-    super(message, {
+    super(message, {details: {
       splitPaths,
       method,
       route,
       pathRouterNode,
-    });
-
-    // Set the prototype explicitly.
-    // As specified in the documentation in TypeScript
-    // https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
-    Object.setPrototypeOf(this, PathRouterAddingError.prototype);
-  }
+    }});  }
 }

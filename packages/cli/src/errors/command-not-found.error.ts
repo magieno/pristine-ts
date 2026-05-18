@@ -1,23 +1,23 @@
-import {LoggableError} from "@pristine-ts/common";
+import {UsageError} from "@pristine-ts/common";
 
 /**
- * The CommandNotFoundError error when the command specified is not implemented.
+ * Thrown when the user invokes a CLI command name that isn't registered with the kernel.
+ *
+ * Extends `UsageError` (which carries `exitCode: 64` / `EX_USAGE`, `expected: true`) so
+ * the `CliErrorReporter` renders it as a clean one-line stderr message rather than a
+ * crash dump. The unknown command name is preserved as a structured `details.commandName`
+ * field, which surfaces under the error code in the stderr output.
  */
-export class CommandNotFoundError extends LoggableError {
-  /**
-   * This Error is the base class for CommandNotFoundError errors.
-   * @param commandName The name of the command that could not be found
-   */
+export class CommandNotFoundError extends UsageError {
   public constructor(
     public readonly commandName: string,
   ) {
-    super("There is no command found for name: '" + commandName + "'. Use the 'list' command to see the commands already registered.", {
-      commandName
-    });
-
-    // Set the prototype explicitly.
-    // As specified in the documentation in TypeScript
-    // https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
-    Object.setPrototypeOf(this, CommandNotFoundError.prototype);
+    super(
+      `There is no command found for name: '${commandName}'. Use the 'list' command to see the commands already registered.`,
+      {
+        code: "COMMAND_NOT_FOUND",
+        details: {commandName},
+      },
+    );
   }
 }

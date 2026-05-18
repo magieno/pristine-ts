@@ -1,15 +1,9 @@
-import {LoggableError} from "@pristine-ts/common";
+import {PristineError} from "@pristine-ts/common";
 
 /**
  * This Error represents a configuration error when a configuration definition already exists.
  */
-export class ConfigurationDefinitionAlreadyExistsError extends LoggableError {
+export class ConfigurationDefinitionAlreadyExistsError extends PristineError {
   public constructor(message: string, parameterName: string) {
-    super(message, {parameterName});
-
-    // Set the prototype explicitly.
-    // As specified in the documentation in TypeScript
-    // https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
-    Object.setPrototypeOf(this, ConfigurationDefinitionAlreadyExistsError.prototype);
-  }
+    super(message, {details: {parameterName}});  }
 }

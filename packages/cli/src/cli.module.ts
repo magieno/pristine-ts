@@ -16,6 +16,7 @@ export * from "./interfaces/interfaces";
 export * from "./managers/managers";
 export * from "./mappers/mappers";
 export * from "./options/options";
+export * from "./reporters/cli-error.reporter";
 export * from "./types/types";
 
 // Re-export the bootstrap entrypoint so `bin.ts` (and any other downstream entry script)
