@@ -14,4 +14,14 @@ require('reflect-metadata');
 // loaded via `./cli.js` and the consumer's app.module.js loaded via `@pristine-ts/cli`, the
 // two halves would each get their own class identities and tsyringe's decorator metadata
 // (keyed by class identity) would not be shared — manifesting as "TypeInfo not known for X".
-require('@pristine-ts/cli').bootstrap();
+const cli = require('@pristine-ts/cli');
+
+// Top-level error guard. Anything that escapes `bootstrap()` — kernel-boot failure, command
+// throw, missing config — funnels through the same `CliErrorReporter` that powers in-app
+// CLI error rendering: friendly one-line stderr + meaningful exit code (sysexits.h-aligned
+// when the error carries one). Without this guard, escaped errors would surface as Node's
+// default unhandled-rejection dump and exit 1.
+cli.bootstrap().catch((err: unknown) => {
+  const exitCode = cli.cliErrorReporter.report(err);
+  process.exit(exitCode);
+});

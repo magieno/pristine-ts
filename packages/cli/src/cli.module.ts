@@ -8,7 +8,6 @@ import {DataMappingModule} from "@pristine-ts/data-mapping"
 export * from "./bootstrap/bootstrap";
 export * from "./commands/commands";
 export * from "./config/config";
-export * from "./enums/enums";
 export * from "./errors/errors";
 export * from "./event-handlers/event-handlers";
 export * from "./event-payloads/event-payloads";
@@ -16,6 +15,7 @@ export * from "./interfaces/interfaces";
 export * from "./managers/managers";
 export * from "./mappers/mappers";
 export * from "./options/options";
+export * from "./reporters/cli-error.reporter";
 export * from "./types/types";
 
 // Re-export the bootstrap entrypoint so `bin.ts` (and any other downstream entry script)

@@ -1,8 +1,7 @@
-import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {moduleScoped, ServiceDefinitionTagEnum, tag, ExitCode} from "@pristine-ts/common";
 import {DependencyContainer, inject, injectable} from "tsyringe";
 import {CommandInterface} from "../interfaces/command.interface";
 import {ConsoleManager} from "../managers/console.manager";
-import {ExitCodeEnum} from "../enums/exit-code.enum";
 import {CliModuleKeyname} from "../cli.module.keyname";
 
 /**
@@ -24,7 +23,7 @@ export class ListCommand implements CommandInterface<null> {
   ) {
   }
 
-  async run(args: any): Promise<ExitCodeEnum | number> {
+  async run(args: any): Promise<ExitCode | number> {
     this.consoleManager.writeLine("List of registered commands:");
     // ── container.resolveAll, justified ─────────────────────────────────────────
     // Per CLAUDE.md: constructor-time `@injectAll(Command)` would create a self-
@@ -36,6 +35,6 @@ export class ListCommand implements CommandInterface<null> {
     const commands: CommandInterface<any>[] = this.container.resolveAll(ServiceDefinitionTagEnum.Command);
     commands.forEach(command => this.consoleManager.writeLine(command.name));
 
-    return ExitCodeEnum.Success;
+    return ExitCode.Success;
   }
 }

@@ -1,9 +1,9 @@
-import {LoggableError} from "@pristine-ts/common";
+import {PristineError, PristineErrorKind} from "@pristine-ts/common";
 
 /**
  * This Error represents an error when trying to send a message to Sqs
  */
-export class SqsSendMessageError extends LoggableError {
+export class SqsSendMessageError extends PristineError {
 
   /**
    * This Error represents an error when trying to send a message to Sqs
@@ -19,20 +19,11 @@ export class SqsSendMessageError extends LoggableError {
                      messageGroupId?: string,
                      delaySeconds?: number,
   ) {
-    super(
-      "There was an error sending a message to SQS",
-      {
-        originalError,
-        queueUrl,
-        body,
-        messageGroupId,
-        delaySeconds,
-      }
-    );
-
-    // Set the prototype explicitly.
-    // As specified in the documentation in TypeScript
-    // https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
-    Object.setPrototypeOf(this, SqsSendMessageError.prototype);
+    super("There was an error sending a message to SQS", {
+      code: "SQS_SEND_FAILED",
+      kind: PristineErrorKind.SystemError,
+      cause: originalError,
+      details: {queueUrl, body, messageGroupId, delaySeconds},
+    });
   }
 }

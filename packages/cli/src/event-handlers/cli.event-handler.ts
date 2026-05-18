@@ -4,28 +4,13 @@ import {CommandEventPayload} from "../event-payloads/command.event-payload";
 import {CommandEvent} from "../types/command-event.type";
 import {CommandEventResponse} from "../types/command-event-response.type";
 import {CommandInterface} from "../interfaces/command.interface";
-import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {moduleScoped, ServiceDefinitionTagEnum, tag, UsageError, ValidationError, ExitCode} from "@pristine-ts/common";
 import {CommandNotFoundError} from "../errors/command-not-found.error";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {Validator} from "@pristine-ts/class-validator";
 import {ConsoleManager} from "../managers/console.manager";
-import {ExitCodeEnum} from "../enums/exit-code.enum";
 import {CliModuleKeyname} from "../cli.module.keyname";
 import {plainToInstance} from "class-transformer";
-
-/**
- * Resolution of a command's argv input. Either we successfully produced an instance of the
- * command's `optionsType` (or the raw args for null-optionsType commands) and `args` is set,
- * OR mapping/validation failed and `exitCode` carries the failure status. Mutually exclusive
- * by construction — `args` is undefined iff `exitCode` is set.
- *
- * Used as the return value of `CliEventHandler.resolveArgs` so the call site can branch on
- * the success/failure case without a thrown exception in the hot path.
- */
-interface ResolvedCommandArgs {
-  args?: any;
-  exitCode?: ExitCodeEnum;
-}
 
 @tag(ServiceDefinitionTagEnum.EventHandler)
 @moduleScoped(CliModuleKeyname)
@@ -41,17 +26,14 @@ export class CliEventHandler implements EventHandlerInterface<any, any> {
   async handle(event: CommandEvent): Promise<CommandEventResponse> {
     const command = this.commands.find(c => c.name === event.payload.name);
     if (command === undefined) {
+      // Throws a UsageError (exit 64, `EX_USAGE`). The bin's `.catch` will route it
+      // through `CliErrorReporter.report` which prints a clean one-line stderr and
+      // exits with the right code — no `process.exit` in this method any longer.
       throw new CommandNotFoundError(event.payload.name);
     }
 
-    const resolution = await this.resolveArgs(command, event.payload.arguments ?? {});
-    if (resolution.exitCode !== undefined) {
-      // Mapping or validation failed. Already-rendered errors are on the console.
-      this.logExitStatus(event.payload.name, resolution.exitCode);
-      process.exit(resolution.exitCode);
-    }
-
-    const exitCode = await command.run(resolution.args);
+    const args = await this.resolveArgs(command, event.payload.arguments ?? {});
+    const exitCode = await command.run(args);
     this.logExitStatus(event.payload.name, exitCode);
     process.exit(exitCode);
   }
@@ -64,13 +46,13 @@ export class CliEventHandler implements EventHandlerInterface<any, any> {
    * args through unchanged — the legacy escape hatch for commands that want to handle
    * argv parsing themselves.
    *
-   * Mapping or validation failures print the underlying error to the console and return an
-   * `exitCode` so the caller can exit non-zero. Success returns the typed instance under
-   * `args`. The two are mutually exclusive — see `ResolvedCommandArgs`.
+   * Throws `UsageError` for mapping failures and `ValidationError` for class-validator
+   * failures. Both carry structured `details` so `CliErrorReporter` can render them as
+   * readable stderr lines without this method touching the console directly.
    */
-  async resolveArgs(command: CommandInterface<any>, rawArgs: any): Promise<ResolvedCommandArgs> {
+  async resolveArgs(command: CommandInterface<any>, rawArgs: any): Promise<any> {
     if (command.optionsType === null) {
-      return {args: rawArgs};
+      return rawArgs;
     }
 
     let mapped: any;
@@ -81,20 +63,27 @@ export class CliEventHandler implements EventHandlerInterface<any, any> {
       // class-validator to silently report no errors because it can't find decorator
       // metadata on a non-instance — exactly the bug this rewrite fixes.
       mapped = plainToInstance(command.optionsType, rawArgs);
-    } catch (error) {
-      this.consoleManager.writeError(
-        `Failed to map CLI arguments to '${command.optionsType.name}': ${(error as Error).message}`,
+    } catch (cause) {
+      throw new UsageError(
+        `Failed to map CLI arguments to '${command.optionsType.name}': ${(cause as Error).message}`,
+        {
+          code: "ARGUMENT_MAPPING_FAILED",
+          cause: cause as Error,
+          details: {targetType: command.optionsType.name},
+        },
       );
-      return {exitCode: ExitCodeEnum.Error};
     }
 
     const validationErrors = await this.validator.validate(mapped);
     if (validationErrors.length === 0) {
-      return {args: mapped};
+      return mapped;
     }
 
+    // Reshape the class-validator output into structured `details` the reporter can
+    // render line-by-line. Keeps the throw single-pass and the reporter format-agnostic.
+    const failures: Record<string, string[]> = {};
     for (const error of validationErrors) {
-      this.consoleManager.writeLine(`Errors with argument '${error.property}'. The following constraints failed:`);
+      const messages: string[] = [];
       for (const constraintKey in error.constraints) {
         // `@pristine-ts/class-validator` stores constraints as `{keyname, message}` objects
         // rather than the plain strings vanilla class-validator uses. Extract the message
@@ -106,18 +95,22 @@ export class CliEventHandler implements EventHandlerInterface<any, any> {
           : (constraint && typeof constraint === "object" && typeof (constraint as any).message === "string")
             ? (constraint as any).message
             : JSON.stringify(constraint);
-        this.consoleManager.writeLine(`\t- [${constraintKey}]: ${message}`);
+        messages.push(`[${constraintKey}] ${message}`);
       }
+      failures[error.property] = messages;
     }
-    return {exitCode: ExitCodeEnum.Error};
+    throw new ValidationError("Argument validation failed", {
+      code: "ARGUMENT_VALIDATION_FAILED",
+      details: failures,
+    });
   }
 
   supports(event: Event<any>): boolean {
     return event.payload instanceof CommandEventPayload;
   }
 
-  private logExitStatus(commandName: string, exitCode: ExitCodeEnum | number): void {
-    const status = exitCode === ExitCodeEnum.Success ? "Success" : "Error";
+  private logExitStatus(commandName: string, exitCode: ExitCode | number): void {
+    const status = exitCode === ExitCode.Success ? "Success" : "Error";
     this.consoleManager.writeLine(`[status:'${status}', code:'${exitCode}'] - Command '${commandName}' exited.`);
   }
 }

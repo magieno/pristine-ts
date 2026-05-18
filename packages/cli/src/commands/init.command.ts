@@ -1,10 +1,9 @@
 import fs from "fs";
 import path from "path";
-import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {moduleScoped, ServiceDefinitionTagEnum, tag, ExitCode} from "@pristine-ts/common";
 import {injectable} from "tsyringe";
 import {CommandInterface} from "../interfaces/command.interface";
 import {ConsoleManager} from "../managers/console.manager";
-import {ExitCodeEnum} from "../enums/exit-code.enum";
 import {CliModuleKeyname} from "../cli.module.keyname";
 import {InitCommandOptions} from "./init.command-options";
 import {InitAnswers, InitPrompt} from "../bootstrap/init-prompt";
@@ -41,7 +40,7 @@ export class InitCommand implements CommandInterface<InitCommandOptions> {
   ) {
   }
 
-  async run(args: InitCommandOptions): Promise<ExitCodeEnum | number> {
+  async run(args: InitCommandOptions): Promise<ExitCode | number> {
     const projectRoot = process.cwd();
     const configPath = path.resolve(projectRoot, this.configFileName);
 
@@ -49,13 +48,13 @@ export class InitCommand implements CommandInterface<InitCommandOptions> {
       this.consoleManager.writeError(
         `${this.configFileName} already exists at ${configPath}. Aborting to avoid overwriting.`,
       );
-      return ExitCodeEnum.Error;
+      return ExitCode.Error;
     }
 
     const answers = await this.gatherAnswers(args);
     if (answers === undefined) {
       // Already-rendered error for non-TTY missing flags. Bail.
-      return ExitCodeEnum.Error;
+      return ExitCode.Error;
     }
 
     fs.writeFileSync(configPath, this.renderConfigTemplate(answers), "utf8");
@@ -76,7 +75,7 @@ export class InitCommand implements CommandInterface<InitCommandOptions> {
     this.consoleManager.writeLine("  2. npm run build       # compile your AppModule");
     this.consoleManager.writeLine("  3. npm run start       # boot your app");
 
-    return ExitCodeEnum.Success;
+    return ExitCode.Success;
   }
 
   /**
@@ -223,7 +222,7 @@ export default defineConfig({
   }
 
   private renderAppModuleTemplate(): string {
-    return `import {AppModuleInterface} from "@pristine-ts/common";
+    return `import {AppModuleInterface, ExitCode} from "@pristine-ts/common";
 import {CoreModule} from "@pristine-ts/core";
 
 /**

@@ -1,11 +1,10 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
-import {ModuleInterface, moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {ModuleInterface, moduleScoped, ServiceDefinitionTagEnum, tag, ExitCode} from "@pristine-ts/common";
 import {injectable} from "tsyringe";
 import {CommandInterface} from "../interfaces/command.interface";
 import {ConsoleManager} from "../managers/console.manager";
-import {ExitCodeEnum} from "../enums/exit-code.enum";
 import {CliModuleKeyname} from "../cli.module.keyname";
 import {ConfigLoader} from "../config/config-loader";
 import {AppModuleLoader} from "../bootstrap/app-module-loader";
@@ -42,7 +41,7 @@ export class InfoCommand implements CommandInterface<null> {
   ) {
   }
 
-  async run(args: any): Promise<ExitCodeEnum | number> {
+  async run(args: any): Promise<ExitCode | number> {
     this.printRuntimeBanner();
     await this.printConfigSection();
     return this.printAppModuleSection();
@@ -70,7 +69,7 @@ export class InfoCommand implements CommandInterface<null> {
     this.consoleManager.writeLine("");
   }
 
-  private async printAppModuleSection(): Promise<ExitCodeEnum | number> {
+  private async printAppModuleSection(): Promise<ExitCode | number> {
     let modules: ModuleInterface[] = [];
     let pluginNames: string[] = [];
 
@@ -81,7 +80,7 @@ export class InfoCommand implements CommandInterface<null> {
       this.consoleManager.writeLine(`AppModule: ${loaded.appModule.keyname}`);
     } catch (error) {
       this.consoleManager.writeError(`Could not load AppModule: ${(error as Error).message}`);
-      return ExitCodeEnum.Error;
+      return ExitCode.Error;
     }
 
     if (pluginNames.length > 0) {
@@ -100,7 +99,7 @@ export class InfoCommand implements CommandInterface<null> {
       this.consoleManager.writeLine(`  - ${m.keyname}`);
     }
 
-    return ExitCodeEnum.Success;
+    return ExitCode.Success;
   }
 
   private readCliVersion(): string {

@@ -1,8 +1,8 @@
 import "reflect-metadata"
-import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {moduleScoped, ServiceDefinitionTagEnum, tag, ExitCode} from "@pristine-ts/common";
 import {HttpModuleKeyname} from "../http.module.keyname";
 import {injectable} from "tsyringe";
-import {CommandInterface, ConsoleManager, ExitCodeEnum} from "@pristine-ts/cli";
+import {CommandInterface, ConsoleManager} from "@pristine-ts/cli";
 import {FileHttpServer} from "../servers/file.http-server";
 import {FileServerCommandOptions} from "./file-server.command-options";
 
@@ -18,7 +18,7 @@ export class FileServerCommand implements CommandInterface<FileServerCommandOpti
     private readonly fileHttpServer: FileHttpServer) {
   }
 
-  async run(args: FileServerCommandOptions): Promise<ExitCodeEnum | number> {
+  async run(args: FileServerCommandOptions): Promise<ExitCode | number> {
     const defaultHeaders: { [key in string]: string } = {};
 
     if (Array.isArray(args.header)) {
@@ -38,6 +38,6 @@ export class FileServerCommand implements CommandInterface<FileServerCommandOpti
       },
       defaultHeaders);
 
-    return ExitCodeEnum.Success;
+    return ExitCode.Success;
   }
 }

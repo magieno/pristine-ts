@@ -6,6 +6,7 @@ import {QueryParametersDecoratorInterface} from "./interfaces/query-parameters-d
 import {PathRouterNode} from "./nodes/path-router.node";
 import {MethodRouterNode} from "./nodes/method-router.node";
 import {Router} from "./router";
+import {HttpErrorResponder} from "./responders/http-error.responder";
 import {Route} from "./models/route";
 import {ControllerMethodParameterDecoratorResolver} from "./resolvers/controller-method-parameter-decorator.resolver";
 import {BodyParameterDecoratorResolver} from "./resolvers/body-parameter-decorator.resolver";
@@ -171,7 +172,7 @@ describe("Router.spec", () => {
       authenticate(request: Request, routeContext: any, container): Promise<IdentityInterface | undefined> {
         return Promise.resolve(undefined);
       }
-    }, new RouterCache(activateCache), new RequestContextManager());
+    }, new RouterCache(activateCache), new RequestContextManager(), new HttpErrorResponder());
 
     router["root"] = root;
 

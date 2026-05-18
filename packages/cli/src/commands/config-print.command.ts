@@ -1,9 +1,8 @@
 import path from "path";
-import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {moduleScoped, ServiceDefinitionTagEnum, tag, ExitCode} from "@pristine-ts/common";
 import {injectable} from "tsyringe";
 import {CommandInterface} from "../interfaces/command.interface";
 import {ConsoleManager} from "../managers/console.manager";
-import {ExitCodeEnum} from "../enums/exit-code.enum";
 import {CliModuleKeyname} from "../cli.module.keyname";
 import {ConfigLoader} from "../config/config-loader";
 
@@ -26,7 +25,7 @@ export class ConfigPrintCommand implements CommandInterface<null> {
   ) {
   }
 
-  async run(args: any): Promise<ExitCodeEnum | number> {
+  async run(args: any): Promise<ExitCode | number> {
     const resolved = await this.configLoader.load({startDir: process.cwd()});
 
     if (resolved.configFilePath !== undefined) {
@@ -46,6 +45,6 @@ export class ConfigPrintCommand implements CommandInterface<null> {
       }
     }
 
-    return ExitCodeEnum.Success;
+    return ExitCode.Success;
   }
 }
