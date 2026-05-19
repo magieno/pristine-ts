@@ -16,16 +16,16 @@ export class TestController {
 
 /**
  * Post-2.0.0: the `ErrorResponseSanitizerRequestInterceptor` was deleted. Sanitization is
- * now the default behavior in `HttpErrorResponder` and is gated by the `pristine.mode`
- * configuration (`production` = sanitize, `development` = verbose). Both tests below pass
- * the mode explicitly via `kernel.start()`'s configuration override — same path any
- * consumer would use from `pristine.config.ts`. No `process.env` reads anywhere; the env
- * var route is exercised separately through `ProcessEnvResolver`'s resolver chain.
+ * now the default behavior in `HttpErrorResponder` and is gated by the `pristine.environment`
+ * configuration (`prod` = sanitize, `dev` = verbose). Both tests below pass the environment
+ * explicitly via `kernel.start()`'s configuration override — same path any consumer would
+ * use from `pristine.config.ts`. No `process.env` reads anywhere; the env var route is
+ * exercised separately through `EnvironmentVariableResolver`'s resolver chain.
  *
  * The throwing controller raises a raw `new Error("...")`. `PristineError.from` normalizes
  * it as `kind: SystemError`, which triggers production-mode sanitization.
  */
-describe("Networking - HttpErrorResponder mode-driven sanitization", () => {
+describe("Networking - HttpErrorResponder environment-driven sanitization", () => {
     beforeEach(() => {
         // Each test boots its own kernel — clear tsyringe's global instance pool so the
         // previous test's resolved config values don't leak into the next kernel's
@@ -33,7 +33,7 @@ describe("Networking - HttpErrorResponder mode-driven sanitization", () => {
         container.clearInstances();
     });
 
-    it("production mode replaces system-error messages with a generic line and omits the stack", async () => {
+    it("production environment replaces system-error messages with a generic line and omits the stack", async () => {
         const kernel = new Kernel();
         await kernel.start({
           keyname: "pristine.validation.test",
@@ -43,7 +43,7 @@ describe("Networking - HttpErrorResponder mode-driven sanitization", () => {
         }, {
             "pristine.logging.consoleLoggerActivated": false,
             "pristine.logging.fileLoggerActivated": false,
-            "pristine.mode": "production",
+            "pristine.environment": "prod",
         });
 
         const request = new Request(HttpMethod.Get, "/api/2.0/error", "uuid");
@@ -58,7 +58,7 @@ describe("Networking - HttpErrorResponder mode-driven sanitization", () => {
         expect(response.body.cause).toBeUndefined();
     });
 
-    it("development mode surfaces the original message, stack, and cause chain", async () => {
+    it("development environment surfaces the original message, stack, and cause chain", async () => {
         const kernel = new Kernel();
         await kernel.start({
           keyname: "pristine.validation.test",
@@ -68,7 +68,7 @@ describe("Networking - HttpErrorResponder mode-driven sanitization", () => {
         }, {
             "pristine.logging.consoleLoggerActivated": false,
             "pristine.logging.fileLoggerActivated": false,
-            "pristine.mode": "development",
+            "pristine.environment": "dev",
         });
 
         const request = new Request(HttpMethod.Get, "/api/2.0/error", "uuid");
@@ -76,7 +76,7 @@ describe("Networking - HttpErrorResponder mode-driven sanitization", () => {
 
         expect(response.status).toBe(500);
         expect(response.body).toBeDefined();
-        // Dev mode: original message and debugMessage both surface verbatim.
+        // Dev environment: original message and debugMessage both surface verbatim.
         expect(response.body.message).toBe("This is a test error");
         expect(response.body.debugMessage).toBe("This is a test error");
         expect(response.body.stack).toBeDefined();
