@@ -187,7 +187,7 @@ describe("Aws cognito authenticator", () => {
         expect(response.status).toBe(403);
         expect(response.body).toEqual(expect.objectContaining({
                 message: "You are not allowed to access this.",
-                name: "Error",
+                code: "FORBIDDEN",
         }))
     })
 });

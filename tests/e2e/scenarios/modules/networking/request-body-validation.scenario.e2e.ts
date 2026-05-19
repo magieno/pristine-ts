@@ -71,9 +71,14 @@ describe("Request Body Validation", () => {
 
         const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
 
-        expect(response.status).toBe(400)
+        // Post-2.0.0: body validation throws `ValidationError` (422 Unprocessable Entity)
+        // instead of the old `BadRequestHttpError` (400). The new shape is
+        // `{code, message, details: {errors: [...]}}` per `HttpErrorResponder`.
+        expect(response.status).toBe(422)
+        expect(response.body.code).toBe("VALIDATION_FAILED")
         expect(response.body.message).toBe("Validation error")
-        expect(response.body.errors).toBeDefined()
-        expect(response.body.errors.length).toBe(1)
+        expect(response.body.details).toBeDefined()
+        expect(response.body.details.errors).toBeDefined()
+        expect(response.body.details.errors.length).toBe(1)
     })
 });
