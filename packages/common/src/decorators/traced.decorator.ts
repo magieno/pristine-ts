@@ -1,4 +1,4 @@
-import {spanRunner} from "../utils/span-runner";
+import {SpanRunner} from "../utils/span-runner";
 
 /**
  * Method decorator that wraps the decorated method in a span. The span is automatically
@@ -56,7 +56,7 @@ export function traced(spanName?: string): MethodDecorator {
     const resolvedName = spanName ?? `${className}.${String(propertyKey)}`;
 
     descriptor.value = function (this: unknown, ...args: any[]) {
-      return spanRunner.runWithSpan(resolvedName, () => original.apply(this, args));
+      return SpanRunner.getInstance().runWithSpan(resolvedName, () => original.apply(this, args));
     };
 
     return descriptor;

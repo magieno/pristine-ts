@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {MethodRouterNode, RequestInterceptorInterface, RequestMapper} from "@pristine-ts/networking";
 import {HttpMethod, Request, Response, ServiceDefinitionTagEnum, tag,} from "@pristine-ts/common";
 import {ExecutionContextKeynameEnum, Kernel} from "@pristine-ts/core";

@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {LowercaseNormalizer, LowercaseNormalizerUniqueKey} from "../normalizers/lowercase.normalizer";
 import {DataMappingInterceptorInterface} from "../interfaces/data-mapping-interceptor.interface";
 import {DataMappingInterceptorUniqueKeyType} from "../types/data-mapping-interceptor-unique-key.type";

@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {HttpMethod, Request} from "@pristine-ts/common";
 import {CachedRouterRoute} from "./cached.router-route";
 

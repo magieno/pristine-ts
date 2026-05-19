@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {JwtManager} from "./jwt.manager";
 import {HttpMethod, Request} from "@pristine-ts/common";
 import {JWTKeys} from "../tests/jwt.keys";

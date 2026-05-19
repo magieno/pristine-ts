@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {FileManager} from "./file.manager";
 import {unlink} from "fs/promises";
 

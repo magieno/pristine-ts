@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import {SpanRunner, spanRunner} from "./span-runner";
+import {SpanRunner} from "./span-runner";
 import {Span} from "../models/span.model";
 import {TracingManagerInterface} from "../interfaces/tracing-manager.interface";
 
@@ -30,7 +30,7 @@ describe("SpanRunner.runWithSpan", () => {
   it("starts a span, runs the function, ends the span, and returns the result", async () => {
     const {tm, spans, ended} = buildStubTracingManager();
 
-    const result = await spanRunner.runWithSpan(tm, "my.operation", async () => "ok");
+    const result = await SpanRunner.getInstance().runWithSpan(tm, "my.operation", async () => "ok");
 
     expect(result).toBe("ok");
     expect(spans).toHaveLength(1);
@@ -41,7 +41,7 @@ describe("SpanRunner.runWithSpan", () => {
   it("works with synchronous functions too", async () => {
     const {tm, ended} = buildStubTracingManager();
 
-    const result = await spanRunner.runWithSpan(tm, "sync.op", () => 42);
+    const result = await SpanRunner.getInstance().runWithSpan(tm, "sync.op", () => 42);
 
     expect(result).toBe(42);
     expect(ended).toHaveLength(1);
@@ -51,7 +51,7 @@ describe("SpanRunner.runWithSpan", () => {
     const {tm, spans, ended} = buildStubTracingManager();
 
     await expect(
-      spanRunner.runWithSpan(tm, "throws", async () => { throw new Error("boom"); })
+      SpanRunner.getInstance().runWithSpan(tm, "throws", async () => { throw new Error("boom"); })
     ).rejects.toThrow("boom");
 
     expect(spans).toHaveLength(1);
@@ -69,7 +69,7 @@ describe("SpanRunner.runWithSpan", () => {
     }
 
     await expect(
-      spanRunner.runWithSpan(tm, "annotated", async () => { throw new CustomError("nope"); })
+      SpanRunner.getInstance().runWithSpan(tm, "annotated", async () => { throw new CustomError("nope"); })
     ).rejects.toThrow();
 
     expect(spans[0].context).toMatchObject({
@@ -83,7 +83,7 @@ describe("SpanRunner.runWithSpan", () => {
     const {tm, spans} = buildStubTracingManager();
 
     await expect(
-      spanRunner.runWithSpan(tm, "non-error-throw", async () => { throw "some string"; })
+      SpanRunner.getInstance().runWithSpan(tm, "non-error-throw", async () => { throw "some string"; })
     ).rejects.toBe("some string");
 
     expect(spans[0].context).toMatchObject({
@@ -96,7 +96,7 @@ describe("SpanRunner.runWithSpan", () => {
   it("forwards parent + context options to startSpan", async () => {
     const {tm} = buildStubTracingManager();
 
-    await spanRunner.runWithSpan(tm, "child", async () => "ok", {
+    await SpanRunner.getInstance().runWithSpan(tm, "child", async () => "ok", {
       parentKeyname: "outer",
       parentId: "parent-uuid",
       context: {userId: "abc"},
@@ -109,7 +109,7 @@ describe("SpanRunner.runWithSpan", () => {
     const {tm, spans} = buildStubTracingManager();
 
     await expect(
-      spanRunner.runWithSpan(tm, "preserve", async () => { throw new Error("boom"); }, {
+      SpanRunner.getInstance().runWithSpan(tm, "preserve", async () => { throw new Error("boom"); }, {
         context: {requestId: "req-1"},
       })
     ).rejects.toThrow();
@@ -127,7 +127,7 @@ describe("SpanRunner.runWithSpan", () => {
     const {tm: tm2} = buildStubTracingManager();
 
     const fresh = new SpanRunner();
-    const r1 = await spanRunner.runWithSpan(tm1, "via-singleton", () => "a");
+    const r1 = await SpanRunner.getInstance().runWithSpan(tm1, "via-singleton", () => "a");
     const r2 = await fresh.runWithSpan(tm2, "via-fresh", () => "b");
     expect(r1).toBe("a");
     expect(r2).toBe("b");
@@ -143,7 +143,7 @@ describe("SpanRunner.runWithSpan — ALS auto-resolve form", () => {
     ctx.eventId = "evt-als";
     ctx.container = containerStub;
 
-    const result = await ecm.run(ctx, () => spanRunner.runWithSpan("auto-resolved.op", async () => "ok"));
+    const result = await ecm.run(ctx, () => SpanRunner.getInstance().runWithSpan("auto-resolved.op", async () => "ok"));
 
     expect(result).toBe("ok");
     expect(containerStub.resolve).toHaveBeenCalledWith("TracingManagerInterface");
@@ -152,7 +152,7 @@ describe("SpanRunner.runWithSpan — ALS auto-resolve form", () => {
   });
 
   it("runs the function unchanged when no EventContext is active", async () => {
-    const result = await spanRunner.runWithSpan("no-context.op", () => 42);
+    const result = await SpanRunner.getInstance().runWithSpan("no-context.op", () => 42);
     expect(result).toBe(42);
     // No span created — and notably, no throw.
   });
@@ -164,7 +164,7 @@ describe("SpanRunner.runWithSpan — ALS auto-resolve form", () => {
     ctx.eventId = "evt-no-tm";
     ctx.container = containerStub;
 
-    const result = await ecm.run(ctx, () => spanRunner.runWithSpan("missing-tm.op", () => "value"));
+    const result = await ecm.run(ctx, () => SpanRunner.getInstance().runWithSpan("missing-tm.op", () => "value"));
     expect(result).toBe("value");
   });
 
@@ -176,7 +176,7 @@ describe("SpanRunner.runWithSpan — ALS auto-resolve form", () => {
     ctx.eventId = "evt-opts";
     ctx.container = containerStub;
 
-    await ecm.run(ctx, () => spanRunner.runWithSpan<void>("child", async (): Promise<void> => undefined, {
+    await ecm.run(ctx, () => SpanRunner.getInstance().runWithSpan<void>("child", async (): Promise<void> => undefined, {
       parentKeyname: "outer",
       context: {tenant: "acme"},
     }));

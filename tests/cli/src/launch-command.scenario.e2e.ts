@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {exec, ExecOptions} from "child_process";
 import fs from "fs";
 import path from "path";

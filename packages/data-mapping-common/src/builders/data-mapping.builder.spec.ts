@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {DataMappingBuilder} from "./data-mapping.builder";
 import {LowercaseNormalizer} from "../normalizers/lowercase.normalizer";
 import {DataMappingNodeTypeEnum} from "../enums/data-mapping-node-type.enum";

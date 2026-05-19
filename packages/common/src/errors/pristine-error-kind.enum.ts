@@ -11,7 +11,7 @@
  * - `SystemError`: framework or downstream bug — not the caller's fault. In production
  *   mode the message is replaced with a generic "Internal Server Error" / "Internal Error"
  *   so internal details never leak to clients. Stack and cause chain are still logged
- *   internally via the LogHandler for operators. In development mode (`PRISTINE_MODE=development`)
+ *   internally via the LogHandler for operators. In development mode (`PRISTINE_ENV=dev`)
  *   the full message surfaces.
  *
  * Default is `UserError` — most thrown errors in framework and application code are caller-

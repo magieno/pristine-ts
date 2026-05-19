@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {controller, NetworkingModule, route} from "@pristine-ts/networking";
 import {HttpMethod, Request, Response} from "@pristine-ts/common";
 import {ValidationModule} from "@pristine-ts/validation";

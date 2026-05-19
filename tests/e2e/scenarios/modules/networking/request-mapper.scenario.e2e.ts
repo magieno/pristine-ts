@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {controller, NetworkingModule, RequestMapper, responseHeader, route} from "@pristine-ts/networking";
 import {AppModuleInterface, HttpMethod, Request, Response, ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {

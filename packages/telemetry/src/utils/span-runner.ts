@@ -1,1 +1,2 @@
-export {SpanRunner, SpanRunnerOptions, spanRunner} from "@pristine-ts/common";
+export {SpanRunner} from "@pristine-ts/common";
+export {SpanRunnerOptions} from "@pristine-ts/common";

@@ -1,17 +1,6 @@
 import {EventContextManager} from "../managers/event-context.manager";
 import {TracingManagerInterface} from "../interfaces/tracing-manager.interface";
-
-/**
- * Options to scope a `runWithSpan` call beyond just naming the span.
- */
-export interface SpanRunnerOptions {
-  /** When set, attach the new span as a child of the most recent span with this keyname. */
-  parentKeyname?: string;
-  /** Disambiguates parents when multiple spans share the same `parentKeyname`. */
-  parentId?: string;
-  /** Free-form context recorded on the span and surfaced in the rendered output. */
-  context?: { [key: string]: string };
-}
+import {SpanRunnerOptions} from "./span-runner-options.interface";
 
 /**
  * Runs a function inside a span that is automatically ended when the function returns
@@ -24,7 +13,7 @@ export interface SpanRunnerOptions {
  * you have a `TracingManager` reference in hand:
  *
  * ```ts
- * return spanRunner.runWithSpan(this.tracingManager, "payment.charge",
+ * return SpanRunner.getInstance().runWithSpan(this.tracingManager, "payment.charge",
  *   () => this.client.charge(amount));
  * ```
  *
@@ -34,7 +23,7 @@ export interface SpanRunnerOptions {
  * through:
  *
  * ```ts
- * return spanRunner.runWithSpan("payment.charge", () => this.client.charge(amount));
+ * return SpanRunner.getInstance().runWithSpan("payment.charge", () => this.client.charge(amount));
  * ```
  *
  * If the ALS form is used outside any `EventContext` (e.g. a unit test that doesn't
@@ -44,9 +33,24 @@ export interface SpanRunnerOptions {
  * On thrown errors: the error's name/message is attached to the span's context (visible
  * in the rendered tree/JSON output) and then re-thrown. The span is ended either way.
  *
- * Stateless — instantiate once and reuse, or use the exported singleton `spanRunner`.
+ * **Stateless.** Use `SpanRunner.getInstance()` for the shared default instance, or
+ * `new SpanRunner()` if you want your own — both are equivalent.
  */
 export class SpanRunner {
+  /**
+   * Lazy-created shared instance. The class is stateless, so a single instance is safe
+   * to reuse across the whole process. `@traced` and other framework call sites use
+   * this to avoid allocating a new runner per invocation.
+   */
+  private static defaultInstance?: SpanRunner;
+
+  /**
+   * Returns the shared default instance. Lazy-instantiated on first use.
+   */
+  static getInstance(): SpanRunner {
+    return (SpanRunner.defaultInstance ??= new SpanRunner());
+  }
+
   // Overload 1: explicit manager.
   runWithSpan<T>(
     tracingManager: TracingManagerInterface,
@@ -141,8 +145,3 @@ export class SpanRunner {
     }
   }
 }
-
-/**
- * Default singleton. Stateless so sharing is safe.
- */
-export const spanRunner = new SpanRunner();

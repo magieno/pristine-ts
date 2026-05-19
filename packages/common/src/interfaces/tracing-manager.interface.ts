@@ -5,7 +5,7 @@ import {Trace} from "../models/trace.model";
  * This interface specifies what a tracing manager should implement.
  *
  * Lives in `@pristine-ts/common` so any package can declare a `TracingManagerInterface`
- * dependency or use the `@traced` decorator / `spanRunner` helper without taking a
+ * dependency or use the `@traced` decorator / `SpanRunner` helper without taking a
  * direct dep on `@pristine-ts/telemetry`. The concrete implementation
  * (`TracingManager`, plus the tracers that consume traces) still lives in telemetry.
  */

@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {DataMappingLeaf} from "./data-mapping.leaf";
 import {DataMappingBuilder} from "../builders/data-mapping.builder";
 import {LowercaseNormalizer} from "../normalizers/lowercase.normalizer";

@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {DateUtil} from "./date.util";
 
 describe("DateUtil", () => {

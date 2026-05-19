@@ -1,11 +1,10 @@
 import {injectable} from "tsyringe";
 import {
   ExitCode,
-  getPristineMode,
   PristineError,
   PristineErrorKind,
-  PristineMode,
 } from "@pristine-ts/common";
+import {EnvironmentManager, PristineEnvironment} from "@pristine-ts/core";
 
 /**
  * Renders any thrown value to stderr and returns an appropriate process exit code.
@@ -16,26 +15,39 @@ import {
  * `Internal Error` for `SystemError`s (raw `Error`s, third-party throws). No stack
  * trace, no cause chain.
  *
- * **Development mode** (`PRISTINE_MODE=development`): full message even for system errors,
- * structured details printed below, stack trace and cause chain appended at the end.
- * Useful when debugging locally.
+ * **Development mode** (`pristine.environment = dev`, env override
+ * `PRISTINE_ENV=dev`): full message even for system errors, structured details
+ * printed below, stack trace and cause chain appended at the end. Useful when debugging
+ * locally.
  *
  * Exit code selection: `error.options.exitCode` wins when present. Otherwise:
  * `ExitCode.Error` (1) for user errors, `ExitCode.Software` (70) for system errors —
  * both follow `sysexits.h` conventions.
+ *
+ * **Environment source**: `EnvironmentManager` is injected, not read from `process.env`
+ * directly. For the bin script's pre-DI fallback (kernel-boot failures), `bootstrap()`
+ * builds the manager from the configuration that `AppModuleLoader.load()` produced — same
+ * `pristine.environment` value that would have reached DI if the kernel had started. No
+ * code path reads `process.env` directly; env-var input enters exclusively through the
+ * `EnvironmentVariableResolver` registered on `CoreModule`'s configuration definitions.
  *
  * **Crash-isolated**: every stderr write is wrapped — if stderr is closed/broken, we
  * still return an exit code rather than throwing back into the bin's catch handler.
  */
 @injectable()
 export class CliErrorReporter {
+  public constructor(
+    private readonly environmentManager: EnvironmentManager,
+  ) {
+  }
+
   /**
    * Writes the error to stderr and returns the exit code the caller should pass to
    * `process.exit`. The bin script wraps `bootstrap().catch(err => process.exit(reporter.report(err)))`.
    */
   report(error: unknown): number {
     const e = PristineError.from(error);
-    const isDev = getPristineMode() === PristineMode.Development;
+    const isDev = this.environmentManager.getEnvironment() === PristineEnvironment.Development;
     const isUserError = e.options.kind !== PristineErrorKind.SystemError;
 
     // Headline: in production, system errors get a generic message so we don't dump
@@ -95,10 +107,3 @@ export class CliErrorReporter {
     }
   }
 }
-
-/**
- * Shared instance for the bin script — which can't go through DI because the kernel may
- * not be up yet when an error fires (kernel-boot failures). The class is stateless so
- * sharing is safe.
- */
-export const cliErrorReporter = new CliErrorReporter();

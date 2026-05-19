@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {UrlUtils} from "./url.utils";
 
 describe("URL Utils", () => {

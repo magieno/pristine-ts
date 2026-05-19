@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {column} from "../decorators/column.decorator";
 import {table} from "../decorators/table.decorator";
 import {snakeCaseColumnStrategy} from "../strategies/snake-case-column.strategy";

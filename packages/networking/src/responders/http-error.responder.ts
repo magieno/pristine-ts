@@ -1,12 +1,11 @@
 import {injectable} from "tsyringe";
 import {
-  getPristineMode,
   PristineError,
   PristineErrorCode,
   PristineErrorKind,
-  PristineMode,
   Response,
 } from "@pristine-ts/common";
+import {EnvironmentManager, PristineEnvironment} from "@pristine-ts/core";
 
 /**
  * Converts any thrown value into an HTTP `Response`. Single chokepoint that the Router
@@ -18,24 +17,32 @@ import {
  * no internal message. `UserError`s (validation, auth, etc.) surface their code, message,
  * and `details` — those are safe by definition.
  *
- * **Development mode** (`PRISTINE_MODE=development`): everything is included — message,
- * stack, cause chain, structured details. Useful when debugging locally; never appropriate
- * for a deployed instance.
+ * **Development mode** (`pristine.environment = dev`, env override `PRISTINE_ENV=dev`):
+ * everything is included — message, stack, cause chain, structured details. Useful when
+ * debugging locally; never appropriate for a deployed instance.
  *
  * Anything that's not already a `PristineError` is normalized via `PristineError.from`,
  * which marks it `kind: PristineErrorKind.SystemError` and propagates the original via
  * the `cause` chain.
+ *
+ * The environment comes from `EnvironmentManager` — injected, not read from `process.env`
+ * directly — so the value flows through the normal configuration graph and can be
+ * overridden via `pristine.config.ts` like every other framework setting.
  */
 @injectable()
 export class HttpErrorResponder {
+  public constructor(
+    private readonly environmentManager: EnvironmentManager,
+  ) {
+  }
+
   /**
    * Build the response body for `error`. Returns a plain object — the caller assigns it
    * to a `Response` (the actual response object varies by router internals).
    */
   buildBody(error: unknown): {status: number; body: Record<string, unknown>} {
     const e = PristineError.from(error);
-    const mode = getPristineMode();
-    const isDev = mode === PristineMode.Development;
+    const isDev = this.environmentManager.getEnvironment() === PristineEnvironment.Development;
     const isUserError = e.options.kind !== PristineErrorKind.SystemError;
 
     const status = e.options.httpStatus ?? 500;

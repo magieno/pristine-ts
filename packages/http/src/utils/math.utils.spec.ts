@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {MathUtils} from "./math.utils";
 
 describe("Math Utils", () => {

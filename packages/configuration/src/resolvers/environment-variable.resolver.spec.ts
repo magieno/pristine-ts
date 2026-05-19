@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {EnvironmentVariableResolver} from "./environment-variable.resolver";
 
 describe("Environment Variable Resolver", () => {

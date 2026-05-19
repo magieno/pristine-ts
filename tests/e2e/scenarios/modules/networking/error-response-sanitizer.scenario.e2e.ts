@@ -1,5 +1,6 @@
+import "reflect-metadata";
 import {HttpMethod, Request, Response} from "@pristine-ts/common";
-import {injectable} from "tsyringe";
+import {container, injectable} from "tsyringe";
 import {controller, NetworkingModule, route} from "@pristine-ts/networking";
 import {ValidationModule} from "@pristine-ts/validation";
 import {CoreModule, ExecutionContextKeynameEnum, Kernel} from "@pristine-ts/core";
@@ -15,28 +16,24 @@ export class TestController {
 
 /**
  * Post-2.0.0: the `ErrorResponseSanitizerRequestInterceptor` was deleted. Sanitization is
- * now the default behavior in `HttpErrorResponder` and is gated by the global `PRISTINE_MODE`
- * env var (`production` = sanitize, `development` = verbose). This spec verifies the
- * production vs development rendering paths.
+ * now the default behavior in `HttpErrorResponder` and is gated by the `pristine.mode`
+ * configuration (`production` = sanitize, `development` = verbose). Both tests below pass
+ * the mode explicitly via `kernel.start()`'s configuration override — same path any
+ * consumer would use from `pristine.config.ts`. No `process.env` reads anywhere; the env
+ * var route is exercised separately through `ProcessEnvResolver`'s resolver chain.
  *
  * The throwing controller raises a raw `new Error("...")`. `PristineError.from` normalizes
  * it as `kind: SystemError`, which triggers production-mode sanitization.
  */
 describe("Networking - HttpErrorResponder mode-driven sanitization", () => {
-    const originalMode = process.env.PRISTINE_MODE;
-
-    afterEach(() => {
-        // Restore the env var after each test so the suite stays isolated.
-        if (originalMode === undefined) {
-            delete process.env.PRISTINE_MODE;
-        } else {
-            process.env.PRISTINE_MODE = originalMode;
-        }
+    beforeEach(() => {
+        // Each test boots its own kernel — clear tsyringe's global instance pool so the
+        // previous test's resolved config values don't leak into the next kernel's
+        // container resolution path.
+        container.clearInstances();
     });
 
-    it("production mode (default) replaces system-error messages with a generic line and omits the stack", async () => {
-        delete process.env.PRISTINE_MODE;   // explicit: defaults to production
-
+    it("production mode replaces system-error messages with a generic line and omits the stack", async () => {
         const kernel = new Kernel();
         await kernel.start({
           keyname: "pristine.validation.test",
@@ -46,6 +43,7 @@ describe("Networking - HttpErrorResponder mode-driven sanitization", () => {
         }, {
             "pristine.logging.consoleLoggerActivated": false,
             "pristine.logging.fileLoggerActivated": false,
+            "pristine.mode": "production",
         });
 
         const request = new Request(HttpMethod.Get, "/api/2.0/error", "uuid");
@@ -61,8 +59,6 @@ describe("Networking - HttpErrorResponder mode-driven sanitization", () => {
     });
 
     it("development mode surfaces the original message, stack, and cause chain", async () => {
-        process.env.PRISTINE_MODE = "development";
-
         const kernel = new Kernel();
         await kernel.start({
           keyname: "pristine.validation.test",
@@ -72,6 +68,7 @@ describe("Networking - HttpErrorResponder mode-driven sanitization", () => {
         }, {
             "pristine.logging.consoleLoggerActivated": false,
             "pristine.logging.fileLoggerActivated": false,
+            "pristine.mode": "development",
         });
 
         const request = new Request(HttpMethod.Get, "/api/2.0/error", "uuid");
