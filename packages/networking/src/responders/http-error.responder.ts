@@ -28,6 +28,10 @@ import {EnvironmentManager, PristineEnvironment} from "@pristine-ts/core";
  * The environment comes from `EnvironmentManager` — injected, not read from `process.env`
  * directly — so the value flows through the normal configuration graph and can be
  * overridden via `pristine.config.ts` like every other framework setting.
+ *
+ * **`request` is not set on the returned Response** — the responder doesn't know which
+ * inbound request triggered the error. The router assigns `response.request` itself
+ * after calling `respond()`.
  */
 @injectable()
 export class HttpErrorResponder {
@@ -37,10 +41,10 @@ export class HttpErrorResponder {
   }
 
   /**
-   * Build the response body for `error`. Returns a plain object — the caller assigns it
-   * to a `Response` (the actual response object varies by router internals).
+   * Turns any thrown value into a `Response` with status and body populated. The caller
+   * assigns `response.request` and layers any error-response interceptors on top.
    */
-  buildBody(error: unknown): {status: number; body: Record<string, unknown>} {
+  respond(error: unknown): Response {
     const e = PristineError.from(error);
     const isDev = this.environmentManager.getEnvironment() === PristineEnvironment.Development;
     const isUserError = e.options.kind !== PristineErrorKind.SystemError;
@@ -74,7 +78,10 @@ export class HttpErrorResponder {
       if (causeChain.length > 0) body.cause = causeChain;
     }
 
-    return {status, body};
+    const response = new Response();
+    response.status = status;
+    response.body = body;
+    return response;
   }
 
   /**

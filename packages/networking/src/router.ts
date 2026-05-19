@@ -633,13 +633,11 @@ export class Router implements RouterInterface {
       methodNode,
     })
 
-    // Single chokepoint for "thrown value → HTTP response body". Production mode
-    // (default) sanitizes internal errors and never leaks stacks; development mode
-    // surfaces everything. See `HttpErrorResponder` for the contract.
-    let interceptedResponse = new Response();
-    const {status, body} = this.httpErrorResponder.buildBody(error);
-    interceptedResponse.status = status;
-    interceptedResponse.body = body;
+    // Single chokepoint for "thrown value → HTTP response". Production mode (default)
+    // sanitizes internal errors and never leaks stacks; development mode surfaces
+    // everything. See `HttpErrorResponder` for the contract. The responder doesn't know
+    // about the inbound request — we set it here before any interceptor sees the response.
+    let interceptedResponse = this.httpErrorResponder.respond(error);
     interceptedResponse.request = request;
 
     // Check first if there are any Request interceptors
