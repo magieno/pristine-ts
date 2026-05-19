@@ -1,4 +1,5 @@
 import {PristineError, PristineErrorKind} from "@pristine-ts/common";
+import {AwsErrorCode} from "./aws-error-code.enum";
 
 /**
  * This Error represents an error when trying to send a message to Sqs
@@ -12,7 +13,7 @@ export class EventBridgeSendMessageError extends PristineError {
   public constructor(originalError?: Error,
   ) {
     super("There was an error sending a message to Event Bridge", {
-      code: "EVENT_BRIDGE_SEND_FAILED",
+      code: AwsErrorCode.EventBridgeSendFailed,
       kind: PristineErrorKind.SystemError,
       cause: originalError,
     });

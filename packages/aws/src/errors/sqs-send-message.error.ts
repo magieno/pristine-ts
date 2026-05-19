@@ -1,4 +1,5 @@
 import {PristineError, PristineErrorKind} from "@pristine-ts/common";
+import {AwsErrorCode} from "./aws-error-code.enum";
 
 /**
  * This Error represents an error when trying to send a message to Sqs
@@ -20,7 +21,7 @@ export class SqsSendMessageError extends PristineError {
                      delaySeconds?: number,
   ) {
     super("There was an error sending a message to SQS", {
-      code: "SQS_SEND_FAILED",
+      code: AwsErrorCode.SqsSendFailed,
       kind: PristineErrorKind.SystemError,
       cause: originalError,
       details: {queueUrl, body, messageGroupId, delaySeconds},

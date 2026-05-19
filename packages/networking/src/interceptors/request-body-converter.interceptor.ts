@@ -5,6 +5,7 @@ import {BadRequestError, injectConfig, moduleScoped, Request, ServiceDefinitionT
 import {NetworkingModuleKeyname} from "../networking.module.keyname";
 import {RequestInterceptorInterface} from "../interfaces/request-interceptor.interface";
 import {RequestInterceptorPriorityEnum} from "../enums/request-interceptor-priority.enum";
+import {NetworkingErrorCode} from "../errors/networking-error-code.enum";
 
 /**
  * The Request Body Converter Interceptor intercepts the request and parses the body based on the Content-tTpe header.
@@ -55,7 +56,7 @@ export class RequestBodyConverterInterceptor implements RequestInterceptorInterf
               const errorMessage = "RequestBodyConverterInterceptor: This request has the Content-Type header 'application/json' but the body is a Date object which is invalid JSON.";
               this.logHandler.error(errorMessage);
 
-              throw new BadRequestError(errorMessage, {code: "INVALID_BODY"});
+              throw new BadRequestError(errorMessage, {code: NetworkingErrorCode.InvalidBody});
             }
             return request;
 
@@ -68,7 +69,7 @@ export class RequestBodyConverterInterceptor implements RequestInterceptorInterf
               const errorMessage = "RequestBodyConverterInterceptor: This request has the Content-Type header 'application/json', and the body is of type string, but the body contains invalid JSON.";
               this.logHandler.error(errorMessage);
 
-              throw new BadRequestError(errorMessage, {code: "INVALID_BODY"});
+              throw new BadRequestError(errorMessage, {code: NetworkingErrorCode.InvalidBody});
             }
             break;
 
@@ -76,7 +77,7 @@ export class RequestBodyConverterInterceptor implements RequestInterceptorInterf
             const errorMessage = "RequestBodyConverterInterceptor: This request has the Content-Type header 'application/json' but the body contains invalid JSON.";
             this.logHandler.error(errorMessage);
 
-            throw new BadRequestError(errorMessage, {code: "INVALID_BODY"});
+            throw new BadRequestError(errorMessage, {code: NetworkingErrorCode.InvalidBody});
         }
 
 

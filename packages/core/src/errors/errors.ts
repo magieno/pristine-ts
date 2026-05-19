@@ -1,3 +1,4 @@
+export * from "./core-error-code.enum";
 export * from "./event-dispatcher-no-event-handlers.error";
 export * from "./kernel-initialization.error";
 export * from "./path-already-contains-filename.error";

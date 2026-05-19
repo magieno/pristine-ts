@@ -5,6 +5,7 @@ import {CommandEvent} from "../types/command-event.type";
 import {CommandEventResponse} from "../types/command-event-response.type";
 import {CommandInterface} from "../interfaces/command.interface";
 import {moduleScoped, ServiceDefinitionTagEnum, tag, UsageError, ValidationError, ExitCode} from "@pristine-ts/common";
+import {CliErrorCode} from "../errors/cli-error-code.enum";
 import {CommandNotFoundError} from "../errors/command-not-found.error";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {Validator} from "@pristine-ts/class-validator";
@@ -67,7 +68,7 @@ export class CliEventHandler implements EventHandlerInterface<any, any> {
       throw new UsageError(
         `Failed to map CLI arguments to '${command.optionsType.name}': ${(cause as Error).message}`,
         {
-          code: "ARGUMENT_MAPPING_FAILED",
+          code: CliErrorCode.ArgumentMappingFailed,
           cause: cause as Error,
           details: {targetType: command.optionsType.name},
         },
@@ -100,7 +101,7 @@ export class CliEventHandler implements EventHandlerInterface<any, any> {
       failures[error.property] = messages;
     }
     throw new ValidationError("Argument validation failed", {
-      code: "ARGUMENT_VALIDATION_FAILED",
+      code: CliErrorCode.ArgumentValidationFailed,
       details: failures,
     });
   }

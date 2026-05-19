@@ -1,4 +1,5 @@
 import {UsageError} from "@pristine-ts/common";
+import {CliErrorCode} from "./cli-error-code.enum";
 
 /**
  * Thrown when the user invokes a CLI command name that isn't registered with the kernel.
@@ -15,7 +16,7 @@ export class CommandNotFoundError extends UsageError {
     super(
       `There is no command found for name: '${commandName}'. Use the 'list' command to see the commands already registered.`,
       {
-        code: "COMMAND_NOT_FOUND",
+        code: CliErrorCode.CommandNotFound,
         details: {commandName},
       },
     );

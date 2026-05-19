@@ -1,5 +1,6 @@
 import {PristineError, PristineErrorKind} from "@pristine-ts/common";
 import {EmailModel} from "../models/email.model";
+import {AwsErrorCode} from "./aws-error-code.enum";
 
 /**
  * This Error represents an error when trying to send a message to Sqs
@@ -15,7 +16,7 @@ export class SesSendError extends PristineError {
                      email?: EmailModel,
   ) {
     super("There was an error sending an email to SES", {
-      code: "SES_SEND_FAILED",
+      code: AwsErrorCode.SesSendFailed,
       kind: PristineErrorKind.SystemError,
       cause: originalError,
       details: {email},
