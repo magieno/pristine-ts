@@ -2,8 +2,9 @@ import {inject, injectable, injectAll} from "tsyringe";
 import {VoterInterface} from "../interfaces/voter.interface";
 import {VotingStrategyEnum} from "../enums/voting-strategy.enum";
 import {VoteEnum} from "../enums/vote.enum";
-import {IdentityInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
+import {IdentityInterface, ServiceDefinitionTagEnum, traced} from "@pristine-ts/common";
 import {LogHandlerInterface} from "@pristine-ts/logging";
+import {TracingManagerInterface} from "@pristine-ts/telemetry";
 
 /**
  * The permission manager verifies if the correct permission are there to access and take an action on a resource.
@@ -16,20 +17,27 @@ export class PermissionManager {
    * @param voters The voters that determine if access is granted.
    * All services with the tag ServiceDefinitionTagEnum.Voter will be injected here
    * @param logHandler The log handler to output logs.
+   * @param tracingManager The tracing manager used to attach markers for the voting decisions.
    */
   public constructor(@injectAll(ServiceDefinitionTagEnum.Voter) private readonly voters: VoterInterface[],
-                     @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface) {
+                     @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
+                     @inject("TracingManagerInterface") private readonly tracingManager: TracingManagerInterface) {
   }
 
   /**
-   * Returns whether or not the permission manager grants access to the resource.
+   * Returns whether or not the permission manager grants access to the resource. Drops one
+   * marker per voter (`permission.voter-vote` with `{voter, vote}`) so the trace shows which
+   * voter swung the decision. `@traced()` puts the whole call in its own span so the
+   * voting work is visible in the trace tree alongside auth/authz.
    * @param identity The identity trying to have access to a resource.
    * @param action The action trying to be executed on the resource.
    * @param resource The resource being accessed.
    * @param votingStrategy The voting strategy that defines how to merge the votes. Default is DenyOnUnanimousAbstention.
    */
+  @traced()
   async hasAccessToResource(identity: IdentityInterface, action: string, resource: object, votingStrategy: VotingStrategyEnum = VotingStrategyEnum.DenyOnUnanimousAbstention): Promise<boolean> {
     if (this.voters.length === 0) {
+      this.tracingManager.addMarkerToCurrentSpan("permission.no-voters");
       this.logHandler.warning("PermissionManager: No voters were found, this could lead to unexpected behavior. Make sure that you have registered voters in your application.", {
         highlights: {
           identityId: identity?.id ?? "No Identity Id found",
@@ -66,6 +74,10 @@ export class PermissionManager {
 
       try {
         const vote = await voter.vote(identity, action, resource);
+        this.tracingManager.addMarkerToCurrentSpan("permission.voter-vote", {
+          voter: voter.constructor.name,
+          vote: String(vote),
+        });
         const message = "PermissionManager: Voter " + voter.constructor.name + " voted: " + vote;
 
         if (vote === VoteEnum.Deny) { // When it's being denied, it usually mean that something is important to be noticed.
@@ -102,6 +114,11 @@ export class PermissionManager {
 
         votes.push(vote);
       } catch (error: any) {
+        this.tracingManager.addMarkerToCurrentSpan("permission.voter-vote", {
+          voter: voter.constructor.name,
+          vote: "error",
+          errorMessage: error?.message ?? "Unknown error",
+        });
         this.logHandler.error("PermissionManager: Error while voting, please check the logs for more details.", {
           highlights: {
             errorMessage: error.message ?? "Unknown error",
