@@ -45,7 +45,7 @@ export class EventPipeline {
     // the same active trace as the kernel did when it called startTracing(). Without
     // this, the kernel writes the trace to its root-container TracingManager's
     // `this.trace` fallback, but per-event code reads from EventContext.trace and
-    // finds nothing — addEventToCurrentSpan would warn "outside any active trace."
+    // finds nothing — addMarkerToCurrentSpan would warn "outside any active trace."
     ctx.trace = this.tracingManager.trace;
     return this.eventContextManager.run(ctx, fn);
   }

@@ -28,7 +28,7 @@ export class EventContext {
   /** The active `Trace` for this event. Single source of truth: every `TracingManager`
    *  instance — whether resolved from the root container, a per-event child container,
    *  or anywhere else — reads and writes spans through this reference. This is what
-   *  lets `addEventToCurrentSpan` from a controller find the same trace started in the
+   *  lets `addMarkerToCurrentSpan` from a controller find the same trace started in the
    *  kernel, even though the TracingManager instances differ across containers. */
   trace?: Trace;
 

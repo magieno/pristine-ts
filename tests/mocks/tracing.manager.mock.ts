@@ -26,11 +26,11 @@ export class TracingManagerMock implements TracingManagerInterface {
         return new Span("");
     }
 
-    addEventToCurrentSpan(message: string, attributes?: { [p: string]: string }): void {
+    addMarkerToCurrentSpan(message: string, attributes?: { [p: string]: string }): void {
     }
 
     getCurrentTrail(): Array<{
-        kind: "span" | "event";
+        kind: "span" | "marker";
         name: string;
         date: Date;
         attributes: { [key: string]: string };

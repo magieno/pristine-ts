@@ -8,7 +8,7 @@ import {SpanKeynameEnum} from "../enums/span-keyname.enum";
 import {TelemetryModuleKeyname} from "../telemetry.module.keyname";
 import {TracerInterface} from "../interfaces/tracer.interface";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import {SpanEvent} from "../models/span-event.model";
+import {SpanMarker} from "../models/span-marker.model";
 
 /**
  * The Tracing Manager provides methods to help with tracing.
@@ -350,7 +350,7 @@ export class TracingManager implements TracingManagerInterface {
   }
 
   /**
-   * Attaches a named, timestamped event to the most-recently-started in-progress span.
+   * Attaches a named, timestamped marker to the most-recently-started in-progress span.
    * Use for noteworthy moments that don't warrant a child span — "validation passed",
    * "found 50 rows", "rate limit ok". Cheap (just pushes onto an array); shows up in
    * the trace rendered by tracers (ConsoleTracer, FileTracer, X-Ray, etc.).
@@ -360,26 +360,26 @@ export class TracingManager implements TracingManagerInterface {
    * that "this marker call had nowhere to go" — usually the sign of a missing
    * `startTracing()` call earlier in the flow.
    */
-  public addEventToCurrentSpan(message: string, attributes?: { [key: string]: string }): void {
+  public addMarkerToCurrentSpan(message: string, attributes?: { [key: string]: string }): void {
     const target = this.findActiveLeafSpan();
     if (target === undefined) {
       this.loghandler.warning(
-        "TracingManager.addEventToCurrentSpan called outside any active trace; marker dropped.",
+        "TracingManager.addMarkerToCurrentSpan called outside any active trace; marker dropped.",
         {extra: {message, attributes}},
       );
       return;
     }
-    target.events.push(new SpanEvent(message, attributes));
+    target.markers.push(new SpanMarker(message, attributes));
   }
 
   /**
-   * Returns the active trace's spans + their events as a flat, timestamp-sorted list of
+   * Returns the active trace's spans + their markers as a flat, timestamp-sorted list of
    * `{kind, name, date, attributes}` entries. Public utility for custom tracers, debug
    * endpoints, test helpers, or anyone who wants "the active trace as a flat list."
    * Returns an empty array when no active trace exists.
    */
   public getCurrentTrail(): Array<{
-    kind: "span" | "event";
+    kind: "span" | "marker";
     name: string;
     date: Date;
     attributes: { [key: string]: string };
@@ -387,7 +387,7 @@ export class TracingManager implements TracingManagerInterface {
     const trace = this.getActiveTrace();
     if (trace?.rootSpan === undefined) return [];
 
-    const out: Array<{ kind: "span" | "event"; name: string; date: Date; attributes: { [key: string]: string } }> = [];
+    const out: Array<{ kind: "span" | "marker"; name: string; date: Date; attributes: { [key: string]: string } }> = [];
 
     const walk = (span: Span): void => {
       const suffix = span.inProgress ? " (active)" : "";
@@ -401,14 +401,14 @@ export class TracingManager implements TracingManagerInterface {
         },
       });
 
-      for (const event of span.events) {
+      for (const marker of span.markers) {
         out.push({
-          kind: "event",
-          name: event.message,
-          date: new Date(event.timestamp),
+          kind: "marker",
+          name: marker.message,
+          date: new Date(marker.timestamp),
           attributes: {
             spanKeyname: span.keyname,
-            ...(event.attributes ?? {}),
+            ...(marker.attributes ?? {}),
           },
         });
       }
@@ -425,7 +425,7 @@ export class TracingManager implements TracingManagerInterface {
 
   /**
    * Finds the deepest in-progress span — the leaf of the still-open subtree. Used as
-   * the target for `addEventToCurrentSpan`. Intuition: events attach to whatever is
+   * the target for `addMarkerToCurrentSpan`. Intuition: markers attach to whatever is
    * currently open at the bottom of the call stack.
    *
    * Walking the in-progress subtree (rather than ranking all spans by start date)
