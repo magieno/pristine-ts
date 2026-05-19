@@ -1,6 +1,7 @@
 import {AsyncLocalStorage} from "async_hooks";
 import {DependencyContainer, injectable} from "tsyringe";
 import {EventContext} from "../contexts/event-context";
+import {TracingManagerInterface} from "../interfaces/tracing-manager.interface";
 
 /**
  * Owns the `AsyncLocalStorage` instance that propagates the active `EventContext`
@@ -60,6 +61,11 @@ export class EventContextManager {
     return this.current()?.container;
   }
 
+  /** Convenience: the `TracingManager` that owns this event's trace, or `undefined`. */
+  tracingManager(): TracingManagerInterface | undefined {
+    return this.current()?.tracingManager;
+  }
+
   /**
    * Returns a wrapped version of `fn` that restores the current context on call. Use
    * when you need to spawn work that escapes the natural async chain (e.g. a callback
@@ -95,6 +101,10 @@ export class EventContextManager {
 
   static container(): DependencyContainer | undefined {
     return EventContextManager.current()?.container;
+  }
+
+  static tracingManager(): TracingManagerInterface | undefined {
+    return EventContextManager.current()?.tracingManager;
   }
 
   static bind<F extends (...args: any[]) => any>(fn: F): F {

@@ -26,9 +26,9 @@ export class EventPipeline {
   /**
    * Builds the per-event `EventContext` and runs `fn` inside it. Centralizes the ALS
    * boundary so the sequential and parallel execution paths in `execute()` install the
-   * same shape of context. Downstream code (`LogHandler.eventId` fallback, `@traced`,
-   * `runWithSpan(name, fn)`) reads from this context instead of receiving everything
-   * threaded through method parameters.
+   * same shape of context. Downstream code (`LogHandler.eventId` fallback, `@traced`)
+   * reads from this context instead of receiving everything threaded through method
+   * parameters.
    */
   private runWithEventContext<T>(event: Event<any>, childContainer: DependencyContainer, fn: () => Promise<T>): Promise<T> {
     const ctx = new EventContext();
@@ -41,6 +41,10 @@ export class EventPipeline {
     // `this.trace` fallback, but per-event code reads from EventContext.trace and
     // finds nothing — addEventToCurrentSpan would warn "outside any active trace."
     ctx.trace = this.tracingManager.trace;
+    // Stash the kernel's TracingManager on the context so `@traced` uses the manager
+    // that owns the trace, not a fresh ContainerScoped instance the child container
+    // would build on first resolve.
+    ctx.tracingManager = this.tracingManager;
     return this.eventContextManager.run(ctx, fn);
   }
 

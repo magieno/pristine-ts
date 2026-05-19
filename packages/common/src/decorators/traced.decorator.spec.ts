@@ -31,13 +31,13 @@ function buildContextWithTracing(tm: TracingManagerInterface, eventId = "evt"): 
   const ecm = new EventContextManager();
   const ctx = new EventContext();
   ctx.eventId = eventId;
-  ctx.container = {resolve: () => tm} as any;
+  ctx.tracingManager = tm;
   return {ecm, ctx};
 }
 
 describe("@traced", () => {
   it("wraps a method in a span named ClassName.methodName by default", async () => {
-    const {tm, spans} = buildStubTracingManager();
+    const {tm, spans, ended} = buildStubTracingManager();
     const {ecm, ctx} = buildContextWithTracing(tm);
 
     class Service {
@@ -53,6 +53,8 @@ describe("@traced", () => {
     expect(result).toBe(42);
     expect(spans).toHaveLength(1);
     expect(spans[0].keyname).toBe("Service.work");
+    // The span must be ended whether the method returned normally or threw.
+    expect(ended).toEqual([spans[0]]);
   });
 
   it("honors an explicit span name", async () => {
@@ -91,22 +93,69 @@ describe("@traced", () => {
     expect(spans.map(s => s.keyname).sort()).toEqual(["Service.inner", "Service.outer"]);
   });
 
-  it("re-throws errors and annotates the span context", async () => {
-    const {tm, spans} = buildStubTracingManager();
+  it("works with synchronous methods (return values are awaitable)", async () => {
+    const {tm, ended} = buildStubTracingManager();
+    const {ecm, ctx} = buildContextWithTracing(tm);
+
+    class Service {
+      @traced()
+      compute(n: number): number {
+        return n * 2;
+      }
+    }
+
+    // The decorator wraps sync methods so the caller always awaits a Promise — see the
+    // "Sync methods become async" caveat in the decorator's docstring.
+    const result = await ecm.run(ctx, () => (new Service().compute(21) as unknown as Promise<number>));
+    expect(result).toBe(42);
+    expect(ended).toHaveLength(1);
+  });
+
+  it("re-throws errors, ends the span, and annotates the context", async () => {
+    const {tm, spans, ended} = buildStubTracingManager();
+    const {ecm, ctx} = buildContextWithTracing(tm);
+
+    class CustomError extends Error {
+      constructor(message: string) {
+        super(message);
+        this.name = "CustomError";
+      }
+    }
+
+    class Service {
+      @traced()
+      async fail(): Promise<void> {
+        throw new CustomError("nope");
+      }
+    }
+
+    await expect(ecm.run(ctx, () => new Service().fail())).rejects.toThrow("nope");
+    expect(ended).toEqual([spans[0]]);
+    expect(spans[0].context).toMatchObject({
+      error: "true",
+      errorName: "CustomError",
+      errorMessage: "nope",
+    });
+  });
+
+  it("annotates the span context for non-Error throws too", async () => {
+    const {tm, spans, ended} = buildStubTracingManager();
     const {ecm, ctx} = buildContextWithTracing(tm);
 
     class Service {
       @traced()
       async fail(): Promise<void> {
-        throw new Error("boom");
+        // eslint-disable-next-line @typescript-eslint/no-throw-literal
+        throw "some string";
       }
     }
 
-    await expect(ecm.run(ctx, () => new Service().fail())).rejects.toThrow("boom");
+    await expect(ecm.run(ctx, () => new Service().fail())).rejects.toBe("some string");
+    expect(ended).toEqual([spans[0]]);
     expect(spans[0].context).toMatchObject({
       error: "true",
-      errorName: "Error",
-      errorMessage: "boom",
+      errorName: "non-error-throw",
+      errorMessage: "some string",
     });
   });
 
@@ -122,11 +171,11 @@ describe("@traced", () => {
     expect(result).toBe("ran");
   });
 
-  it("no-ops when the container has no TracingManager registered", async () => {
+  it("no-ops when the EventContext has no tracingManager", async () => {
     const ecm = new EventContextManager();
     const ctx = new EventContext();
-    ctx.eventId = "evt-nope";
-    ctx.container = {resolve: () => { throw new Error("not registered"); }} as any;
+    ctx.eventId = "evt-no-tm";
+    // Deliberately omit ctx.tracingManager.
 
     class Service {
       @traced()

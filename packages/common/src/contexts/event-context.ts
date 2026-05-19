@@ -1,4 +1,5 @@
 import {DependencyContainer} from "tsyringe";
+import {TracingManagerInterface} from "../interfaces/tracing-manager.interface";
 import {Trace} from "../models/trace.model";
 
 /**
@@ -32,8 +33,16 @@ export class EventContext {
    *  kernel, even though the TracingManager instances differ across containers. */
   trace?: Trace;
 
-  /** The per-event DI child container. Helpers (`@traced`, `runWithSpan(name, fn)`,
-   *  the LogHandler eventId fallback) reach through this to resolve event-scoped
-   *  services without callers having to inject them explicitly. */
+  /** The per-event DI child container. Helpers like the LogHandler eventId fallback
+   *  reach through this to resolve event-scoped services without callers having to
+   *  inject them explicitly. */
   container?: DependencyContainer;
+
+  /** The `TracingManager` that owns this event's trace. Set by the event pipeline
+   *  alongside `trace`, read by `@traced` so spans go through the manager that started
+   *  the trace rather than a fresh ContainerScoped instance from the child container.
+   *  Resolving `TracingManager` via the child container would create a new instance
+   *  (its lifecycle is ContainerScoped) whose `span.tracingManager = this` back-reference
+   *  points at the throwaway, not the manager that owns the trace. */
+  tracingManager?: TracingManagerInterface;
 }
