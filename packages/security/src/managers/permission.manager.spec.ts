@@ -5,7 +5,7 @@ import {ResourceActionEnum} from "../enums/resource-action.enum";
 import {VotingStrategyEnum} from "../enums/voting-strategy.enum";
 import {VoteEnum} from "../enums/vote.enum";
 import {VoterInterface} from "../interfaces/voter.interface";
-import {IdentityInterface} from "@pristine-ts/common";
+import {IdentityInterface, TracingManagerInterface} from "@pristine-ts/common";
 
 class Resource {
   private property: string;
@@ -41,8 +41,14 @@ describe("", () => {
     }
   }
 
+  // Inert tracing manager — these tests don't assert on markers, they only need the
+  // constructor argument satisfied. `addMarkerToCurrentSpan` is the only method exercised.
+  const tracingManagerMock = {
+    addMarkerToCurrentSpan: () => {},
+  } as unknown as TracingManagerInterface;
+
   it("should return deny if no voter and DenyOnUnanimousAbstention", async () => {
-    const permissionManager = new PermissionManager([], logHandlerMock)
+    const permissionManager = new PermissionManager([], logHandlerMock, tracingManagerMock)
 
     const identity: IdentityInterface = {
       id: "id",
@@ -56,7 +62,7 @@ describe("", () => {
 
   it("should return granted if no voter and GrantOnUnanimousAbstention", async () => {
 
-    const permissionManager = new PermissionManager([], logHandlerMock)
+    const permissionManager = new PermissionManager([], logHandlerMock, tracingManagerMock)
 
     const identity: IdentityInterface = {
       id: "id",
@@ -69,7 +75,7 @@ describe("", () => {
   });
 
   it("should return deny if no voter supports and DenyOnUnanimousAbstention", async () => {
-    const permissionManager = new PermissionManager([voterGrant, voterGrant], logHandlerMock)
+    const permissionManager = new PermissionManager([voterGrant, voterGrant], logHandlerMock, tracingManagerMock)
 
     const identity: IdentityInterface = {
       id: "id",
@@ -82,7 +88,7 @@ describe("", () => {
   });
 
   it("should return granted if no voter supports and GrantOnUnanimousAbstention", async () => {
-    const permissionManager = new PermissionManager([voterGrant, voterGrant], logHandlerMock)
+    const permissionManager = new PermissionManager([voterGrant, voterGrant], logHandlerMock, tracingManagerMock)
 
     const identity: IdentityInterface = {
       id: "id",
@@ -95,7 +101,7 @@ describe("", () => {
   });
 
   it("should return granted if all voter grant", async () => {
-    const permissionManager = new PermissionManager([voterGrant, voterGrant], logHandlerMock)
+    const permissionManager = new PermissionManager([voterGrant, voterGrant], logHandlerMock, tracingManagerMock)
 
     const identity: IdentityInterface = {
       id: "id",
@@ -109,7 +115,7 @@ describe("", () => {
   });
 
   it("should return deny if 1 voter deny", async () => {
-    const permissionManager = new PermissionManager([voterGrant, voterDeny], logHandlerMock)
+    const permissionManager = new PermissionManager([voterGrant, voterDeny], logHandlerMock, tracingManagerMock)
 
     const identity: IdentityInterface = {
       id: "id",

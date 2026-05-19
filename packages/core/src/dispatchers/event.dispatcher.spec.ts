@@ -6,6 +6,13 @@ import {EventResponse} from "../models/event.response";
 import {LogHandlerMock} from "../../../../tests/mocks/log.handler.mock";
 import {EventListenerInterface} from "../interfaces/event-listener.interface";
 import {EventDispatcherNoEventHandlersError} from "../errors/event-dispatcher-no-event-handlers.error";
+import {TracingManagerInterface} from "@pristine-ts/common";
+
+// Inert tracing manager — the dispatcher only calls addMarkerToCurrentSpan on the
+// "no handler found" path; tests don't assert on markers.
+const tracingManagerMock = {
+  addMarkerToCurrentSpan: () => {},
+} as unknown as TracingManagerInterface;
 
 describe("Event Dispatcher", () => {
   it("should transform an event by calling all the event handlers", () => {
@@ -38,7 +45,7 @@ describe("Event Dispatcher", () => {
     const eventParser2SupportsMethodSpy = jest.spyOn(eventHandler2, "supports");
     const eventParser2ParseMethodSpy = jest.spyOn(eventHandler2, "handle");
 
-    const eventDispatcher = new EventDispatcher([eventHandler2, eventHandler1], [], new LogHandlerMock());
+    const eventDispatcher = new EventDispatcher([eventHandler2, eventHandler1], [], new LogHandlerMock(), tracingManagerMock);
 
     const event: Event<any> = {
       type: "type",
@@ -83,7 +90,7 @@ describe("Event Dispatcher", () => {
       },
     };
 
-    const eventDispatcher = new EventDispatcher([eventHandler2, eventHandler1], [], new LogHandlerMock());
+    const eventDispatcher = new EventDispatcher([eventHandler2, eventHandler1], [], new LogHandlerMock(), tracingManagerMock);
 
     const event: Event<any> = {
       type: "type",
@@ -139,7 +146,7 @@ describe("Event Dispatcher", () => {
       handle(event: Event<any>): Promise<EventResponse<any, any>> {
         return Promise.resolve(new EventResponse(event, {}));
       },
-    }], [eventListener1, eventListener2, eventListener3], new LogHandlerMock());
+    }], [eventListener1, eventListener2, eventListener3], new LogHandlerMock(), tracingManagerMock);
 
     const event: Event<any> = {
       type: "type",
@@ -187,7 +194,7 @@ describe("Event Dispatcher", () => {
       }
     }
 
-    const eventDispatcher = new EventDispatcher([], [eventListener1, eventListener2, eventListener3], new LogHandlerMock());
+    const eventDispatcher = new EventDispatcher([], [eventListener1, eventListener2, eventListener3], new LogHandlerMock(), tracingManagerMock);
 
     const event: Event<any> = {
       type: "type",

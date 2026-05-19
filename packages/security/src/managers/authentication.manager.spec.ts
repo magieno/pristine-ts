@@ -3,7 +3,7 @@ import {LogHandlerInterface} from "@pristine-ts/logging";
 import {AuthenticationManager} from "./authentication.manager";
 import {AuthenticatorContextInterface} from "../interfaces/authenticator-context.interface";
 import {AuthenticatorInterface} from "../interfaces/authenticator.interface";
-import {IdentityInterface, Request} from "@pristine-ts/common";
+import {IdentityInterface, Request, TracingManagerInterface} from "@pristine-ts/common";
 import {container} from "tsyringe";
 import {IdentityProviderInterface} from "../interfaces/identity-provider.interface";
 import {authenticatorMetadataKeyname} from "../decorators/authenticator.decorator";
@@ -20,13 +20,21 @@ describe("AuthenticationManager", () => {
     }
   }
 
+  // Inert tracing manager — these tests don't assert on markers/spans, they only need
+  // the constructor argument satisfied. `addMarkerToCurrentSpan` and `startSpan` are the
+  // methods AuthenticationManager exercises under test.
+  const tracingManagerMock = {
+    addMarkerToCurrentSpan: () => {},
+    startSpan: () => ({end: () => {}}),
+  } as unknown as TracingManagerInterface;
+
   const requestMock: Request = new Request("", "", "");
   requestMock.body = {};
 
 
   it("should return undefined if the routecontext is undefined or if no authenticator is present in the context", async () => {
 
-    const authenticationManager: AuthenticationManager = new AuthenticationManager([], logHandlerMock, {
+    const authenticationManager: AuthenticationManager = new AuthenticationManager([], logHandlerMock, tracingManagerMock, {
       fromContext(authenticatorContext: AuthenticatorContextInterface, container): AuthenticatorInterface {
         return {
           setContext(context: any): Promise<void> {
@@ -51,7 +59,7 @@ describe("AuthenticationManager", () => {
       claims: {},
     }
 
-    const authenticationManager: AuthenticationManager = new AuthenticationManager([], logHandlerMock, {
+    const authenticationManager: AuthenticationManager = new AuthenticationManager([], logHandlerMock, tracingManagerMock, {
       fromContext(authenticatorContext: AuthenticatorContextInterface, container): AuthenticatorInterface {
         return {
           setContext(context: any): Promise<void> {
@@ -77,7 +85,7 @@ describe("AuthenticationManager", () => {
 
     let index = 0;
 
-    const authenticationManager: AuthenticationManager = new AuthenticationManager([], logHandlerMock, {
+    const authenticationManager: AuthenticationManager = new AuthenticationManager([], logHandlerMock, tracingManagerMock, {
       fromContext(authenticatorContext: AuthenticatorContextInterface, container): AuthenticatorInterface {
         return {
           setContext(context: any): Promise<void> {
@@ -115,8 +123,8 @@ describe("AuthenticationManager", () => {
 
     const spy = jest.spyOn(identityProvider, "provide");
 
-    const authenticationManager: AuthenticationManager = new AuthenticationManager([identityProvider], logHandlerMock, {
-      fromContext(authenticatorContext: AuthenticatorContextInterface, container): AuthenticatorInterface {
+    const authenticationManager: AuthenticationManager = new AuthenticationManager([identityProvider], logHandlerMock, tracingManagerMock, {
+      fromContext(authenticatorContext: AuthenticatorContextInterface, container: any): AuthenticatorInterface {
         return {
           setContext(context: any): Promise<void> {
             return Promise.resolve();

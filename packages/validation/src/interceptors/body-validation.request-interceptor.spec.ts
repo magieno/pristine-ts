@@ -1,7 +1,7 @@
 import "reflect-metadata"
 import {BodyValidationRequestInterceptor} from "./body-validation.request-interceptor";
 import {MethodRouterNode, PathRouterNode, Route} from "@pristine-ts/networking";
-import {HttpMethod, Request} from "@pristine-ts/common";
+import {HttpMethod, Request, TracingManagerInterface} from "@pristine-ts/common";
 import {IsInt, Max, Min, Validator} from "@pristine-ts/class-validator";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {bodyValidationMetadataKeyname} from "../decorators/body-validation.decorator";
@@ -27,6 +27,11 @@ describe("Body Validation Request Enricher", () => {
     }
   }
 
+  // Inert tracing manager — these tests don't assert on validation.passed/failed markers.
+  const tracingManagerMock = {
+    addMarkerToCurrentSpan: () => {},
+  } as unknown as TracingManagerInterface;
+
   class BodyPayload {
     @IsInt()
     @Min(0)
@@ -38,7 +43,7 @@ describe("Body Validation Request Enricher", () => {
   }
 
   it("should simply return the request if the bodyValidator is undefined", async () => {
-    const bodyValidationRequestInterceptor = new BodyValidationRequestInterceptor(logHandlerMock, new Validator(), dataMapper);
+    const bodyValidationRequestInterceptor = new BodyValidationRequestInterceptor(logHandlerMock, tracingManagerMock, new Validator(), dataMapper);
 
     const request: Request = new Request(HttpMethod.Get, "url", "uuid");
 
@@ -54,7 +59,7 @@ describe("Body Validation Request Enricher", () => {
   })
 
   it("should simply return the request if the classType is undefined", async () => {
-    const bodyValidationRequestEnricher = new BodyValidationRequestInterceptor(logHandlerMock, new Validator(), dataMapper);
+    const bodyValidationRequestEnricher = new BodyValidationRequestInterceptor(logHandlerMock, tracingManagerMock, new Validator(), dataMapper);
 
     const request: Request = new Request(HttpMethod.Get, "url", "uuid");
 
@@ -71,7 +76,7 @@ describe("Body Validation Request Enricher", () => {
   })
 
   it("should return the request if there are no errors with the classType", async () => {
-    const bodyValidationRequestEnricher = new BodyValidationRequestInterceptor(logHandlerMock, new Validator(), dataMapper);
+    const bodyValidationRequestEnricher = new BodyValidationRequestInterceptor(logHandlerMock, tracingManagerMock, new Validator(), dataMapper);
 
     const request: Request = new Request(HttpMethod.Get, "url", "uuid");
 
@@ -93,7 +98,7 @@ describe("Body Validation Request Enricher", () => {
   })
 
   it("should reject if there are validation errors. ", async () => {
-    const bodyValidationRequestEnricher = new BodyValidationRequestInterceptor(logHandlerMock, new Validator(), dataMapper);
+    const bodyValidationRequestEnricher = new BodyValidationRequestInterceptor(logHandlerMock, tracingManagerMock, new Validator(), dataMapper);
 
     const request: Request = new Request(HttpMethod.Get, "url", "uuid");
     request.body = {

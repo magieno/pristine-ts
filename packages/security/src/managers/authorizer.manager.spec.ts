@@ -2,7 +2,7 @@ import "reflect-metadata"
 import {container, injectable} from "tsyringe";
 import {AuthorizerManager} from "./authorizer.manager";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import {IdentityInterface, Request} from "@pristine-ts/common";
+import {IdentityInterface, Request, TracingManagerInterface} from "@pristine-ts/common";
 import {GuardFactory} from "../factories/guard.factory";
 import {GuardInterface} from "../interfaces/guard.interface";
 import {GuardContextInterface} from "../interfaces/guard-context.interface";
@@ -22,6 +22,12 @@ describe("AuthorizerManager", () => {
 
   const requestMock: Request = new Request("", "", "uuid");
   requestMock.body = {};
+
+  // Inert tracing manager — these tests don't assert on markers, they only need the
+  // constructor argument satisfied. `addMarkerToCurrentSpan` is the only method exercised.
+  const tracingManagerMock = {
+    addMarkerToCurrentSpan: () => {},
+  } as unknown as TracingManagerInterface;
 
   @injectable()
   class Guard1 implements GuardInterface {
@@ -54,13 +60,13 @@ describe("AuthorizerManager", () => {
   }
 
   it("should authorize if there are no guards defined in the context or if the route context is not properly defined", () => {
-    const authorizerManager = new AuthorizerManager(logHandlerMock, new GuardFactory());
+    const authorizerManager = new AuthorizerManager(logHandlerMock, tracingManagerMock, new GuardFactory());
 
     expect(authorizerManager.isAuthorized(requestMock, {}, container)).toBeTruthy()
   })
 
   it("should call every single guards defined in the RouteContext", async () => {
-    const authorizerManager = new AuthorizerManager(logHandlerMock, {
+    const authorizerManager = new AuthorizerManager(logHandlerMock, tracingManagerMock, {
       fromContext(guardContext: GuardContextInterface, container): GuardInterface {
         // @ts-ignore
         return guardContext.guard;
@@ -98,7 +104,7 @@ describe("AuthorizerManager", () => {
   })
 
   it("should deny the authorization even if only one of many guards denies access", async () => {
-    const authorizerManager = new AuthorizerManager(logHandlerMock, {
+    const authorizerManager = new AuthorizerManager(logHandlerMock, tracingManagerMock, {
       fromContext(guardContext: GuardContextInterface, container): GuardInterface {
         // @ts-ignore
         return guardContext.guard;
@@ -138,7 +144,7 @@ describe("AuthorizerManager", () => {
   })
 
   it("should deny if one guard throws an exception", async () => {
-    const authorizerManager = new AuthorizerManager(logHandlerMock, {
+    const authorizerManager = new AuthorizerManager(logHandlerMock, tracingManagerMock, {
       fromContext(guardContext: GuardContextInterface, container): GuardInterface {
         // @ts-ignore
         return guardContext.guard;
@@ -184,7 +190,7 @@ describe("AuthorizerManager", () => {
 
     let index = 0;
 
-    const authorizerManager = new AuthorizerManager(logHandlerMock, {
+    const authorizerManager = new AuthorizerManager(logHandlerMock, tracingManagerMock, {
       fromContext(guardContext: GuardContextInterface, container): GuardInterface {
         // @ts-ignore
         return {

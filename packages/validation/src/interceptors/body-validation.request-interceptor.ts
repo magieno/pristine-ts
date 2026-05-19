@@ -4,7 +4,7 @@ import {
   RequestInterceptorPriorityEnum
 } from "@pristine-ts/networking";
 import {Validator} from "@pristine-ts/class-validator";
-import {moduleScoped, Request, ServiceDefinitionTagEnum, tag, traced, ValidationError} from "@pristine-ts/common";
+import {moduleScoped, Request, ServiceDefinitionTagEnum, tag, traced, TracingManagerInterface, ValidationError} from "@pristine-ts/common";
 import {ValidationModuleKeyname} from "../validation.module.keyname";
 import {inject, injectable} from "tsyringe";
 import {LogHandlerInterface} from "@pristine-ts/logging";
@@ -32,6 +32,7 @@ export class BodyValidationRequestInterceptor implements RequestInterceptorInter
    * @param dataMapper
    */
   constructor(@inject("LogHandlerInterface") private readonly loghandler: LogHandlerInterface,
+              @inject("TracingManagerInterface") private readonly tracingManager: TracingManagerInterface,
               private readonly validator: Validator,
               private readonly dataMapper: DataMapper,
   ) {
@@ -64,8 +65,16 @@ export class BodyValidationRequestInterceptor implements RequestInterceptorInter
     const errors = await this.validator.validate(mappedBody);
 
     if (errors.length == 0) {
+      this.tracingManager.addMarkerToCurrentSpan("validation.passed", {
+        classType: bodyValidator.classType.name,
+      });
       return request;
     }
+
+    this.tracingManager.addMarkerToCurrentSpan("validation.failed", {
+      classType: bodyValidator.classType.name,
+      errorCount: String(errors.length),
+    });
 
 
     this.loghandler.error(`Error validating body of request.`, {

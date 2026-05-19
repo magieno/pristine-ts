@@ -135,7 +135,7 @@ describe("pristine bin (end-to-end)", () => {
   });
 
   describe("trace propagation into CLI commands", () => {
-    it("addEventToCurrentSpan from a CLI command sees the kernel-started trace", async () => {
+    it("addMarkerToCurrentSpan from a CLI command sees the kernel-started trace", async () => {
       // Regression test for the EventContext-shared-trace fix. Without it, the kernel's
       // TracingManager (root container) and the command's TracingManager (per-event child
       // container) were separate instances each holding their own `this.trace`, so a

@@ -1,5 +1,5 @@
 import {inject, injectable, injectAll} from "tsyringe";
-import {ServiceDefinitionTagEnum, tag, traced} from "@pristine-ts/common";
+import {ServiceDefinitionTagEnum, tag, traced, TracingManagerInterface} from "@pristine-ts/common";
 import {Event} from "../models/event";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {EventHandlerInterface} from "../interfaces/event-handler.interface";
@@ -23,7 +23,8 @@ export class EventDispatcher implements EventDispatcherInterface {
    */
   public constructor(@injectAll(ServiceDefinitionTagEnum.EventHandler) private readonly eventHandlers: EventHandlerInterface<any, any>[],
                      @injectAll(ServiceDefinitionTagEnum.EventListener) private readonly eventListeners: EventListenerInterface[],
-                     @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface) {
+                     @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
+                     @inject("TracingManagerInterface") private readonly tracingManager: TracingManagerInterface) {
 
     this.eventHandlers.sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0))
   }
@@ -91,6 +92,9 @@ export class EventDispatcher implements EventDispatcherInterface {
     }
 
     if (supportingEventHandlers.length === 0) {
+      this.tracingManager.addMarkerToCurrentSpan("event.no-handler-found", {
+        eventType: String(event.type),
+      });
       throw new EventDispatcherNoEventHandlersError("There are no EventHandlers that support this event.", event);
     } else if (supportingEventHandlers.length > 1) {
       this.logHandler.warning("EventDispatcher: There are more than one EventHandler that support this event. The first one will be used.")

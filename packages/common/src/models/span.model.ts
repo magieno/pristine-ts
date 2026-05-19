@@ -1,6 +1,6 @@
 import {randomUUID} from "crypto";
-import {SpanEvent} from "./span-event.model";
 import {SpanLifecycleOwnerInterface} from "./span-lifecycle-owner.interface";
+import {SpanMarker} from "./span-marker.model";
 import {Trace} from "./trace.model";
 
 /**
@@ -47,9 +47,12 @@ export class Span {
    * Named, timestamped markers attached to this span. Use these for noteworthy moments
    * inside the span's lifetime that don't warrant their own child span — e.g.
    * "validation passed", "found 50 rows in DB". Empty by default; populated by
-   * `TracingManager.addEventToCurrentSpan(...)`.
+   * `TracingManager.addMarkerToCurrentSpan(...)`.
+   *
+   * Markers are flat by design (instants, not durations). For hierarchical timing, use
+   * child spans.
    */
-  public events: SpanEvent[] = [];
+  public markers: SpanMarker[] = [];
 
   /**
    * The context associated with the span.
