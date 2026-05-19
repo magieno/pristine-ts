@@ -1,10 +1,9 @@
 import {DependencyContainer, inject, injectable, injectAll} from "tsyringe";
 import {AuthenticationManagerInterface} from "../interfaces/authentication-manager.interface";
-import {IdentityInterface, moduleScoped, Request, ServiceDefinitionTagEnum, tag, traced} from "@pristine-ts/common";
+import {IdentityInterface, moduleScoped, Request, ServiceDefinitionTagEnum, tag, traced, TracingManagerInterface} from "@pristine-ts/common";
 import {AuthenticatorInterface} from "../interfaces/authenticator.interface";
 import {AuthenticatorContextInterface} from "../interfaces/authenticator-context.interface";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import {TracingManagerInterface} from "@pristine-ts/telemetry";
 import {AuthenticatorFactory} from "../factories/authenticator.factory";
 import {SecurityModuleKeyname} from "../security.module.keyname";
 import {IdentityProviderInterface} from "../interfaces/identity-provider.interface";

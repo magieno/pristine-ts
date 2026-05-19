@@ -1,7 +1,6 @@
 import {DependencyContainer, inject, injectable} from "tsyringe";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import {TracingManagerInterface} from "@pristine-ts/telemetry";
-import {IdentityInterface, moduleScoped, Request, tag, traced} from "@pristine-ts/common";
+import {IdentityInterface, moduleScoped, Request, tag, traced, TracingManagerInterface} from "@pristine-ts/common";
 import {AuthorizerManagerInterface} from "../interfaces/authorizer-manager.interface";
 import {GuardFactory} from "../factories/guard.factory";
 import {SecurityModuleKeyname} from "../security.module.keyname";

@@ -4,11 +4,10 @@ import {
   RequestInterceptorPriorityEnum
 } from "@pristine-ts/networking";
 import {Validator} from "@pristine-ts/class-validator";
-import {moduleScoped, Request, ServiceDefinitionTagEnum, tag, traced, ValidationError} from "@pristine-ts/common";
+import {moduleScoped, Request, ServiceDefinitionTagEnum, tag, traced, TracingManagerInterface, ValidationError} from "@pristine-ts/common";
 import {ValidationModuleKeyname} from "../validation.module.keyname";
 import {inject, injectable} from "tsyringe";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import {TracingManagerInterface} from "@pristine-ts/telemetry";
 import {bodyValidationMetadataKeyname} from "../decorators/body-validation.decorator";
 import {DataMapper} from "@pristine-ts/data-mapping-common";
 

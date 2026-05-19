@@ -1,8 +1,7 @@
 import {inject, injectable, injectAll} from "tsyringe";
-import {ServiceDefinitionTagEnum, tag, traced} from "@pristine-ts/common";
+import {ServiceDefinitionTagEnum, tag, traced, TracingManagerInterface} from "@pristine-ts/common";
 import {Event} from "../models/event";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import {TracingManagerInterface} from "@pristine-ts/telemetry";
 import {EventHandlerInterface} from "../interfaces/event-handler.interface";
 import {EventResponse} from "../models/event.response";
 import {EventDispatcherInterface} from "../interfaces/event-dispatcher.interface";

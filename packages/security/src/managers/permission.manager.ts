@@ -2,9 +2,8 @@ import {inject, injectable, injectAll} from "tsyringe";
 import {VoterInterface} from "../interfaces/voter.interface";
 import {VotingStrategyEnum} from "../enums/voting-strategy.enum";
 import {VoteEnum} from "../enums/vote.enum";
-import {IdentityInterface, ServiceDefinitionTagEnum, traced} from "@pristine-ts/common";
+import {IdentityInterface, ServiceDefinitionTagEnum, traced, TracingManagerInterface} from "@pristine-ts/common";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import {TracingManagerInterface} from "@pristine-ts/telemetry";
 
 /**
  * The permission manager verifies if the correct permission are there to access and take an action on a resource.
