@@ -18,11 +18,11 @@ export * from "./options/options";
 export * from "./reporters/cli-error.reporter";
 export * from "./types/types";
 
-// Re-export the bootstrap entrypoint so `bin.ts` (and any other downstream entry script)
-// can invoke `require('@pristine-ts/cli').bootstrap()` to load the same physical CLI
-// classes the consumer's AppModule references — avoiding cross-realm decorator metadata
-// mismatches that occur when bin and consumer end up with separate copies.
-export {bootstrap} from "./cli";
+// Re-export the `Cli` entrypoint so `bin.ts` (and any other downstream entry script) can
+// invoke `new (require('@pristine-ts/cli').Cli)().bootstrap()` to load the same physical
+// CLI classes the consumer's AppModule references — avoiding cross-realm decorator
+// metadata mismatches that occur when bin and consumer end up with separate copies.
+export {Cli} from "./cli";
 
 export const CliModule: ModuleInterface = {
   keyname: CliModuleKeyname,

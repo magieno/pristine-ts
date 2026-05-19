@@ -14,19 +14,20 @@ require('reflect-metadata');
 // loaded via `./cli.js` and the consumer's app.module.js loaded via `@pristine-ts/cli`, the
 // two halves would each get their own class identities and tsyringe's decorator metadata
 // (keyed by class identity) would not be shared — manifesting as "TypeInfo not known for X".
-const cli = require('@pristine-ts/cli');
+const {Cli} = require('@pristine-ts/cli');
 
-// `bootstrap()` is fully self-contained: it handles its own errors, builds the right
-// `EnvironmentManager` from the loaded `pristine.config.ts` (or defaults to production
-// when the config itself couldn't load), and returns the exit code. The bin's only job is
-// to exit with that code. No `process.env` reads, no extra catch handler — everything
-// flows through the kernel's configuration system.
+// `Cli.bootstrap()` is fully self-contained: it handles its own errors, builds the right
+// `EnvironmentManager` from the loaded `pristine.config.ts` (or defaults to production when
+// the config itself couldn't load), and returns the exit code. The bin's only job is to
+// exit with that code. No `process.env` reads, no extra catch handler — everything flows
+// through the kernel's configuration system.
+//
 // `bootstrap()` is designed to be total — every throw funnels through `reportFatalError`.
 // This `.catch` is a last-resort safety net for the pathological case where the fallback
 // reporter itself throws (invalid `pristine.environment` string, reporter constructor
 // failure, etc.). Without it, such a throw becomes an unhandled rejection and Node dumps
 // the raw stack to stderr, bypassing any sanitization.
-cli.bootstrap()
+new Cli().bootstrap()
   .then((exitCode: number) => process.exit(exitCode))
   .catch((error: unknown) => {
     console.error(error);
