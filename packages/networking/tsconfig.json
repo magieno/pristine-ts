@@ -5,7 +5,8 @@
   ],
   "compilerOptions": {
     "declarationDir": "dist/types",
-    "outDir": "dist/lib/esm"
+    "outDir": "dist/lib/esm",
+    "lib": ["es2020", "es2022.error"]
   },
   "exclude": [
     "./**/*.spec.ts",

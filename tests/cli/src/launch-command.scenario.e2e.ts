@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {exec, ExecOptions} from "child_process";
 import fs from "fs";
 import path from "path";
@@ -108,15 +109,19 @@ describe("pristine bin (end-to-end)", () => {
       expect(stdout).toContain("pristine.core");
     });
 
-    it("p:config:print resolves the pristine.config.ts and shows file path + appModule", async () => {
+    it("p:config:print resolves the pristine.config.ts and shows file path + cli block", async () => {
       const {stdout, code} = await run("p:config:print");
       expect(code).toBe(0);
       expect(stdout).toContain("Config file:");
       expect(stdout).toContain("pristine.config.ts");
+      // After the schema split, appModule lives under the cli: block. Verify both the
+      // nested key and the actual outputPath value made it into the printed dump.
+      expect(stdout).toContain("cli");
       expect(stdout).toContain("appModule");
       expect(stdout).toContain("dist/lib/cjs/app.module.js");
+      // Provenance is keyed by top-level block (`cli`, `config`) not by inner fields.
       expect(stdout).toContain("Provenance:");
-      expect(stdout).toContain("appModule: config-file");
+      expect(stdout).toContain("cli: config-file");
     });
 
     it("p:verify boots a fresh kernel and exits 0", async () => {

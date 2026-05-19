@@ -4,12 +4,16 @@ import {ModuleConfigurationValue} from "../types/module-configuration.value";
 import {ConfigurationParser} from "../parsers/configuration.parser";
 import {ConfigurationValidationError} from "../errors/configuration-validation.error";
 import {ConfigurationDefinition} from "@pristine-ts/common";
+import {PristineConfigFileLoader} from "../loaders/pristine-config-file.loader";
 
 @injectable()
 export class ConfigurationManager {
   public configurationDefinitions: { [key: string]: ConfigurationDefinition } = {};
 
-  public constructor(private readonly configurationParser: ConfigurationParser) {
+  public constructor(
+    private readonly configurationParser: ConfigurationParser,
+    private readonly pristineConfigFileLoader: PristineConfigFileLoader,
+  ) {
   }
 
   /**
@@ -27,33 +31,75 @@ export class ConfigurationManager {
   }
 
   /**
-   * This method loads the configuration values passed dynamically when instantiating the Kernel. This method
-   * will verify that a corresponding configurationDefinition exists and if it does, it will resolve the value.
+   * Loads configuration values into the container using the precedence chain:
    *
-   * This method will also check to make sure that all the expected values are being passed. For example, if a module expects
-   * a configuration value to be passed, this method will throw if none are passed.
+   *   1. `moduleConfigurationValues` — explicit overrides passed to `kernel.start()`.
+   *      Highest precedence; wins all conflicts.
+   *   2. `pristine.config.ts:config` — values from the user-authored config file.
+   *      Beats `configDefaults` and the resolver chain.
+   *   3. `configDefaults` — merged from every module's `ModuleInterface.configDefaults`.
+   *      Beats the resolver chain.
+   *   4. `configurationDefinition.defaultResolvers` — per-key resolver list (env vars,
+   *      secrets manager, etc.). First successful resolver wins.
+   *   5. `configurationDefinition.defaultValue` — hard fallback.
    *
-   * @param moduleConfigurationValues
-   * @param container
+   * Conflicts:
+   *   - **Same key in `moduleConfigurationValues` and the file** → stderr warning naming
+   *     both sources (never the value, which may be a secret); the overrides win.
+   *   - **Unknown key** in any of the explicit sources (overrides / file / configDefaults)
+   *     → validation error; throws at end of `load`.
+   *   - **Two modules' `configDefaults` disagree** — handled by the kernel before this
+   *     method runs (throws at registration). The merged `configDefaults` reaching this
+   *     method is already conflict-free.
+   *
+   * @param moduleConfigurationValues Explicit overrides from `kernel.start()`.
+   * @param container The DI container to register resolved values into.
+   * @param configDefaults Merged `ModuleInterface.configDefaults` from every module in the
+   *   graph. Optional; defaults to empty.
    */
-  public async load(moduleConfigurationValues: {
-    [key: string]: ModuleConfigurationValue
-  }, container: DependencyContainer) {
+  public async load(
+    moduleConfigurationValues: { [key: string]: ModuleConfigurationValue },
+    container: DependencyContainer,
+    configDefaults: Record<string, unknown> = {},
+  ) {
     const validationErrors: string[] = [];
 
-    for (const key of Object.keys(moduleConfigurationValues)) {
-      if (moduleConfigurationValues.hasOwnProperty(key) === false) {
-        continue;
-      }
+    const fileConfig = await this.readFileConfigSafely();
 
+    // Build the merged "explicit value" map by precedence, lowest to highest, so each
+    // later layer overwrites earlier ones. (1) configDefaults < (2) file < (3) overrides.
+    const mergedValues: { [key: string]: ModuleConfigurationValue } = {};
+
+    for (const key of Object.keys(configDefaults)) {
+      mergedValues[key] = configDefaults[key] as ModuleConfigurationValue;
+    }
+
+    for (const key of Object.keys(fileConfig)) {
+      mergedValues[key] = fileConfig[key] as ModuleConfigurationValue;
+    }
+
+    for (const key of Object.keys(moduleConfigurationValues)) {
+      if (fileConfig.hasOwnProperty(key)) {
+        // Warn (never log values — could be secrets). The overrides win regardless.
+        process.stderr.write(
+          `[pristine] WARNING: Configuration key '${key}' is set in BOTH:\n` +
+          `  - the explicit overrides passed to kernel.start()\n` +
+          `  - pristine.config.ts:config\n` +
+          `Using the value from the explicit overrides. Set the key in only one place to silence this warning.\n`,
+        );
+      }
+      mergedValues[key] = moduleConfigurationValues[key];
+    }
+
+    // Process every merged value against the registered definitions. Unknown keys land in
+    // validationErrors so multiple typos surface in a single throw at the end.
+    for (const key of Object.keys(mergedValues)) {
       if (this.configurationDefinitions.hasOwnProperty(key) === false) {
         validationErrors.push("There are no ConfigurationDefinition in any of the modules for the following key: '" + key + "'.");
         continue;
       }
 
-      const moduleConfigurationValue = moduleConfigurationValues[key];
-
-      const resolvedConfigurationValue = await this.configurationParser.resolve(moduleConfigurationValue, container);
+      const resolvedConfigurationValue = await this.configurationParser.resolve(mergedValues[key], container);
 
       // Register the configuration in the container
       this.registerConfigurationValue(key, resolvedConfigurationValue, container);
@@ -161,5 +207,37 @@ export class ConfigurationManager {
   public registerConfigurationValue(configurationKey: string, value: boolean | number | string, container: DependencyContainer) {
     // Register the configuration in the container
     container.registerInstance("%" + configurationKey + "%", value);
+  }
+
+  /**
+   * Reads the `config:` block from `pristine.config.{ts,js}` (if present). The file is
+   * optional — its absence is not an error, just produces an empty map. Failures to
+   * parse a present file are also swallowed (and reported via stderr) so misconfigured
+   * config files don't take down the whole boot.
+   */
+  private async readFileConfigSafely(): Promise<Record<string, unknown>> {
+    try {
+      const parsed = await this.pristineConfigFileLoader.load();
+      if (parsed === undefined) {
+        return {};
+      }
+      const block = parsed.config;
+      if (block === undefined || block === null) {
+        return {};
+      }
+      if (typeof block !== "object" || Array.isArray(block)) {
+        process.stderr.write(
+          `[pristine] WARNING: pristine.config.ts:config is not a plain object. Ignoring file-based configuration overrides.\n`,
+        );
+        return {};
+      }
+      return block as Record<string, unknown>;
+    } catch (error) {
+      process.stderr.write(
+        `[pristine] WARNING: Failed to load pristine.config.ts for runtime configuration: ${(error as Error).message}\n` +
+        `Continuing without file-based configuration overrides.\n`,
+      );
+      return {};
+    }
   }
 }

@@ -50,18 +50,40 @@ export class StringNormalizer extends BaseNormalizer<StringNormalizerOptions> im
 
       case TypeEnum.Object:
         if (source.hasOwnProperty("toString") === true) {
-          return source.toString();
+          try {
+            return source.toString();
+          } catch {
+            // Custom toString threw — fall through to JSON.stringify.
+          }
         }
 
-        try {
-          return JSON.stringify(source);
-        } catch (e) {
-          return "" + source
-        }
+        return this.safeStringify(source);
 
       // For now, let's do that for other types. We can make it better eventually.
       default:
-        return "" + source;
+        return this.safeStringify(source);
+    }
+  }
+
+  /**
+   * Total stringifier. A normalizer must never propagate a throw from a user-supplied
+   * value's `toString` / `Symbol.toPrimitive` or from a circular `JSON.stringify` —
+   * normalization runs inside data-mapping pipelines whose callers don't expect to catch.
+   */
+  private safeStringify(value: unknown): string {
+    try {
+      const json = JSON.stringify(value);
+      if (json !== undefined) {
+        return json;
+      }
+    } catch {
+      // Circular reference, BigInt, throwing toJSON, etc. Fall through.
+    }
+
+    try {
+      return String(value);
+    } catch {
+      return "[unrepresentable]";
     }
   }
 }

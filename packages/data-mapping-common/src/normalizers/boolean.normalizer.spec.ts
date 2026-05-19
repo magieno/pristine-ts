@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {BooleanNormalizer, BooleanNormalizerUniqueKey} from './boolean.normalizer';
 
 describe('BooleanNormalizer', () => {

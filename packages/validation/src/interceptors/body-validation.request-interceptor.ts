@@ -1,11 +1,10 @@
 import {
-  BadRequestHttpError,
   MethodRouterNode,
   RequestInterceptorInterface,
   RequestInterceptorPriorityEnum
 } from "@pristine-ts/networking";
 import {Validator} from "@pristine-ts/class-validator";
-import {moduleScoped, Request, ServiceDefinitionTagEnum, tag, traced} from "@pristine-ts/common";
+import {moduleScoped, Request, ServiceDefinitionTagEnum, tag, traced, ValidationError} from "@pristine-ts/common";
 import {ValidationModuleKeyname} from "../validation.module.keyname";
 import {inject, injectable} from "tsyringe";
 import {LogHandlerInterface} from "@pristine-ts/logging";
@@ -82,7 +81,9 @@ export class BodyValidationRequestInterceptor implements RequestInterceptorInter
       },
     })
 
-    // If we received some error while validating we reject by throwing an error.
-    throw new BadRequestHttpError("Validation error", errors);
+    // If we received some error while validating we reject by throwing an error. The
+    // `details.errors` array carries the structured class-validator output; the responders
+    // surface it to API callers (HTTP body) and CLI users (stderr lines).
+    throw new ValidationError("Validation error", {details: {errors}});
   }
 }

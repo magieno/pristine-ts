@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {HttpMethod, Request, Response} from "@pristine-ts/common";
 import {RestApiEventMapper} from "./rest-api-event.mapper";
 import {ApiGatewayEventsHandlingStrategyEnum} from "../enums/api-gateway-events-handling-strategy.enum";

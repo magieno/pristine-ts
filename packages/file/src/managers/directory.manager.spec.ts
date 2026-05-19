@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {DirectoryManager} from "./directory.manager";
 import {MatchTypeEnum} from "../enums/match-type.enum";
 import {TypesEnum} from "../enums/types.enum";

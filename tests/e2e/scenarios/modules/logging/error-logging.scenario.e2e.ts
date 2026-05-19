@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {CoreModule, Kernel} from "@pristine-ts/core";
 import {NetworkingModule} from "@pristine-ts/networking";
 import {LoggingModule, LogHandler, LogHandlerInterface, SeverityEnum} from "@pristine-ts/logging";

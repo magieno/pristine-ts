@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {Span} from "./span.model";
 import {Trace} from "./trace.model";
 

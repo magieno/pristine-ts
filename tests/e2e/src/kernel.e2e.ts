@@ -3,7 +3,7 @@ import {ResolvedClassModel} from "./models/resolved-class.model";
 import {testModule} from "./test.module";
 import {PermissionManager} from "./managers/permission.manager";
 import {container, DependencyContainer, inject, injectable, injectAll, InjectionToken} from "tsyringe";
-import {HttpError, RequestInterceptorInterface, Route, RouterInterface,} from "@pristine-ts/networking";
+import {RequestInterceptorInterface, Route, RouterInterface,} from "@pristine-ts/networking";
 import {
     AppModuleInterface,
     HttpMethod,

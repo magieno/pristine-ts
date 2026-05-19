@@ -3,13 +3,13 @@ import {
     CoreModule,
     Event, EventHandlerInterface,
     EventListenerInterface,
-    EventMappingError, EventResponse,
+    EventResponse,
     ExecutionContextKeynameEnum,
     Kernel
 } from "@pristine-ts/core";
 import {NetworkingModule} from "@pristine-ts/networking";
 import {SecurityModule} from "@pristine-ts/security";
-import {AppModuleInterface, ModuleInterface, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {AppModuleInterface, ModuleInterface, PristineError, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {AwsModule, KafkaEventPayload, KafkaEventType} from "@pristine-ts/aws";
 import {injectable} from 'tsyringe';
 
@@ -42,7 +42,10 @@ describe("Handle events", () => {
             } catch (e) {
                 error = e;
             }
-            expect(error).toBeInstanceOf(EventMappingError);
+            // Post-2.0.0: the dedicated `EventMappingError` wrapper was deleted. The
+            // pipeline now throws a generic `PristineError` with `code: EVENT_NO_MAPPER_SUPPORTS`.
+            expect(error).toBeInstanceOf(PristineError);
+            expect((error as PristineError).options.code).toBe("EVENT_NO_MAPPER_SUPPORTS");
 
         });
     });

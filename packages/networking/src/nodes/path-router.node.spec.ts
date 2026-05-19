@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {PathRouterNode} from "./path-router.node";
 import {HttpMethod} from "@pristine-ts/common";
 import {MethodRouterNode} from "./method-router.node";

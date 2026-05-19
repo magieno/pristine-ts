@@ -1,3 +1,4 @@
+export * from "./aws-error-code.enum";
 export * from "./dynamodb.error";
 export * from "./dynamodb-item-already-exists.error";
 // We do not export dynamodb-item-not-found.error as it should not be used outside of this module

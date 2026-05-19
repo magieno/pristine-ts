@@ -1,7 +1,6 @@
-import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {moduleScoped, ServiceDefinitionTagEnum, tag, ExitCode} from "@pristine-ts/common";
 import {injectable} from "tsyringe";
 import {CommandInterface} from "../interfaces/command.interface";
-import {ExitCodeEnum} from "../enums/exit-code.enum";
 import {CliModuleKeyname} from "../cli.module.keyname";
 import {ListCommand} from "./list.command";
 
@@ -20,7 +19,7 @@ export class ListAliasCommand implements CommandInterface<null> {
   constructor(private readonly delegate: ListCommand) {
   }
 
-  async run(args: any): Promise<ExitCodeEnum | number> {
+  async run(args: any): Promise<ExitCode | number> {
     return this.delegate.run(args);
   }
 }

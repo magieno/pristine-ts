@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {BooleanResolver} from "./boolean.resolver";
 import {ResolverInterface} from "@pristine-ts/common";
 

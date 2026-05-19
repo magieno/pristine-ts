@@ -1,3 +1,4 @@
+import "reflect-metadata";
 describe("HTTP Client", () => {
   it("should properly pass back the intercepted request", () => {
     expect(true).toBeTruthy();

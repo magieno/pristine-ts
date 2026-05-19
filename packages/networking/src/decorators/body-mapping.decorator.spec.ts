@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {bodyMapping, bodyMappingDecoratorMetadataKeyname} from "./body-mapping.decorator";
 import {MetadataUtil} from "@pristine-ts/common";
 import {

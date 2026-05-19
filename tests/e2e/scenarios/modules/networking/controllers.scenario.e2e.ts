@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {ExecutionContextKeynameEnum, Kernel} from "@pristine-ts/core";
 import {testModule} from "../../../src/test.module";
 import {HttpMethod, Request, Response} from "@pristine-ts/common";

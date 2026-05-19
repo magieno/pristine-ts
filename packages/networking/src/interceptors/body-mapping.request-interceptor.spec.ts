@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {BodyMappingRequestInterceptor} from "./body-mapping.request-interceptor";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {HttpMethod, Request} from "@pristine-ts/common";

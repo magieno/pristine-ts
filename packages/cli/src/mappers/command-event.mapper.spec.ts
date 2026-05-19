@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {CommandEventMapper} from "./command-event.mapper";
 import {ExecutionContextKeynameEnum} from "@pristine-ts/core";
 import {CommandEventPayload} from "../event-payloads/command.event-payload";

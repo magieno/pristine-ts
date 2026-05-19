@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {ResolverInterface} from "@pristine-ts/common";
 import {NumberResolver} from "./number.resolver";
 
