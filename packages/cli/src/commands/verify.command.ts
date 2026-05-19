@@ -34,10 +34,10 @@ export class VerifyCommand implements CommandInterface<null> {
   async run(args: any): Promise<ExitCode | number> {
     const skipTests = args?.["skip-tests"] === true || args?.skipTests === true;
 
-    const {appModule, configuration} = await this.appModuleLoader.load();
+    const {appModule} = await this.appModuleLoader.load();
 
     const kernel = new Kernel();
-    const report = await kernel.verifyInstantiation(appModule, configuration, {
+    const report = await kernel.verifyInstantiation(appModule, undefined, {
       runInstantiationTests: !skipTests,
     });
 

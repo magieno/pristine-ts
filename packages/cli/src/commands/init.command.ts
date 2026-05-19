@@ -209,13 +209,15 @@ export class InitCommand implements CommandInterface<InitCommandOptions> {
  * regenerate (it refuses to overwrite this file by design — delete it first).
  */
 export default defineConfig({
-  appModule: {
-    sourcePath: "${answers.sourcePath}",
-    outputPath: "${answers.outputPath}",
-  },
-  build: {
-    tsconfig: "${answers.tsconfig}",
-    format: "${answers.format}",
+  cli: {
+    appModule: {
+      sourcePath: "${answers.sourcePath}",
+      outputPath: "${answers.outputPath}",
+    },
+    build: {
+      tsconfig: "${answers.tsconfig}",
+      format: "${answers.format}",
+    },
   },
 });
 `;

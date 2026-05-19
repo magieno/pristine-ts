@@ -3,6 +3,7 @@ import {ConfigurationModuleKeyname} from "./configuration.module.keyname";
 
 export * from "./errors/errors";
 export * from "./interfaces/interfaces";
+export * from "./loaders/loaders";
 export * from "./managers/managers";
 export * from "./parsers/parsers";
 export * from "./resolvers/resolvers";

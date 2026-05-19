@@ -50,7 +50,7 @@ export class BuildCommand implements CommandInterface<null> {
   async run(args: any): Promise<ExitCode | number> {
     const projectRoot = process.cwd();
     const resolvedConfig = await this.configLoader.load({startDir: projectRoot});
-    const buildConfig = resolvedConfig.config.build ?? {};
+    const buildConfig = resolvedConfig.config.cli?.build ?? {};
 
     const tsconfig = buildConfig.tsconfig ?? this.defaultTsconfig;
     const format = buildConfig.format ?? this.defaultFormat;
@@ -91,7 +91,7 @@ export class BuildCommand implements CommandInterface<null> {
       }
     }
 
-    this.writeManifestIfConfigured(projectRoot, resolvedConfig.config.appModule);
+    this.writeManifestIfConfigured(projectRoot, resolvedConfig.config.cli?.appModule);
 
     this.consoleManager.writeSuccess(`Build complete (${invocations.length} tsconfig${invocations.length > 1 ? "s" : ""}).`);
     return ExitCode.Success;

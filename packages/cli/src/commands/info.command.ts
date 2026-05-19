@@ -60,11 +60,11 @@ export class InfoCommand implements CommandInterface<null> {
     const resolvedConfig = await this.configLoader.load({startDir: process.cwd()});
     this.consoleManager.writeLine("Configuration");
     this.consoleManager.writeLine(`  Config file:    ${resolvedConfig.configFilePath ?? "(none — using defaults)"}`);
-    if (resolvedConfig.config.appModule?.sourcePath !== undefined) {
-      this.consoleManager.writeLine(`  AppModule src:  ${resolvedConfig.config.appModule.sourcePath}  (from config file)`);
+    if (resolvedConfig.config.cli?.appModule?.sourcePath !== undefined) {
+      this.consoleManager.writeLine(`  AppModule src:  ${resolvedConfig.config.cli.appModule.sourcePath}  (from config file)`);
     }
-    if (resolvedConfig.config.appModule?.outputPath !== undefined) {
-      this.consoleManager.writeLine(`  AppModule out:  ${resolvedConfig.config.appModule.outputPath}  (from config file)`);
+    if (resolvedConfig.config.cli?.appModule?.outputPath !== undefined) {
+      this.consoleManager.writeLine(`  AppModule out:  ${resolvedConfig.config.cli.appModule.outputPath}  (from config file)`);
     }
     this.consoleManager.writeLine("");
   }

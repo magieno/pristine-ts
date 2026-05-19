@@ -2,7 +2,7 @@ import {ModuleInterface} from "@pristine-ts/common";
 import {CliModuleKeyname} from "./cli.module.keyname";
 import {CoreModule} from "@pristine-ts/core";
 import {ValidationModule} from "@pristine-ts/validation";
-import {LoggingModule} from "@pristine-ts/logging";
+import {LoggingModule, LoggingModuleKeyname, OutputModeEnum, SeverityEnum} from "@pristine-ts/logging";
 import {DataMappingModule} from "@pristine-ts/data-mapping"
 
 export * from "./bootstrap/bootstrap";
@@ -32,5 +32,21 @@ export const CliModule: ModuleInterface = {
     DataMappingModule,
     LoggingModule,
     ValidationModule,
-  ]
+  ],
+  /**
+   * When running through the CLI, logs share stderr with our own CLI output. We layer a
+   * tighter set of defaults than `LoggingModule` ships with so the terminal stays
+   * readable: Simple line-oriented format and `Error`-only severity threshold. Users can
+   * override both in `pristine.config.ts:config` or via env-var resolvers — `configDefaults`
+   * sits below the file and overrides in the resolution chain.
+   *
+   * No `isLoggingModulePresent` check needed — `LoggingModule` is a hard import above, so
+   * these keys are always registered when CliModule is in the graph. (And if a future
+   * refactor removed LoggingModule from this import list, the kernel would throw at boot
+   * with an actionable "unknown key" error — the right failure mode for that case.)
+   */
+  configDefaults: {
+    [LoggingModuleKeyname + ".consoleLoggerOutputMode"]: OutputModeEnum.Simple,
+    [LoggingModuleKeyname + ".logSeverityLevelConfiguration"]: SeverityEnum.Error,
+  },
 }

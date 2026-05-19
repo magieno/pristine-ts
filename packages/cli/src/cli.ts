@@ -1,5 +1,6 @@
 import {EnvironmentManager, ExecutionContextKeynameEnum, Kernel, PristineEnvironment, PristineEnvironmentConfigurationKey} from "@pristine-ts/core";
 import {AppModuleInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common";
+import {PristineConfigFileLoader} from "@pristine-ts/configuration";
 import {CommandInterface} from "./interfaces/command.interface";
 import {AppModuleLoader} from "./bootstrap/app-module-loader";
 import {BuildManifestChecker} from "./bootstrap/build-manifest-checker";
@@ -22,10 +23,10 @@ import {CliErrorReporter} from "./reporters/cli-error.reporter";
  * `kernel.start()`, or the dispatched command — funnels through `reportFatalError` and
  * gets rendered via `CliErrorReporter`. The bin doesn't need its own catch.
  *
- * **Per-call state.** `kernel` and `configuration` live as instance fields so they're
- * available to `reportFatalError` and `warnOnCommandCollisions` without threading them
- * through method parameters. One `Cli` instance per `bootstrap()` invocation — the
- * lifetime matches the CLI process.
+ * **Per-call state.** `kernel` lives as an instance field so it's available to
+ * `reportFatalError` and `warnOnCommandCollisions` without threading it through method
+ * parameters. One `Cli` instance per `bootstrap()` invocation — the lifetime matches
+ * the CLI process.
  *
  * **No DI.** The kernel container does not exist yet during boot — the bootstrap-layer
  * collaborators (loaders, discoverers, cache, prompt) are hand-wired in `build()`. Once
@@ -33,13 +34,11 @@ import {CliErrorReporter} from "./reporters/cli-error.reporter";
  */
 export class Cli {
   private kernel?: Kernel;
-  private configuration?: Record<string, unknown>;
 
   public async bootstrap(): Promise<number> {
     try {
       const appModuleLoader = this.buildAppModuleLoader();
       const loaded = await appModuleLoader.load();
-      this.configuration = loaded.configuration as Record<string, unknown>;
 
       this.kernel = new Kernel();
       // Wrap the user's AppModule with CliModule so the CLI's own commands (`build`,
@@ -48,7 +47,11 @@ export class Cli {
       // AppModule already imports CliModule. The kernel dedupes modules by keyname during
       // start, so wrapping when CliModule is already in the graph is a no-op; we don't
       // bother walking the graph to detect that case.
-      await this.kernel.start(this.wrapWithCliModule(loaded.appModule), loaded.configuration);
+      //
+      // No second argument to `kernel.start()`: runtime configuration values from
+      // `pristine.config.ts:config` are read directly by `ConfigurationManager` during
+      // boot, so the CLI no longer needs to pre-load or thread them through.
+      await this.kernel.start(this.wrapWithCliModule(loaded.appModule));
 
       // Make the running kernel resolvable from within commands so things like `pristine start`
       // and the alias commands can register signal handlers and resolve their delegates.
@@ -62,7 +65,7 @@ export class Cli {
       // treat that as a success exit.
       return 0;
     } catch (error) {
-      return this.reportFatalError(error);
+      return await this.reportFatalError(error);
     }
   }
 
@@ -70,25 +73,22 @@ export class Cli {
    * Renders any error that escapes the boot/dispatch flow and returns the exit code the
    * bin should pass to `process.exit`.
    *
-   * Three resolution paths for `EnvironmentManager`, picked in order of "most likely to be
+   * Two resolution paths for `EnvironmentManager`, picked in order of "most likely to be
    * correctly configured":
    *
-   *   1. **Kernel up**: resolve `CliErrorReporter` (and its `EnvironmentManager`) through DI.
-   *      This is the path for command-runtime errors — the configuration system already ran
-   *      and `pristine.environment` is whatever the user configured.
+   *   1. **Kernel up**: resolve `CliErrorReporter` (and its `EnvironmentManager`) through
+   *      DI. This is the path for command-runtime errors — the configuration system
+   *      already ran and `pristine.environment` is whatever the user configured.
    *
-   *   2. **Configuration loaded but kernel-start failed**: build the manager from the raw
-   *      `configuration` object that `AppModuleLoader.load()` produced. `pristine.config.ts`
-   *      controls the mode just like it would in the running app.
+   *   2. **Kernel-start failed**: peek directly at `pristine.config.ts:config` via
+   *      `PristineConfigFileLoader`. If a value for `pristine.environment` is set in the
+   *      file, use it; otherwise default to production. Boot-time errors get sanitized
+   *      unless the user explicitly opted into `dev` in the file.
    *
-   *   3. **Configuration not loaded** (load itself threw): default to production. Boot-time
-   *      errors get sanitized — set `pristine.environment: "dev"` in your config (or fix the
-   *      load error) to see verbose output.
-   *
-   * No `process.env` reads in any branch — the environment flows exclusively through the
-   * configuration system, same as every other framework setting.
+   * No `process.env` reads in any branch — the environment flows exclusively through
+   * the configuration system or its file source.
    */
-  private reportFatalError(error: unknown): number {
+  private async reportFatalError(error: unknown): Promise<number> {
     if (this.kernel !== undefined) {
       try {
         const reporter = this.kernel.container.resolve(CliErrorReporter);
@@ -99,10 +99,30 @@ export class Cli {
       }
     }
 
-    const rawEnvironment = (this.configuration?.[PristineEnvironmentConfigurationKey] as string | undefined) ?? PristineEnvironment.Production;
+    const rawEnvironment = await this.readEnvironmentFromConfigFile();
     const environmentManager = new EnvironmentManager(rawEnvironment);
     const reporter = new CliErrorReporter(environmentManager);
     return reporter.report(error);
+  }
+
+  /**
+   * Peeks at `pristine.config.ts:config[pristine.environment]` directly via the shared
+   * file loader. Used only by the kernel-down fallback in `reportFatalError`. Failures
+   * (file missing, parse error, etc.) silently fall back to production — boot-time
+   * sanitized output is the safer default.
+   */
+  private async readEnvironmentFromConfigFile(): Promise<string> {
+    try {
+      const loader = new PristineConfigFileLoader();
+      const parsed = await loader.load();
+      const value = parsed?.config?.[PristineEnvironmentConfigurationKey];
+      if (typeof value === "string") {
+        return value;
+      }
+    } catch {
+      // Fall through to the production default.
+    }
+    return PristineEnvironment.Production;
   }
 
   /**
@@ -183,4 +203,3 @@ export class Cli {
     }
   }
 }
-
