@@ -1,8 +1,9 @@
 import path from "path";
 import {moduleScoped, ServiceDefinitionTagEnum, tag, ExitCode} from "@pristine-ts/common";
-import {injectable} from "tsyringe";
+import {inject, injectable} from "tsyringe";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 import {CommandInterface} from "../interfaces/command.interface";
-import {ConsoleManager} from "../managers/console.manager";
+import {CliOutput} from "../managers/cli-output.manager";
 import {CliModuleKeyname} from "../cli.module.keyname";
 import {ConfigLoader} from "../config/config-loader";
 
@@ -20,7 +21,8 @@ export class ConfigPrintCommand implements CommandInterface<null> {
   description = "Print the resolved Pristine configuration plus where it was loaded from.";
 
   constructor(
-    private readonly consoleManager: ConsoleManager,
+    @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
+    private readonly cliOutput: CliOutput,
     private readonly configLoader: ConfigLoader,
   ) {
   }
@@ -29,19 +31,21 @@ export class ConfigPrintCommand implements CommandInterface<null> {
     const resolved = await this.configLoader.load({startDir: process.cwd()});
 
     if (resolved.configFilePath !== undefined) {
-      this.consoleManager.writeInfo(`Config file: ${path.relative(process.cwd(), resolved.configFilePath)}`);
+      this.logHandler.info("Config file loaded", {highlights: {path: path.relative(process.cwd(), resolved.configFilePath)}});
     } else {
-      this.consoleManager.writeInfo("No config file found — running with defaults.");
+      this.logHandler.info("No config file found — running with defaults.");
     }
 
-    this.consoleManager.writeLine("");
-    this.consoleManager.writeLine(JSON.stringify(resolved.config, null, 2));
+    this.cliOutput.writeLine("");
+    // JSON dump goes through cliOutput so it pipes cleanly — narration above (and
+    // provenance below) goes through logHandler for normal CLI rendering.
+    this.cliOutput.writeLine(JSON.stringify(resolved.config, null, 2));
 
     if (Object.keys(resolved.provenance).length > 0) {
-      this.consoleManager.writeLine("");
-      this.consoleManager.writeInfo("Provenance:");
+      this.cliOutput.writeLine("");
+      this.logHandler.info("Provenance:");
       for (const [field, source] of Object.entries(resolved.provenance)) {
-        this.consoleManager.writeLine(`  ${field}: ${source}`);
+        this.cliOutput.writeLine(`  ${field}: ${source}`);
       }
     }
 

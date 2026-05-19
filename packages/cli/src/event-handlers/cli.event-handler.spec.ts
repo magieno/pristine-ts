@@ -22,42 +22,35 @@ class FixtureOptions {
 }
 
 /**
- * Captures everything the handler writes to console so tests can assert on output without
- * a real terminal. Still required because the handler may write status lines via
- * `consoleManager.writeLine` even on the success path.
+ * Captures everything the handler emits through its injected LogHandlerInterface so tests
+ * can assert on output without a real terminal.
  */
-class CapturingConsole {
+class CapturingLogHandler {
   public lines: string[] = [];
-
-  writeLine(message: string): void {
-    this.lines.push(message);
-  }
-
-  writeError(message: string): void {
-    this.lines.push(`ERROR: ${message}`);
-  }
-
-  writeSuccess(message: string): void { this.lines.push(`SUCCESS: ${message}`); }
-  writeWarning(message: string): void { this.lines.push(`WARNING: ${message}`); }
-  writeInfo(message: string): void { this.lines.push(`INFO: ${message}`); }
-  write(message: string): void { this.lines.push(message); }
+  info(message: string): void { this.lines.push(`INFO: ${message}`); }
+  success(message: string): void { this.lines.push(`SUCCESS: ${message}`); }
+  error(message: string): void { this.lines.push(`ERROR: ${message}`); }
+  warning(message: string): void { this.lines.push(`WARNING: ${message}`); }
+  notice(message: string): void { this.lines.push(`NOTICE: ${message}`); }
+  debug(message: string): void { this.lines.push(`DEBUG: ${message}`); }
+  critical(message: string): void { this.lines.push(`CRITICAL: ${message}`); }
+  terminate(): void {}
 }
 
 /**
- * Builds a CliEventHandler with real Validator and a capturing console. The handler's only
- * inputs we want to vary across tests are `command` and `rawArgs`; everything else stays
- * the same so each test is small.
+ * Builds a CliEventHandler with real Validator and a capturing log handler. The handler's
+ * only inputs we want to vary across tests are `command` and `rawArgs`; everything else
+ * stays the same so each test is small.
  */
-const buildHandler = (): {handler: CliEventHandler; console: CapturingConsole} => {
-  const captured = new CapturingConsole();
+const buildHandler = (): {handler: CliEventHandler; logHandler: CapturingLogHandler} => {
+  const captured = new CapturingLogHandler();
   const validator = new Validator();
   const handler = new CliEventHandler(
-    {error: () => {}, info: () => {}, debug: () => {}, warning: () => {}, critical: () => {}, notice: () => {}, terminate: () => {}} as any,
-    validator,
     captured as any,
+    validator,
     [],
   );
-  return {handler, console: captured};
+  return {handler, logHandler: captured};
 };
 
 const fixtureCommand = (overrides: Partial<CommandInterface<FixtureOptions>> = {}): CommandInterface<FixtureOptions> => ({

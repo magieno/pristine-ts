@@ -45,6 +45,7 @@ export abstract class BaseLogger {
     protected readonly logSeverityLevelConfiguration: number,
     protected readonly logDebugDepthConfiguration: number,
     protected readonly logInfoDepthConfiguration: number,
+    protected readonly logSuccessDepthConfiguration: number,
     protected readonly logNoticeDepthConfiguration: number,
     protected readonly logWarningDepthConfiguration: number,
     protected readonly logErrorDepthConfiguration: number,
@@ -72,6 +73,9 @@ export abstract class BaseLogger {
 
       case SeverityEnum.Info:
         return Utils.outputLog(log, this.outputMode, this.logInfoDepthConfiguration);
+
+      case SeverityEnum.Success:
+        return Utils.outputLog(log, this.outputMode, this.logSuccessDepthConfiguration);
 
       case SeverityEnum.Notice:
         return Utils.outputLog(log, this.outputMode, this.logNoticeDepthConfiguration)

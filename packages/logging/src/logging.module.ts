@@ -9,6 +9,7 @@ import {
 } from "@pristine-ts/configuration";
 import {OutputModeEnum} from "./enums/output-mode.enum";
 import {SeverityEnum} from "./enums/severity.enum";
+import {StreamEnum} from "./enums/stream.enum";
 
 export * from "./enums/enums";
 export * from "./interfaces/interfaces";
@@ -69,6 +70,18 @@ export const LoggingModule: ModuleInterface = {
       isRequired: false,
       defaultResolvers: [
         new NumberResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_LOG_INFO_DEPTH_CONFIGURATION")),
+      ]
+    },
+    /**
+     * The number of level to go down in an object when printing a log with the Success severity.
+     * We often do not need to go to the bottom layer of an object, so we can truncate at a certain depth.
+     */
+    {
+      parameterName: LoggingModuleKeyname + ".logSuccessDepthConfiguration",
+      defaultValue: 5,
+      isRequired: false,
+      defaultResolvers: [
+        new NumberResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_LOG_SUCCESS_DEPTH_CONFIGURATION")),
       ]
     },
     /**
@@ -139,6 +152,85 @@ export const LoggingModule: ModuleInterface = {
       isRequired: false,
       defaultResolvers: [
         new EnumResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_CONSOLE_LOGGER_OUTPUT_MODE"), OutputModeEnum),
+      ]
+    },
+    /**
+     * Which standard stream (stdout vs stderr) the console logger writes Debug-severity
+     * logs to. Defaults follow common CLI conventions: informational severities go to
+     * stdout, problem severities go to stderr.
+     */
+    {
+      parameterName: LoggingModuleKeyname + ".consoleLoggerDebugStream",
+      defaultValue: StreamEnum.Stdout,
+      isRequired: false,
+      defaultResolvers: [
+        new EnumResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_CONSOLE_LOGGER_DEBUG_STREAM"), StreamEnum),
+      ]
+    },
+    /**
+     * Which standard stream the console logger writes Info-severity logs to.
+     */
+    {
+      parameterName: LoggingModuleKeyname + ".consoleLoggerInfoStream",
+      defaultValue: StreamEnum.Stdout,
+      isRequired: false,
+      defaultResolvers: [
+        new EnumResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_CONSOLE_LOGGER_INFO_STREAM"), StreamEnum),
+      ]
+    },
+    /**
+     * Which standard stream the console logger writes Success-severity logs to.
+     */
+    {
+      parameterName: LoggingModuleKeyname + ".consoleLoggerSuccessStream",
+      defaultValue: StreamEnum.Stdout,
+      isRequired: false,
+      defaultResolvers: [
+        new EnumResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_CONSOLE_LOGGER_SUCCESS_STREAM"), StreamEnum),
+      ]
+    },
+    /**
+     * Which standard stream the console logger writes Notice-severity logs to.
+     */
+    {
+      parameterName: LoggingModuleKeyname + ".consoleLoggerNoticeStream",
+      defaultValue: StreamEnum.Stdout,
+      isRequired: false,
+      defaultResolvers: [
+        new EnumResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_CONSOLE_LOGGER_NOTICE_STREAM"), StreamEnum),
+      ]
+    },
+    /**
+     * Which standard stream the console logger writes Warning-severity logs to.
+     */
+    {
+      parameterName: LoggingModuleKeyname + ".consoleLoggerWarningStream",
+      defaultValue: StreamEnum.Stderr,
+      isRequired: false,
+      defaultResolvers: [
+        new EnumResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_CONSOLE_LOGGER_WARNING_STREAM"), StreamEnum),
+      ]
+    },
+    /**
+     * Which standard stream the console logger writes Error-severity logs to.
+     */
+    {
+      parameterName: LoggingModuleKeyname + ".consoleLoggerErrorStream",
+      defaultValue: StreamEnum.Stderr,
+      isRequired: false,
+      defaultResolvers: [
+        new EnumResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_CONSOLE_LOGGER_ERROR_STREAM"), StreamEnum),
+      ]
+    },
+    /**
+     * Which standard stream the console logger writes Critical-severity logs to.
+     */
+    {
+      parameterName: LoggingModuleKeyname + ".consoleLoggerCriticalStream",
+      defaultValue: StreamEnum.Stderr,
+      isRequired: false,
+      defaultResolvers: [
+        new EnumResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_CONSOLE_LOGGER_CRITICAL_STREAM"), StreamEnum),
       ]
     },
     /**

@@ -1,9 +1,10 @@
 import fs from "fs";
 import path from "path";
 import {moduleScoped, ServiceDefinitionTagEnum, tag, ExitCode} from "@pristine-ts/common";
-import {injectable} from "tsyringe";
+import {inject, injectable} from "tsyringe";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 import {CommandInterface} from "../interfaces/command.interface";
-import {ConsoleManager} from "../managers/console.manager";
+import {CliOutput} from "../managers/cli-output.manager";
 import {CliModuleKeyname} from "../cli.module.keyname";
 import {InitCommandOptions} from "./init.command-options";
 import {InitAnswers, InitPrompt} from "../bootstrap/init-prompt";
@@ -35,7 +36,8 @@ export class InitCommand implements CommandInterface<InitCommandOptions> {
   private readonly gitignoreEntry: string = ".pristine/";
 
   constructor(
-    private readonly consoleManager: ConsoleManager,
+    @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
+    private readonly cliOutput: CliOutput,
     private readonly initPrompt: InitPrompt,
   ) {
   }
@@ -45,9 +47,7 @@ export class InitCommand implements CommandInterface<InitCommandOptions> {
     const configPath = path.resolve(projectRoot, this.configFileName);
 
     if (fs.existsSync(configPath)) {
-      this.consoleManager.writeError(
-        `${this.configFileName} already exists at ${configPath}. Aborting to avoid overwriting.`,
-      );
+      this.logHandler.error(`${this.configFileName} already exists at ${configPath}. Aborting to avoid overwriting.`);
       return ExitCode.Error;
     }
 
@@ -58,7 +58,7 @@ export class InitCommand implements CommandInterface<InitCommandOptions> {
     }
 
     fs.writeFileSync(configPath, this.renderConfigTemplate(answers), "utf8");
-    this.consoleManager.writeSuccess(`Created ${path.relative(projectRoot, configPath)}`);
+    this.logHandler.success(`Created ${path.relative(projectRoot, configPath)}`);
 
     if (answers.scaffoldSource) {
       this.scaffoldSource(projectRoot, answers.sourcePath);
@@ -70,10 +70,10 @@ export class InitCommand implements CommandInterface<InitCommandOptions> {
 
     this.addToGitignore(projectRoot);
 
-    this.consoleManager.writeInfo("Next steps:");
-    this.consoleManager.writeLine("  1. npm install --save-dev @pristine-ts/cli  (if you haven't already)");
-    this.consoleManager.writeLine("  2. npm run build       # compile your AppModule");
-    this.consoleManager.writeLine("  3. npm run start       # boot your app");
+    this.logHandler.info("Next steps:");
+    this.cliOutput.writeLine("  1. npm install --save-dev @pristine-ts/cli  (if you haven't already)");
+    this.cliOutput.writeLine("  2. npm run build       # compile your AppModule");
+    this.cliOutput.writeLine("  3. npm run start       # boot your app");
 
     return ExitCode.Success;
   }
@@ -95,10 +95,7 @@ export class InitCommand implements CommandInterface<InitCommandOptions> {
       if (sourcePath === undefined) missing.push("--source-path");
       if (outputPath === undefined) missing.push("--output-path");
       if (missing.length > 0) {
-        this.consoleManager.writeError(
-          `Non-interactive run is missing required flag(s): ${missing.join(", ")}. ` +
-          `Either run \`pristine init\` in a terminal or pass the flags explicitly.`,
-        );
+        this.logHandler.error("Non-interactive run is missing required flag(s). Either run `pristine init` in a terminal or pass the flags explicitly.", {highlights: {missing}});
         return undefined;
       }
     }
@@ -122,12 +119,12 @@ export class InitCommand implements CommandInterface<InitCommandOptions> {
   private scaffoldSource(projectRoot: string, sourcePath: string): void {
     const absolutePath = path.resolve(projectRoot, sourcePath);
     if (fs.existsSync(absolutePath)) {
-      this.consoleManager.writeInfo(`AppModule source already exists at ${sourcePath}; skipping scaffold.`);
+      this.logHandler.info("AppModule source already exists; skipping scaffold.", {highlights: {sourcePath}});
       return;
     }
     fs.mkdirSync(path.dirname(absolutePath), {recursive: true});
     fs.writeFileSync(absolutePath, this.renderAppModuleTemplate(), "utf8");
-    this.consoleManager.writeSuccess(`Created ${sourcePath}`);
+    this.logHandler.success(`Created ${sourcePath}`);
   }
 
   /**
@@ -138,7 +135,7 @@ export class InitCommand implements CommandInterface<InitCommandOptions> {
   private addPackageScripts(projectRoot: string): void {
     const packageJsonPath = path.resolve(projectRoot, "package.json");
     if (fs.existsSync(packageJsonPath) === false) {
-      this.consoleManager.writeWarning("package.json not found; skipping script additions.");
+      this.logHandler.warning("package.json not found; skipping script additions.");
       return;
     }
 
@@ -146,7 +143,7 @@ export class InitCommand implements CommandInterface<InitCommandOptions> {
     try {
       parsed = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
     } catch (error) {
-      this.consoleManager.writeError(`Failed to parse package.json: ${(error as Error).message}`);
+      this.logHandler.error("Failed to parse package.json", {highlights: {error: (error as Error).message}});
       return;
     }
 
@@ -169,14 +166,14 @@ export class InitCommand implements CommandInterface<InitCommandOptions> {
     }
 
     if (added.length === 0) {
-      this.consoleManager.writeInfo("All target scripts already exist in package.json; nothing added.");
+      this.logHandler.info("All target scripts already exist in package.json; nothing added.");
       return;
     }
 
     fs.writeFileSync(packageJsonPath, JSON.stringify(parsed, null, 2) + "\n", "utf8");
-    this.consoleManager.writeSuccess(`Added ${added.length} script(s) to package.json: ${added.join(", ")}`);
+    this.logHandler.success(`Added ${added.length} script(s) to package.json`, {highlights: {added}});
     if (skipped.length > 0) {
-      this.consoleManager.writeInfo(`Kept existing script(s): ${skipped.join(", ")}`);
+      this.logHandler.info("Kept existing script(s)", {highlights: {skipped}});
     }
   }
 
@@ -198,7 +195,7 @@ export class InitCommand implements CommandInterface<InitCommandOptions> {
 
     const separator = current.endsWith("\n") ? "" : "\n";
     fs.appendFileSync(gitignorePath, `${separator}${this.gitignoreEntry}\n`, "utf8");
-    this.consoleManager.writeInfo(`Added '${this.gitignoreEntry}' to .gitignore`);
+    this.logHandler.info(`Added '${this.gitignoreEntry}' to .gitignore`);
   }
 
   private renderConfigTemplate(answers: InitAnswers): string {

@@ -1,6 +1,5 @@
 import {inject, injectable, singleton} from "tsyringe";
 import {LoggingConfigurationKeys} from "../logging.configuration-keys";
-import {SeverityEnum} from "../enums/severity.enum";
 import {LogModel} from "../models/log.model";
 import {LoggerInterface} from "../interfaces/logger.interface";
 import {Readable, Writable} from "stream";
@@ -58,6 +57,7 @@ export class FileLogger extends BaseLogger implements LoggerInterface {
                      @injectConfig(LoggingConfigurationKeys.LogSeverityLevelConfiguration) logSeverityLevelConfiguration: number,
                      @injectConfig(LoggingConfigurationKeys.LogDebugDepthConfiguration) logDebugDepthConfiguration: number,
                      @injectConfig(LoggingConfigurationKeys.LogInfoDepthConfiguration) logInfoDepthConfiguration: number,
+                     @injectConfig(LoggingConfigurationKeys.LogSuccessDepthConfiguration) logSuccessDepthConfiguration: number,
                      @injectConfig(LoggingConfigurationKeys.LogNoticeDepthConfiguration) logNoticeDepthConfiguration: number,
                      @injectConfig(LoggingConfigurationKeys.LogWarningDepthConfiguration) logWarningDepthConfiguration: number,
                      @injectConfig(LoggingConfigurationKeys.LogErrorDepthConfiguration) logErrorDepthConfiguration: number,
@@ -71,6 +71,7 @@ export class FileLogger extends BaseLogger implements LoggerInterface {
       logSeverityLevelConfiguration,
       logDebugDepthConfiguration,
       logInfoDepthConfiguration,
+      logSuccessDepthConfiguration,
       logNoticeDepthConfiguration,
       logWarningDepthConfiguration,
       logErrorDepthConfiguration,
@@ -111,28 +112,6 @@ export class FileLogger extends BaseLogger implements LoggerInterface {
       return;
     }
 
-    const outputLog = this.getFormattedOutputLog(log) + ";\n";
-
-    switch (log.severity) {
-      case SeverityEnum.Debug:
-        this.writableStream.write(outputLog);
-        break;
-
-      case SeverityEnum.Info:
-        this.writableStream.write(outputLog);
-        break;
-
-      case SeverityEnum.Warning:
-        this.writableStream.write(outputLog);
-        break;
-
-      case SeverityEnum.Error:
-        this.writableStream.write(outputLog);
-        break;
-
-      case SeverityEnum.Critical:
-        this.writableStream.write(outputLog);
-        break;
-    }
+    this.writableStream.write(this.getFormattedOutputLog(log) + ";\n");
   }
 }

@@ -1,9 +1,9 @@
 import fs from "fs";
 import path from "path";
 import {moduleScoped, ServiceDefinitionTagEnum, tag, ExitCode} from "@pristine-ts/common";
-import {injectable} from "tsyringe";
+import {inject, injectable} from "tsyringe";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 import {CommandInterface} from "../interfaces/command.interface";
-import {ConsoleManager} from "../managers/console.manager";
 import {ShellManager} from "../managers/shell.manager";
 import {CliModuleKeyname} from "../cli.module.keyname";
 import {ConfigLoader} from "../config/config-loader";
@@ -40,7 +40,7 @@ export class BuildCommand implements CommandInterface<null> {
   private readonly defaultFormat: "esm" | "cjs" | "both" = "esm";
 
   constructor(
-    private readonly consoleManager: ConsoleManager,
+    @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
     private readonly shellManager: ShellManager,
     private readonly configLoader: ConfigLoader,
     private readonly buildManifestWriter: BuildManifestWriter,
@@ -60,22 +60,20 @@ export class BuildCommand implements CommandInterface<null> {
     if (clean && outDir !== undefined) {
       const absOut = path.resolve(projectRoot, outDir);
       if (fs.existsSync(absOut)) {
-        this.consoleManager.writeInfo(`Cleaning ${outDir}/`);
+        this.logHandler.info(`Cleaning ${outDir}/`, {highlights: {outDir}});
         fs.rmSync(absOut, {recursive: true, force: true});
       }
     }
 
     const invocations = this.resolveTscInvocations(projectRoot, tsconfig, format);
     if (invocations.length === 0) {
-      this.consoleManager.writeError(
-        `No tsconfig found. Looked for: ${this.expectedTsconfigsForFormat(tsconfig, format).join(", ")}`,
-      );
+      this.logHandler.error("No tsconfig found.", {highlights: {searched: this.expectedTsconfigsForFormat(tsconfig, format)}});
       return ExitCode.Error;
     }
 
     for (const tsconfigPath of invocations) {
       const relTsconfig = path.relative(projectRoot, tsconfigPath);
-      this.consoleManager.writeInfo(`Compiling with ${relTsconfig}`);
+      this.logHandler.info(`Compiling with ${relTsconfig}`, {highlights: {tsconfig: relTsconfig}});
       try {
         // The shell command runs in the current process's CWD, which is already projectRoot.
         // Don't pass `directory` here — ShellManager's PathManager resolution would double
@@ -86,14 +84,14 @@ export class BuildCommand implements CommandInterface<null> {
           outputTimeBeforeExecutingCommand: false,
         });
       } catch (error) {
-        this.consoleManager.writeError(`tsc failed for ${relTsconfig}`);
+        this.logHandler.error(`tsc failed for ${relTsconfig}`, {highlights: {tsconfig: relTsconfig}});
         return ExitCode.Error;
       }
     }
 
     this.writeManifestIfConfigured(projectRoot, resolvedConfig.config.cli?.appModule);
 
-    this.consoleManager.writeSuccess(`Build complete (${invocations.length} tsconfig${invocations.length > 1 ? "s" : ""}).`);
+    this.logHandler.success("Build complete.", {highlights: {tsconfigs: invocations.length}});
     return ExitCode.Success;
   }
 
@@ -108,21 +106,16 @@ export class BuildCommand implements CommandInterface<null> {
     const absoluteOutput = path.resolve(projectRoot, appModule.outputPath);
 
     if (fs.existsSync(absoluteSource) === false) {
-      this.consoleManager.writeWarning(
-        `Build succeeded but appModule.sourcePath '${appModule.sourcePath}' does not exist; skipping manifest.`,
-      );
+      this.logHandler.warning("Build succeeded but appModule.sourcePath does not exist; skipping manifest.", {highlights: {sourcePath: appModule.sourcePath}});
       return;
     }
     if (fs.existsSync(absoluteOutput) === false) {
-      this.consoleManager.writeWarning(
-        `Build succeeded but appModule.outputPath '${appModule.outputPath}' was not produced; skipping manifest. ` +
-        `Check your tsconfig outDir / file layout.`,
-      );
+      this.logHandler.warning("Build succeeded but appModule.outputPath was not produced; skipping manifest. Check your tsconfig outDir / file layout.", {highlights: {outputPath: appModule.outputPath}});
       return;
     }
 
     const manifest = this.buildManifestWriter.write(projectRoot, appModule.sourcePath, appModule.outputPath);
-    this.consoleManager.writeInfo(`Manifest written: .pristine/build-manifest.json (built at ${manifest.builtAt})`);
+    this.logHandler.info("Manifest written: .pristine/build-manifest.json", {highlights: {builtAt: manifest.builtAt}});
   }
 
   /**

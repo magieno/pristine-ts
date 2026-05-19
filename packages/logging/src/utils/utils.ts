@@ -3,6 +3,9 @@ import {OutputModeEnum} from "../enums/output-mode.enum";
 import {SeverityEnum} from "../enums/severity.enum";
 import format from "date-fns/format";
 import {DiagnosticsModel} from "../models/diagnostics.model";
+import {PrettyLogFormatter} from "./pretty-log-formatter";
+
+export {PrettyLogFormatter} from "./pretty-log-formatter";
 
 /**
  * This class provides some utility functions to help with the logging.
@@ -109,6 +112,9 @@ export class Utils {
       case SeverityEnum.Info:
         return "INFO";
 
+      case SeverityEnum.Success:
+        return "SUCCESS";
+
       case SeverityEnum.Notice:
         return "NOTICE";
 
@@ -154,6 +160,8 @@ export class Utils {
         }
 
         return base + highlights;
+      case OutputModeEnum.Pretty:
+        return PrettyLogFormatter.format(log);
     }
   }
 

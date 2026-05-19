@@ -41,6 +41,15 @@ export interface LogHandlerInterface {
   info(message: string, data?: LogData): void;
 
   /**
+   * Logs the message at Success severity (rank 2, between Info and Notice). Visible at
+   * the default Info threshold; hidden when the threshold is set to Warning or above.
+   * Use for positive completion events (build complete, server started, sync finished).
+   * @param message The message to log.
+   * @param data The data being passed to the log
+   */
+  success(message: string, data?: LogData): void;
+
+  /**
    * Logs the message if the severity is set to debug or above.
    * @param message The message to log.
    * @param data The data being passed to the log

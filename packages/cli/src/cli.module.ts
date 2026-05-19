@@ -34,11 +34,16 @@ export const CliModule: ModuleInterface = {
     ValidationModule,
   ],
   /**
-   * When running through the CLI, logs share stderr with our own CLI output. We layer a
-   * tighter set of defaults than `LoggingModule` ships with so the terminal stays
-   * readable: Simple line-oriented format and `Error`-only severity threshold. Users can
-   * override both in `pristine.config.ts:config` or via env-var resolvers — `configDefaults`
-   * sits below the file and overrides in the resolution chain.
+   * When running through the CLI, logs are the user-facing channel — there is no separate
+   * "structured output" surface that competes with them. We layer a CLI-friendly set of
+   * defaults on top of LoggingModule's: the `Pretty` output mode (colored, icon-prefixed
+   * single-line rendering) and the `Info` severity threshold so command narration
+   * (`Compiling`, `Build complete`, `Server listening`) is visible by default — matching
+   * the pre-LogHandler-consolidation behavior of `ConsoleManager.writeInfo/Success`.
+   * Users who want a quieter CLI (or a different output mode) can override either key in
+   * `pristine.config.ts:config` — the file beats `configDefaults` in the resolution chain.
+   * Env vars are checked LAST in the resolver chain, after configDefaults, so they cannot
+   * override these CLI defaults; use the config file for that.
    *
    * No `isLoggingModulePresent` check needed — `LoggingModule` is a hard import above, so
    * these keys are always registered when CliModule is in the graph. (And if a future
@@ -46,7 +51,7 @@ export const CliModule: ModuleInterface = {
    * with an actionable "unknown key" error — the right failure mode for that case.)
    */
   configDefaults: {
-    [LoggingModuleKeyname + ".consoleLoggerOutputMode"]: OutputModeEnum.Simple,
-    [LoggingModuleKeyname + ".logSeverityLevelConfiguration"]: SeverityEnum.Error,
+    [LoggingModuleKeyname + ".consoleLoggerOutputMode"]: OutputModeEnum.Pretty,
+    [LoggingModuleKeyname + ".logSeverityLevelConfiguration"]: SeverityEnum.Info,
   },
 }

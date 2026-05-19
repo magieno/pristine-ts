@@ -109,6 +109,19 @@ describe("Utils", () => {
     expect(Utils.truncate(object, 1)).toEqual({bonjour: new Date(1615830493000)});
   });
 
+  it("renders SUCCESS as the severity text for SeverityEnum.Success", () => {
+    expect(Utils.getSeverityText(SeverityEnum.Success)).toBe("SUCCESS");
+  });
+
+  it("dispatches Pretty mode through the PrettyLogFormatter", () => {
+    const log = new LogModel(SeverityEnum.Success, "shipped");
+    log.date = new Date("2021-01-02T03:04:05.678Z");
+    const out = Utils.outputLog(log, OutputModeEnum.Pretty, 10);
+    expect(out).toContain("[SUCCESS]");
+    expect(out).toContain("shipped");
+    expect(out).toContain("✔");
+  });
+
   it("should return the diagnostics", () => {
     const diagnostics = Utils.getDiagnostics({
       stack: "Error\n    at LogHandler.log (/Users/etiennenoel/Library/Application Support/JetBrains/IntelliJIdea2021.2/scratches/scratch_13.js:3:49)\n    at Main.run (/Users/etiennenoel/Library/Application Support/JetBrains/IntelliJIdea2021.2/scratches/scratch_13.js:11:25)\n    at Object.<anonymous> (/Users/etiennenoel/Library/Application Support/JetBrains/IntelliJIdea2021.2/scratches/scratch_13.js:17:6)\n    at Module._compile (internal/modules/cjs/loader.js:1063:30)\n    at Object.Module._extensions..js (internal/modules/cjs/loader.js:1092:10)\n    at Module.load (internal/modules/cjs/loader.js:928:32)\n    at Function.Module._load (internal/modules/cjs/loader.js:769:14)\n    at Function.executeUserEntryPoint [as runMain] (internal/modules/run_main.js:72:12)\n    at internal/main/run_main_module.js:17:47",

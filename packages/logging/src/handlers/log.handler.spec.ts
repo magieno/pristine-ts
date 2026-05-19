@@ -2,6 +2,7 @@ import "reflect-metadata";
 import {Readable} from "stream";
 import {LogHandler} from "./log.handler";
 import {LoggerInterface} from "../interfaces/logger.interface";
+import {SeverityEnum} from "../enums/severity.enum";
 import {EventContext, EventContextManager, TracingContext} from "@pristine-ts/common";
 
 /**
@@ -204,5 +205,13 @@ describe("LogHandler eventId + traceId resolution", () => {
     manager.run(ctx, () => handler.info("hello"));
 
     expect(received[0].traceId).toBe("trace-modern");
+  });
+
+  it("success() emits a LogModel at SeverityEnum.Success", () => {
+    const {handler, received} = buildHandlerWithCapture();
+    handler.success("done");
+    expect(received).toHaveLength(1);
+    expect(received[0].severity).toBe(SeverityEnum.Success);
+    expect(received[0].message).toBe("done");
   });
 });
