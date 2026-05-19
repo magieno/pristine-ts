@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {FileResolver} from "./file.resolver";
 import {
   AutoDataMappingBuilder,

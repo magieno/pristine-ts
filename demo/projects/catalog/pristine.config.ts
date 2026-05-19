@@ -12,12 +12,14 @@ import {defineConfig} from "@pristine-ts/cli";
  * chapter shows how to add overrides.
  */
 export default defineConfig({
-  appModule: {
-    sourcePath: "src/app.module.ts",
-    outputPath: "dist/app.module.js",
-  },
-  build: {
-    tsconfig: "tsconfig.json",
-    format: "esm",
+  cli: {
+    appModule: {
+      sourcePath: "src/app.module.ts",
+      outputPath: "dist/app.module.js",
+    },
+    build: {
+      tsconfig: "tsconfig.json",
+      format: "esm",
+    },
   },
 });

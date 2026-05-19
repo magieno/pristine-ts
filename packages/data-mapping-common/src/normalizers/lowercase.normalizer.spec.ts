@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {LowercaseNormalizer} from "./lowercase.normalizer";
 import {LowercaseNormalizerOptions} from "../normalizer-options/lowercase-normalizer.options";
 

@@ -31,6 +31,33 @@ export interface ModuleInterface {
   configurationDefinitions?: ConfigurationDefinition[];
 
   /**
+   * Default values this module wants applied to configuration keys — typically keys owned
+   * by **other** modules. Use it when a context-providing module (e.g. `CliModule`) has an
+   * opinion about how a dependency-module's keys should be configured by default.
+   *
+   * Precedence in the resolution chain:
+   *   1. Explicit overrides passed to `kernel.start()` — beats this.
+   *   2. `pristine.config.ts:config` block — beats this.
+   *   3. **`configDefaults`** (this field).
+   *   4. The owning `configurationDefinition.defaultResolvers` chain — loses to this.
+   *   5. The owning `configurationDefinition.defaultValue` — loses to this.
+   *
+   * Not to be confused with `configurationDefinition.defaultValue`: that's the
+   * owning-module's hard fallback when nothing else fires; `configDefaults` is a
+   * different module expressing a preferred value above the resolver chain.
+   *
+   * Validation:
+   *   - **Unknown key** (not declared by any module's `configurationDefinitions` in the
+   *     graph) → kernel throws at boot, naming the source module + key.
+   *   - **Two modules disagree** on the same key's `configDefaults` → kernel throws at
+   *     registration time, naming both module keynames.
+   *
+   * Keys are configuration parameter names (e.g. `"pristine.logging.consoleLoggerOutputMode"`),
+   * not arbitrary strings.
+   */
+  configDefaults?: Record<string, unknown>;
+
+  /**
    * This function lets you run code on the module initialization. Be careful the tags and the router are not created yet.
    * @param container
    */

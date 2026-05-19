@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {AppModuleInterface, HttpMethod, Response, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {
     CoreModule,

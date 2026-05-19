@@ -1,5 +1,5 @@
 import {ClassConstructor} from "class-transformer";
-import {ExitCodeEnum} from "../enums/exit-code.enum";
+import {ExitCode} from "@pristine-ts/common";
 
 /**
  * The contract every CLI command implements. The CliEventHandler reads `optionsType` to
@@ -34,5 +34,5 @@ export interface CommandInterface<T> {
    * Invoked with a validated instance of `optionsType` (when `optionsType` is non-null) or
    * the raw parsed argv shape (when `optionsType` is null). Return an exit code.
    */
-  run(args: T): Promise<ExitCodeEnum | number>;
+  run(args: T): Promise<ExitCode | number>;
 }

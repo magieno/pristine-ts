@@ -1,3 +1,4 @@
+import "reflect-metadata";
 // eslint and @typescript-eslint/parser ship JS without bundled .d.ts at the monorepo
 // root, so we require() them and treat them as any. The tests don't need the typed
 // surface — they only call .verify() and inspect message objects.

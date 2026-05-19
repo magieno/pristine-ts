@@ -12,9 +12,8 @@ export class ResolvedPristineConfig {
     public readonly configFilePath: string | undefined,
     /**
      * Per-top-level-field provenance markers, mainly for `pristine p:config:print`. Keys are
-     * top-level fields of `PristineConfig` (`appModule`, `build`, `start`, `plugins`,
-     * `kernelConfiguration`); values are the `ConfigProvenanceEnum` describing where each
-     * came from.
+     * top-level fields of `PristineConfig` (`cli`, `config`); values are the
+     * `ConfigProvenanceEnum` describing where each came from.
      */
     public readonly provenance: Record<string, ConfigProvenanceEnum>,
   ) {

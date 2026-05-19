@@ -1,10 +1,11 @@
-import {LoggableError} from "@pristine-ts/common";
+import {PristineError, PristineErrorKind} from "@pristine-ts/common";
 import {EmailModel} from "../models/email.model";
+import {AwsErrorCode} from "./aws-error-code.enum";
 
 /**
  * This Error represents an error when trying to send a message to Sqs
  */
-export class SesSendError extends LoggableError {
+export class SesSendError extends PristineError {
 
   /**
    * This Error represents an error when trying to send a message to Sqs
@@ -14,17 +15,11 @@ export class SesSendError extends LoggableError {
   public constructor(originalError?: Error,
                      email?: EmailModel,
   ) {
-    super(
-      "There was an error sending an email to SES",
-      {
-        originalError,
-        email
-      }
-    );
-
-    // Set the prototype explicitly.
-    // As specified in the documentation in TypeScript
-    // https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
-    Object.setPrototypeOf(this, SesSendError.prototype);
+    super("There was an error sending an email to SES", {
+      code: AwsErrorCode.SesSendFailed,
+      kind: PristineErrorKind.SystemError,
+      cause: originalError,
+      details: {email},
+    });
   }
 }

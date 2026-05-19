@@ -43,7 +43,7 @@ import {
 import {CloudformationClientInterface} from "../interfaces/cloudformation-client.interface";
 import {v4 as uuid} from "uuid";
 import {CloudformationDeploymentStatusEnum} from "../enums/cloudformation-deployment-status.enum";
-import {NotFoundHttpError} from "@pristine-ts/networking";
+import {NotFoundError} from "@pristine-ts/common";
 import {ClientOptionsInterface} from "../interfaces/client-options.interface";
 
 /**
@@ -513,7 +513,7 @@ export class CloudformationClient implements CloudformationClientInterface {
         const message = `Stack '${stackName}' wasn't found.`;
 
         this.logHandler.error(message, {extra: {stackName, response}})
-        throw new NotFoundHttpError(message);
+        throw new NotFoundError(message);
       }
 
       const status = response.StackStatus;

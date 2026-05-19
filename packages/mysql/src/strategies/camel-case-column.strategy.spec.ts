@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {camelCaseColumnStrategy} from "./camel-case-column.strategy";
 
 describe('Camel Case Column Strategy', () => {

@@ -1,6 +1,5 @@
 import "reflect-metadata"
 import {EventPipeline} from "./event.pipeline";
-import {EventMappingError} from "../errors/event-mapping.error";
 import {ExecutionContextKeynameEnum} from "../enums/execution-context-keyname.enum";
 import {DependencyContainerMock} from "../../../../tests/mocks/dependency.container.mock";
 import {LogHandlerMock} from "../../../../tests/mocks/log.handler.mock";
@@ -11,11 +10,6 @@ import {ExecutionContextInterface} from "../interfaces/execution-context.interfa
 import {EventsExecutionOptionsInterface} from "../interfaces/events-execution-options.interface";
 import {EventInterceptorInterface} from "../interfaces/event-interceptor.interface";
 import {Event} from "../models/event";
-import {EventPreMappingInterceptionError} from "../errors/event-pre-mapping-interception.error";
-import {EventPostMappingInterceptionError} from "../errors/event-post-mapping-interception.error";
-import {EventPreResponseMappingInterceptionError} from "../errors/event-pre-response-mapping-interception.error";
-import {EventPostResponseMappingInterceptionError} from "../errors/event-post-response-mapping-interception.error";
-import {EventDispatchingError} from "../errors/event-dispatching.error";
 import {TracingManagerMock} from "../../../../tests/mocks/tracing.manager.mock";
 import {EventContextManager} from "@pristine-ts/common";
 
@@ -476,7 +470,7 @@ describe("Event Pipeline", () => {
       context: {},
     };
 
-    expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow(new EventMappingError("There are no Event Mappers that support the event", event, event, executionContext));
+    expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow("There are no Event Mappers that support the event");
   })
 
   it("should throw an error if there are no events returned by any mappers", async () => {
@@ -493,7 +487,7 @@ describe("Event Pipeline", () => {
       context: {},
     };
 
-    expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow(new EventMappingError("There are no Event Mappers that support the event", event, event, executionContext));
+    expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow("There are no Event Mappers that support the event");
   })
 
   it("should throw an error if there are no events mapper", async () => {
@@ -510,7 +504,7 @@ describe("Event Pipeline", () => {
       context: {},
     };
 
-    expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow(new EventMappingError("There are no Event Mappers that support the event", event, event, executionContext));
+    expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow("There are no Event Mappers that support the event");
   })
 
   it("should throw an error if there are no events to execute", async () => {
@@ -542,7 +536,7 @@ describe("Event Pipeline", () => {
       context: {},
     };
 
-    return expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow(new EventMappingError("There are no events to execute.", event, event, executionContext));
+    return expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow("There are no events to execute.");
   })
 
   it("should return a proper error if a preMapping Interceptors throws", async () => {
@@ -599,7 +593,7 @@ describe("Event Pipeline", () => {
       context: {},
     };
 
-    return expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow(new EventPreMappingInterceptionError("There was an error while executing the PreMapping Event interceptors", thrownError, eventInterceptor.constructor.name, event, executionContext));
+    return expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow("There was an error while executing the PreMapping Event interceptors");
   })
 
   it("should return a proper error if a postMapping Interceptors throws when 'sequential'", async () => {
@@ -660,7 +654,7 @@ describe("Event Pipeline", () => {
       context: {},
     };
 
-    return expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow(new EventPostMappingInterceptionError("There was an error while executing the PostMapping Event interceptors", thrownError, eventInterceptor.constructor.name, mappedEvent));
+    return expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow("There was an error while executing the PostMapping Event interceptors");
   })
 
   it("should return a proper error if a postMapping Interceptors throws when 'parallel'", async () => {
@@ -721,7 +715,7 @@ describe("Event Pipeline", () => {
       context: {},
     };
 
-    return expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow(new EventPostMappingInterceptionError("There was an error while executing the PostMapping Event interceptors", thrownError, eventInterceptor.constructor.name, mappedEvent));
+    return expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow("There was an error while executing the PostMapping Event interceptors");
   })
 
   it("should return a proper error if a preResponseMapping Interceptors throws", async () => {
@@ -783,7 +777,7 @@ describe("Event Pipeline", () => {
       context: {},
     };
 
-    return expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow(new EventPreResponseMappingInterceptionError("There was an error while executing the PreResponseMapping Event interceptors", thrownError, eventInterceptor.constructor.name, returnedEventResponse));
+    return expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow("There was an error while executing the PreResponseMapping Event interceptors");
   })
 
   it("should return a proper error if a postResponseMapping Interceptors throws", async () => {
@@ -846,7 +840,7 @@ describe("Event Pipeline", () => {
       context: {},
     };
 
-    return expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow(new EventPostResponseMappingInterceptionError("There was an error while executing the PostResponseMapping Event interceptors", thrownError, eventInterceptor.constructor.name, returnedEventResponse));
+    return expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow("There was an error while executing the PostResponseMapping Event interceptors");
   })
 
   it("should return a proper error the EventDispatcher throws", async () => {
@@ -903,7 +897,10 @@ describe("Event Pipeline", () => {
       context: {},
     };
 
-    return expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow(new EventDispatchingError("There was an error while dispatching the event: 'Error: Very bad error'", thrownError, mappedEvent1));
+    // After the wrapper-error removal in Phase 5, the pipeline re-throws the original error
+    // instead of wrapping it in EventDispatchingError. The dispatcher's "Very bad error"
+    // now reaches the caller unchanged, preserving its type and `instanceof` identity.
+    return expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow("Very bad error");
   })
 
   it("should return a proper error an EventParser throws", async () => {
@@ -939,7 +936,7 @@ describe("Event Pipeline", () => {
       context: {},
     };
 
-    return expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow(new EventMappingError("There was an error mapping the event into an Event object", event, event, executionContext, thrownError));
+    return expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow("There was an error mapping the event into an Event object");
   })
 
 })

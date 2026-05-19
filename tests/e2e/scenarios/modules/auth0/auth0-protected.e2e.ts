@@ -185,7 +185,7 @@ describe("Auth0 authenticator", () => {
         const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
 
         expect(response.status).toBe(403);
-        expect(response.body.name).toBe("Error");
+        expect(response.body.code).toBe("FORBIDDEN");
         expect(response.body.message).toBe("You are not allowed to access this.");
     })
 
@@ -223,7 +223,7 @@ describe("Auth0 authenticator", () => {
         const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
 
         expect(response.status).toBe(403);
-        expect(response.body.name).toBe("Error");
+        expect(response.body.code).toBe("FORBIDDEN");
         expect(response.body.message).toBe("You are not allowed to access this.");
     })
 
@@ -261,7 +261,7 @@ describe("Auth0 authenticator", () => {
         const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
 
         expect(response.status).toBe(403);
-        expect(response.body.name).toBe("Error");
+        expect(response.body.code).toBe("FORBIDDEN");
         expect(response.body.message).toBe("You are not allowed to access this.");
     })
 });

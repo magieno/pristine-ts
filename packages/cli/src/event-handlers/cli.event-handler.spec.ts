@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import {IsNumber, IsOptional, IsString, Validator} from "@pristine-ts/class-validator";
+import {PristineError, UsageError, ValidationError, ExitCode} from "@pristine-ts/common";
 import {CommandInterface} from "../interfaces/command.interface";
-import {ExitCodeEnum} from "../enums/exit-code.enum";
 import {CliEventHandler} from "./cli.event-handler";
 
 /**
@@ -23,7 +23,8 @@ class FixtureOptions {
 
 /**
  * Captures everything the handler writes to console so tests can assert on output without
- * a real terminal. Also satisfies the ConsoleManager surface area the handler reaches for.
+ * a real terminal. Still required because the handler may write status lines via
+ * `consoleManager.writeLine` even on the success path.
  */
 class CapturingConsole {
   public lines: string[] = [];
@@ -36,9 +37,6 @@ class CapturingConsole {
     this.lines.push(`ERROR: ${message}`);
   }
 
-  // The handler also touches these via injection but doesn't call them in the tested paths.
-  // Stubbed as no-ops so any accidental call is silent rather than throwing on a missing
-  // method and masking the real assertion failure.
   writeSuccess(message: string): void { this.lines.push(`SUCCESS: ${message}`); }
   writeWarning(message: string): void { this.lines.push(`WARNING: ${message}`); }
   writeInfo(message: string): void { this.lines.push(`INFO: ${message}`); }
@@ -46,9 +44,9 @@ class CapturingConsole {
 }
 
 /**
- * Builds a CliEventHandler with real DataMapper + Validator and a capturing console. The
- * handler's only inputs we want to vary across tests are `command` and `rawArgs`; everything
- * else stays the same so each test is small.
+ * Builds a CliEventHandler with real Validator and a capturing console. The handler's only
+ * inputs we want to vary across tests are `command` and `rawArgs`; everything else stays
+ * the same so each test is small.
  */
 const buildHandler = (): {handler: CliEventHandler; console: CapturingConsole} => {
   const captured = new CapturingConsole();
@@ -65,7 +63,7 @@ const buildHandler = (): {handler: CliEventHandler; console: CapturingConsole} =
 const fixtureCommand = (overrides: Partial<CommandInterface<FixtureOptions>> = {}): CommandInterface<FixtureOptions> => ({
   name: "fixture",
   optionsType: FixtureOptions,
-  run: async () => ExitCodeEnum.Success,
+  run: async () => ExitCode.Success,
   ...overrides,
 });
 
@@ -76,13 +74,12 @@ describe("CliEventHandler.resolveArgs", () => {
       const command: CommandInterface<any> = {
         name: "legacy",
         optionsType: null,
-        run: async () => ExitCodeEnum.Success,
+        run: async () => ExitCode.Success,
       };
 
-      const result = await handler.resolveArgs(command, {anything: 123, other: "string"});
+      const args = await handler.resolveArgs(command, {anything: 123, other: "string"});
 
-      expect(result.args).toEqual({anything: 123, other: "string"});
-      expect(result.exitCode).toBeUndefined();
+      expect(args).toEqual({anything: 123, other: "string"});
     });
 
     it("substitutes empty object when raw args are missing", async () => {
@@ -90,13 +87,12 @@ describe("CliEventHandler.resolveArgs", () => {
       const command: CommandInterface<any> = {
         name: "legacy",
         optionsType: null,
-        run: async () => ExitCodeEnum.Success,
+        run: async () => ExitCode.Success,
       };
 
-      const result = await handler.resolveArgs(command, {});
+      const args = await handler.resolveArgs(command, {});
 
-      expect(result.args).toEqual({});
-      expect(result.exitCode).toBeUndefined();
+      expect(args).toEqual({});
     });
   });
 
@@ -104,70 +100,71 @@ describe("CliEventHandler.resolveArgs", () => {
     it("returns a real instance of the options class", async () => {
       const {handler} = buildHandler();
 
-      const result = await handler.resolveArgs(fixtureCommand(), {port: 4000});
+      const args = await handler.resolveArgs(fixtureCommand(), {port: 4000});
 
-      expect(result.exitCode).toBeUndefined();
-      expect(result.args).toBeInstanceOf(FixtureOptions);
-      expect(result.args.port).toBe(4000);
+      expect(args).toBeInstanceOf(FixtureOptions);
+      expect(args.port).toBe(4000);
     });
 
     it("leaves optional fields undefined when no flag is passed", async () => {
       const {handler} = buildHandler();
 
-      const result = await handler.resolveArgs(fixtureCommand(), {});
+      const args = await handler.resolveArgs(fixtureCommand(), {});
 
-      expect(result.exitCode).toBeUndefined();
-      expect(result.args).toBeInstanceOf(FixtureOptions);
-      expect(result.args.port).toBeUndefined();
-      expect(result.args.address).toBeUndefined();
-      expect(result.args.enabled).toBeUndefined();
+      expect(args).toBeInstanceOf(FixtureOptions);
+      expect(args.port).toBeUndefined();
+      expect(args.address).toBeUndefined();
+      expect(args.enabled).toBeUndefined();
     });
 
     it("preserves a string address through mapping", async () => {
       const {handler} = buildHandler();
 
-      const result = await handler.resolveArgs(fixtureCommand(), {address: "127.0.0.1"});
+      const args = await handler.resolveArgs(fixtureCommand(), {address: "127.0.0.1"});
 
-      expect(result.exitCode).toBeUndefined();
-      expect(result.args.address).toBe("127.0.0.1");
+      expect(args.address).toBe("127.0.0.1");
     });
 
     it("preserves a boolean flag through mapping", async () => {
       const {handler} = buildHandler();
 
-      const result = await handler.resolveArgs(fixtureCommand(), {enabled: true});
+      const args = await handler.resolveArgs(fixtureCommand(), {enabled: true});
 
-      expect(result.exitCode).toBeUndefined();
-      expect(result.args.enabled).toBe(true);
+      expect(args.enabled).toBe(true);
     });
 
-    it("rejects bad input with a non-zero exit code and prints the constraint", async () => {
-      const {handler, console: captured} = buildHandler();
+    it("throws a ValidationError with structured details when validation fails", async () => {
+      const {handler} = buildHandler();
 
-      // CommandEventMapper would normally normalize "notANumber" to a string. We pass it
-      // explicitly here to exercise the @IsNumber failure path.
-      const result = await handler.resolveArgs(fixtureCommand(), {port: "notANumber"});
+      // The new error contract: bad input throws ValidationError. The bin's top-level
+      // `.catch(cliErrorReporter.report)` is what renders this to stderr and picks the
+      // exit code — the handler stays format-agnostic.
+      const promise = handler.resolveArgs(fixtureCommand(), {port: "notANumber"});
 
-      expect(result.args).toBeUndefined();
-      expect(result.exitCode).toBe(ExitCodeEnum.Error);
-      const joined = captured.lines.join("\n");
-      expect(joined).toContain("port");
-      // @pristine-ts/class-validator's constraint key for @IsNumber is `IS_NUMBER`.
-      expect(joined).toContain("IS_NUMBER");
-      // The constraint message itself ("must be a number ...") should also surface — proves
-      // we extract `constraint.message` correctly rather than rendering `[object Object]`.
-      expect(joined).toContain("must be a number");
+      await expect(promise).rejects.toBeInstanceOf(ValidationError);
+      await expect(promise).rejects.toMatchObject({
+        options: expect.objectContaining({
+          code: "ARGUMENT_VALIDATION_FAILED",
+          details: expect.objectContaining({
+            port: expect.arrayContaining([expect.stringContaining("IS_NUMBER")]),
+          }),
+        }),
+      });
     });
 
-    it("includes ALL failing constraints when multiple fields are bad", async () => {
-      const {handler, console: captured} = buildHandler();
+    it("includes ALL failing fields in details when multiple constraints fail", async () => {
+      const {handler} = buildHandler();
 
-      const result = await handler.resolveArgs(fixtureCommand(), {port: "x", address: 42});
+      const promise = handler.resolveArgs(fixtureCommand(), {port: "x", address: 42});
 
-      expect(result.exitCode).toBe(ExitCodeEnum.Error);
-      const joined = captured.lines.join("\n").toLowerCase();
-      expect(joined).toContain("port");
-      expect(joined).toContain("address");
+      await expect(promise).rejects.toMatchObject({
+        options: expect.objectContaining({
+          details: expect.objectContaining({
+            port: expect.any(Array),
+            address: expect.any(Array),
+          }),
+        }),
+      });
     });
   });
 });

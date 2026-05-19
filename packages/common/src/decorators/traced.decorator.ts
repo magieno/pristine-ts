@@ -1,4 +1,4 @@
-import {spanRunner} from "../utils/span-runner";
+import {EventContextManager} from "../managers/event-context.manager";
 
 /**
  * Method decorator that wraps the decorated method in a span. The span is automatically
@@ -55,8 +55,41 @@ export function traced(spanName?: string): MethodDecorator {
     const className: string = target?.constructor?.name ?? target?.name ?? "anonymous";
     const resolvedName = spanName ?? `${className}.${String(propertyKey)}`;
 
-    descriptor.value = function (this: unknown, ...args: any[]) {
-      return spanRunner.runWithSpan(resolvedName, () => original.apply(this, args));
+    descriptor.value = async function (this: unknown, ...args: any[]) {
+      const tracingManager = EventContextManager.tracingManager();
+      if (tracingManager === undefined) {
+        // No active EventContext (unit test, background work, kernel boot before the
+        // pipeline runs). Run the original unchanged — tracing must never throw or
+        // alter semantics.
+        return await original.apply(this, args);
+      }
+
+      const span = tracingManager.startSpan(resolvedName);
+      try {
+        return await original.apply(this, args);
+      } catch (error) {
+        // Annotate the span with error info so it surfaces in the rendered tree
+        // without forcing the caller to remember to add it themselves. `span.context`
+        // is string-typed by design (cheap to serialize), so we coerce.
+        if (error instanceof Error) {
+          span.context = {
+            ...span.context,
+            error: "true",
+            errorName: error.name,
+            errorMessage: error.message,
+          };
+        } else {
+          span.context = {
+            ...span.context,
+            error: "true",
+            errorName: "non-error-throw",
+            errorMessage: String(error),
+          };
+        }
+        throw error;
+      } finally {
+        span.end();
+      }
     };
 
     return descriptor;

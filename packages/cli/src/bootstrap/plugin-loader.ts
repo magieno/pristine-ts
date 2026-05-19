@@ -8,7 +8,7 @@ import {DynamicImporter} from "./dynamic-importer";
 import {LoadedPlugin} from "./loaded-plugin";
 
 /**
- * Resolves and loads every plugin declared in `config.plugins`. Plugin packages are resolved
+ * Resolves and loads every plugin declared in `config.cli.plugins`. Plugin packages are resolved
  * from the **consumer's project**, not from the CLI's install location — a plugin lives in
  * the consumer's `node_modules`, not in `@pristine-ts/cli/node_modules`. Without
  * `createRequire` pinned to the project location, `import("@my-org/plugin")` would walk up
@@ -24,7 +24,7 @@ export class PluginLoader {
   }
 
   async load(config: PristineConfig, configFilePath: string | undefined, projectRoot: string): Promise<LoadedPlugin[]> {
-    const plugins = config.plugins ?? [];
+    const plugins = config.cli?.plugins ?? [];
     if (plugins.length === 0) {
       return [];
     }

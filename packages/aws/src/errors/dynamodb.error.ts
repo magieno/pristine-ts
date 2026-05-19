@@ -1,9 +1,9 @@
-import {LoggableError} from "@pristine-ts/common";
+import {PristineError} from "@pristine-ts/common";
 
 /**
  * This Error is the base class for DynamoDB errors.
  */
-export class DynamodbError extends LoggableError {
+export class DynamodbError extends PristineError {
   /**
    * This Error is the base class for DynamoDB errors.
    * @param message The message of the error.
@@ -16,15 +16,9 @@ export class DynamodbError extends LoggableError {
                      public readonly tableName?: string,
                      public readonly primaryKey?: string,
   ) {
-    super(message ?? "DynamoDBError", {
+    super(message ?? "DynamoDBError", {details: {
       originalError,
       tableName,
       primaryKey,
-    });
-
-    // Set the prototype explicitly.
-    // As specified in the documentation in TypeScript
-    // https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
-    Object.setPrototypeOf(this, DynamodbError.prototype);
-  }
+    }});  }
 }

@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {AppModuleInterface} from "@pristine-ts/common";
 import {CoreModule, Kernel} from "@pristine-ts/core";
 import {DataMappingModule} from "@pristine-ts/data-mapping";

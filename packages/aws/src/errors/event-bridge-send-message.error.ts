@@ -1,9 +1,10 @@
-import {LoggableError} from "@pristine-ts/common";
+import {PristineError, PristineErrorKind} from "@pristine-ts/common";
+import {AwsErrorCode} from "./aws-error-code.enum";
 
 /**
  * This Error represents an error when trying to send a message to Sqs
  */
-export class EventBridgeSendMessageError extends LoggableError {
+export class EventBridgeSendMessageError extends PristineError {
 
   /**
    * This Error represents an error when trying to send a message to Sqs
@@ -11,16 +12,10 @@ export class EventBridgeSendMessageError extends LoggableError {
    */
   public constructor(originalError?: Error,
   ) {
-    super(
-      "There was an error sending a message to Event Bridge",
-      {
-        originalError,
-      }
-    );
-
-    // Set the prototype explicitly.
-    // As specified in the documentation in TypeScript
-    // https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
-    Object.setPrototypeOf(this, EventBridgeSendMessageError.prototype);
+    super("There was an error sending a message to Event Bridge", {
+      code: AwsErrorCode.EventBridgeSendFailed,
+      kind: PristineErrorKind.SystemError,
+      cause: originalError,
+    });
   }
 }

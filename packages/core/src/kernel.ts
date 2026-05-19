@@ -543,10 +543,81 @@ export class Kernel {
 
   /**
    * Loads the configuration values into the previously-registered ConfigurationManager.
+   * Collects `configDefaults` from every instantiated module, validates they reference
+   * known keys, and passes the merged map to the configuration manager.
+   *
+   * Throws (before any value resolution):
+   *   - Two modules disagreeing on the same key's `configDefaults` value.
+   *   - A `configDefaults` key not declared by any module's `configurationDefinitions`
+   *     (typo or missing import).
    * @private
    */
   private async loadConfiguration(configurationManager: ConfigurationManager, moduleConfigurationValues?: { [key: string]: ModuleConfigurationValue }) {
-    await configurationManager.load(moduleConfigurationValues ?? {}, this.container);
+    const {merged: mergedConfigDefaults, sourceByKey} = this.collectConfigDefaults();
+    this.validateConfigDefaultsAgainstDefinitions(sourceByKey, configurationManager.configurationDefinitions);
+    await configurationManager.load(moduleConfigurationValues ?? {}, this.container, mergedConfigDefaults);
+  }
+
+  /**
+   * Walks every instantiated module and merges their `configDefaults` blocks into a single
+   * map. Throws with a precise, actionable error message if two modules in the graph set
+   * different values for the same key — that's a misconfiguration the module authors
+   * need to resolve. Identical values from two modules silently merge (no conflict).
+   *
+   * Returns both the merged map and a per-key source tracker so a later validation step
+   * can name the originating module when a key is invalid.
+   * @private
+   */
+  private collectConfigDefaults(): {merged: Record<string, unknown>; sourceByKey: Record<string, string>} {
+    const merged: Record<string, unknown> = {};
+    const sourceByKey: Record<string, string> = {};
+
+    for (const moduleKey in this.instantiatedModules) {
+      if (this.instantiatedModules.hasOwnProperty(moduleKey) === false) {
+        continue;
+      }
+
+      const instantiatedModule: ModuleInterface = this.instantiatedModules[moduleKey];
+      if (instantiatedModule.configDefaults === undefined) {
+        continue;
+      }
+
+      for (const configKey of Object.keys(instantiatedModule.configDefaults)) {
+        const incoming = instantiatedModule.configDefaults[configKey];
+        if (sourceByKey[configKey] !== undefined && merged[configKey] !== incoming) {
+          throw new Error(
+            `[pristine] Two modules in the graph set conflicting 'configDefaults' for key '${configKey}': ` +
+            `'${sourceByKey[configKey]}' and '${instantiatedModule.keyname}'. ` +
+            `Reconcile in one module's configDefaults (or remove from one) before continuing.`,
+          );
+        }
+        merged[configKey] = incoming;
+        sourceByKey[configKey] = instantiatedModule.keyname;
+      }
+    }
+
+    return {merged, sourceByKey};
+  }
+
+  /**
+   * Ensures every key set via a module's `configDefaults` is declared by some module's
+   * `configurationDefinitions`. Catches typos and missing-import cases at boot, with a
+   * specific error message naming both the source module and the unknown key — so the
+   * fix is obvious instead of "your config silently does nothing."
+   * @private
+   */
+  private validateConfigDefaultsAgainstDefinitions(
+    sourceByKey: Record<string, string>,
+    registeredDefinitions: { [key: string]: unknown },
+  ): void {
+    for (const configKey of Object.keys(sourceByKey)) {
+      if (registeredDefinitions.hasOwnProperty(configKey) === false) {
+        throw new Error(
+          `[pristine] Module '${sourceByKey[configKey]}' has a configDefaults entry for unknown configuration ` +
+          `key '${configKey}'. Either it's a typo, or the owning module is not imported in your AppModule graph.`,
+        );
+      }
+    }
   }
 
   /**

@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {controller, route} from "@pristine-ts/networking";
 import {injectable} from "tsyringe";
 import {HttpMethod, Response} from "@pristine-ts/common";

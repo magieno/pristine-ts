@@ -1,16 +1,7 @@
 import {randomUUID} from "crypto";
-import {Trace} from "./trace.model";
+import {SpanLifecycleOwnerInterface} from "./span-lifecycle-owner.interface";
 import {SpanMarker} from "./span-marker.model";
-
-/**
- * Minimal structural type for the back-reference Span keeps to whatever lifecycle owner
- * created it. Lets `span.end()` delegate without importing the full TracingManagerInterface
- * (which lives in @pristine-ts/telemetry). Telemetry's TracingManagerInterface satisfies
- * this shape by having a compatible `endSpan` method.
- */
-export interface SpanLifecycleOwnerInterface {
-  endSpan(span: Span): void;
-}
+import {Trace} from "./trace.model";
 
 /**
  * This model represents a span.

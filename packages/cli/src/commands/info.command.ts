@@ -1,11 +1,10 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
-import {ModuleInterface, moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {ModuleInterface, moduleScoped, ServiceDefinitionTagEnum, tag, ExitCode} from "@pristine-ts/common";
 import {injectable} from "tsyringe";
 import {CommandInterface} from "../interfaces/command.interface";
 import {ConsoleManager} from "../managers/console.manager";
-import {ExitCodeEnum} from "../enums/exit-code.enum";
 import {CliModuleKeyname} from "../cli.module.keyname";
 import {ConfigLoader} from "../config/config-loader";
 import {AppModuleLoader} from "../bootstrap/app-module-loader";
@@ -42,7 +41,7 @@ export class InfoCommand implements CommandInterface<null> {
   ) {
   }
 
-  async run(args: any): Promise<ExitCodeEnum | number> {
+  async run(args: any): Promise<ExitCode | number> {
     this.printRuntimeBanner();
     await this.printConfigSection();
     return this.printAppModuleSection();
@@ -61,16 +60,16 @@ export class InfoCommand implements CommandInterface<null> {
     const resolvedConfig = await this.configLoader.load({startDir: process.cwd()});
     this.consoleManager.writeLine("Configuration");
     this.consoleManager.writeLine(`  Config file:    ${resolvedConfig.configFilePath ?? "(none — using defaults)"}`);
-    if (resolvedConfig.config.appModule?.sourcePath !== undefined) {
-      this.consoleManager.writeLine(`  AppModule src:  ${resolvedConfig.config.appModule.sourcePath}  (from config file)`);
+    if (resolvedConfig.config.cli?.appModule?.sourcePath !== undefined) {
+      this.consoleManager.writeLine(`  AppModule src:  ${resolvedConfig.config.cli.appModule.sourcePath}  (from config file)`);
     }
-    if (resolvedConfig.config.appModule?.outputPath !== undefined) {
-      this.consoleManager.writeLine(`  AppModule out:  ${resolvedConfig.config.appModule.outputPath}  (from config file)`);
+    if (resolvedConfig.config.cli?.appModule?.outputPath !== undefined) {
+      this.consoleManager.writeLine(`  AppModule out:  ${resolvedConfig.config.cli.appModule.outputPath}  (from config file)`);
     }
     this.consoleManager.writeLine("");
   }
 
-  private async printAppModuleSection(): Promise<ExitCodeEnum | number> {
+  private async printAppModuleSection(): Promise<ExitCode | number> {
     let modules: ModuleInterface[] = [];
     let pluginNames: string[] = [];
 
@@ -81,7 +80,7 @@ export class InfoCommand implements CommandInterface<null> {
       this.consoleManager.writeLine(`AppModule: ${loaded.appModule.keyname}`);
     } catch (error) {
       this.consoleManager.writeError(`Could not load AppModule: ${(error as Error).message}`);
-      return ExitCodeEnum.Error;
+      return ExitCode.Error;
     }
 
     if (pluginNames.length > 0) {
@@ -100,7 +99,7 @@ export class InfoCommand implements CommandInterface<null> {
       this.consoleManager.writeLine(`  - ${m.keyname}`);
     }
 
-    return ExitCodeEnum.Success;
+    return ExitCode.Success;
   }
 
   private readCliVersion(): string {
