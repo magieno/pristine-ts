@@ -114,7 +114,7 @@ describe("pristine bin (end-to-end)", () => {
     it("p:config:print resolves the pristine.config.ts and shows file path + cli block", async () => {
       const {stdout, code} = await run("p:config:print");
       expect(code).toBe(0);
-      expect(stdout).toContain("Config file loaded");
+      expect(stdout).toContain("Config file:");
       expect(stdout).toContain("pristine.config.ts");
       // After the schema split, appModule lives under the cli: block. Verify both the
       // nested key and the actual outputPath value made it into the printed dump.

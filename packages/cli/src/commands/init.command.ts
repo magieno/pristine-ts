@@ -4,7 +4,6 @@ import {moduleScoped, ServiceDefinitionTagEnum, tag, ExitCode} from "@pristine-t
 import {inject, injectable} from "tsyringe";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {CommandInterface} from "../interfaces/command.interface";
-import {CliOutput} from "../managers/cli-output.manager";
 import {CliModuleKeyname} from "../cli.module.keyname";
 import {InitCommandOptions} from "./init.command-options";
 import {InitAnswers, InitPrompt} from "../bootstrap/init-prompt";
@@ -37,7 +36,6 @@ export class InitCommand implements CommandInterface<InitCommandOptions> {
 
   constructor(
     @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-    private readonly cliOutput: CliOutput,
     private readonly initPrompt: InitPrompt,
   ) {
   }
@@ -70,10 +68,12 @@ export class InitCommand implements CommandInterface<InitCommandOptions> {
 
     this.addToGitignore(projectRoot);
 
-    this.logHandler.info("Next steps:");
-    this.cliOutput.writeLine("  1. npm install --save-dev @pristine-ts/cli  (if you haven't already)");
-    this.cliOutput.writeLine("  2. npm run build       # compile your AppModule");
-    this.cliOutput.writeLine("  3. npm run start       # boot your app");
+    this.logHandler.info(
+      "Next steps:\n" +
+      "  1. npm install --save-dev @pristine-ts/cli  (if you haven't already)\n" +
+      "  2. npm run build       # compile your AppModule\n" +
+      "  3. npm run start       # boot your app",
+    );
 
     return ExitCode.Success;
   }
