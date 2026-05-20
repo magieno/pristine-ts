@@ -58,7 +58,9 @@ describe("pristine bin (end-to-end)", () => {
       const {stdout, code} = await run("sample");
       expect(code).toBe(0);
       expect(stdout).toContain("should run");
-      expect(stdout).toContain("[status:'Success', code:'0']");
+      // The exit-status line is now emitted through LogHandler with structured highlights.
+      expect(stdout).toContain("Command 'sample' exited");
+      expect(stdout).toContain("exitCode: 0");
     });
   });
 
@@ -112,7 +114,7 @@ describe("pristine bin (end-to-end)", () => {
     it("p:config:print resolves the pristine.config.ts and shows file path + cli block", async () => {
       const {stdout, code} = await run("p:config:print");
       expect(code).toBe(0);
-      expect(stdout).toContain("Config file:");
+      expect(stdout).toContain("Config file loaded");
       expect(stdout).toContain("pristine.config.ts");
       // After the schema split, appModule lives under the cli: block. Verify both the
       // nested key and the actual outputPath value made it into the printed dump.
