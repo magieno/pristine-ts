@@ -1,17 +1,14 @@
 import "reflect-metadata";
 import {CoreModule, Kernel} from "@pristine-ts/core";
 import {NetworkingModule} from "@pristine-ts/networking";
-import {LoggingModule, LogHandler, LogHandlerInterface, SeverityEnum} from "@pristine-ts/logging";
-// @ts-ignore
-global.console = {
-    info: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn()
-}
+import {LoggingModule, LogHandler, LogHandlerInterface} from "@pristine-ts/logging";
 
 describe("Error logging", () => {
     it("should properly log the error to the console", async () => {
+        // ConsoleLogger writes directly to process.stderr for error-severity logs (per the
+        // default ConsoleLogger<Sev>Stream config). Spy on stderr rather than console.error.
+        const stderrSpy = jest.spyOn(process.stderr, "write").mockImplementation(() => true);
+
         const kernel = new Kernel();
         await kernel.start({
             keyname: "logging.test",
@@ -35,12 +32,13 @@ describe("Error logging", () => {
 
         await new Promise(res => setTimeout(res, 100));
 
-        const spy = jest.spyOn(global.console, "error");
+        // Boot may emit other logs to stderr; pick the call carrying our message.
+        const loggedCall = stderrSpy.mock.calls.find(
+            (call) => typeof call[0] === "string" && (call[0] as string).includes("This is an error message."),
+        );
+        expect(loggedCall).toBeDefined();
 
-        const loggedMessage = spy.mock.calls[0][0];
-
-        expect(loggedMessage).toBeDefined();
-
+        const loggedMessage = loggedCall![0] as string;
         const parsedLoggedMessage = JSON.parse(loggedMessage);
 
         expect(parsedLoggedMessage.severity).toBe("ERROR");
@@ -52,6 +50,7 @@ describe("Error logging", () => {
         expect(parsedLoggedMessage.extra.error.stack).toBeDefined()
 
         logHandler.terminate();
+        stderrSpy.mockRestore();
 
         await new Promise(res => setTimeout(res, 100));
     })
