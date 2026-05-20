@@ -27,6 +27,7 @@ const mockLogHandler: LogHandlerInterface = {
   }, debug(message: string, extra?: any, module?: string): void {
   }, error(message: string, extra?: any, module?: string): void {
   }, info(message: string, extra?: any, module?: string): void {
+  }, success(message: string, extra?: any, module?: string): void {
   }, notice(message: string, extra?: any, module?: string): void {
   }, terminate(): void {
   }, warning(message: string, extra?: any, module?: string): void {

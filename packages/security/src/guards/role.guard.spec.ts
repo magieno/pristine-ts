@@ -10,6 +10,9 @@ class LogHandlerMock implements LogHandlerInterface {
   info(message: string, extra?: any) {
   }
 
+  success(message: string, extra?: any) {
+  }
+
   notice(message: string, extra?: any) {
   }
 
