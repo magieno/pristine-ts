@@ -1,18 +1,9 @@
 import "reflect-metadata"
 import {container} from "tsyringe";
 import {Kernel} from "@pristine-ts/core";
-import {controller, NetworkingModule, route} from "@pristine-ts/networking";
+import {NetworkingModule} from "@pristine-ts/networking";
 import {CoreModule} from "@pristine-ts/core";
 import {LoggingModule, LogHandler} from "@pristine-ts/logging";
-
-
-// @ts-ignore
-global.console = {
-    info: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn()
-}
 
 describe("Logging Module instantiation in the Kernel", () => {
 
@@ -22,6 +13,9 @@ describe("Logging Module instantiation in the Kernel", () => {
     })
 
     it("should log properly", async () => {
+        // ConsoleLogger writes info-severity logs directly to process.stdout (per the
+        // default ConsoleLogger<Sev>Stream config). Spy on stdout rather than console.info.
+        const stdoutSpy = jest.spyOn(process.stdout, "write").mockImplementation(() => true);
 
         const kernel = new Kernel();
         await kernel.start({
@@ -48,9 +42,13 @@ describe("Logging Module instantiation in the Kernel", () => {
 
         await new Promise(res => setTimeout(res, 1000));
 
-        expect(global.console.info).toHaveBeenCalled();
+        const loggedCall = stdoutSpy.mock.calls.find(
+            (call) => typeof call[0] === "string" && (call[0] as string).includes("This is an info message."),
+        );
+        expect(loggedCall).toBeDefined();
 
         logHandler.terminate();
+        stdoutSpy.mockRestore();
 
         await new Promise(res => setTimeout(res, 1000));
     })

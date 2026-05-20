@@ -7,6 +7,9 @@ export class LogHandlerMock implements LogHandlerInterface {
     info(message: string, extra?: any) {
     }
 
+    success(message: string, extra?: any) {
+    }
+
     error(message: string, extra?: any) {
     }
 

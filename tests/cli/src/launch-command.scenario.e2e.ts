@@ -58,7 +58,9 @@ describe("pristine bin (end-to-end)", () => {
       const {stdout, code} = await run("sample");
       expect(code).toBe(0);
       expect(stdout).toContain("should run");
-      expect(stdout).toContain("[status:'Success', code:'0']");
+      // The exit-status line is now emitted through LogHandler with structured highlights.
+      expect(stdout).toContain("Command 'sample' exited");
+      expect(stdout).toContain("exitCode: 0");
     });
   });
 

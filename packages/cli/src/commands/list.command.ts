@@ -1,7 +1,7 @@
 import {moduleScoped, ServiceDefinitionTagEnum, tag, ExitCode} from "@pristine-ts/common";
 import {DependencyContainer, inject, injectable} from "tsyringe";
 import {CommandInterface} from "../interfaces/command.interface";
-import {ConsoleManager} from "../managers/console.manager";
+import {CliOutput} from "../managers/cli-output.manager";
 import {CliModuleKeyname} from "../cli.module.keyname";
 
 /**
@@ -18,13 +18,13 @@ export class ListCommand implements CommandInterface<null> {
   description = "List every registered command (built-in and custom).";
 
   constructor(
-    private readonly consoleManager: ConsoleManager,
+    private readonly cliOutput: CliOutput,
     @inject(ServiceDefinitionTagEnum.CurrentChildContainer) private readonly container: DependencyContainer,
   ) {
   }
 
   async run(args: any): Promise<ExitCode | number> {
-    this.consoleManager.writeLine("List of registered commands:");
+    this.cliOutput.writeLine("List of registered commands:");
     // ── container.resolveAll, justified ─────────────────────────────────────────
     // Per CLAUDE.md: constructor-time `@injectAll(Command)` would create a self-
     // referential cycle since `ListCommand` is itself a `Command`-tagged service.
@@ -33,7 +33,7 @@ export class ListCommand implements CommandInterface<null> {
     // container itself is still acquired via proper DI — only the enumeration is
     // late-bound.
     const commands: CommandInterface<any>[] = this.container.resolveAll(ServiceDefinitionTagEnum.Command);
-    commands.forEach(command => this.consoleManager.writeLine(command.name));
+    commands.forEach(command => this.cliOutput.writeLine(command.name));
 
     return ExitCode.Success;
   }

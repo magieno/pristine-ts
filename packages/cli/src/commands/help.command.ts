@@ -1,7 +1,7 @@
 import {DependencyContainer, inject, injectable} from "tsyringe";
 import {moduleScoped, ServiceDefinitionTagEnum, tag, ExitCode} from "@pristine-ts/common";
 import {CommandInterface} from "../interfaces/command.interface";
-import {ConsoleManager} from "../managers/console.manager";
+import {CliOutput} from "../managers/cli-output.manager";
 import {CliModuleKeyname} from "../cli.module.keyname";
 
 /**
@@ -28,7 +28,7 @@ export class HelpCommand implements CommandInterface<null> {
   description = "Show this help message and list all registered commands.";
 
   constructor(
-    private readonly consoleManager: ConsoleManager,
+    private readonly cliOutput: CliOutput,
     @inject(ServiceDefinitionTagEnum.CurrentChildContainer) private readonly container: DependencyContainer,
   ) {
   }
@@ -41,12 +41,12 @@ export class HelpCommand implements CommandInterface<null> {
     // injected, so only the enumeration is late-bound.
     const commands: CommandInterface<any>[] = this.container.resolveAll(ServiceDefinitionTagEnum.Command);
 
-    this.consoleManager.writeLine("Pristine CLI");
-    this.consoleManager.writeLine("");
-    this.consoleManager.writeLine("Usage:");
-    this.consoleManager.writeLine("  pristine <command> [--option=value ...]");
-    this.consoleManager.writeLine("");
-    this.consoleManager.writeLine("Commands:");
+    this.cliOutput.writeLine("Pristine CLI");
+    this.cliOutput.writeLine("");
+    this.cliOutput.writeLine("Usage:");
+    this.cliOutput.writeLine("  pristine <command> [--option=value ...]");
+    this.cliOutput.writeLine("");
+    this.cliOutput.writeLine("Commands:");
 
     const sorted = [...commands].sort((a, b) => a.name.localeCompare(b.name));
     const longestName = sorted.reduce((max, c) => Math.max(max, c.name.length), 0);
@@ -54,15 +54,15 @@ export class HelpCommand implements CommandInterface<null> {
     for (const command of sorted) {
       const padded = command.name.padEnd(longestName + 2, " ");
       const description = command.description ?? "";
-      this.consoleManager.writeLine(`  ${padded}${description}`);
+      this.cliOutput.writeLine(`  ${padded}${description}`);
     }
 
-    this.consoleManager.writeLine("");
-    this.consoleManager.writeLine("Adding your own command:");
-    this.consoleManager.writeLine("  1. Implement CommandInterface from '@pristine-ts/cli'");
-    this.consoleManager.writeLine("  2. Decorate with @tag(ServiceDefinitionTagEnum.Command) @injectable()");
-    this.consoleManager.writeLine("  3. Make sure your AppModule's import graph reaches the file");
-    this.consoleManager.writeLine("  4. Invoke as: pristine <your-command-name>");
+    this.cliOutput.writeLine("");
+    this.cliOutput.writeLine("Adding your own command:");
+    this.cliOutput.writeLine("  1. Implement CommandInterface from '@pristine-ts/cli'");
+    this.cliOutput.writeLine("  2. Decorate with @tag(ServiceDefinitionTagEnum.Command) @injectable()");
+    this.cliOutput.writeLine("  3. Make sure your AppModule's import graph reaches the file");
+    this.cliOutput.writeLine("  4. Invoke as: pristine <your-command-name>");
 
     return ExitCode.Success;
   }

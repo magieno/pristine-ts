@@ -6,11 +6,20 @@ import {LoggerInterface} from "../interfaces/logger.interface";
 import {Readable} from "stream";
 import {injectConfig, moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {OutputModeEnum} from "../enums/output-mode.enum";
+import {StreamEnum} from "../enums/stream.enum";
 import {LoggingModuleKeyname} from "../logging.module.keyname";
 import {BaseLogger} from "./base.logger";
 
 /**
- * The ConsoleLogger outputs the logs in the console.
+ * The ConsoleLogger outputs the logs to `process.stdout` / `process.stderr`. Each severity
+ * routes to its configured stream via the per-severity `ConsoleLogger<Sev>Stream` keys, so
+ * CLI tools can keep stdout clean for piped output while sending problems to stderr.
+ *
+ * Writes go through `process.{stdout,stderr}.write` directly rather than `console.*` so the
+ * stream choice is explicit, configurable, and not subject to whatever the host runtime
+ * does with `console.log` (which can be redirected, suppressed, or swallowed in serverless
+ * environments).
+ *
  * It is registered with the tag Logger so that it can be injected along with all the other Loggers.
  * It is module scoped to the logging module so that it is only registered if the logging module is imported.
  */
@@ -31,31 +40,16 @@ export class ConsoleLogger extends BaseLogger implements LoggerInterface {
 
   private currentlyThrottlingLogs = false;
 
+  private readonly streams: Record<SeverityEnum, StreamEnum>;
+
   /**
    * The ConsoleLogger outputs the logs in the console.
-   * @param numberOfStackedLogs The number of logs to keep in the stack and to print once a log with a high enough severity arrives.
-   * @param logSeverityLevelConfiguration The number representing the severity from which logs should be outputted.
-   * For example, if this is set to 3, any log that has a severity of Error(3) or critical(4) will be outputted.
-   * @param logDebugDepthConfiguration The number of level to go down in an object when printing a log with the Debug severity.
-   * We often do not need to go to the bottom layer of an object, so we can truncate at a certain depth.
-   * @param logInfoDepthConfiguration The number of level to go down in an object when printing a log with the Info severity.
-   * We often do not need to go to the bottom layer of an object, so we can truncate at a certain depth.
-   * @param logWarningDepthConfiguration The number of level to go down in an object when printing a log with the Warning severity.
-   * We often do not need to go to the bottom layer of an object, so we can truncate at a certain depth.
-   * @param logNoticeDepthConfiguration The number of level to go down in an object when printing a log with the Notice severity.
-   * We often do not need to go to the bottom layer of an object, so we can truncate at a certain depth.
-   * @param logErrorDepthConfiguration The number of level to go down in an object when printing a log with the Error severity.
-   * We often do not need to go to the bottom layer of an object, so we can truncate at a certain depth.
-   * @param logCriticalDepthConfiguration The number of level to go down in an object when printing a log with the Critical severity.
-   * We often do not need to go to the bottom layer of an object, so we can truncate at a certain depth.
-   * @param isActivated Whether or not this particular logger is activated and should output logs.
-   * @param outputMode The output mode, that the logger should use.
-   * @param maximumLogsPerSecond The maximum numner of logs per second that can be outputted
    */
   public constructor(@injectConfig(LoggingConfigurationKeys.NumberOfStackedLogs) numberOfStackedLogs: number,
                      @injectConfig(LoggingConfigurationKeys.LogSeverityLevelConfiguration) logSeverityLevelConfiguration: number,
                      @injectConfig(LoggingConfigurationKeys.LogDebugDepthConfiguration) logDebugDepthConfiguration: number,
                      @injectConfig(LoggingConfigurationKeys.LogInfoDepthConfiguration) logInfoDepthConfiguration: number,
+                     @injectConfig(LoggingConfigurationKeys.LogSuccessDepthConfiguration) logSuccessDepthConfiguration: number,
                      @injectConfig(LoggingConfigurationKeys.LogNoticeDepthConfiguration) logNoticeDepthConfiguration: number,
                      @injectConfig(LoggingConfigurationKeys.LogWarningDepthConfiguration) logWarningDepthConfiguration: number,
                      @injectConfig(LoggingConfigurationKeys.LogErrorDepthConfiguration) logErrorDepthConfiguration: number,
@@ -63,17 +57,35 @@ export class ConsoleLogger extends BaseLogger implements LoggerInterface {
                      @injectConfig(LoggingConfigurationKeys.ConsoleLoggerActivated) isActivated: boolean,
                      @injectConfig(LoggingConfigurationKeys.ConsoleLoggerOutputMode) outputMode: OutputModeEnum,
                      @injectConfig(LoggingConfigurationKeys.MaximumLogsPerSecond) private readonly maximumLogsPerSecond: number,
+                     @injectConfig(LoggingConfigurationKeys.ConsoleLoggerDebugStream) debugStream: StreamEnum,
+                     @injectConfig(LoggingConfigurationKeys.ConsoleLoggerInfoStream) infoStream: StreamEnum,
+                     @injectConfig(LoggingConfigurationKeys.ConsoleLoggerSuccessStream) successStream: StreamEnum,
+                     @injectConfig(LoggingConfigurationKeys.ConsoleLoggerNoticeStream) noticeStream: StreamEnum,
+                     @injectConfig(LoggingConfigurationKeys.ConsoleLoggerWarningStream) warningStream: StreamEnum,
+                     @injectConfig(LoggingConfigurationKeys.ConsoleLoggerErrorStream) errorStream: StreamEnum,
+                     @injectConfig(LoggingConfigurationKeys.ConsoleLoggerCriticalStream) criticalStream: StreamEnum,
   ) {
     super(numberOfStackedLogs,
       logSeverityLevelConfiguration,
       logDebugDepthConfiguration,
       logInfoDepthConfiguration,
+      logSuccessDepthConfiguration,
       logNoticeDepthConfiguration,
       logWarningDepthConfiguration,
       logErrorDepthConfiguration,
       logCriticalDepthConfiguration,
       isActivated,
       outputMode);
+
+    this.streams = {
+      [SeverityEnum.Debug]: debugStream,
+      [SeverityEnum.Info]: infoStream,
+      [SeverityEnum.Success]: successStream,
+      [SeverityEnum.Notice]: noticeStream,
+      [SeverityEnum.Warning]: warningStream,
+      [SeverityEnum.Error]: errorStream,
+      [SeverityEnum.Critical]: criticalStream,
+    };
 
     this.initialize();
   }
@@ -96,7 +108,7 @@ export class ConsoleLogger extends BaseLogger implements LoggerInterface {
   }
 
   /**
-   * Outputs the log in the console.
+   * Outputs the log to the configured stream for its severity.
    * @param log The log to be outputted
    * @protected
    */
@@ -107,31 +119,8 @@ export class ConsoleLogger extends BaseLogger implements LoggerInterface {
       return;
     }
 
-    switch (log.severity) {
-      case SeverityEnum.Debug:
-        console.debug(outputLog);
-        break;
-
-      case SeverityEnum.Info:
-        console.info(outputLog);
-        break;
-
-      case SeverityEnum.Notice:
-        console.info(outputLog);
-        break;
-
-      case SeverityEnum.Warning:
-        console.warn(outputLog);
-        break;
-
-      case SeverityEnum.Error:
-        console.error(outputLog);
-        break;
-
-      case SeverityEnum.Critical:
-        console.error(outputLog);
-        break;
-    }
+    const target = this.streams[log.severity] === StreamEnum.Stderr ? process.stderr : process.stdout;
+    target.write(outputLog + "\n");
   }
 
   private shouldThrottleLogs() {
@@ -144,7 +133,7 @@ export class ConsoleLogger extends BaseLogger implements LoggerInterface {
       this.numberOfLogsInThisSecond++;
       if (this.numberOfLogsInThisSecond > this.maximumLogsPerSecond) {
         if (!this.currentlyThrottlingLogs) {
-          console.error(`Throttling the logs as we are outputting too many logs (${this.maximumLogsPerSecond}) per second.`);
+          process.stderr.write(`Throttling the logs as we are outputting too many logs (${this.maximumLogsPerSecond}) per second.\n`);
         }
         this.currentlyThrottlingLogs = true;
 

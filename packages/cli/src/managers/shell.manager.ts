@@ -1,12 +1,12 @@
 import {ChildProcessWithoutNullStreams, exec, spawn} from "child_process";
-import {ConsoleManager} from "./console.manager";
-import {injectable} from "tsyringe";
+import {inject, injectable} from "tsyringe";
 import {PathManager} from "@pristine-ts/core";
-import {DateUtil} from "@pristine-ts/common"
+import {DateUtil} from "@pristine-ts/common";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 
 @injectable()
 export class ShellManager {
-  constructor(private readonly consoleManager: ConsoleManager,
+  constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
               private readonly pathManager: PathManager,
               private readonly dateUtil: DateUtil) {
   }
@@ -40,31 +40,34 @@ export class ShellManager {
 
       const start = new Date();
 
+      // Pretty/Simple output modes already render a timestamp; pass the command alone and
+      // let the formatter handle the prefix. `outputTimeBeforeExecutingCommand` is now a
+      // pass/skip flag — when false we still emit the command if stdout is enabled.
       if (outputTimeBeforeExecutingCommand) {
-        this.consoleManager.writeLine(start.toISOString() + ": " + finalCommand);
-      } else {
-        outputStdout && this.consoleManager.writeLine(finalCommand);
+        this.logHandler.info(finalCommand);
+      } else if (outputStdout) {
+        this.logHandler.info(finalCommand);
       }
 
 
       if (streamStdout) {
         const child = spawn(finalCommand, [], {shell: true, env});
         child.stdout.on('data', (data) => {
-          outputStdout && this.consoleManager.writeLine(`${data}`);
+          outputStdout && this.logHandler.info(`${data}`);
         });
 
         child.stderr.on('data', (data) => {
-          outputStderr && this.consoleManager.writeLine(`Stderr: ${data}`);
+          outputStderr && this.logHandler.warning(`Stderr: ${data}`);
         });
 
         child.on("error", (error) => {
-          outputStdout && this.consoleManager.writeLine(`Error: ${error.message}`);
+          this.logHandler.error(`Error: ${error.message}`);
 
           return reject(error);
         })
 
         child.on("exit", (code) => {
-          outputStdout && this.consoleManager.writeLine(`Exit (code: ${code}).`);
+          outputStdout && this.logHandler.info(`Exit (code: ${code}).`);
 
           if(code !== 0) {
             return reject(code);
@@ -73,20 +76,20 @@ export class ShellManager {
           if (outputDuration) {
             const end = new Date();
             const duration = end.getTime() - start.getTime();
-            this.consoleManager.writeLine(`Executed in: ${this.dateUtil.formatDuration(duration)}`);
+            this.logHandler.info(`Executed in: ${this.dateUtil.formatDuration(duration)}`);
           }
 
           return resolve(code + "");
         })
 
         child.on("disconnect", () => {
-          outputStdout && this.consoleManager.writeLine(`Disconnect.`);
+          outputStdout && this.logHandler.warning(`Disconnect.`);
 
           return reject("Disconnected");
         })
 
         child.on('close', (code) => {
-          outputStdout && this.consoleManager.writeLine(`Command exited with code ${code}`);
+          outputStdout && this.logHandler.info(`Command exited with code ${code}`);
 
           if (code !== 0) {
             return reject(code);
@@ -96,7 +99,7 @@ export class ShellManager {
           if (outputDuration) {
             const end = new Date();
             const duration = end.getTime() - start.getTime();
-            this.consoleManager.writeLine(`Executed in: ${this.dateUtil.formatDuration(duration)}`);
+            this.logHandler.info(`Executed in: ${this.dateUtil.formatDuration(duration)}`);
           }
 
           return resolve(code + "");
@@ -108,20 +111,20 @@ export class ShellManager {
 
       return exec(finalCommand, {env, maxBuffer: options?.maxBuffer}, (error, stdout, stderr) => {
         if (error && error.code) {
-          outputStderr && this.consoleManager.writeLine("Error: " + error.message);
+          outputStderr && this.logHandler.error("Error: " + error.message);
         }
 
         if (stderr) {
-          outputStderr && this.consoleManager.writeLine("Stderr: " + stderr);
+          outputStderr && this.logHandler.warning("Stderr: " + stderr);
         }
 
-        outputStdout && this.consoleManager.writeLine(stdout);
+        outputStdout && this.logHandler.info(stdout);
 
         // Output the duration in human readable format
         if (outputDuration) {
           const end = new Date();
           const duration = end.getTime() - start.getTime();
-          this.consoleManager.writeLine(`Executed in: ${this.dateUtil.formatDuration(duration)}`);
+          this.logHandler.info(`Executed in: ${this.dateUtil.formatDuration(duration)}`);
         }
 
         if (error && error.code) {

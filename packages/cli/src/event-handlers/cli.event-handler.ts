@@ -9,7 +9,6 @@ import {CliErrorCode} from "../errors/cli-error-code.enum";
 import {CommandNotFoundError} from "../errors/command-not-found.error";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {Validator} from "@pristine-ts/class-validator";
-import {ConsoleManager} from "../managers/console.manager";
 import {CliModuleKeyname} from "../cli.module.keyname";
 import {plainToInstance} from "class-transformer";
 
@@ -20,7 +19,6 @@ export class CliEventHandler implements EventHandlerInterface<any, any> {
   constructor(
     @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
     private readonly validator: Validator,
-    private readonly consoleManager: ConsoleManager,
     @injectAll(ServiceDefinitionTagEnum.Command) private readonly commands: CommandInterface<any>[]) {
   }
 
@@ -112,6 +110,10 @@ export class CliEventHandler implements EventHandlerInterface<any, any> {
 
   private logExitStatus(commandName: string, exitCode: ExitCode | number): void {
     const status = exitCode === ExitCode.Success ? "Success" : "Error";
-    this.consoleManager.writeLine(`[status:'${status}', code:'${exitCode}'] - Command '${commandName}' exited.`);
+    if (exitCode === ExitCode.Success) {
+      this.logHandler.info(`Command '${commandName}' exited`, {highlights: {status, exitCode, commandName}});
+    } else {
+      this.logHandler.error(`Command '${commandName}' exited`, {highlights: {status, exitCode, commandName}});
+    }
   }
 }

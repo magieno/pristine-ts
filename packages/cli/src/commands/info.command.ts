@@ -2,9 +2,10 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import {ModuleInterface, moduleScoped, ServiceDefinitionTagEnum, tag, ExitCode} from "@pristine-ts/common";
-import {injectable} from "tsyringe";
+import {inject, injectable} from "tsyringe";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 import {CommandInterface} from "../interfaces/command.interface";
-import {ConsoleManager} from "../managers/console.manager";
+import {CliOutput} from "../managers/cli-output.manager";
 import {CliModuleKeyname} from "../cli.module.keyname";
 import {ConfigLoader} from "../config/config-loader";
 import {AppModuleLoader} from "../bootstrap/app-module-loader";
@@ -35,7 +36,8 @@ export class InfoCommand implements CommandInterface<null> {
   private readonly cliPackageJsonPath: string = path.resolve(__dirname, "..", "..", "..", "..", "package.json");
 
   constructor(
-    private readonly consoleManager: ConsoleManager,
+    @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
+    private readonly cliOutput: CliOutput,
     private readonly configLoader: ConfigLoader,
     private readonly appModuleLoader: AppModuleLoader,
   ) {
@@ -48,25 +50,25 @@ export class InfoCommand implements CommandInterface<null> {
   }
 
   private printRuntimeBanner(): void {
-    this.consoleManager.writeLine("Pristine CLI");
-    this.consoleManager.writeLine(`  Version:        ${this.readCliVersion()}`);
-    this.consoleManager.writeLine(`  Node:           ${process.version}`);
-    this.consoleManager.writeLine(`  Platform:       ${os.platform()} ${os.arch()} (${os.release()})`);
-    this.consoleManager.writeLine(`  CWD:            ${process.cwd()}`);
-    this.consoleManager.writeLine("");
+    this.cliOutput.writeLine("Pristine CLI");
+    this.cliOutput.writeLine(`  Version:        ${this.readCliVersion()}`);
+    this.cliOutput.writeLine(`  Node:           ${process.version}`);
+    this.cliOutput.writeLine(`  Platform:       ${os.platform()} ${os.arch()} (${os.release()})`);
+    this.cliOutput.writeLine(`  CWD:            ${process.cwd()}`);
+    this.cliOutput.writeLine("");
   }
 
   private async printConfigSection(): Promise<void> {
     const resolvedConfig = await this.configLoader.load({startDir: process.cwd()});
-    this.consoleManager.writeLine("Configuration");
-    this.consoleManager.writeLine(`  Config file:    ${resolvedConfig.configFilePath ?? "(none — using defaults)"}`);
+    this.cliOutput.writeLine("Configuration");
+    this.cliOutput.writeLine(`  Config file:    ${resolvedConfig.configFilePath ?? "(none — using defaults)"}`);
     if (resolvedConfig.config.cli?.appModule?.sourcePath !== undefined) {
-      this.consoleManager.writeLine(`  AppModule src:  ${resolvedConfig.config.cli.appModule.sourcePath}  (from config file)`);
+      this.cliOutput.writeLine(`  AppModule src:  ${resolvedConfig.config.cli.appModule.sourcePath}  (from config file)`);
     }
     if (resolvedConfig.config.cli?.appModule?.outputPath !== undefined) {
-      this.consoleManager.writeLine(`  AppModule out:  ${resolvedConfig.config.cli.appModule.outputPath}  (from config file)`);
+      this.cliOutput.writeLine(`  AppModule out:  ${resolvedConfig.config.cli.appModule.outputPath}  (from config file)`);
     }
-    this.consoleManager.writeLine("");
+    this.cliOutput.writeLine("");
   }
 
   private async printAppModuleSection(): Promise<ExitCode | number> {
@@ -77,26 +79,26 @@ export class InfoCommand implements CommandInterface<null> {
       const loaded = await this.appModuleLoader.load();
       modules = this.collectModules(loaded.appModule);
       pluginNames = loaded.plugins.map(p => p.name);
-      this.consoleManager.writeLine(`AppModule: ${loaded.appModule.keyname}`);
+      this.cliOutput.writeLine(`AppModule: ${loaded.appModule.keyname}`);
     } catch (error) {
-      this.consoleManager.writeError(`Could not load AppModule: ${(error as Error).message}`);
+      this.logHandler.error("Could not load AppModule", {highlights: {error: (error as Error).message}});
       return ExitCode.Error;
     }
 
     if (pluginNames.length > 0) {
-      this.consoleManager.writeLine(`Plugins (${pluginNames.length}):`);
+      this.cliOutput.writeLine(`Plugins (${pluginNames.length}):`);
       for (const name of pluginNames) {
-        this.consoleManager.writeLine(`  - ${name}`);
+        this.cliOutput.writeLine(`  - ${name}`);
       }
     }
 
-    this.consoleManager.writeLine(`Imported modules (${modules.length}):`);
+    this.cliOutput.writeLine(`Imported modules (${modules.length}):`);
     const uniqueByKeyname = new Map<string, ModuleInterface>();
     for (const m of modules) {
       uniqueByKeyname.set(m.keyname, m);
     }
     for (const m of [...uniqueByKeyname.values()].sort((a, b) => a.keyname.localeCompare(b.keyname))) {
-      this.consoleManager.writeLine(`  - ${m.keyname}`);
+      this.cliOutput.writeLine(`  - ${m.keyname}`);
     }
 
     return ExitCode.Success;

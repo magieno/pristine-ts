@@ -1,8 +1,8 @@
 import {moduleScoped, ServiceDefinitionTagEnum, tag, ExitCode} from "@pristine-ts/common";
-import {injectable, injectAll} from "tsyringe";
+import {inject, injectable, injectAll} from "tsyringe";
 import {Kernel, RuntimeServerInterface} from "@pristine-ts/core";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 import {CommandInterface} from "../interfaces/command.interface";
-import {ConsoleManager} from "../managers/console.manager";
 import {CliModuleKeyname} from "../cli.module.keyname";
 import {StartCommandOptions} from "./start.command-options";
 
@@ -56,7 +56,7 @@ export class StartCommand implements CommandInterface<StartCommandOptions> {
   private readonly defaultRuntimeServerName: string = "__default__";
 
   constructor(
-    private readonly consoleManager: ConsoleManager,
+    @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
     private readonly kernel: Kernel,
     @injectAll(ServiceDefinitionTagEnum.RuntimeServer) private readonly servers: RuntimeServerInterface[],
   ) {
@@ -73,7 +73,7 @@ export class StartCommand implements CommandInterface<StartCommandOptions> {
       try {
         await server.start(overrides);
       } catch (error) {
-        this.consoleManager.writeError(`Failed to start server '${server.name}': ${(error as Error).message}`);
+        this.logHandler.error(`Failed to start server '${server.name}'`, {highlights: {server: server.name, error: (error as Error).message}});
         // Best-effort: stop any servers that did start before we abort.
         for (const started of servers) {
           if (started === server) break;
@@ -84,10 +84,10 @@ export class StartCommand implements CommandInterface<StartCommandOptions> {
     }
 
     if (servers.length === 0) {
-      this.consoleManager.writeSuccess("Pristine app running. Send SIGTERM (or Ctrl+C) to stop.");
+      this.logHandler.success("Pristine app running. Send SIGTERM (or Ctrl+C) to stop.");
     } else {
       const labels = servers.map(s => s.name).join(", ");
-      this.consoleManager.writeSuccess(`Pristine app running with ${servers.length} server(s): ${labels}. Send SIGTERM (or Ctrl+C) to stop.`);
+      this.logHandler.success(`Pristine app running with ${servers.length} server(s): ${labels}. Send SIGTERM (or Ctrl+C) to stop.`, {highlights: {serverCount: servers.length}});
     }
 
     return new Promise<ExitCode | number>((resolve) => {
@@ -104,15 +104,15 @@ export class StartCommand implements CommandInterface<StartCommandOptions> {
           // Second signal arrived while we're already shutting down — escalate to an immediate
           // hard exit. This mirrors the behavior of most production runtimes (one Ctrl+C =
           // graceful, two = right now).
-          this.consoleManager.writeWarning(`Received ${signal} again — forcing exit.`);
+          this.logHandler.warning(`Received ${signal} again — forcing exit.`, {highlights: {signal}});
           process.exit(130);
         }
         shuttingDown = true;
 
-        this.consoleManager.writeInfo(`Received ${signal}, shutting down gracefully...`);
+        this.logHandler.info(`Received ${signal}, shutting down gracefully...`, {highlights: {signal}});
 
         const hardExitTimer = setTimeout(() => {
-          this.consoleManager.writeError(
+          this.logHandler.error(
             `Shutdown exceeded ${StartCommand.HARD_EXIT_TIMEOUT_MS}ms — forcing exit.`
           );
           process.exit(1);
@@ -125,12 +125,12 @@ export class StartCommand implements CommandInterface<StartCommandOptions> {
           // HttpModule.onShutdown which calls KernelHttpServer.stop(). No need to stop the
           // servers individually here.
           await this.kernel.stop();
-          this.consoleManager.writeSuccess("Shutdown complete.");
+          this.logHandler.success("Shutdown complete.");
           clearTimeout(hardExitTimer);
           clearInterval(heartbeat);
           resolve(ExitCode.Success);
         } catch (error) {
-          this.consoleManager.writeError(`Shutdown error: ${(error as Error).message}`);
+          this.logHandler.error("Shutdown error", {highlights: {error: (error as Error).message}});
           clearTimeout(hardExitTimer);
           clearInterval(heartbeat);
           resolve(ExitCode.Error);

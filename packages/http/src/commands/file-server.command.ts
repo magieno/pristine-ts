@@ -1,8 +1,9 @@
 import "reflect-metadata"
 import {moduleScoped, ServiceDefinitionTagEnum, tag, ExitCode} from "@pristine-ts/common";
 import {HttpModuleKeyname} from "../http.module.keyname";
-import {injectable} from "tsyringe";
-import {CommandInterface, ConsoleManager} from "@pristine-ts/cli";
+import {inject, injectable} from "tsyringe";
+import {CommandInterface} from "@pristine-ts/cli";
+import {LogHandlerInterface} from "@pristine-ts/logging";
 import {FileHttpServer} from "../servers/file.http-server";
 import {FileServerCommandOptions} from "./file-server.command-options";
 
@@ -14,7 +15,7 @@ export class FileServerCommand implements CommandInterface<FileServerCommandOpti
   name = "file-server:start";
 
   constructor(
-    private readonly consoleManager: ConsoleManager,
+    @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
     private readonly fileHttpServer: FileHttpServer) {
   }
 
@@ -32,9 +33,9 @@ export class FileServerCommand implements CommandInterface<FileServerCommandOpti
     }
 
     await this.fileHttpServer.start(args.directory ?? "./", args.port, args.address, (port, address) => {
-        this.consoleManager.writeLine(`Pristine HTTP File server listening on: '${address}:${port}'`);
+        this.logHandler.success("Pristine HTTP File server listening", {highlights: {address, port}});
       }, (req) => {
-        this.consoleManager.writeLine(`Request received: ${req.url}`);
+        this.logHandler.info("Request received", {highlights: {url: req.url}});
       },
       defaultHeaders);
 

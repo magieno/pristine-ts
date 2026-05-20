@@ -7,7 +7,7 @@ import {spawnSync} from "child_process";
  * inline avoids the awkward "exit, ask the user to type a command, re-enter" loop.
  *
  * Spawning rather than dispatching to `BuildCommand` directly keeps `AppModuleLoader` free
- * of the build pipeline's dependency graph (ConsoleManager, ShellManager, etc.) which only
+ * of the build pipeline's dependency graph (LogHandler, ShellManager, CliOutput, etc.) which only
  * exists in the kernel container — and the kernel hasn't booted yet at the point this is
  * called. The subprocess re-bootstraps the kernel cleanly with all of those services.
  *
