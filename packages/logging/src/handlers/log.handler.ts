@@ -14,7 +14,7 @@ import {LogData} from "../types/log-data.type";
  * The LogHandler emits structured log entries through every registered `LoggerInterface`.
  * Logs carry their own content (message, severity, eventId, traceId, extra, highlights) —
  * nothing more. "What happened around this log" lives in the trace, not the log: use the
- * registered tracers (ConsoleTracer, FileTracer, X-Ray, etc.) to render the span tree.
+ * registered tracers (ConsoleTracer, the observability tracer, X-Ray, etc.) to render the span tree.
  */
 @moduleScoped(LoggingModuleKeyname)
 @tag("LogHandlerInterface")

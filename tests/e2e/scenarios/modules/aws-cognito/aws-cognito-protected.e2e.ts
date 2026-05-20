@@ -134,7 +134,6 @@ describe("Aws cognito authenticator", () => {
         await kernel.start(moduleTest, {
             "pristine.aws-cognito.poolId": "poolId",
             "pristine.logging.consoleLoggerActivated": false,
-            "pristine.logging.fileLoggerActivated": false,
         });
 
         const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/identity","uuid");
@@ -174,7 +173,6 @@ describe("Aws cognito authenticator", () => {
         await kernel.start(moduleTest, {
             "pristine.aws-cognito.poolId": "poolId",
             "pristine.logging.consoleLoggerActivated": false,
-            "pristine.logging.fileLoggerActivated": false,
         });
 
         const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/identity", "uuid");

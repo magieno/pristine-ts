@@ -23,7 +23,6 @@ describe("Sequential request execution", () => {
             const kernel = new Kernel();
             await kernel.start(perfModule, {
                 "pristine.logging.consoleLoggerActivated": false,
-                "pristine.logging.fileLoggerActivated": false,
             });
 
             const instantiationTimeElapsedInMiliseconds = process.hrtime(start)[1] / 1000000;
@@ -64,7 +63,6 @@ describe("Sequential request execution", () => {
         const kernel = new Kernel();
         await kernel.start(perfModule, {
             "pristine.logging.consoleLoggerActivated": false,
-            "pristine.logging.fileLoggerActivated": false,
         });
 
         for (let i = 0; i < 1000; i++) {

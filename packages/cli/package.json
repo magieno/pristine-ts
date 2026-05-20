@@ -31,6 +31,8 @@
     "@pristine-ts/data-mapping-common": "file:../data-mapping-common",
     "@pristine-ts/file": "file:../file",
     "@pristine-ts/logging": "file:../logging",
+    "@pristine-ts/observability": "file:../observability",
+    "@pristine-ts/telemetry": "file:../telemetry",
     "@pristine-ts/validation": "file:../validation",
     "jiti": "^2.4.0",
     "uuid": "^9.0.1"

@@ -17,7 +17,6 @@ describe("Error logging", () => {
             importServices: [],
         }, {
             "pristine.logging.consoleLoggerActivated": true,
-            "pristine.logging.fileLoggerActivated": false,
         });
 
         const logHandler: LogHandlerInterface = await kernel.container.resolve(LogHandler);

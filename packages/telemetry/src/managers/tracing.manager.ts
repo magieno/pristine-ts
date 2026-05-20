@@ -353,7 +353,7 @@ export class TracingManager implements TracingManagerInterface {
    * Attaches a named, timestamped marker to the most-recently-started in-progress span.
    * Use for noteworthy moments that don't warrant a child span — "validation passed",
    * "found 50 rows", "rate limit ok". Cheap (just pushes onto an array); shows up in
-   * the trace rendered by tracers (ConsoleTracer, FileTracer, X-Ray, etc.).
+   * the trace rendered by tracers (ConsoleTracer, the observability tracer, X-Ray, etc.).
    *
    * If no span is currently active (no trace started, or every span has already ended),
    * a warning is logged and the marker is dropped. The warning is the explicit signal

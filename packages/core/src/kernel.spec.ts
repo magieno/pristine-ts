@@ -24,7 +24,6 @@ describe("Kernel.verifyInstantiation", () => {
     const kernel = new Kernel();
     const report = await kernel.verifyInstantiation(baseAppModule(), {
       "pristine.logging.consoleLoggerActivated": false,
-      "pristine.logging.fileLoggerActivated": false,
     });
 
     expect(report.overallStatus).toBe(InstantiationStatusEnum.Passed);
@@ -43,7 +42,6 @@ describe("Kernel.verifyInstantiation", () => {
     const kernel = new Kernel();
     const report = await kernel.verifyInstantiation(appModule, {
       "pristine.logging.consoleLoggerActivated": false,
-      "pristine.logging.fileLoggerActivated": false,
     });
 
     expect(report.missingRequiredConfiguration).toEqual([
@@ -63,7 +61,6 @@ describe("Kernel.verifyInstantiation", () => {
     const kernel = new Kernel();
     const report = await kernel.verifyInstantiation(appModule, {
       "pristine.logging.consoleLoggerActivated": false,
-      "pristine.logging.fileLoggerActivated": false,
     });
 
     const loadPhase = report.phases.find(p => p.phase === InstantiationPhaseEnum.ConfigurationLoad);
@@ -84,7 +81,6 @@ describe("Kernel.verifyInstantiation", () => {
     const kernel = new Kernel();
     const report = await kernel.verifyInstantiation(appModule, {
       "pristine.logging.consoleLoggerActivated": false,
-      "pristine.logging.fileLoggerActivated": false,
     });
 
     const moduleRegistration = report.phases.find(p => p.phase === InstantiationPhaseEnum.ModuleRegistration);
@@ -130,7 +126,6 @@ describe("Kernel.verifyInstantiation", () => {
     const kernel = new Kernel();
     const report = await kernel.verifyInstantiation(baseAppModule(), {
       "pristine.logging.consoleLoggerActivated": false,
-      "pristine.logging.fileLoggerActivated": false,
     });
 
     const names = report.instantiationTests.map(t => t.name).sort();
@@ -146,7 +141,6 @@ describe("Kernel.verifyInstantiation", () => {
     const kernel = new Kernel();
     const report = await kernel.verifyInstantiation(baseAppModule(), {
       "pristine.logging.consoleLoggerActivated": false,
-      "pristine.logging.fileLoggerActivated": false,
     }, {runInstantiationTests: false});
 
     const testPhase = report.phases.find(p => p.phase === InstantiationPhaseEnum.InstantiationTests);
@@ -157,7 +151,6 @@ describe("Kernel.verifyInstantiation", () => {
     const kernel = new Kernel();
     const report = await kernel.verifyInstantiation(baseAppModule(), {
       "pristine.logging.consoleLoggerActivated": false,
-      "pristine.logging.fileLoggerActivated": false,
     });
 
     expect(report.logHandler).toBeDefined();
@@ -191,7 +184,6 @@ describe("Kernel.stop", () => {
     const kernel = new Kernel();
     await kernel.start(rootModule, {
       "pristine.logging.consoleLoggerActivated": false,
-      "pristine.logging.fileLoggerActivated": false,
     });
     await kernel.stop();
 
@@ -219,7 +211,6 @@ describe("Kernel.stop", () => {
     const kernel = new Kernel();
     await kernel.start(rootModule, {
       "pristine.logging.consoleLoggerActivated": false,
-      "pristine.logging.fileLoggerActivated": false,
     });
 
     await expect(kernel.stop()).resolves.toBeUndefined();
@@ -243,7 +234,6 @@ describe("Kernel.stop", () => {
       importServices: [],
     } as AppModuleInterface, {
       "pristine.logging.consoleLoggerActivated": false,
-      "pristine.logging.fileLoggerActivated": false,
     });
 
     await kernel.stop();
@@ -274,7 +264,6 @@ describe("Kernel.stop", () => {
       importServices: [],
     } as AppModuleInterface, {
       "pristine.logging.consoleLoggerActivated": false,
-      "pristine.logging.fileLoggerActivated": false,
     });
 
     const startedAt = Date.now();

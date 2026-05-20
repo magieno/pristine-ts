@@ -93,7 +93,6 @@ describe("Event Pipeline Scenarios", () => {
 
         await kernel.start(appModule, {
             "pristine.logging.consoleLoggerActivated" : false,
-            "pristine.logging.fileLoggerActivated" : false,
         });
     })
 

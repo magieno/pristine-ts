@@ -33,7 +33,6 @@ describe("Handle events", () => {
             const kernel = new Kernel();
             await kernel.start(moduleTest, {
                 "pristine.logging.consoleLoggerActivated": false,
-                "pristine.logging.fileLoggerActivated": false,
             });
 
             let error
@@ -97,7 +96,6 @@ describe("Handle events", () => {
             const kernel = new Kernel();
             await kernel.start(moduleTest, {
                 "pristine.logging.consoleLoggerActivated": false,
-                "pristine.logging.fileLoggerActivated": false,
             });
 
 

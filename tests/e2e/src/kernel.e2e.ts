@@ -26,7 +26,6 @@ describe("Kernel.ts", () => {
         const kernel = new Kernel();
         await kernel.start(testModule, {
             "pristine.logging.consoleLoggerActivated": false,
-            "pristine.logging.fileLoggerActivated": false,
         });
 
         const resolvedClassModel = kernel.container.resolve<ResolvedClassModel>(ResolvedClassModel);
@@ -80,7 +79,6 @@ describe("Kernel.ts", () => {
 
         await kernel.start(module, {
             "pristine.logging.consoleLoggerActivated": false,
-            "pristine.logging.fileLoggerActivated": false,
         });
 
         const classThatHasAllTheOthersInjected = kernel.container.resolve(ClassThatHasAllTheOthersInjected);
@@ -150,7 +148,6 @@ describe("Kernel.ts", () => {
 
             await kernel.start(module, {
                 "pristine.logging.consoleLoggerActivated": false,
-                "pristine.logging.fileLoggerActivated": false,
             });
 
             expect(kernel.container.resolveAll("CommonTag").length).toBe(2);

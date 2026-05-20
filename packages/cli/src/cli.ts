@@ -13,6 +13,8 @@ import {SourceHasher} from "./bootstrap/source-hasher";
 import {ConfigLoader} from "./config/config-loader";
 import {CliModule} from "./cli.module";
 import {CliErrorReporter} from "./reporters/cli-error.reporter";
+import {ReplSession} from "./managers/repl-session";
+import {ObservabilityModule} from "@pristine-ts/observability";
 
 /**
  * Boots the CLI: discovers the consumer's AppModule, starts the kernel, and dispatches
@@ -51,13 +53,25 @@ export class Cli {
       // No second argument to `kernel.start()`: runtime configuration values from
       // `pristine.config.ts:config` are read directly by `ConfigurationManager` during
       // boot, so the CLI no longer needs to pre-load or thread them through.
-      await this.kernel.start(this.wrapWithCliModule(loaded.appModule));
+      await this.kernel.start(this.wrapWithFrameworkModules(loaded.appModule));
 
       // Make the running kernel resolvable from within commands so things like `pristine start`
       // and the alias commands can register signal handlers and resolve their delegates.
       this.kernel.container.registerInstance(Kernel, this.kernel);
 
       this.warnOnCommandCollisions();
+
+      // No command on the argv (`pristine`) or an explicit `pristine repl` → drop into the
+      // interactive console instead of the one-shot dispatcher. The REPL keeps this same
+      // booted kernel warm for the whole session.
+      if (this.shouldStartRepl()) {
+        // ── container.resolve, justified ────────────────────────────────────────────
+        // Framework bootstrap: `Cli.bootstrap()` runs pre-DI hand-wiring with no
+        // constructor to inject into. Resolving the REPL session here is the same
+        // justified case as `warnOnCommandCollisions`'s `resolveAll`.
+        const replSession = this.kernel.container.resolve(ReplSession);
+        return await replSession.start();
+      }
 
       await this.kernel.handle(process.argv, {keyname: ExecutionContextKeynameEnum.Cli, context: null});
       // The CLI event handler calls `process.exit(exitCode)` itself after the command runs,
@@ -126,16 +140,29 @@ export class Cli {
   }
 
   /**
-   * Builds a synthetic outer AppModule that imports both the user's AppModule and CliModule.
-   * The wrap is unconditional — the kernel dedupes module imports by keyname, so adding
-   * CliModule on top of a graph that already contains it is a no-op rather than an error
-   * or duplicate registration. Cheaper than walking the user's import tree to detect the
+   * Whether the bin was invoked without a command (`pristine`) or with the explicit
+   * `repl` command — both launch the interactive console. `process.argv` is
+   * `[node, binPath, command?, ...args]`, so "no command" means length 2 or less.
+   */
+  private shouldStartRepl(): boolean {
+    return process.argv.length <= 2 || process.argv[2] === "repl";
+  }
+
+  /**
+   * Builds a synthetic outer AppModule that imports the user's AppModule plus the
+   * framework modules the bin always needs: `CliModule` (the CLI's own commands) and
+   * `ObservabilityModule` (the logs/traces store the `logs`/`trace`/`requests` commands
+   * read, and that `pristine start` writes to).
+   *
+   * The wrap is unconditional — the kernel dedupes module imports by keyname, so adding a
+   * module on top of a graph that already contains it is a no-op rather than an error or
+   * duplicate registration. Cheaper than walking the user's import tree to detect the
    * already-present case.
    */
-  private wrapWithCliModule(appModule: AppModuleInterface): AppModuleInterface {
+  private wrapWithFrameworkModules(appModule: AppModuleInterface): AppModuleInterface {
     return {
       keyname: `${appModule.keyname}.with-cli`,
-      importModules: [appModule, CliModule],
+      importModules: [appModule, CliModule, ObservabilityModule],
       importServices: appModule.importServices ?? [],
     };
   }

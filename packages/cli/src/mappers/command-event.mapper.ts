@@ -42,7 +42,14 @@ export class CommandEventMapper implements EventMapperInterface<CommandEventPayl
     for (let i = 0; i < passedArguments.length; i++) {
       const arg: string = passedArguments[i];
       if (arg.startsWith("-") === false) {
+        // Bare (non-dashed) tokens are positionals. Kept as `arguments[arg] = true` for
+        // backward compatibility, and additionally collected in order under the reserved
+        // `_` key so commands like `trace <id>` / `logs <id>` can read a real positional.
         command.arguments[arg] = true;
+        if (Array.isArray(command.arguments._) === false) {
+          command.arguments._ = [];
+        }
+        (command.arguments._ as string[]).push(arg);
         continue;
       }
 

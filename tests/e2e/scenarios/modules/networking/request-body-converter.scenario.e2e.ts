@@ -31,7 +31,6 @@ describe("Request Body Converter", () => {
             importServices: [],
         }, {
             "pristine.logging.consoleLoggerActivated": false,
-            "pristine.logging.fileLoggerActivated": false,
         });
     })
 
@@ -74,7 +73,6 @@ describe("Request Body Converter", () => {
             importServices: [],
         }, {
             "pristine.logging.consoleLoggerActivated": false,
-            "pristine.logging.fileLoggerActivated": false,
             "pristine.core.requestBodyConverterActive": true,
         });
 

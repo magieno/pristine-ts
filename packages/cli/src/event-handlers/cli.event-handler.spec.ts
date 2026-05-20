@@ -3,6 +3,7 @@ import {IsNumber, IsOptional, IsString, Validator} from "@pristine-ts/class-vali
 import {PristineError, UsageError, ValidationError, ExitCode} from "@pristine-ts/common";
 import {CommandInterface} from "../interfaces/command.interface";
 import {CliEventHandler} from "./cli.event-handler";
+import {CommandArgumentResolver} from "../services/command-argument-resolver";
 
 /**
  * Options class with mixed types — covers the four mapping/validation paths the handler
@@ -47,7 +48,7 @@ const buildHandler = (): {handler: CliEventHandler; logHandler: CapturingLogHand
   const validator = new Validator();
   const handler = new CliEventHandler(
     captured as any,
-    validator,
+    new CommandArgumentResolver(validator),
     [],
   );
   return {handler, logHandler: captured};

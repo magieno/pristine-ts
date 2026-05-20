@@ -41,7 +41,6 @@ describe("Request Mapper scenarios", () => {
         const kernel = new Kernel();
         await kernel.start(moduleTest, {
             "pristine.logging.consoleLoggerActivated": false,
-            "pristine.logging.fileLoggerActivated": false,
         });
 
         const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/test", "uuid");
@@ -90,7 +89,6 @@ describe("Request Mapper scenarios", () => {
         const kernel = new Kernel();
         await kernel.start(moduleTest, {
             "pristine.logging.consoleLoggerActivated": false,
-            "pristine.logging.fileLoggerActivated": false,
         });
 
         const request: Request = new Request(HttpMethod.Get, "https://localhost:8080/api/test", "uuid");
