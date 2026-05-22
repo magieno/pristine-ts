@@ -4,8 +4,6 @@ import {ExitCode, moduleScoped, ServiceDefinitionTagEnum} from "@pristine-ts/com
 import {ExecutionContextKeynameEnum, Kernel} from "@pristine-ts/core";
 import {ObservabilityStoreReader} from "@pristine-ts/observability";
 import {CommandInterface} from "../interfaces/command.interface";
-import {CommandEventMapper} from "../mappers/command-event.mapper";
-import {CommandArgumentResolver} from "../services/command-argument-resolver";
 import {CliOutput} from "./cli-output.manager";
 import {CliModuleKeyname} from "../cli.module.keyname";
 
@@ -14,13 +12,16 @@ import {CliModuleKeyname} from "../cli.module.keyname";
  * (or `pristine repl`). It keeps the kernel booted for the whole session, so every
  * command runs instantly with no per-invocation boot cost.
  *
- * Slash-prefixed commands map onto the same `CommandInterface` registry the one-shot bin
- * uses (`/logs`, `/trace`, `/build`, custom user commands), plus the session verbs
- * `/help`, `/clear`, `/exit`. Tab-completion is driven by the live command registry, and
- * by recent trace ids for `/trace` / `/logs`.
+ * Slash-prefixed commands dispatch through the *same* path as a one-shot
+ * `pristine <command>` invocation — `kernel.handle(argv, {keyname: Cli})` — so the REPL
+ * and the command line resolve, validate and run commands identically. (This works
+ * because `CliEventHandler` returns the exit code instead of calling `process.exit`.)
+ * Plus the session verbs `/help`, `/clear`, `/exit`. Tab-completion is driven by the live
+ * command registry and by recent trace ids for `/trace` / `/logs`.
  *
- * Dispatch deliberately bypasses `CliEventHandler` (which calls `process.exit` after a
- * command) — the REPL must survive each command and return to the prompt.
+ * The kernel is **not** a constructor dependency — `ReplSession` is a driver *of* the
+ * kernel, so the running kernel is handed to `start()` by whoever owns it (`Cli`). Only
+ * genuine collaborator services are injected.
  */
 @injectable()
 @moduleScoped(CliModuleKeyname)
@@ -32,10 +33,7 @@ export class ReplSession {
   private commands: CommandInterface<any>[] = [];
 
   constructor(
-    private readonly kernel: Kernel,
     private readonly cliOutput: CliOutput,
-    private readonly commandEventMapper: CommandEventMapper,
-    private readonly commandArgumentResolver: CommandArgumentResolver,
     private readonly storeReader: ObservabilityStoreReader,
   ) {
   }
@@ -43,9 +41,12 @@ export class ReplSession {
   /**
    * Runs the read-eval-print loop until `/exit` or EOF (Ctrl-D). Resolves with the exit
    * code the bin should return.
+   *
+   * @param kernel The already-started kernel this session drives — passed in by the
+   *   caller that owns it, rather than injected.
    */
-  async start(): Promise<number> {
-    this.commands = this.resolveCommands();
+  async start(kernel: Kernel): Promise<number> {
+    this.commands = this.resolveCommands(kernel);
     this.printBanner();
 
     const rl = readline.createInterface({
@@ -68,7 +69,7 @@ export class ReplSession {
         // Pause input while a command runs so its own SIGINT handling (e.g. `logs -f`)
         // owns Ctrl-C, and so a second line can't interleave mid-dispatch.
         rl.pause();
-        void this.handleLine(trimmed).then((shouldExit) => {
+        void this.handleLine(trimmed, kernel).then((shouldExit) => {
           if (shouldExit) {
             rl.close();
             return;
@@ -85,7 +86,7 @@ export class ReplSession {
       });
 
       rl.on("close", () => {
-        void this.shutdown().then(() => resolve(ExitCode.Success));
+        void this.shutdown(kernel).then(() => resolve(ExitCode.Success));
       });
     });
   }
@@ -93,7 +94,7 @@ export class ReplSession {
   /**
    * Handles one input line. Returns true when the session should end.
    */
-  private async handleLine(input: string): Promise<boolean> {
+  private async handleLine(input: string, kernel: Kernel): Promise<boolean> {
     const withoutSlash = input.startsWith("/") ? input.slice(1) : input;
     const tokens = withoutSlash.split(/\s+/).filter(token => token.length > 0);
     const name = tokens[0];
@@ -111,34 +112,21 @@ export class ReplSession {
       return false;
     }
 
-    const command = this.findCommand(name);
-    if (command === undefined) {
-      this.cliOutput.writeLine(`Unknown command '${name}'. Type /help for the list.`);
-      return false;
-    }
-
     try {
-      // Reuse the one-shot argv parser by feeding it a synthetic argv, so flags behave
-      // identically in the REPL and on the command line.
-      const mapped = this.commandEventMapper.map(
-        ["node", "repl", command.name, ...rest],
+      // Dispatch through the exact same path as a one-shot `pristine <command>`: a
+      // synthetic argv handed to `kernel.handle` with the `Cli` execution context. The
+      // kernel maps it, `CliEventHandler` resolves + validates + runs it and returns the
+      // exit code (no `process.exit`), so the loop survives. An unknown command throws
+      // `CommandNotFoundError`, caught below.
+      await kernel.handle(
+        ["node", "repl", name, ...rest],
         {keyname: ExecutionContextKeynameEnum.Cli, context: null},
       );
-      const args = await this.commandArgumentResolver.resolve(command, mapped.events[0].payload.arguments);
-      await command.run(args);
     } catch (error) {
       this.cliOutput.writeLine(`Error: ${error instanceof Error ? error.message : String(error)}`);
     }
 
     return false;
-  }
-
-  /**
-   * Resolves a command by its name or alias (`logs` matches `logs`; `trace` matches
-   * `p:trace` too).
-   */
-  private findCommand(name: string): CommandInterface<any> | undefined {
-    return this.commands.find(command => command.name === name || command.name === `p:${name}`);
   }
 
   /**
@@ -183,9 +171,9 @@ export class ReplSession {
     }
   }
 
-  private async shutdown(): Promise<void> {
+  private async shutdown(kernel: Kernel): Promise<void> {
     try {
-      await this.kernel.stop();
+      await kernel.stop();
     } catch {
       // Best-effort — we're leaving the process anyway.
     }
@@ -204,9 +192,9 @@ export class ReplSession {
    * start, mirroring `Cli.warnOnCommandCollisions`. Enumerating every `Command`-tagged
    * service is inherently a container-introspection operation with no constructor seam.
    */
-  private resolveCommands(): CommandInterface<any>[] {
+  private resolveCommands(kernel: Kernel): CommandInterface<any>[] {
     try {
-      const childContainer = this.kernel.container.createChildContainer();
+      const childContainer = kernel.container.createChildContainer();
       childContainer.registerInstance(ServiceDefinitionTagEnum.CurrentChildContainer, childContainer);
       return childContainer.resolveAll<CommandInterface<any>>(ServiceDefinitionTagEnum.Command);
     } catch (error) {

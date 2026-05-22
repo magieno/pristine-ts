@@ -14,7 +14,6 @@ import {ConfigLoader} from "./config/config-loader";
 import {CliModule} from "./cli.module";
 import {CliErrorReporter} from "./reporters/cli-error.reporter";
 import {ReplSession} from "./managers/repl-session";
-import {ObservabilityModule} from "@pristine-ts/observability";
 
 /**
  * Boots the CLI: discovers the consumer's AppModule, starts the kernel, and dispatches
@@ -53,7 +52,7 @@ export class Cli {
       // No second argument to `kernel.start()`: runtime configuration values from
       // `pristine.config.ts:config` are read directly by `ConfigurationManager` during
       // boot, so the CLI no longer needs to pre-load or thread them through.
-      await this.kernel.start(this.wrapWithFrameworkModules(loaded.appModule));
+      await this.kernel.start(this.wrapWithCliModule(loaded.appModule));
 
       // Make the running kernel resolvable from within commands so things like `pristine start`
       // and the alias commands can register signal handlers and resolve their delegates.
@@ -70,14 +69,14 @@ export class Cli {
         // constructor to inject into. Resolving the REPL session here is the same
         // justified case as `warnOnCommandCollisions`'s `resolveAll`.
         const replSession = this.kernel.container.resolve(ReplSession);
-        return await replSession.start();
+        return await replSession.start(this.kernel);
       }
 
-      await this.kernel.handle(process.argv, {keyname: ExecutionContextKeynameEnum.Cli, context: null});
-      // The CLI event handler calls `process.exit(exitCode)` itself after the command runs,
-      // so this return is only reached if the dispatcher somehow resolves without exiting —
-      // treat that as a success exit.
-      return 0;
+      // `kernel.handle` dispatches the command through `CliEventHandler`, which now
+      // returns the command's exit code rather than calling `process.exit` — exiting is
+      // the bin's job. Propagate that code; `bin.ts` does the actual `process.exit`.
+      const exitCode = await this.kernel.handle(process.argv, {keyname: ExecutionContextKeynameEnum.Cli, context: null});
+      return typeof exitCode === "number" ? exitCode : 0;
     } catch (error) {
       return await this.reportFatalError(error);
     }
@@ -149,20 +148,20 @@ export class Cli {
   }
 
   /**
-   * Builds a synthetic outer AppModule that imports the user's AppModule plus the
-   * framework modules the bin always needs: `CliModule` (the CLI's own commands) and
-   * `ObservabilityModule` (the logs/traces store the `logs`/`trace`/`requests` commands
-   * read, and that `pristine start` writes to).
+   * Builds a synthetic outer AppModule that imports the user's AppModule plus `CliModule`
+   * — so the CLI's own commands are always registered when the bin is the entry point.
+   * `CliModule` itself imports `ObservabilityModule`, so the logs/traces store travels
+   * along without being named here.
    *
-   * The wrap is unconditional — the kernel dedupes module imports by keyname, so adding a
-   * module on top of a graph that already contains it is a no-op rather than an error or
-   * duplicate registration. Cheaper than walking the user's import tree to detect the
-   * already-present case.
+   * The wrap is unconditional — the kernel dedupes module imports by keyname, so adding
+   * `CliModule` on top of a graph that already contains it is a no-op rather than an
+   * error or duplicate registration. Cheaper than walking the user's import tree to
+   * detect the already-present case.
    */
-  private wrapWithFrameworkModules(appModule: AppModuleInterface): AppModuleInterface {
+  private wrapWithCliModule(appModule: AppModuleInterface): AppModuleInterface {
     return {
       keyname: `${appModule.keyname}.with-cli`,
-      importModules: [appModule, CliModule, ObservabilityModule],
+      importModules: [appModule, CliModule],
       importServices: appModule.importServices ?? [],
     };
   }

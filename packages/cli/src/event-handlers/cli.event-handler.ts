@@ -20,25 +20,35 @@ export class CliEventHandler implements EventHandlerInterface<any, any> {
     @injectAll(ServiceDefinitionTagEnum.Command) private readonly commands: CommandInterface<any>[]) {
   }
 
+  /**
+   * Resolves and runs the command, then **returns** its exit code wrapped in a
+   * `CommandEventResponse` — it does not call `process.exit`.
+   *
+   * Process lifecycle is the bin's job: `kernel.handle` resolves with this exit code,
+   * `Cli.bootstrap` returns it, and `bin.ts` does the actual `process.exit`. Returning
+   * (rather than exiting) is also what lets the interactive REPL dispatch commands
+   * through this very handler — `kernel.handle(argv, {keyname: Cli})` per typed line —
+   * without the process dying after the first command.
+   */
   async handle(event: CommandEvent): Promise<CommandEventResponse> {
     const command = this.commands.find(c => c.name === event.payload.name);
     if (command === undefined) {
       // Throws a UsageError (exit 64, `EX_USAGE`). The bin's `.catch` will route it
       // through `CliErrorReporter.report` which prints a clean one-line stderr and
-      // exits with the right code — no `process.exit` in this method any longer.
+      // exits with the right code.
       throw new CommandNotFoundError(event.payload.name);
     }
 
     const args = await this.resolveArgs(command, event.payload.arguments ?? {});
     const exitCode = await command.run(args);
     this.logExitStatus(event.payload.name, exitCode);
-    process.exit(exitCode);
+    return new CommandEventResponse(event, exitCode);
   }
 
   /**
    * Maps + validates a command's raw arguments. Delegates to the shared
-   * `CommandArgumentResolver` (also used by the interactive REPL) so both dispatch paths
-   * resolve arguments identically.
+   * `CommandArgumentResolver`. Since the REPL dispatches through this same handler, the
+   * one-shot CLI and the REPL resolve arguments through identical logic.
    */
   async resolveArgs(command: CommandInterface<any>, rawArgs: any): Promise<any> {
     return this.commandArgumentResolver.resolve(command, rawArgs);
