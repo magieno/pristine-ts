@@ -1,5 +1,6 @@
-import {EventContextManager, moduleScoped, Request, Response, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
-import {injectable} from "tsyringe";
+import {moduleScoped, Request, Response, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
+import {inject, injectable} from "tsyringe";
+import {TracingManager} from "@pristine-ts/telemetry";
 import {NetworkingModuleKeyname} from "../networking.module.keyname";
 import {MethodRouterNode} from "../nodes/method-router.node";
 import {RequestInterceptorInterface} from "../interfaces/request-interceptor.interface";
@@ -12,42 +13,34 @@ import {RequestInterceptorInterface} from "../interfaces/request-interceptor.int
  * observability store in particular — can render a meaningful request listing
  * (method · path · status) without a separate request log.
  *
+ * Mutation goes through `TracingManager.addToTraceContext` rather than touching the
+ * trace object directly; path extraction lives on `Request.getPath()` rather than in
+ * the interceptor. The interceptor itself becomes pure glue between two collaborators.
+ *
  * Best-effort: enrichment never alters or fails the response. No-op when there is no
- * active trace (e.g. a non-HTTP execution, or tracing disabled).
+ * active trace (e.g. tracing disabled).
  */
 @tag(ServiceDefinitionTagEnum.RequestInterceptor)
 @moduleScoped(NetworkingModuleKeyname)
 @injectable()
 export class TraceEnrichmentInterceptor implements RequestInterceptorInterface {
 
+  constructor(
+    @inject("TracingManagerInterface") private readonly tracingManager: TracingManager,
+  ) {
+  }
+
   async interceptResponse(response: Response, request: Request, methodNode?: MethodRouterNode): Promise<Response> {
     try {
-      const trace = EventContextManager.current()?.trace;
-      if (trace !== undefined) {
-        trace.context = {
-          ...trace.context,
-          "http.method": String(request.httpMethod),
-          "http.path": this.extractPath(request.url),
-          "http.statusCode": String(response.status),
-        };
-      }
+      this.tracingManager.addToTraceContext({
+        "http.method": String(request.httpMethod),
+        "http.path": request.getPath(),
+        "http.statusCode": String(response.status),
+      });
     } catch {
       // Enrichment is purely observational — never let it affect the response.
     }
 
     return response;
-  }
-
-  /**
-   * Returns the path portion of a request url, dropping the query string. Accepts both
-   * absolute urls and bare paths.
-   */
-  private extractPath(url: string): string {
-    try {
-      return new URL(url, "http://localhost").pathname;
-    } catch {
-      const queryIndex = url.indexOf("?");
-      return queryIndex === -1 ? url : url.slice(0, queryIndex);
-    }
   }
 }

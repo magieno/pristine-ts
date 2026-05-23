@@ -71,6 +71,23 @@ export class TracingManager implements TracingManagerInterface {
   }
 
   /**
+   * Merges the given entries into the active trace's `context` — the place tracers read
+   * trace-wide metadata from (e.g. the observability store's `requests` listing reads
+   * `http.method`/`http.path`/`http.statusCode` from here). A no-op when there is no
+   * active trace. Existing entries with the same keys are overwritten.
+   *
+   * This is the typed mutator for trace context: consumers don't reach for the trace
+   * object themselves, so the trace's lifecycle stays owned by `TracingManager`.
+   */
+  public addToTraceContext(entries: { [key: string]: string }): void {
+    const trace = this.getActiveTrace();
+    if (trace === undefined) {
+      return;
+    }
+    trace.context = {...trace.context, ...entries};
+  }
+
+  /**
    * Stores `trace` as the active trace — on `EventContext.trace` when an event is active,
    * otherwise on the instance fallback `this.trace`.
    */
