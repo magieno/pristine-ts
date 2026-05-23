@@ -1,26 +1,32 @@
 import {injectable} from "tsyringe";
 import {moduleScoped, UsageError, ValidationError} from "@pristine-ts/common";
 import {Validator} from "@pristine-ts/class-validator";
-import {plainToInstance} from "class-transformer";
+import {AutoDataMappingBuilderOptions, DataMapper} from "@pristine-ts/data-mapping";
 import {CommandInterface} from "../interfaces/command.interface";
 import {CliModuleKeyname} from "../cli.module.keyname";
 import {CliErrorCode} from "../errors/cli-error-code.enum";
 
 /**
  * Maps a command's raw parsed arguments onto a typed, validated instance of its
- * `optionsType`. Extracted from `CliEventHandler` so both the one-shot dispatch path and
- * the interactive REPL resolve and validate arguments through exactly the same logic.
+ * `optionsType`. Used by both the one-shot dispatch path (`CliEventHandler.resolveArgs`)
+ * and the interactive REPL (which dispatches via that same handler), so command
+ * arguments are resolved through identical logic everywhere.
  */
 @injectable()
 @moduleScoped(CliModuleKeyname)
 export class CommandArgumentResolver {
-  constructor(private readonly validator: Validator) {
+  constructor(
+    private readonly validator: Validator,
+    private readonly dataMapper: DataMapper,
+  ) {
   }
 
   /**
    * For commands that opt out of typed options (`optionsType === null`), passes the raw
    * args through unchanged. Otherwise maps them onto a real instance of `optionsType`
-   * (so `class-validator` decorator metadata is present) and validates it.
+   * via the framework `DataMapper` (whose `autoMap` produces a real class instance —
+   * prototype + decorator metadata intact — so `class-validator` finds its rules) and
+   * validates it.
    *
    * Throws `UsageError` for mapping failures and `ValidationError` for validation
    * failures — both carry structured `details` for `CliErrorReporter`.
@@ -32,9 +38,9 @@ export class CommandArgumentResolver {
 
     let mapped: any;
     try {
-      // class-transformer's plainToInstance produces a real instance of the options class
-      // (prototype + decorator metadata intact) so class-validator can find its rules.
-      mapped = plainToInstance(command.optionsType, rawArgs);
+      // `throwOnErrors: true` so a normalizer failure surfaces here instead of `autoMap`
+      // silently returning the source object (which would defeat validation downstream).
+      mapped = await this.dataMapper.autoMap(rawArgs, command.optionsType, new AutoDataMappingBuilderOptions({throwOnErrors: true}));
     } catch (cause) {
       throw new UsageError(
         `Failed to map CLI arguments to '${command.optionsType.name}': ${(cause as Error).message}`,

@@ -3,13 +3,13 @@ import {LoggingModule} from "@pristine-ts/logging";
 import {TelemetryModule} from "@pristine-ts/telemetry";
 import {BooleanResolver, EnvironmentVariableResolver, NumberResolver} from "@pristine-ts/configuration";
 import {ObservabilityModuleKeyname} from "./observability.module.keyname";
+import {ObservabilityConfigurationKeys} from "./observability.configuration-keys";
 
 export * from "./loggers/loggers";
 export * from "./models/models";
 export * from "./store/store";
 export * from "./tracers/tracers";
 
-export * from "./observability-configuration";
 export * from "./observability.configuration-keys";
 export * from "./observability.module.keyname";
 
@@ -40,7 +40,7 @@ export const ObservabilityModule: ModuleInterface = {
      * never write, regardless of whether a run is active.
      */
     {
-      parameterName: ObservabilityModuleKeyname + ".enabled",
+      parameterName: ObservabilityConfigurationKeys.Enabled,
       defaultValue: true,
       isRequired: false,
       defaultResolvers: [
@@ -52,7 +52,7 @@ export const ObservabilityModule: ModuleInterface = {
      * when not absolute.
      */
     {
-      parameterName: ObservabilityModuleKeyname + ".directory",
+      parameterName: ObservabilityConfigurationKeys.Directory,
       defaultValue: ".pristine/observability",
       isRequired: false,
       defaultResolvers: [
@@ -64,7 +64,7 @@ export const ObservabilityModule: ModuleInterface = {
      * new run begins.
      */
     {
-      parameterName: ObservabilityModuleKeyname + ".retainedRuns",
+      parameterName: ObservabilityConfigurationKeys.RetainedRuns,
       defaultValue: 10,
       isRequired: false,
       defaultResolvers: [
@@ -78,7 +78,7 @@ export const ObservabilityModule: ModuleInterface = {
      * outside the CLI sets this to capture its logs/traces with no code.
      */
     {
-      parameterName: ObservabilityModuleKeyname + ".autoBegin",
+      parameterName: ObservabilityConfigurationKeys.AutoBegin,
       defaultValue: false,
       isRequired: false,
       defaultResolvers: [
@@ -92,7 +92,7 @@ export const ObservabilityModule: ModuleInterface = {
      * `0` disables the cap. Default: 100 MB.
      */
     {
-      parameterName: ObservabilityModuleKeyname + ".maxRunSizeBytes",
+      parameterName: ObservabilityConfigurationKeys.MaxRunSizeBytes,
       defaultValue: 100 * 1024 * 1024,
       isRequired: false,
       defaultResolvers: [

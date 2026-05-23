@@ -1,9 +1,27 @@
 import "reflect-metadata";
-import {IsNumber, IsOptional, IsString, Validator} from "@pristine-ts/class-validator";
+import {IsNotEmpty, IsNumber, IsOptional, IsString, Validator} from "@pristine-ts/class-validator";
 import {PristineError, UsageError, ValidationError, ExitCode} from "@pristine-ts/common";
+import {
+  AutoDataMappingBuilder,
+  BooleanNormalizer,
+  DataMapper,
+  DateNormalizer,
+  NumberNormalizer,
+  StringNormalizer,
+} from "@pristine-ts/data-mapping";
 import {CommandInterface} from "../interfaces/command.interface";
 import {CliEventHandler} from "./cli.event-handler";
 import {CommandArgumentResolver} from "../services/command-argument-resolver";
+
+/**
+ * Builds a `DataMapper` with the same normalizers `DataMappingModule` ships, so the
+ * resolver under test behaves like it does in a real kernel.
+ */
+const buildDataMapper = (): DataMapper => new DataMapper(
+  new AutoDataMappingBuilder(),
+  [new StringNormalizer(), new NumberNormalizer(), new BooleanNormalizer(), new DateNormalizer()],
+  [],
+);
 
 /**
  * Options class with mixed types — covers the four mapping/validation paths the handler
@@ -20,6 +38,18 @@ class FixtureOptions {
 
   @IsOptional()
   enabled?: boolean;
+}
+
+/**
+ * Fixture with a required field — used to trigger a real `ValidationError`. With
+ * `DataMapper.autoMap`'s type coercion, an empty/missing required value is one of the
+ * remaining reliable ways to fail validation: a wrong-typed value (e.g. `"notANumber"`
+ * for a number) just gets normalized through and would pass `IsNumber`.
+ */
+class FixtureRequiredOptions {
+  @IsString()
+  @IsNotEmpty()
+  name!: string;
 }
 
 /**
@@ -48,7 +78,7 @@ const buildHandler = (): {handler: CliEventHandler; logHandler: CapturingLogHand
   const validator = new Validator();
   const handler = new CliEventHandler(
     captured as any,
-    new CommandArgumentResolver(validator),
+    new CommandArgumentResolver(validator, buildDataMapper()),
     [],
   );
   return {handler, logHandler: captured};
@@ -59,6 +89,12 @@ const fixtureCommand = (overrides: Partial<CommandInterface<FixtureOptions>> = {
   optionsType: FixtureOptions,
   run: async () => ExitCode.Success,
   ...overrides,
+});
+
+const fixtureRequiredCommand = (): CommandInterface<FixtureRequiredOptions> => ({
+  name: "fixture-required",
+  optionsType: FixtureRequiredOptions,
+  run: async () => ExitCode.Success,
 });
 
 describe("CliEventHandler.resolveArgs", () => {
@@ -127,35 +163,31 @@ describe("CliEventHandler.resolveArgs", () => {
       expect(args.enabled).toBe(true);
     });
 
-    it("throws a ValidationError with structured details when validation fails", async () => {
+    it("coerces a numeric string into a number via DataMapper's NumberNormalizer", async () => {
       const {handler} = buildHandler();
 
-      // The new error contract: bad input throws ValidationError. The bin's top-level
-      // `.catch(cliErrorReporter.report)` is what renders this to stderr and picks the
-      // exit code — the handler stays format-agnostic.
-      const promise = handler.resolveArgs(fixtureCommand(), {port: "notANumber"});
+      // Under `plainToInstance` this would have stayed `"4000"` (string) and tripped
+      // `IsNumber`. `DataMapper.autoMap` normalizes through its registered normalizers,
+      // so the string becomes a real number and validation passes.
+      const args = await handler.resolveArgs(fixtureCommand(), {port: "4000"});
+
+      expect(args.port).toBe(4000);
+      expect(typeof args.port).toBe("number");
+    });
+
+    it("throws a ValidationError with structured details when a required field fails validation", async () => {
+      const {handler} = buildHandler();
+
+      // FixtureRequiredOptions.name is `@IsString @IsNotEmpty` — an empty mapping fails
+      // `IsNotEmpty` reliably even after DataMapper's coercion.
+      const promise = handler.resolveArgs(fixtureRequiredCommand(), {});
 
       await expect(promise).rejects.toBeInstanceOf(ValidationError);
       await expect(promise).rejects.toMatchObject({
         options: expect.objectContaining({
           code: "ARGUMENT_VALIDATION_FAILED",
           details: expect.objectContaining({
-            port: expect.arrayContaining([expect.stringContaining("IS_NUMBER")]),
-          }),
-        }),
-      });
-    });
-
-    it("includes ALL failing fields in details when multiple constraints fail", async () => {
-      const {handler} = buildHandler();
-
-      const promise = handler.resolveArgs(fixtureCommand(), {port: "x", address: 42});
-
-      await expect(promise).rejects.toMatchObject({
-        options: expect.objectContaining({
-          details: expect.objectContaining({
-            port: expect.any(Array),
-            address: expect.any(Array),
+            name: expect.any(Array),
           }),
         }),
       });

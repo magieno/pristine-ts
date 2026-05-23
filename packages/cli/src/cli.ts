@@ -13,7 +13,6 @@ import {SourceHasher} from "./bootstrap/source-hasher";
 import {ConfigLoader} from "./config/config-loader";
 import {CliModule} from "./cli.module";
 import {CliErrorReporter} from "./reporters/cli-error.reporter";
-import {ReplSession} from "./managers/repl-session";
 
 /**
  * Boots the CLI: discovers the consumer's AppModule, starts the kernel, and dispatches
@@ -60,21 +59,15 @@ export class Cli {
 
       this.warnOnCommandCollisions();
 
-      // No command on the argv (`pristine`) or an explicit `pristine repl` → drop into the
-      // interactive console instead of the one-shot dispatcher. The REPL keeps this same
-      // booted kernel warm for the whole session.
-      if (this.shouldStartRepl()) {
-        // ── container.resolve, justified ────────────────────────────────────────────
-        // Framework bootstrap: `Cli.bootstrap()` runs pre-DI hand-wiring with no
-        // constructor to inject into. Resolving the REPL session here is the same
-        // justified case as `warnOnCommandCollisions`'s `resolveAll`.
-        const replSession = this.kernel.container.resolve(ReplSession);
-        return await replSession.start(this.kernel);
-      }
-
-      // `kernel.handle` dispatches the command through `CliEventHandler`, which now
-      // returns the command's exit code rather than calling `process.exit` — exiting is
-      // the bin's job. Propagate that code; `bin.ts` does the actual `process.exit`.
+      // Uniform dispatch: every argv shape flows through `kernel.handle(argv, {keyname:
+      // Cli})`. The mapping layer picks the right payload:
+      //   - `[node, pristine, <command>, ...]` → `CommandEventMapper` → `CliEventHandler`
+      //     runs the command and returns its exit code (no `process.exit`; exiting is
+      //     `bin.ts`'s job).
+      //   - `[node, pristine]` or `[node, pristine, repl, ...]` → `ReplStartEventMapper`
+      //     → `ReplStartEventHandler` runs the interactive session and resolves with the
+      //     exit code on `/exit` or EOF.
+      // No if-REPL branch needed here — the REPL is just another event handler.
       const exitCode = await this.kernel.handle(process.argv, {keyname: ExecutionContextKeynameEnum.Cli, context: null});
       return typeof exitCode === "number" ? exitCode : 0;
     } catch (error) {
@@ -136,15 +129,6 @@ export class Cli {
       // Fall through to the production default.
     }
     return PristineEnvironment.Production;
-  }
-
-  /**
-   * Whether the bin was invoked without a command (`pristine`) or with the explicit
-   * `repl` command — both launch the interactive console. `process.argv` is
-   * `[node, binPath, command?, ...args]`, so "no command" means length 2 or less.
-   */
-  private shouldStartRepl(): boolean {
-    return process.argv.length <= 2 || process.argv[2] === "repl";
   }
 
   /**

@@ -4,7 +4,6 @@ import {injectable, singleton} from "tsyringe";
 import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {LoggerInterface, LogModel} from "@pristine-ts/logging";
 import {ObservabilityModuleKeyname} from "../observability.module.keyname";
-import {ObservabilityConfiguration} from "../observability-configuration";
 import {ObservabilityRunManager} from "../store/observability-run-manager";
 
 /**
@@ -28,7 +27,6 @@ export class ObservabilityLogger implements LoggerInterface {
   public readonly readableStream: Readable;
 
   constructor(
-    private readonly configuration: ObservabilityConfiguration,
     private readonly runManager: ObservabilityRunManager,
   ) {
     this.readableStream = new Readable({
@@ -50,7 +48,7 @@ export class ObservabilityLogger implements LoggerInterface {
   }
 
   isActive(): boolean {
-    return this.configuration.enabled && this.runManager.isRunActive();
+    return this.runManager.isRunActive();
   }
 
   terminate(): void {

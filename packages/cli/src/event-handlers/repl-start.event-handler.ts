@@ -1,31 +1,45 @@
 import * as readline from "node:readline";
-import {injectable} from "tsyringe";
-import {ExitCode, moduleScoped, ServiceDefinitionTagEnum} from "@pristine-ts/common";
-import {ExecutionContextKeynameEnum, Kernel} from "@pristine-ts/core";
+import {inject, injectable} from "tsyringe";
+import {Event, EventHandlerInterface, ExecutionContextKeynameEnum, Kernel} from "@pristine-ts/core";
+import {ExitCode, moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {ObservabilityStoreReader} from "@pristine-ts/observability";
 import {CommandInterface} from "../interfaces/command.interface";
-import {CliOutput} from "./cli-output.manager";
+import {CliOutput} from "../managers/cli-output.manager";
 import {CliModuleKeyname} from "../cli.module.keyname";
+import {StartReplEventPayload} from "../event-payloads/start-repl.event-payload";
+import {StartReplEventResponse} from "../types/start-repl-event-response.type";
 
 /**
- * The interactive `pristine` console — launched when the bin is invoked with no command
- * (or `pristine repl`). It keeps the kernel booted for the whole session, so every
- * command runs instantly with no per-invocation boot cost.
+ * The interactive `pristine` console, modelled as a long-running event handler. Launched
+ * when the bin is invoked with no command (or `pristine repl`) — `ReplStartEventMapper`
+ * produces a `StartReplEventPayload` and this handler runs the readline loop for the rest
+ * of the process lifetime.
  *
- * Slash-prefixed commands dispatch through the *same* path as a one-shot
- * `pristine <command>` invocation — `kernel.handle(argv, {keyname: Cli})` — so the REPL
- * and the command line resolve, validate and run commands identically. (This works
- * because `CliEventHandler` returns the exit code instead of calling `process.exit`.)
- * Plus the session verbs `/help`, `/clear`, `/exit`. Tab-completion is driven by the live
+ * **Why an event handler.** The REPL is the same shape as `pristine start` (or any
+ * long-running command): an EventHandler whose `handle()` doesn't return until the
+ * session ends. This gives the CLI bootstrap a uniform shape — `cli.ts` just calls
+ * `kernel.handle(argv, {keyname: Cli})` regardless of whether the user invoked a one-shot
+ * command or wants the interactive console. There is no driver/handler asymmetry left in
+ * the bootstrap; the mapping layer routes argv to the right payload.
+ *
+ * **Per-line dispatch.** Each typed line is re-entered through `kernel.handle(...,
+ * {keyname: Repl})`. That:
+ *   - Uses `Kernel` (the proper re-entry seam — it owns trace lifecycle, child container
+ *     creation, the works). The `Kernel` is `registerInstance`-d into its own container
+ *     by `Cli.bootstrap()`, so this handler injects it via DI like any other service.
+ *   - Tags the inner dispatch with `Repl` rather than `Cli` so observability,
+ *     interceptors, and any future REPL-only mappers can tell session-typed commands
+ *     apart from one-shot CLI invocations. `CommandEventMapper` matches both keynames so
+ *     parsing/handling are identical between the two modes.
+ *
+ * Plus the session verbs `/help`, `/clear`, `/exit` handled in-process (they're not
+ * commands — they don't re-enter the kernel). Tab-completion is driven by the live
  * command registry and by recent trace ids for `/trace` / `/logs`.
- *
- * The kernel is **not** a constructor dependency — `ReplSession` is a driver *of* the
- * kernel, so the running kernel is handed to `start()` by whoever owns it (`Cli`). Only
- * genuine collaborator services are injected.
  */
-@injectable()
+@tag(ServiceDefinitionTagEnum.EventHandler)
 @moduleScoped(CliModuleKeyname)
-export class ReplSession {
+@injectable()
+export class ReplStartEventHandler implements EventHandlerInterface<StartReplEventPayload, ExitCode | number> {
   private static readonly PROMPT = "pristine ❯ ";
   private static readonly SESSION_VERBS = ["/help", "/clear", "/exit"];
   private static readonly TRACE_ID_COMPLETION_LIMIT = 25;
@@ -33,30 +47,32 @@ export class ReplSession {
   private commands: CommandInterface<any>[] = [];
 
   constructor(
+    @inject(Kernel) private readonly kernel: Kernel,
     private readonly cliOutput: CliOutput,
     private readonly storeReader: ObservabilityStoreReader,
   ) {
   }
 
+  supports<T>(event: Event<T>): boolean {
+    return event.payload instanceof StartReplEventPayload;
+  }
+
   /**
    * Runs the read-eval-print loop until `/exit` or EOF (Ctrl-D). Resolves with the exit
-   * code the bin should return.
-   *
-   * @param kernel The already-started kernel this session drives — passed in by the
-   *   caller that owns it, rather than injected.
+   * code wrapped in a `StartReplEventResponse`; the mapper surfaces that to `Cli.bootstrap`.
    */
-  async start(kernel: Kernel): Promise<number> {
-    this.commands = this.resolveCommands(kernel);
+  async handle(event: Event<StartReplEventPayload>): Promise<StartReplEventResponse> {
+    this.commands = this.resolveCommands();
     this.printBanner();
 
     const rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
-      prompt: ReplSession.PROMPT,
+      prompt: ReplStartEventHandler.PROMPT,
       completer: (line: string) => this.complete(line),
     });
 
-    return new Promise<number>((resolve) => {
+    const exitCode = await new Promise<ExitCode | number>((resolve) => {
       rl.prompt();
 
       rl.on("line", (line: string) => {
@@ -69,7 +85,7 @@ export class ReplSession {
         // Pause input while a command runs so its own SIGINT handling (e.g. `logs -f`)
         // owns Ctrl-C, and so a second line can't interleave mid-dispatch.
         rl.pause();
-        void this.handleLine(trimmed, kernel).then((shouldExit) => {
+        void this.handleLine(trimmed).then((shouldExit) => {
           if (shouldExit) {
             rl.close();
             return;
@@ -86,15 +102,17 @@ export class ReplSession {
       });
 
       rl.on("close", () => {
-        void this.shutdown(kernel).then(() => resolve(ExitCode.Success));
+        void this.shutdown().then(() => resolve(ExitCode.Success));
       });
     });
+
+    return new StartReplEventResponse(event, exitCode);
   }
 
   /**
    * Handles one input line. Returns true when the session should end.
    */
-  private async handleLine(input: string, kernel: Kernel): Promise<boolean> {
+  private async handleLine(input: string): Promise<boolean> {
     const withoutSlash = input.startsWith("/") ? input.slice(1) : input;
     const tokens = withoutSlash.split(/\s+/).filter(token => token.length > 0);
     const name = tokens[0];
@@ -113,14 +131,15 @@ export class ReplSession {
     }
 
     try {
-      // Dispatch through the exact same path as a one-shot `pristine <command>`: a
-      // synthetic argv handed to `kernel.handle` with the `Cli` execution context. The
-      // kernel maps it, `CliEventHandler` resolves + validates + runs it and returns the
-      // exit code (no `process.exit`), so the loop survives. An unknown command throws
+      // Re-enter the kernel with a synthetic argv tagged as `Repl`. `CommandEventMapper`
+      // matches both `Cli` and `Repl`, so parsing/dispatch are identical to a one-shot
+      // invocation — but observability can now tell which dispatch mode produced the
+      // command. `CliEventHandler` returns the exit code instead of calling
+      // `process.exit`, so the loop survives. An unknown command throws
       // `CommandNotFoundError`, caught below.
-      await kernel.handle(
+      await this.kernel.handle(
         ["node", "repl", name, ...rest],
-        {keyname: ExecutionContextKeynameEnum.Cli, context: null},
+        {keyname: ExecutionContextKeynameEnum.Repl, context: null},
       );
     } catch (error) {
       this.cliOutput.writeLine(`Error: ${error instanceof Error ? error.message : String(error)}`);
@@ -137,14 +156,14 @@ export class ReplSession {
     const traceIdMatch = /^\/(trace|logs)\s+(\S*)$/.exec(line);
     if (traceIdMatch !== null) {
       const partial = traceIdMatch[2];
-      const hits = this.storeReader.recentTraceIds(ReplSession.TRACE_ID_COMPLETION_LIMIT)
+      const hits = this.storeReader.recentTraceIds(ReplStartEventHandler.TRACE_ID_COMPLETION_LIMIT)
         .filter(id => id.startsWith(partial));
       return [hits, partial];
     }
 
     const candidates = [
       ...this.commands.map(command => `/${command.name}`),
-      ...ReplSession.SESSION_VERBS,
+      ...ReplStartEventHandler.SESSION_VERBS,
     ];
     const hits = candidates.filter(candidate => candidate.startsWith(line));
     return [hits.length > 0 ? hits : candidates, line];
@@ -171,9 +190,9 @@ export class ReplSession {
     }
   }
 
-  private async shutdown(kernel: Kernel): Promise<void> {
+  private async shutdown(): Promise<void> {
     try {
-      await kernel.stop();
+      await this.kernel.stop();
     } catch {
       // Best-effort — we're leaving the process anyway.
     }
@@ -184,17 +203,17 @@ export class ReplSession {
    *
    * Resolved from a dedicated child container with the `CurrentChildContainer` token
    * registered — some commands (`HelpCommand`, `ListCommand`) inject that token, which
-   * only the kernel's per-event child containers carry. The one-shot path gets it for
-   * free because `CliEventHandler` runs inside such a child container; the REPL builds an
-   * equivalent one once for the whole session.
+   * only the kernel's per-event child containers carry. Each REPL-typed line dispatched
+   * via `kernel.handle` gets its own per-event child container automatically; this
+   * banner-time enumeration builds an equivalent one once for the session completer.
    *
-   * `resolveAll`, justified: this is framework REPL infrastructure resolved at session
-   * start, mirroring `Cli.warnOnCommandCollisions`. Enumerating every `Command`-tagged
-   * service is inherently a container-introspection operation with no constructor seam.
+   * `resolveAll`, justified: framework REPL infrastructure resolved at session start —
+   * enumerating every `Command`-tagged service is inherently a container-introspection
+   * operation with no constructor seam.
    */
-  private resolveCommands(kernel: Kernel): CommandInterface<any>[] {
+  private resolveCommands(): CommandInterface<any>[] {
     try {
-      const childContainer = kernel.container.createChildContainer();
+      const childContainer = this.kernel.container.createChildContainer();
       childContainer.registerInstance(ServiceDefinitionTagEnum.CurrentChildContainer, childContainer);
       return childContainer.resolveAll<CommandInterface<any>>(ServiceDefinitionTagEnum.Command);
     } catch (error) {

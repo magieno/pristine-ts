@@ -1,9 +1,9 @@
 import * as fs from "fs";
 import * as path from "path";
 import {inject, injectable, singleton} from "tsyringe";
-import {InternalContainerParameterEnum, moduleScoped} from "@pristine-ts/common";
+import {injectConfig, InternalContainerParameterEnum, moduleScoped} from "@pristine-ts/common";
 import {ObservabilityModuleKeyname} from "../observability.module.keyname";
-import {ObservabilityConfiguration} from "../observability-configuration";
+import {ObservabilityConfigurationKeys} from "../observability.configuration-keys";
 import {ObservabilityPaths} from "./observability-paths";
 import {RunMetadata} from "../models/run-metadata.model";
 
@@ -39,10 +39,14 @@ export class ObservabilityRunManager {
   private runBytes = 0;
 
   constructor(
-    private readonly configuration: ObservabilityConfiguration,
+    @injectConfig(ObservabilityConfigurationKeys.Enabled) private readonly enabled: boolean,
+    @injectConfig(ObservabilityConfigurationKeys.Directory) directory: string,
+    @injectConfig(ObservabilityConfigurationKeys.RetainedRuns) private readonly retainedRuns: number,
+    @injectConfig(ObservabilityConfigurationKeys.AutoBegin) private readonly autoBegin: boolean,
+    @injectConfig(ObservabilityConfigurationKeys.MaxRunSizeBytes) private readonly maxRunSizeBytes: number,
     @inject(InternalContainerParameterEnum.KernelInstantiationId) private readonly runId: string,
   ) {
-    this.paths = new ObservabilityPaths(configuration.directory);
+    this.paths = new ObservabilityPaths(directory);
   }
 
   /**
@@ -51,7 +55,7 @@ export class ObservabilityRunManager {
    * process.
    */
   beginRun(command: string): void {
-    if (this.configuration.enabled === false || this.activeRunDirectory !== undefined) {
+    if (this.enabled === false || this.activeRunDirectory !== undefined) {
       return;
     }
 
@@ -73,12 +77,12 @@ export class ObservabilityRunManager {
    * drops the run's oldest data. No-op when no run is active or the cap is disabled.
    */
   recordBytesWritten(bytes: number): void {
-    if (this.activeRunDirectory === undefined || this.configuration.maxRunSizeBytes <= 0) {
+    if (this.activeRunDirectory === undefined || this.maxRunSizeBytes <= 0) {
       return;
     }
 
     this.runBytes += bytes;
-    if (this.runBytes > this.configuration.maxRunSizeBytes) {
+    if (this.runBytes > this.maxRunSizeBytes) {
       this.reclaim();
     }
   }
@@ -107,7 +111,7 @@ export class ObservabilityRunManager {
    * Whether a run is currently active. The writers consult this on every write.
    */
   isRunActive(): boolean {
-    return this.configuration.enabled && this.activeRunDirectory !== undefined;
+    return this.enabled && this.activeRunDirectory !== undefined;
   }
 
   /**
@@ -141,7 +145,7 @@ export class ObservabilityRunManager {
    * write, with nothing calling `beginRun()` explicitly.
    */
   private ensureAutoBegun(): void {
-    if (this.activeRunDirectory === undefined && this.configuration.autoBegin) {
+    if (this.activeRunDirectory === undefined && this.autoBegin) {
       this.beginRun("auto");
     }
   }
@@ -159,7 +163,7 @@ export class ObservabilityRunManager {
     }
 
     try {
-      const lowWater = Math.floor(this.configuration.maxRunSizeBytes * ObservabilityRunManager.LOW_WATER_FRACTION);
+      const lowWater = Math.floor(this.maxRunSizeBytes * ObservabilityRunManager.LOW_WATER_FRACTION);
       const logsFile = this.paths.logsFile(this.runId);
       const requestsFile = this.paths.requestsFile(this.runId);
       const tracesDirectory = this.paths.tracesDirectory(this.runId);
@@ -306,7 +310,7 @@ export class ObservabilityRunManager {
         })
         .sort((a, b) => b.startedAt - a.startedAt);
 
-      for (const stale of entries.slice(Math.max(this.configuration.retainedRuns, 1))) {
+      for (const stale of entries.slice(Math.max(this.retainedRuns, 1))) {
         fs.rmSync(this.paths.runDirectory(stale.name), {recursive: true, force: true});
       }
     } catch {

@@ -16,8 +16,22 @@ import {v4 as uuidv4} from "uuid";
 @moduleScoped(CliModuleKeyname)
 @injectable()
 export class CommandEventMapper implements EventMapperInterface<CommandEventPayload, number> {
+  /**
+   * Matches argv that names an explicit command. Both `Cli` (one-shot `pristine <cmd>`) and
+   * `Repl` (commands typed inside the interactive session, which the REPL handler dispatches
+   * back through `kernel.handle(..., {keyname: Repl})`) flow through identical parsing and
+   * handler logic — so a single mapper supports both. The no-command shape and the bare
+   * `pristine repl` form are deliberately rejected here; `ReplStartEventMapper` claims those.
+   */
   supportsMapping(rawEvent: any, executionContext: ExecutionContextInterface<any>): boolean {
-    return executionContext.keyname === ExecutionContextKeynameEnum.Cli;
+    if (executionContext.keyname !== ExecutionContextKeynameEnum.Cli
+      && executionContext.keyname !== ExecutionContextKeynameEnum.Repl) {
+      return false;
+    }
+    if (Array.isArray(rawEvent) === false || rawEvent.length < 3) {
+      return false;
+    }
+    return rawEvent[2] !== "repl";
   }
 
   /**
@@ -26,6 +40,8 @@ export class CommandEventMapper implements EventMapperInterface<CommandEventPayl
    * @param executionContext
    */
   map(rawEvent: any, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<CommandEventPayload> {
+    // `supportsMapping` already filters out the unsupported shapes — these guards stay only
+    // as a defence in case the pipeline ever invokes `map` without consulting `supportsMapping`.
     if (Array.isArray(rawEvent) === false) {
       throw new Error("If using the 'CLI', process.argv should be passed as the event.");
     }
@@ -122,7 +138,13 @@ export class CommandEventMapper implements EventMapperInterface<CommandEventPayl
   }
 
   supportsReverseMapping(eventResponse: EventResponse<CommandEventPayload, number>, response: any, executionContext: ExecutionContextInterface<any>): boolean {
-    return executionContext.keyname === ExecutionContextKeynameEnum.Cli;
+    if (executionContext.keyname !== ExecutionContextKeynameEnum.Cli
+      && executionContext.keyname !== ExecutionContextKeynameEnum.Repl) {
+      return false;
+    }
+    // Reverse-map only the command responses this mapper owns — the REPL-start payload
+    // flows through `ReplStartEventMapper` and would otherwise be silently clobbered here.
+    return eventResponse.event?.payload instanceof CommandEventPayload;
   }
 
   /**

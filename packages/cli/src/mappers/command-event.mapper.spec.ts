@@ -60,6 +60,45 @@ describe('Command Event Mapper', function () {
   })
 
 
+  describe("supportsMapping", () => {
+    const mapper = new CommandEventMapper();
+
+    it("matches argv that names a command under the Cli keyname", () => {
+      expect(mapper.supportsMapping(["node", "pristine", "build"], {
+        keyname: ExecutionContextKeynameEnum.Cli,
+        context: {},
+      })).toBe(true);
+    });
+
+    it("matches argv that names a command under the Repl keyname (so REPL-typed lines flow through the same parser)", () => {
+      expect(mapper.supportsMapping(["node", "repl", "build"], {
+        keyname: ExecutionContextKeynameEnum.Repl,
+        context: {},
+      })).toBe(true);
+    });
+
+    it("rejects no-command argv so ReplStartEventMapper can claim it", () => {
+      expect(mapper.supportsMapping(["node", "pristine"], {
+        keyname: ExecutionContextKeynameEnum.Cli,
+        context: {},
+      })).toBe(false);
+    });
+
+    it("rejects the bare `repl` command so ReplStartEventMapper can claim it", () => {
+      expect(mapper.supportsMapping(["node", "pristine", "repl"], {
+        keyname: ExecutionContextKeynameEnum.Cli,
+        context: {},
+      })).toBe(false);
+    });
+
+    it("rejects unrelated execution-context keynames", () => {
+      expect(mapper.supportsMapping(["node", "pristine", "build"], {
+        keyname: ExecutionContextKeynameEnum.Http,
+        context: {},
+      })).toBe(false);
+    });
+  });
+
   it("should properly transform booleans, numbers and strings into their intended representation", async () => {
     const commandEventMapper = new CommandEventMapper();
 

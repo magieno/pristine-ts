@@ -10,4 +10,12 @@ export enum ExecutionContextKeynameEnum {
   Http = "HTTP",
   Jest = "JEST",
   Cli = "CLI",
+  /**
+   * Identifies command dispatches originating from the interactive REPL (`ReplStartEventHandler`),
+   * as opposed to one-shot `pristine <cmd>` invocations (which use `Cli`). The argv shape and
+   * parser are identical to `Cli`, so `CommandEventMapper` matches both — the keyname exists so
+   * observability, interceptors, and (future) REPL-only mappers can tell the two dispatch modes
+   * apart.
+   */
+  Repl = "REPL",
 }

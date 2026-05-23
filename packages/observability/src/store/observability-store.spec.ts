@@ -4,7 +4,6 @@ import * as os from "os";
 import * as path from "path";
 import {Span, Trace} from "@pristine-ts/common";
 import {LogModel, SeverityEnum} from "@pristine-ts/logging";
-import {ObservabilityConfiguration} from "../observability-configuration";
 import {ObservabilityPaths} from "./observability-paths";
 import {ObservabilityRunManager} from "./observability-run-manager";
 import {ObservabilityStoreReader} from "./observability-store-reader";
@@ -18,18 +17,26 @@ function makeTempDir(): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), "pristine-obs-"));
 }
 
+interface RunManagerOverrides {
+  enabled?: boolean;
+  retainedRuns?: number;
+  autoBegin?: boolean;
+  maxRunSizeBytes?: number;
+}
+
 /**
- * Builds an `ObservabilityConfiguration` pointed at a temp directory for tests.
+ * Builds a `ObservabilityRunManager` wired with the five config keys it now expects via
+ * direct `@injectConfig` — replaces the deleted `ObservabilityConfiguration` aggregator.
  */
-function config(directory: string, overrides: Partial<ObservabilityConfiguration> = {}): ObservabilityConfiguration {
-  return {
-    enabled: true,
+function buildRunManager(directory: string, runId: string, overrides: RunManagerOverrides = {}): ObservabilityRunManager {
+  return new ObservabilityRunManager(
+    overrides.enabled ?? true,
     directory,
-    retainedRuns: 10,
-    autoBegin: false,
-    maxRunSizeBytes: 100 * 1024 * 1024,
-    ...overrides,
-  } as ObservabilityConfiguration;
+    overrides.retainedRuns ?? 10,
+    overrides.autoBegin ?? false,
+    overrides.maxRunSizeBytes ?? 100 * 1024 * 1024,
+    runId,
+  );
 }
 
 describe("ObservabilityPaths", () => {
@@ -47,7 +54,7 @@ describe("ObservabilityPaths", () => {
 describe("ObservabilityRunManager", () => {
   it("creates the run directory, run.json and latest.json on beginRun", () => {
     const directory = makeTempDir();
-    const manager = new ObservabilityRunManager(config(directory), "run-a");
+    const manager = buildRunManager(directory, "run-a");
 
     expect(manager.isRunActive()).toBe(false);
     manager.beginRun("start");
@@ -65,7 +72,7 @@ describe("ObservabilityRunManager", () => {
 
   it("stays dormant when observability is disabled", () => {
     const directory = makeTempDir();
-    const manager = new ObservabilityRunManager(config(directory, {enabled: false}), "run-x");
+    const manager = buildRunManager(directory, "run-x", {enabled: false});
     manager.beginRun("start");
     expect(manager.isRunActive()).toBe(false);
     expect(manager.logsFile()).toBeUndefined();
@@ -80,7 +87,7 @@ describe("ObservabilityRunManager", () => {
       fs.writeFileSync(paths.runMetadataFile(name), JSON.stringify({runId: name, startedAt: new Date(startedAt).toISOString()}));
     }
 
-    new ObservabilityRunManager(config(directory, {retainedRuns: 2}), "run-new").beginRun("start");
+    buildRunManager(directory, "run-new", {retainedRuns: 2}).beginRun("start");
 
     const remaining = fs.readdirSync(paths.runsDirectory()).sort();
     expect(remaining).toEqual(["old3", "run-new"]);
@@ -88,7 +95,7 @@ describe("ObservabilityRunManager", () => {
 
   it("auto-begins a run on first store access when autoBegin is enabled", () => {
     const directory = makeTempDir();
-    const manager = new ObservabilityRunManager(config(directory, {autoBegin: true}), "run-auto");
+    const manager = buildRunManager(directory, "run-auto", {autoBegin: true});
 
     expect(manager.isRunActive()).toBe(false);
     expect(manager.logsFile()).toBeDefined(); // first access triggers the auto-begin
@@ -97,7 +104,7 @@ describe("ObservabilityRunManager", () => {
 
   it("does not auto-begin when autoBegin is disabled", () => {
     const directory = makeTempDir();
-    const manager = new ObservabilityRunManager(config(directory), "run-noauto");
+    const manager = buildRunManager(directory, "run-noauto");
 
     expect(manager.logsFile()).toBeUndefined();
     expect(manager.isRunActive()).toBe(false);
@@ -107,16 +114,16 @@ describe("ObservabilityRunManager", () => {
 describe("ObservabilityLogger + ObservabilityTracer + ObservabilityStoreReader", () => {
   it("writes logs, traces and the request index, then reads them back", async () => {
     const directory = makeTempDir();
-    const runManager = new ObservabilityRunManager(config(directory), "run-rw");
+    const runManager = buildRunManager(directory, "run-rw");
     runManager.beginRun("start");
 
-    const logger = new ObservabilityLogger(config(directory), runManager);
+    const logger = new ObservabilityLogger(runManager);
     const log = new LogModel(SeverityEnum.Info, "request received");
     log.traceId = "trace-1";
     log.eventId = "trace-1";
     logger.readableStream!.push(log);
 
-    const tracer = new ObservabilityTracer(config(directory), runManager);
+    const tracer = new ObservabilityTracer(runManager);
     const trace = new Trace("trace-1", {"http.method": "GET", "http.path": "/products", "http.statusCode": "200"});
     trace.startDate = 1000;
     trace.endDate = 1042;
@@ -127,7 +134,7 @@ describe("ObservabilityLogger + ObservabilityTracer + ObservabilityStoreReader",
 
     await tick();
 
-    const reader = new ObservabilityStoreReader(config(directory));
+    const reader = new ObservabilityStoreReader(directory);
     expect(reader.latestRunId()).toBe("run-rw");
 
     const logs = reader.readLogs("run-rw");
@@ -151,16 +158,16 @@ describe("ObservabilityLogger + ObservabilityTracer + ObservabilityStoreReader",
 
   it("enforces the per-run size budget by dropping the oldest logs", async () => {
     const directory = makeTempDir();
-    const runManager = new ObservabilityRunManager(config(directory, {maxRunSizeBytes: 4000}), "run-budget");
+    const runManager = buildRunManager(directory, "run-budget", {maxRunSizeBytes: 4000});
     runManager.beginRun("start");
 
-    const logger = new ObservabilityLogger(config(directory, {maxRunSizeBytes: 4000}), runManager);
+    const logger = new ObservabilityLogger(runManager);
     for (let i = 0; i < 300; i++) {
       logger.readableStream!.push(new LogModel(SeverityEnum.Info, `message ${i}`));
     }
     await tick();
 
-    const logs = new ObservabilityStoreReader(config(directory)).readLogs("run-budget");
+    const logs = new ObservabilityStoreReader(directory).readLogs("run-budget");
     // The run stayed bounded — far fewer than the 300 written entries survived...
     expect(logs.length).toBeGreaterThan(0);
     expect(logs.length).toBeLessThan(300);
@@ -171,9 +178,9 @@ describe("ObservabilityLogger + ObservabilityTracer + ObservabilityStoreReader",
 
   it("the logger and tracer are dormant before a run begins", async () => {
     const directory = makeTempDir();
-    const runManager = new ObservabilityRunManager(config(directory), "run-dormant");
+    const runManager = buildRunManager(directory, "run-dormant");
 
-    const logger = new ObservabilityLogger(config(directory), runManager);
+    const logger = new ObservabilityLogger(runManager);
     logger.readableStream!.push(new LogModel(SeverityEnum.Info, "noise"));
     await tick();
 

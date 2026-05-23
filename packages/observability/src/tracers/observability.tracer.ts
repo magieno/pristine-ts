@@ -4,7 +4,6 @@ import {injectable, singleton} from "tsyringe";
 import {moduleScoped, ServiceDefinitionTagEnum, tag, Trace} from "@pristine-ts/common";
 import {TracerInterface, traceRenderer} from "@pristine-ts/telemetry";
 import {ObservabilityModuleKeyname} from "../observability.module.keyname";
-import {ObservabilityConfiguration} from "../observability-configuration";
 import {ObservabilityRunManager} from "../store/observability-run-manager";
 import {RequestSummary} from "../models/request-summary.model";
 
@@ -27,7 +26,6 @@ export class ObservabilityTracer implements TracerInterface {
   public traceEndedStream: Readable;
 
   constructor(
-    private readonly configuration: ObservabilityConfiguration,
     private readonly runManager: ObservabilityRunManager,
   ) {
     this.traceEndedStream = new Readable({
@@ -49,10 +47,6 @@ export class ObservabilityTracer implements TracerInterface {
   }
 
   private handleTraceEnded(trace: Trace): void {
-    if (this.configuration.enabled === false) {
-      return;
-    }
-
     const traceFile = this.runManager.traceFile(trace.id);
     const requestsFile = this.runManager.requestsFile();
     if (traceFile === undefined || requestsFile === undefined) {

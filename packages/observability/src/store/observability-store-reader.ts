@@ -1,8 +1,8 @@
 import * as fs from "fs";
 import {injectable} from "tsyringe";
-import {moduleScoped} from "@pristine-ts/common";
+import {injectConfig, moduleScoped} from "@pristine-ts/common";
 import {ObservabilityModuleKeyname} from "../observability.module.keyname";
-import {ObservabilityConfiguration} from "../observability-configuration";
+import {ObservabilityConfigurationKeys} from "../observability.configuration-keys";
 import {ObservabilityPaths} from "./observability-paths";
 import {RunMetadata} from "../models/run-metadata.model";
 import {RequestSummary} from "../models/request-summary.model";
@@ -18,8 +18,10 @@ import {SerializedTrace} from "./trace-deserializer";
 export class ObservabilityStoreReader {
   private readonly paths: ObservabilityPaths;
 
-  constructor(configuration: ObservabilityConfiguration) {
-    this.paths = new ObservabilityPaths(configuration.directory);
+  constructor(
+    @injectConfig(ObservabilityConfigurationKeys.Directory) directory: string,
+  ) {
+    this.paths = new ObservabilityPaths(directory);
   }
 
   /**
