@@ -6,7 +6,7 @@ import {ObservabilityConfigurationKeys} from "../../observability.configuration-
 import {ObservabilityPaths} from "../utils/observability-paths";
 import {RunMetadata} from "../../models/run-metadata.model";
 import {RequestSummary} from "../../models/request-summary.model";
-import {SerializedTrace} from "./trace-deserializer";
+import {SerializedTrace} from "./serialized-trace.interface";
 
 /**
  * Read-only access to the observability store. Used by the `logs`, `trace` and `requests`

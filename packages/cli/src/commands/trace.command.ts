@@ -5,6 +5,7 @@ import {traceRenderer} from "@pristine-ts/telemetry";
 import {CommandInterface} from "../interfaces/command.interface";
 import {CliOutput} from "../managers/cli-output.manager";
 import {CliModuleKeyname} from "../cli.module.keyname";
+import {TraceCommandOptions} from "./trace.command-options";
 
 /**
  * Renders the span tree of one captured trace: `pristine trace <traceId>`.
@@ -18,8 +19,8 @@ import {CliModuleKeyname} from "../cli.module.keyname";
 @tag(ServiceDefinitionTagEnum.Command)
 @moduleScoped(CliModuleKeyname)
 @injectable()
-export class TraceCommand implements CommandInterface<null> {
-  optionsType = null;
+export class TraceCommand implements CommandInterface<TraceCommandOptions> {
+  optionsType = TraceCommandOptions;
   name = "p:trace";
   description = "Render the span tree of a captured trace by its id.";
 
@@ -29,21 +30,20 @@ export class TraceCommand implements CommandInterface<null> {
   ) {
   }
 
-  async run(args: any): Promise<ExitCode | number> {
-    const traceId: string | undefined = Array.isArray(args?._) ? args._[0] : undefined;
+  async run(args: TraceCommandOptions): Promise<ExitCode | number> {
+    const traceId = args.traceId;
     if (traceId === undefined) {
       this.cliOutput.writeLine("Usage: pristine trace <traceId> [--format tree|flat|json] [--run <runId>]");
       return ExitCode.Error;
     }
 
-    const preferredRun = typeof args?.run === "string" ? args.run : undefined;
-    const found = this.storeReader.findTrace(traceId, preferredRun);
+    const found = this.storeReader.findTrace(traceId, args.run);
     if (found === undefined) {
       this.cliOutput.writeLine(`Trace '${traceId}' not found in the observability store.`);
       return ExitCode.Error;
     }
 
-    const format = typeof args?.format === "string" ? args.format : "tree";
+    const format = args.format ?? "tree";
 
     if (format === "json") {
       this.cliOutput.writeLine(JSON.stringify(found.trace, null, 2));

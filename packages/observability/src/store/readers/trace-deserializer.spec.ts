@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import {Span, Trace} from "@pristine-ts/common";
-import {SerializedTrace, TraceDeserializer} from "./trace-deserializer";
+import {SerializedTrace} from "./serialized-trace.interface";
+import {TraceDeserializer} from "./trace-deserializer";
 
 describe("TraceDeserializer", () => {
   it("rehydrates a stored trace into Trace/Span instances", () => {

@@ -5,6 +5,7 @@ import {LogTailer, ObservabilityStoreReader} from "@pristine-ts/observability";
 import {CommandInterface} from "../interfaces/command.interface";
 import {CliOutput} from "../managers/cli-output.manager";
 import {CliModuleKeyname} from "../cli.module.keyname";
+import {LogsCommandOptions} from "./logs.command-options";
 
 /**
  * Renders captured logs: `pristine logs` for the whole latest run, `pristine logs <id>`
@@ -16,8 +17,8 @@ import {CliModuleKeyname} from "../cli.module.keyname";
 @tag(ServiceDefinitionTagEnum.Command)
 @moduleScoped(CliModuleKeyname)
 @injectable()
-export class LogsCommand implements CommandInterface<null> {
-  optionsType = null;
+export class LogsCommand implements CommandInterface<LogsCommandOptions> {
+  optionsType = LogsCommandOptions;
   name = "p:logs";
   description = "Show captured logs, optionally for one request, optionally following live.";
 
@@ -27,21 +28,20 @@ export class LogsCommand implements CommandInterface<null> {
   ) {
   }
 
-  async run(args: any): Promise<ExitCode | number> {
-    const runId = this.storeReader.resolveRunId(typeof args?.run === "string" ? args.run : undefined);
+  async run(args: LogsCommandOptions): Promise<ExitCode | number> {
+    const runId = this.storeReader.resolveRunId(args.run);
     if (runId === undefined) {
       this.cliOutput.writeLine("No observability runs found. Start your app with `pristine start` first.");
       return ExitCode.Success;
     }
 
-    const traceId: string | undefined = Array.isArray(args?._) ? args._[0] : undefined;
-    const follow = args?.follow === true || args?.f === true;
+    const traceId = args.traceId;
 
     for (const entry of this.storeReader.readLogs(runId)) {
       this.renderEntry(entry, traceId);
     }
 
-    if (follow === false) {
+    if (args.isFollowing === false) {
       return ExitCode.Success;
     }
 

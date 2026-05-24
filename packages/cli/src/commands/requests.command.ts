@@ -4,6 +4,7 @@ import {ObservabilityStoreReader} from "@pristine-ts/observability";
 import {CommandInterface} from "../interfaces/command.interface";
 import {CliOutput} from "../managers/cli-output.manager";
 import {CliModuleKeyname} from "../cli.module.keyname";
+import {RequestsCommandOptions} from "./requests.command-options";
 
 /**
  * Lists recent requests captured in the observability store — the entry point for
@@ -17,8 +18,8 @@ import {CliModuleKeyname} from "../cli.module.keyname";
 @tag(ServiceDefinitionTagEnum.Command)
 @moduleScoped(CliModuleKeyname)
 @injectable()
-export class RequestsCommand implements CommandInterface<null> {
-  optionsType = null;
+export class RequestsCommand implements CommandInterface<RequestsCommandOptions> {
+  optionsType = RequestsCommandOptions;
   name = "p:requests";
   description = "List recent requests captured in the observability store.";
 
@@ -30,14 +31,14 @@ export class RequestsCommand implements CommandInterface<null> {
   ) {
   }
 
-  async run(args: any): Promise<ExitCode | number> {
-    const runId = this.storeReader.resolveRunId(typeof args?.run === "string" ? args.run : undefined);
+  async run(args: RequestsCommandOptions): Promise<ExitCode | number> {
+    const runId = this.storeReader.resolveRunId(args.run);
     if (runId === undefined) {
       this.cliOutput.writeLine("No observability runs found. Start your app with `pristine start` first.");
       return ExitCode.Success;
     }
 
-    const limit = typeof args?.limit === "number" ? args.limit : RequestsCommand.DEFAULT_LIMIT;
+    const limit = args.limit ?? RequestsCommand.DEFAULT_LIMIT;
     const summaries = this.storeReader.readRequests(runId, limit);
 
     if (summaries.length === 0) {
