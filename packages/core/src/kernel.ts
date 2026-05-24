@@ -723,10 +723,17 @@ export class Kernel {
   }
 
   private serializeError(error: unknown): SerializedError {
-    if (error instanceof Error) {
-      return {name: error.name, message: error.message, stack: error.stack};
+    // Property reads and `String(error)` can throw on pathological inputs (throwing
+    // getters, exotic `Symbol.toPrimitive`); the serializer is the input to error
+    // reporting and must not itself throw.
+    try {
+      if (error instanceof Error) {
+        return {name: error.name, message: error.message, stack: error.stack};
+      }
+      return {name: "UnknownError", message: String(error)};
+    } catch {
+      return {name: "UnserializableError", message: "<error could not be serialized>"};
     }
-    return {name: "UnknownError", message: String(error)};
   }
 
 }

@@ -214,12 +214,15 @@ export class LogHandler implements LogHandlerInterface {
           (listener as (chunk: any) => void)(log);
         }
       } catch (error) {
-        const name = (logger as any)?.constructor?.name ?? "UnknownLogger";
-        const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
         try {
+          // Stringification happens inside the guard — `error.name`/`error.message`/`String(error)`
+          // can all throw on pathological inputs (throwing getters, exotic `Symbol.toPrimitive`,
+          // etc.). The safety net must not become the new failure source.
+          const name = (logger as any)?.constructor?.name ?? "UnknownLogger";
+          const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
           process.stderr.write(`[pristine][log-handler] logger '${name}' threw during dispatch: ${message}\n`);
         } catch {
-          // Nothing useful left to do if stderr is unavailable.
+          // Nothing useful left to do if stringification or stderr fails.
         }
       }
     }

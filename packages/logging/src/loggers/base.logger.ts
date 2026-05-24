@@ -138,13 +138,16 @@ export abstract class BaseLogger {
    * @protected
    */
   protected reportLoggerFailure(error: unknown): void {
-    const name = (this as any)?.constructor?.name ?? "UnknownLogger";
-    const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
-    const stack = error instanceof Error && error.stack ? `\n${error.stack}` : "";
     try {
+      // Stringification happens inside the guard — `error.name`/`error.message`/`error.stack`
+      // can all throw on pathological inputs (throwing getters, exotic `Symbol.toPrimitive`,
+      // etc.). The safety net must not become the new failure source.
+      const name = (this as any)?.constructor?.name ?? "UnknownLogger";
+      const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+      const stack = error instanceof Error && error.stack ? `\n${error.stack}` : "";
       process.stderr.write(`[pristine][logger:${name}] ${message}${stack}\n`);
     } catch {
-      // If even stderr write fails (closed stream, etc.), there is nothing useful left to do.
+      // If even stringifying or writing fails, there is nothing useful left to do.
     }
   }
 

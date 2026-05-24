@@ -139,7 +139,13 @@ export class ReplStartEventHandler implements EventHandlerInterface<StartReplEve
         {keyname: ExecutionContextKeynameEnum.Cli, context: null},
       );
     } catch (error) {
-      this.cliOutput.writeLine(`Error: ${error instanceof Error ? error.message : String(error)}`);
+      try {
+        // Stringification + writeLine are wrapped together — `error.message`/`String(error)`
+        // can throw on pathological inputs, and a throw here would kill the REPL session.
+        this.cliOutput.writeLine(`Error: ${error instanceof Error ? error.message : String(error)}`);
+      } catch {
+        // Drop the error rather than crashing the session.
+      }
     }
 
     return false;
@@ -209,7 +215,14 @@ export class ReplStartEventHandler implements EventHandlerInterface<StartReplEve
     try {
       return this.container.resolveAll<CommandInterface<any>>(ServiceDefinitionTagEnum.Command);
     } catch (error) {
-      process.stderr.write(`[repl] could not load commands: ${error instanceof Error ? error.message : String(error)}\n`);
+      try {
+        // Stringification + stderr.write are wrapped together — `error.message`/`String(error)`
+        // can throw on pathological inputs, and a throw here would bubble out and kill REPL
+        // startup.
+        process.stderr.write(`[repl] could not load commands: ${error instanceof Error ? error.message : String(error)}\n`);
+      } catch {
+        // Drop the report rather than crashing startup; the empty completer is still usable.
+      }
       return [];
     }
   }

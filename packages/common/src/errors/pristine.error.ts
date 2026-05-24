@@ -99,12 +99,29 @@ export class PristineError extends Error {
       return error;
     }
     if (error instanceof Error) {
-      return new PristineError(error.message, {
+      // `error.message` is a getter and can throw on exotic Error subclasses; fall back
+      // to a sentinel rather than letting `from()` itself throw — its contract is that
+      // any input produces a PristineError.
+      let message: string;
+      try {
+        message = error.message;
+      } catch {
+        message = "<unreadable error message>";
+      }
+      return new PristineError(message, {
         cause: error,
         kind: PristineErrorKind.SystemError,
       });
     }
-    return new PristineError(String(error), {
+    // `String(error)` can throw on values with throwing `toString` / `Symbol.toPrimitive`;
+    // fall back to a sentinel for the same contract reason.
+    let message: string;
+    try {
+      message = String(error);
+    } catch {
+      message = "<unstringifiable thrown value>";
+    }
+    return new PristineError(message, {
       kind: PristineErrorKind.SystemError,
     });
   }

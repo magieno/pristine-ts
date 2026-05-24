@@ -83,11 +83,14 @@ export class ConsoleTracer implements TracerInterface {
   }
 
   private reportFailure(error: unknown): void {
-    const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
     try {
+      // Stringification happens inside the guard — `error.name`/`error.message`/`String(error)`
+      // can all throw on pathological inputs (throwing getters, exotic `Symbol.toPrimitive`,
+      // etc.). The safety net must not become the new failure source.
+      const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
       process.stderr.write(`[pristine][tracer:ConsoleTracer] ${message}\n`);
     } catch {
-      // If stderr is unwritable too, there's nothing useful left to do.
+      // If even stringifying or writing fails, there's nothing useful left to do.
     }
   }
 }

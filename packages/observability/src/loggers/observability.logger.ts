@@ -90,11 +90,14 @@ export class ObservabilityLogger implements LoggerInterface {
   }
 
   private reportFailure(error: unknown): void {
-    const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
     try {
+      // Stringification happens inside the guard — `error.name`/`error.message`/`String(error)`
+      // can all throw on pathological inputs (throwing getters, exotic `Symbol.toPrimitive`,
+      // etc.). The safety net must not become the new failure source.
+      const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
       process.stderr.write(`[pristine][observability-logger] ${message}\n`);
     } catch {
-      // If stderr is unwritable too, there is nothing useful left to do.
+      // If even stringifying or writing fails, there is nothing useful left to do.
     }
   }
 }
