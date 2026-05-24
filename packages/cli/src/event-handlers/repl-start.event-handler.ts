@@ -2,7 +2,7 @@ import * as readline from "node:readline";
 import {DependencyContainer, inject, injectable} from "tsyringe";
 import {Event, EventHandlerInterface, ExecutionContextKeynameEnum, Kernel} from "@pristine-ts/core";
 import {ExitCode, moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
-import {ObservabilityStoreReader} from "@pristine-ts/observability";
+import {TraceStore} from "@pristine-ts/observability";
 import {CommandInterface} from "../interfaces/command.interface";
 import {CliOutput} from "../managers/cli-output.manager";
 import {CliModuleKeyname} from "../cli.module.keyname";
@@ -46,7 +46,7 @@ export class ReplStartEventHandler implements EventHandlerInterface<StartReplEve
     @inject(Kernel) private readonly kernel: Kernel,
     @inject(ServiceDefinitionTagEnum.CurrentChildContainer) private readonly container: DependencyContainer,
     private readonly cliOutput: CliOutput,
-    private readonly storeReader: ObservabilityStoreReader,
+    private readonly traceStore: TraceStore,
   ) {
   }
 
@@ -159,7 +159,7 @@ export class ReplStartEventHandler implements EventHandlerInterface<StartReplEve
     const traceIdMatch = /^\/(trace|logs)\s+(\S*)$/.exec(line);
     if (traceIdMatch !== null) {
       const partial = traceIdMatch[2];
-      const hits = this.storeReader.recentTraceIds(ReplStartEventHandler.TRACE_ID_COMPLETION_LIMIT)
+      const hits = this.traceStore.recentTraceIds(ReplStartEventHandler.TRACE_ID_COMPLETION_LIMIT)
         .filter(id => id.startsWith(partial));
       return [hits, partial];
     }

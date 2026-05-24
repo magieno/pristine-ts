@@ -1,7 +1,7 @@
 import {moduleScoped, ServiceDefinitionTagEnum, tag, ExitCode} from "@pristine-ts/common";
 import {injectable} from "tsyringe";
 import {PrettyLogFormatter} from "@pristine-ts/logging";
-import {LogTailer, ObservabilityStoreReader} from "@pristine-ts/observability";
+import {LogStore} from "@pristine-ts/observability";
 import {CommandInterface} from "../interfaces/command.interface";
 import {CliOutput} from "../managers/cli-output.manager";
 import {CliModuleKeyname} from "../cli.module.keyname";
@@ -24,20 +24,20 @@ export class LogsCommand implements CommandInterface<LogsCommandOptions> {
 
   constructor(
     private readonly cliOutput: CliOutput,
-    private readonly storeReader: ObservabilityStoreReader,
+    private readonly logStore: LogStore,
   ) {
   }
 
   async run(args: LogsCommandOptions): Promise<ExitCode | number> {
-    const runId = this.storeReader.resolveRunId(args.run);
-    if (runId === undefined) {
-      this.cliOutput.writeLine("No observability runs found. Start your app with `pristine start` first.");
+    const instanceId = args.run ?? this.logStore.latestInstanceId();
+    if (instanceId === undefined) {
+      this.cliOutput.writeLine("No captured observability data found. Run your app first.");
       return ExitCode.Success;
     }
 
     const traceId = args.traceId;
 
-    for (const entry of this.storeReader.readLogs(runId)) {
+    for (const entry of this.logStore.read(instanceId)) {
       this.renderEntry(entry, traceId);
     }
 
@@ -45,16 +45,15 @@ export class LogsCommand implements CommandInterface<LogsCommandOptions> {
       return ExitCode.Success;
     }
 
-    return this.followLogs(this.storeReader.logsFilePath(runId), traceId);
+    return this.followLogs(instanceId, traceId);
   }
 
   /**
-   * Tails the run's logs file, rendering each newly-appended line until SIGINT.
+   * Tails the instance's logs file, rendering each newly-appended line until SIGINT.
    */
-  private followLogs(logsFilePath: string, traceId?: string): Promise<ExitCode | number> {
+  private followLogs(instanceId: string, traceId?: string): Promise<ExitCode | number> {
     return new Promise<ExitCode | number>((resolve) => {
-      const tailer = new LogTailer(logsFilePath);
-      tailer.follow((line) => {
+      const handle = this.logStore.tail(instanceId, (line) => {
         try {
           this.renderEntry(JSON.parse(line), traceId);
         } catch {
@@ -63,7 +62,7 @@ export class LogsCommand implements CommandInterface<LogsCommandOptions> {
       });
 
       const onSigint = (): void => {
-        tailer.stop();
+        handle.stop();
         process.off("SIGINT", onSigint);
         resolve(ExitCode.Success);
       };

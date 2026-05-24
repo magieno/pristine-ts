@@ -1,22 +1,16 @@
-import * as fs from "fs";
 import {Readable} from "stream";
 import {injectable, singleton} from "tsyringe";
 import {moduleScoped, ServiceDefinitionTagEnum, tag, Trace} from "@pristine-ts/common";
-import {TracerInterface, traceRenderer} from "@pristine-ts/telemetry";
+import {TracerInterface} from "@pristine-ts/telemetry";
 import {ObservabilityModuleKeyname} from "../observability.module.keyname";
-import {ObservabilityRunManager} from "../store/managers/observability-run-manager";
-import {RequestSummary} from "../models/request-summary.model";
+import {TraceStore} from "../store/trace-store";
 
 /**
- * A `Tracer` transport that persists every completed trace into the active run: the full
- * trace tree as `traces/<traceId>.json`, plus a one-line summary appended to
- * `requests.jsonl` (the fast index the `requests` command reads).
+ * A `Tracer` transport that forwards every completed trace to `TraceStore`. Thin adapter
+ * — all file I/O, request-summary computation, retention, and per-process partitioning
+ * live in `TraceStore`.
  *
- * HTTP metadata (`http.method`, `http.path`, `http.statusCode`) is read from the trace's
- * `context` — populated by the networking HTTP-to-trace enrichment. Non-HTTP traces simply
- * have those fields undefined in the summary.
- *
- * Dormant until a run is begun. Crash-isolated: a write failure becomes a stderr line.
+ * Crash-isolated: a write failure becomes a stderr line rather than propagating.
  */
 @moduleScoped(ObservabilityModuleKeyname)
 @singleton()
@@ -25,9 +19,7 @@ import {RequestSummary} from "../models/request-summary.model";
 export class ObservabilityTracer implements TracerInterface {
   public traceEndedStream: Readable;
 
-  constructor(
-    private readonly runManager: ObservabilityRunManager,
-  ) {
+  constructor(private readonly traceStore: TraceStore) {
     this.traceEndedStream = new Readable({
       objectMode: true,
       read(_size: number) { return true; },
@@ -35,7 +27,7 @@ export class ObservabilityTracer implements TracerInterface {
 
     this.traceEndedStream.on("data", (trace: Trace) => {
       try {
-        this.handleTraceEnded(trace);
+        this.traceStore.append(trace);
       } catch (error) {
         this.reportFailure(error);
       }
@@ -44,41 +36,6 @@ export class ObservabilityTracer implements TracerInterface {
     this.traceEndedStream.on("error", (error) => {
       this.reportFailure(error);
     });
-  }
-
-  private handleTraceEnded(trace: Trace): void {
-    const traceFile = this.runManager.traceFile(trace.id);
-    const requestsFile = this.runManager.requestsFile();
-    if (traceFile === undefined || requestsFile === undefined) {
-      return;
-    }
-
-    const traceContent = traceRenderer.renderJson(trace);
-    const requestLine = JSON.stringify(this.buildSummary(trace)) + "\n";
-    fs.writeFileSync(traceFile, traceContent);
-    fs.appendFileSync(requestsFile, requestLine);
-    this.runManager.recordBytesWritten(Buffer.byteLength(traceContent) + Buffer.byteLength(requestLine));
-  }
-
-  private buildSummary(trace: Trace): RequestSummary {
-    const context = trace.context ?? {};
-    const summary = new RequestSummary(
-      trace.id,
-      trace.startDate,
-      trace.getDuration(),
-      trace.rootSpan?.keyname ?? "",
-    );
-
-    summary.httpMethod = context["http.method"];
-    summary.httpPath = context["http.path"];
-
-    const status = context["http.statusCode"];
-    if (status !== undefined) {
-      const parsed = Number(status);
-      summary.httpStatus = Number.isNaN(parsed) ? undefined : parsed;
-    }
-
-    return summary;
   }
 
   private reportFailure(error: unknown): void {

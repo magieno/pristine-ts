@@ -1,6 +1,6 @@
 import {moduleScoped, ServiceDefinitionTagEnum, tag, ExitCode} from "@pristine-ts/common";
 import {injectable} from "tsyringe";
-import {ObservabilityStoreReader, TraceDeserializer} from "@pristine-ts/observability";
+import {TraceStore} from "@pristine-ts/observability";
 import {traceRenderer} from "@pristine-ts/telemetry";
 import {CommandInterface} from "../interfaces/command.interface";
 import {CliOutput} from "../managers/cli-output.manager";
@@ -26,7 +26,7 @@ export class TraceCommand implements CommandInterface<TraceCommandOptions> {
 
   constructor(
     private readonly cliOutput: CliOutput,
-    private readonly storeReader: ObservabilityStoreReader,
+    private readonly traceStore: TraceStore,
   ) {
   }
 
@@ -37,23 +37,27 @@ export class TraceCommand implements CommandInterface<TraceCommandOptions> {
       return ExitCode.Error;
     }
 
-    const found = this.storeReader.findTrace(traceId, args.run);
+    const format = args.format ?? "tree";
+
+    if (format === "json") {
+      const serialized = this.traceStore.findSerialized(traceId, args.run);
+      if (serialized === undefined) {
+        this.cliOutput.writeLine(`Trace '${traceId}' not found in the observability store.`);
+        return ExitCode.Error;
+      }
+      this.cliOutput.writeLine(JSON.stringify(serialized.trace, null, 2));
+      return ExitCode.Success;
+    }
+
+    const found = this.traceStore.find(traceId, args.run);
     if (found === undefined) {
       this.cliOutput.writeLine(`Trace '${traceId}' not found in the observability store.`);
       return ExitCode.Error;
     }
 
-    const format = args.format ?? "tree";
-
-    if (format === "json") {
-      this.cliOutput.writeLine(JSON.stringify(found.trace, null, 2));
-      return ExitCode.Success;
-    }
-
-    const trace = TraceDeserializer.deserialize(found.trace);
     const rendered = format === "flat"
-      ? traceRenderer.renderFlat(trace)
-      : traceRenderer.renderTree(trace);
+      ? traceRenderer.renderFlat(found.trace)
+      : traceRenderer.renderTree(found.trace);
     this.cliOutput.writeLine(rendered);
 
     return ExitCode.Success;

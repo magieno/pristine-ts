@@ -13,9 +13,7 @@
 export const ObservabilityConfigurationKeys = {
   Enabled: "pristine.observability.enabled",
   Directory: "pristine.observability.directory",
-  RetainedRuns: "pristine.observability.retainedRuns",
-  AutoBegin: "pristine.observability.autoBegin",
-  MaxRunSizeBytes: "pristine.observability.maxRunSizeBytes",
+  RetainedInstances: "pristine.observability.retainedInstances",
 } as const;
 
 /**
@@ -27,9 +25,7 @@ export const ObservabilityConfigurationKeys = {
 export interface ObservabilityConfigurationValueMap {
   "pristine.observability.enabled": boolean;
   "pristine.observability.directory": string;
-  "pristine.observability.retainedRuns": number;
-  "pristine.observability.autoBegin": boolean;
-  "pristine.observability.maxRunSizeBytes": number;
+  "pristine.observability.retainedInstances": number;
 }
 
 declare module "@pristine-ts/common" {

@@ -2,7 +2,6 @@ import {moduleScoped, ServiceDefinitionTagEnum, tag, ExitCode} from "@pristine-t
 import {inject, injectable, injectAll} from "tsyringe";
 import {Kernel, RuntimeServerInterface} from "@pristine-ts/core";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import {ObservabilityRunManager} from "@pristine-ts/observability";
 import {CommandInterface} from "../interfaces/command.interface";
 import {CliModuleKeyname} from "../cli.module.keyname";
 import {StartCommandOptions} from "./start.command-options";
@@ -59,17 +58,11 @@ export class StartCommand implements CommandInterface<StartCommandOptions> {
   constructor(
     @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
     private readonly kernel: Kernel,
-    private readonly observabilityRunManager: ObservabilityRunManager,
     @injectAll(ServiceDefinitionTagEnum.RuntimeServer) private readonly servers: RuntimeServerInterface[],
   ) {
   }
 
   async run(args: StartCommandOptions): Promise<ExitCode | number> {
-    // Begin the observability run: from here on, the ObservabilityLogger/Tracer write
-    // logs and traces into `.pristine/observability/runs/<runId>/`. One-shot commands
-    // never call this, so they never pollute the store.
-    this.observabilityRunManager.beginRun("start");
-
     const servers = this.servers.filter(s => s.name !== this.defaultRuntimeServerName);
 
     const overrides = (args.port !== undefined || args.address !== undefined)
@@ -133,13 +126,11 @@ export class StartCommand implements CommandInterface<StartCommandOptions> {
           // servers individually here.
           await this.kernel.stop();
           this.logHandler.success("Shutdown complete.");
-          this.observabilityRunManager.endRun();
           clearTimeout(hardExitTimer);
           clearInterval(heartbeat);
           resolve(ExitCode.Success);
         } catch (error) {
           this.logHandler.error("Shutdown error", {highlights: {error: (error as Error).message}});
-          this.observabilityRunManager.endRun();
           clearTimeout(hardExitTimer);
           clearInterval(heartbeat);
           resolve(ExitCode.Error);

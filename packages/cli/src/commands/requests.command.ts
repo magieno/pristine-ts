@@ -1,6 +1,6 @@
 import {moduleScoped, ServiceDefinitionTagEnum, tag, ExitCode} from "@pristine-ts/common";
 import {injectable} from "tsyringe";
-import {ObservabilityStoreReader} from "@pristine-ts/observability";
+import {TraceStore} from "@pristine-ts/observability";
 import {CommandInterface} from "../interfaces/command.interface";
 import {CliOutput} from "../managers/cli-output.manager";
 import {CliModuleKeyname} from "../cli.module.keyname";
@@ -27,22 +27,22 @@ export class RequestsCommand implements CommandInterface<RequestsCommandOptions>
 
   constructor(
     private readonly cliOutput: CliOutput,
-    private readonly storeReader: ObservabilityStoreReader,
+    private readonly traceStore: TraceStore,
   ) {
   }
 
   async run(args: RequestsCommandOptions): Promise<ExitCode | number> {
-    const runId = this.storeReader.resolveRunId(args.run);
-    if (runId === undefined) {
-      this.cliOutput.writeLine("No observability runs found. Start your app with `pristine start` first.");
+    const instanceId = args.run ?? this.traceStore.latestInstanceId();
+    if (instanceId === undefined) {
+      this.cliOutput.writeLine("No captured observability data found. Run your app first.");
       return ExitCode.Success;
     }
 
     const limit = args.limit ?? RequestsCommand.DEFAULT_LIMIT;
-    const summaries = this.storeReader.readRequests(runId, limit);
+    const summaries = this.traceStore.recentRequests(instanceId, limit);
 
     if (summaries.length === 0) {
-      this.cliOutput.writeLine(`Run ${runId} has no recorded requests yet.`);
+      this.cliOutput.writeLine(`Instance ${instanceId} has no recorded requests yet.`);
       return ExitCode.Success;
     }
 

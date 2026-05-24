@@ -1,5 +1,5 @@
 import {Span, Trace} from "@pristine-ts/common";
-import {SerializedSpan} from "./serialized-span.interface";
+import {SerializedSpan} from "../interfaces/serialized-span.interface";
 
 /**
  * Rebuilds a `Span` (with its full child tree) from the stored plain object. Used by

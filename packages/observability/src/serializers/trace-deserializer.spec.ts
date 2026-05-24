@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import {Span, Trace} from "@pristine-ts/common";
-import {SerializedTrace} from "./serialized-trace.interface";
+import {SerializedTrace} from "../interfaces/serialized-trace.interface";
 import {TraceDeserializer} from "./trace-deserializer";
 
 describe("TraceDeserializer", () => {

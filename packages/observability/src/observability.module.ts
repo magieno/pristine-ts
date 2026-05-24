@@ -5,9 +5,13 @@ import {BooleanResolver, EnvironmentVariableResolver, NumberResolver} from "@pri
 import {ObservabilityModuleKeyname} from "./observability.module.keyname";
 import {ObservabilityConfigurationKeys} from "./observability.configuration-keys";
 
+export * from "./interfaces/interfaces";
 export * from "./loggers/loggers";
 export * from "./models/models";
+export * from "./paths/paths";
+export * from "./serializers/serializers";
 export * from "./store/store";
+export * from "./tailers/tailers";
 export * from "./tracers/tracers";
 
 export * from "./observability.configuration-keys";
@@ -19,9 +23,12 @@ export * from "./observability.module.keyname";
  * `logs`, `trace` and `requests` commands read that store.
  *
  * It registers an `ObservabilityLogger` (a `Logger`-tagged transport) and an
- * `ObservabilityTracer` (a `Tracer`-tagged transport). Both stay dormant until a run is
- * begun via `ObservabilityRunManager.beginRun()` (or, when `autoBegin` is set, on the
- * first write) — so one-shot CLI commands never write to the store.
+ * `ObservabilityTracer` (a `Tracer`-tagged transport). Both are thin adapters that
+ * forward to `LogStore` / `TraceStore`, which own all file I/O. Each pristine process
+ * writes to its own instance directory (keyed by the kernel instantiation id), so
+ * concurrent processes never race; the first append from a process lazy-creates its
+ * directory. There is no `beginRun` / `endRun` ceremony — capture is always on whenever
+ * `enabled` is true.
  *
  * `CliModule` imports this module, so the CLI always has it; a non-CLI app that wants the
  * store imports `ObservabilityModule` directly.
@@ -37,7 +44,7 @@ export const ObservabilityModule: ModuleInterface = {
   configurationDefinitions: [
     /**
      * Master switch for the observability writers. When false, the logger and tracer
-     * never write, regardless of whether a run is active.
+     * forward to the stores' `append`, which is a no-op.
      */
     {
       parameterName: ObservabilityConfigurationKeys.Enabled,
@@ -60,43 +67,16 @@ export const ObservabilityModule: ModuleInterface = {
       ]
     },
     /**
-     * How many of the most recent runs to keep. Older run directories are pruned when a
-     * new run begins.
+     * How many of the most recent instance directories to keep. Older instance
+     * directories are pruned (whole `rm -rf`) the first time a new pristine process
+     * appends to the store.
      */
     {
-      parameterName: ObservabilityConfigurationKeys.RetainedRuns,
+      parameterName: ObservabilityConfigurationKeys.RetainedInstances,
       defaultValue: 10,
       isRequired: false,
       defaultResolvers: [
-        new NumberResolver(new EnvironmentVariableResolver("PRISTINE_OBSERVABILITY_RETAINED_RUNS")),
-      ]
-    },
-    /**
-     * When true, the store begins a run automatically on the first log/trace, instead of
-     * waiting for an explicit `beginRun()`. Off by default — under the CLI, `StartCommand`
-     * calls `beginRun()` and one-shot commands must not create runs. A server started
-     * outside the CLI sets this to capture its logs/traces with no code.
-     */
-    {
-      parameterName: ObservabilityConfigurationKeys.AutoBegin,
-      defaultValue: false,
-      isRequired: false,
-      defaultResolvers: [
-        new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_OBSERVABILITY_AUTO_BEGIN")),
-      ]
-    },
-    /**
-     * Disk budget for a single run, in bytes. When a run's total on-disk size exceeds
-     * this, the store drops its oldest data, keeping the newest. Combined with
-     * `retainedRuns`, the whole store is bounded by `retainedRuns × maxRunSizeBytes`.
-     * `0` disables the cap. Default: 100 MB.
-     */
-    {
-      parameterName: ObservabilityConfigurationKeys.MaxRunSizeBytes,
-      defaultValue: 100 * 1024 * 1024,
-      isRequired: false,
-      defaultResolvers: [
-        new NumberResolver(new EnvironmentVariableResolver("PRISTINE_OBSERVABILITY_MAX_RUN_SIZE_BYTES")),
+        new NumberResolver(new EnvironmentVariableResolver("PRISTINE_OBSERVABILITY_RETAINED_INSTANCES")),
       ]
     },
   ]
