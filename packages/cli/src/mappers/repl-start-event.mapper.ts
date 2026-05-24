@@ -11,15 +11,17 @@ import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {v4 as uuidv4} from "uuid";
 import {StartReplEventPayload} from "../event-payloads/start-repl.event-payload";
 import {CliModuleKeyname} from "../cli.module.keyname";
+import {PristineArgv} from "../utils/pristine-argv";
 
 /**
  * Maps the "no command" / `repl` argv shapes onto a `StartReplEventPayload` so the kernel
  * can dispatch the REPL launch through the normal event pipeline — `cli.ts` just calls
  * `kernel.handle(process.argv, {keyname: Cli})` regardless of whether the user invoked
- * `pristine`, `pristine repl`, or `pristine <some-command>`. The matching keyname for the
- * outer launch is `Cli` (it's still a CLI process invocation that happens to have no
- * explicit command); the `Repl` keyname is for the inner per-line dispatches the REPL
- * handler issues after the session has started.
+ * `pristine`, `pristine repl`, or `pristine <some-command>`.
+ *
+ * Argv parsing is delegated to `PristineArgv`, which scans for the bin token rather than
+ * assuming positional layout — so the rule is runtime-agnostic and survives launchers
+ * that shape argv differently.
  *
  * `CommandEventMapper` explicitly excludes these same shapes from its own
  * `supportsMapping` so the two mappers partition argv space cleanly — no shape is claimed
@@ -36,17 +38,18 @@ export class ReplStartEventMapper implements EventMapperInterface<StartReplEvent
     if (Array.isArray(rawEvent) === false) {
       return false;
     }
-    // `[node, pristine]` (no command) → REPL.
-    if (rawEvent.length <= 2) {
-      return true;
+    const argv = new PristineArgv(rawEvent);
+    if (argv.isValid === false) {
+      return false;
     }
-    // `[node, pristine, repl, ...]` (explicit `repl` command) → REPL.
-    return rawEvent[2] === "repl";
+    // No user args → REPL. First user arg is `repl` → REPL (any tokens after `repl` are
+    // ignored at routing time, by design).
+    return argv.userArgs.length === 0 || argv.userArgs[0] === "repl";
   }
 
   map(rawEvent: any, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<StartReplEventPayload> {
-    const scriptPath = Array.isArray(rawEvent) && typeof rawEvent[1] === "string" ? rawEvent[1] : "";
-    const payload = new StartReplEventPayload(scriptPath);
+    const argv = new PristineArgv(Array.isArray(rawEvent) ? rawEvent : []);
+    const payload = new StartReplEventPayload(argv.scriptPath);
     return {
       events: [new Event<StartReplEventPayload>("start-repl", payload, uuidv4())],
       executionOrder: "sequential",

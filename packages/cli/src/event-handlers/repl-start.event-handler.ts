@@ -1,5 +1,5 @@
 import * as readline from "node:readline";
-import {inject, injectable} from "tsyringe";
+import {DependencyContainer, inject, injectable} from "tsyringe";
 import {Event, EventHandlerInterface, ExecutionContextKeynameEnum, Kernel} from "@pristine-ts/core";
 import {ExitCode, moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {ObservabilityStoreReader} from "@pristine-ts/observability";
@@ -44,6 +44,7 @@ export class ReplStartEventHandler implements EventHandlerInterface<StartReplEve
 
   constructor(
     @inject(Kernel) private readonly kernel: Kernel,
+    @inject(ServiceDefinitionTagEnum.CurrentChildContainer) private readonly container: DependencyContainer,
     private readonly cliOutput: CliOutput,
     private readonly storeReader: ObservabilityStoreReader,
   ) {
@@ -128,11 +129,13 @@ export class ReplStartEventHandler implements EventHandlerInterface<StartReplEve
 
     try {
       // Re-enter the kernel with a synthetic argv under the `Cli` keyname — parsing and
-      // dispatch are identical to a one-shot invocation. `CliEventHandler` returns the
-      // exit code instead of calling `process.exit`, so the loop survives. An unknown
-      // command throws `CommandNotFoundError`, caught below.
+      // dispatch are identical to a one-shot invocation. The `"pristine"` token is the
+      // bin marker `PristineArgv` scans for; everything after it is treated as user
+      // args. `CliEventHandler` returns the exit code instead of calling `process.exit`,
+      // so the loop survives. An unknown command throws `CommandNotFoundError`, caught
+      // below.
       await this.kernel.handle(
-        ["node", "repl", name, ...rest],
+        ["node", "pristine", name, ...rest],
         {keyname: ExecutionContextKeynameEnum.Cli, context: null},
       );
     } catch (error) {
@@ -193,23 +196,18 @@ export class ReplStartEventHandler implements EventHandlerInterface<StartReplEve
   }
 
   /**
-   * Enumerates every registered command.
+   * Enumerates every registered command. Resolved from the per-event child container the
+   * kernel handed this handler when it dispatched the REPL-start event — same container
+   * `HelpCommand`/`ListCommand` themselves use, so commands that depend on
+   * `CurrentChildContainer` resolve cleanly.
    *
-   * Resolved from a dedicated child container with the `CurrentChildContainer` token
-   * registered — some commands (`HelpCommand`, `ListCommand`) inject that token, which
-   * only the kernel's per-event child containers carry. Each REPL-typed line dispatched
-   * via `kernel.handle` gets its own per-event child container automatically; this
-   * banner-time enumeration builds an equivalent one once for the session completer.
-   *
-   * `resolveAll`, justified: framework REPL infrastructure resolved at session start —
-   * enumerating every `Command`-tagged service is inherently a container-introspection
-   * operation with no constructor seam.
+   * `resolveAll`, justified: framework REPL infrastructure at session start — enumerating
+   * every `Command`-tagged service is a container-introspection operation with no
+   * constructor seam.
    */
   private resolveCommands(): CommandInterface<any>[] {
     try {
-      const childContainer = this.kernel.container.createChildContainer();
-      childContainer.registerInstance(ServiceDefinitionTagEnum.CurrentChildContainer, childContainer);
-      return childContainer.resolveAll<CommandInterface<any>>(ServiceDefinitionTagEnum.Command);
+      return this.container.resolveAll<CommandInterface<any>>(ServiceDefinitionTagEnum.Command);
     } catch (error) {
       process.stderr.write(`[repl] could not load commands: ${error instanceof Error ? error.message : String(error)}\n`);
       return [];
