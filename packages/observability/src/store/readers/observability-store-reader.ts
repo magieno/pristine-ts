@@ -1,11 +1,11 @@
 import * as fs from "fs";
 import {injectable} from "tsyringe";
 import {injectConfig, moduleScoped} from "@pristine-ts/common";
-import {ObservabilityModuleKeyname} from "../observability.module.keyname";
-import {ObservabilityConfigurationKeys} from "../observability.configuration-keys";
-import {ObservabilityPaths} from "./observability-paths";
-import {RunMetadata} from "../models/run-metadata.model";
-import {RequestSummary} from "../models/request-summary.model";
+import {ObservabilityModuleKeyname} from "../../observability.module.keyname";
+import {ObservabilityConfigurationKeys} from "../../observability.configuration-keys";
+import {ObservabilityPaths} from "../utils/observability-paths";
+import {RunMetadata} from "../../models/run-metadata.model";
+import {RequestSummary} from "../../models/request-summary.model";
 import {SerializedTrace} from "./trace-deserializer";
 
 /**

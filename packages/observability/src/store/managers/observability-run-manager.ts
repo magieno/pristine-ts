@@ -2,10 +2,10 @@ import * as fs from "fs";
 import * as path from "path";
 import {inject, injectable, singleton} from "tsyringe";
 import {injectConfig, InternalContainerParameterEnum, moduleScoped} from "@pristine-ts/common";
-import {ObservabilityModuleKeyname} from "../observability.module.keyname";
-import {ObservabilityConfigurationKeys} from "../observability.configuration-keys";
-import {ObservabilityPaths} from "./observability-paths";
-import {RunMetadata} from "../models/run-metadata.model";
+import {ObservabilityModuleKeyname} from "../../observability.module.keyname";
+import {ObservabilityConfigurationKeys} from "../../observability.configuration-keys";
+import {ObservabilityPaths} from "../utils/observability-paths";
+import {RunMetadata} from "../../models/run-metadata.model";
 
 /**
  * Owns the lifecycle of an observability run. A "run" is one `pristine start` lifetime;

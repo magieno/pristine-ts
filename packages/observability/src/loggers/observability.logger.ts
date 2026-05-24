@@ -4,7 +4,7 @@ import {injectable, singleton} from "tsyringe";
 import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {LoggerInterface, LogModel} from "@pristine-ts/logging";
 import {ObservabilityModuleKeyname} from "../observability.module.keyname";
-import {ObservabilityRunManager} from "../store/observability-run-manager";
+import {ObservabilityRunManager} from "../store/managers/observability-run-manager";
 
 /**
  * A `Logger` transport that appends every log entry, as one JSON object per line, to the

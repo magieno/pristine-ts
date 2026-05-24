@@ -4,7 +4,7 @@ import {injectable, singleton} from "tsyringe";
 import {moduleScoped, ServiceDefinitionTagEnum, tag, Trace} from "@pristine-ts/common";
 import {TracerInterface, traceRenderer} from "@pristine-ts/telemetry";
 import {ObservabilityModuleKeyname} from "../observability.module.keyname";
-import {ObservabilityRunManager} from "../store/observability-run-manager";
+import {ObservabilityRunManager} from "../store/managers/observability-run-manager";
 import {RequestSummary} from "../models/request-summary.model";
 
 /**
