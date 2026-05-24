@@ -23,14 +23,10 @@ import {StartReplEventResponse} from "../types/start-repl-event-response.type";
  * the bootstrap; the mapping layer routes argv to the right payload.
  *
  * **Per-line dispatch.** Each typed line is re-entered through `kernel.handle(...,
- * {keyname: Repl})`. That:
- *   - Uses `Kernel` (the proper re-entry seam — it owns trace lifecycle, child container
- *     creation, the works). The `Kernel` is `registerInstance`-d into its own container
- *     by `Cli.bootstrap()`, so this handler injects it via DI like any other service.
- *   - Tags the inner dispatch with `Repl` rather than `Cli` so observability,
- *     interceptors, and any future REPL-only mappers can tell session-typed commands
- *     apart from one-shot CLI invocations. `CommandEventMapper` matches both keynames so
- *     parsing/handling are identical between the two modes.
+ * {keyname: Cli})` — using `Kernel` (the proper re-entry seam — it owns trace lifecycle,
+ * child container creation, the works). The `Kernel` is `registerInstance`-d into its
+ * own container by `Cli.bootstrap()`, so this handler injects it via DI like any other
+ * service.
  *
  * Plus the session verbs `/help`, `/clear`, `/exit` handled in-process (they're not
  * commands — they don't re-enter the kernel). Tab-completion is driven by the live
@@ -131,15 +127,13 @@ export class ReplStartEventHandler implements EventHandlerInterface<StartReplEve
     }
 
     try {
-      // Re-enter the kernel with a synthetic argv tagged as `Repl`. `CommandEventMapper`
-      // matches both `Cli` and `Repl`, so parsing/dispatch are identical to a one-shot
-      // invocation — but observability can now tell which dispatch mode produced the
-      // command. `CliEventHandler` returns the exit code instead of calling
-      // `process.exit`, so the loop survives. An unknown command throws
-      // `CommandNotFoundError`, caught below.
+      // Re-enter the kernel with a synthetic argv under the `Cli` keyname — parsing and
+      // dispatch are identical to a one-shot invocation. `CliEventHandler` returns the
+      // exit code instead of calling `process.exit`, so the loop survives. An unknown
+      // command throws `CommandNotFoundError`, caught below.
       await this.kernel.handle(
         ["node", "repl", name, ...rest],
-        {keyname: ExecutionContextKeynameEnum.Repl, context: null},
+        {keyname: ExecutionContextKeynameEnum.Cli, context: null},
       );
     } catch (error) {
       this.cliOutput.writeLine(`Error: ${error instanceof Error ? error.message : String(error)}`);

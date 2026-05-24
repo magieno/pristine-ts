@@ -70,13 +70,6 @@ describe('Command Event Mapper', function () {
       })).toBe(true);
     });
 
-    it("matches argv that names a command under the Repl keyname (so REPL-typed lines flow through the same parser)", () => {
-      expect(mapper.supportsMapping(["node", "repl", "build"], {
-        keyname: ExecutionContextKeynameEnum.Repl,
-        context: {},
-      })).toBe(true);
-    });
-
     it("rejects no-command argv so ReplStartEventMapper can claim it", () => {
       expect(mapper.supportsMapping(["node", "pristine"], {
         keyname: ExecutionContextKeynameEnum.Cli,

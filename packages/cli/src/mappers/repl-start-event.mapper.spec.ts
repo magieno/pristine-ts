@@ -26,7 +26,7 @@ describe("ReplStartEventMapper", () => {
 
     it("does NOT match under non-Cli keynames (REPL is only launched from the bin)", () => {
       expect(mapper.supportsMapping(["node", "pristine"], {
-        keyname: ExecutionContextKeynameEnum.Repl,
+        keyname: ExecutionContextKeynameEnum.Http,
         context: {},
       })).toBe(false);
     });
