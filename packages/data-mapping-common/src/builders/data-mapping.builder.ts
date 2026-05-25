@@ -177,25 +177,25 @@ export class DataMappingBuilder extends BaseDataMappingNode {
   }
 
   /**
-   * This method exports this node.
+   * This method exports the schema as a plain object. The export does not mutate the live tree —
+   * the builder remains usable for mapping after this call returns.
    */
   public export() {
-    const nodes = this.nodes;
+    const exportedNodes: { [key: string]: any } = {};
 
-    for (const key in nodes) {
-      if (nodes.hasOwnProperty(key) === false) {
+    for (const key in this.nodes) {
+      if (this.nodes.hasOwnProperty(key) === false) {
         continue;
       }
 
-      nodes[key] = nodes[key].export();
+      exportedNodes[key] = this.nodes[key].export();
     }
 
     return {
-      "nodes": nodes,
+      "nodes": exportedNodes,
       "normalizers": this.normalizers,
       "beforeMappingInterceptors": this.beforeMappingInterceptors,
       "afterMappingInterceptors": this.afterMappingInterceptors,
-
     }
   }
 }

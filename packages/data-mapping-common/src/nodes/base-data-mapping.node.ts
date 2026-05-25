@@ -1,6 +1,7 @@
 import {DataMappingNode} from "./data-mapping.node";
 import {DataMappingLeaf} from "./data-mapping.leaf";
 import {UndefinedSourcePropertyError} from "../errors/undefined-source-property.error";
+import {UndefinedDestinationPropertyError} from "../errors/undefined-destination-property.error";
 
 export abstract class BaseDataMappingNode {
   public nodes: { [sourceProperty in string]: DataMappingNode | DataMappingLeaf } = {};
@@ -15,6 +16,10 @@ export abstract class BaseDataMappingNode {
   public addNode(node: DataMappingLeaf | DataMappingNode) {
     if (node.sourceProperty === undefined) {
       throw new UndefinedSourcePropertyError(node);
+    }
+
+    if (node.destinationProperty === undefined) {
+      throw new UndefinedDestinationPropertyError(node);
     }
 
     this.nodes[node.sourceProperty] = node;

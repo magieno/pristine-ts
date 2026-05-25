@@ -7,6 +7,7 @@ import {DataMappingSourcePropertyNotFoundError} from "../errors/data-mapping-sou
 import {DataNormalizerInterface} from "../interfaces/data-normalizer.interface";
 import {ArrayDataMappingNodeInvalidSourcePropertyTypeError} from "../errors/array-data-mapping-node-invalid-source-property-type.error";
 import {DataMapperOptions} from "../options/data-mapper.options";
+import {DataNormalizerNotFoundError} from "../errors/data-normalizer-not-found.error";
 
 
 export class DataMappingLeaf {
@@ -29,6 +30,12 @@ export class DataMappingLeaf {
    * This property contains an array of Normalizers that must be excluded from normalizers defined by parents.
    */
   public excludedNormalizers: Set<DataNormalizerUniqueKey> = new Set<DataNormalizerUniqueKey>();
+
+  /**
+   * Memoized merge of inherited root normalizers (minus excluded) and leaf-local normalizers.
+   * Cleared whenever the leaf's normalizer configuration changes.
+   */
+  private effectiveNormalizersCache?: { key: DataNormalizerUniqueKey, options: any }[];
 
   /**
    * This method specified whether it's possible that this element not be present in the `source` object.
@@ -90,6 +97,7 @@ export class DataMappingLeaf {
       key: normalizerUniqueKey,
       options,
     });
+    this.effectiveNormalizersCache = undefined;
 
     return this;
   }
@@ -112,8 +120,25 @@ export class DataMappingLeaf {
     }
 
     this.excludedNormalizers.add(normalizerUniqueKey);
+    this.effectiveNormalizersCache = undefined;
 
     return this;
+  }
+
+  /**
+   * Returns the merged list of normalizers applied to this leaf: inherited root normalizers minus the
+   * ones explicitly excluded here, followed by leaf-local normalizers. Memoized — the cache is cleared
+   * by `addNormalizer`/`excludeNormalizer`.
+   */
+  private getEffectiveNormalizers(): { key: DataNormalizerUniqueKey, options: any }[] {
+    if (this.effectiveNormalizersCache === undefined) {
+      this.effectiveNormalizersCache = [
+        ...this.root.normalizers.filter(element => this.excludedNormalizers.has(element.key) === false),
+        ...this.normalizers,
+      ];
+    }
+
+    return this.effectiveNormalizersCache;
   }
 
   /**
@@ -143,8 +168,7 @@ export class DataMappingLeaf {
       throw new DataMappingSourcePropertyNotFoundError("The property '" + this.sourceProperty + "' isn't found in the Source object and isn't marked as Optional. If you want to ignore this property, use the 'setIsOptional(true)' method in the builder.", this.sourceProperty)
     }
 
-    const normalizers = this.root.normalizers.filter(element => this.excludedNormalizers.has(element.key) === false);
-    normalizers.push(...this.normalizers);
+    const normalizers = this.getEffectiveNormalizers();
 
     if (this.type === DataMappingNodeTypeEnum.ScalarArray) {
       // This means that the source[propertyKey] contains an array of objects and each object should be mapped
@@ -157,13 +181,13 @@ export class DataMappingLeaf {
       destination[this.destinationProperty] = [];
 
       for (let value of array) {
-        normalizers.forEach(element => {
+        for (const element of normalizers) {
           const normalizer = normalizersMap[element.key];
-
-          if (normalizer)
-
-            value = normalizer.normalize(value, element.options);
-        })
+          if (normalizer === undefined) {
+            throw new DataNormalizerNotFoundError("The normalizer '" + element.key + "' wasn't found and cannot be loaded for source property '" + this.sourceProperty + "'.", element.key);
+          }
+          value = normalizer.normalize(value, element.options);
+        }
 
         destination[this.destinationProperty].push(value);
       }
@@ -172,10 +196,13 @@ export class DataMappingLeaf {
     }
 
     let value = source[this.sourceProperty];
-    normalizers.forEach(element => {
+    for (const element of normalizers) {
       const normalizer = normalizersMap[element.key];
+      if (normalizer === undefined) {
+        throw new DataNormalizerNotFoundError("The normalizer '" + element.key + "' wasn't found and cannot be loaded for source property '" + this.sourceProperty + "'.", element.key);
+      }
       value = normalizer.normalize(value, element.options);
-    })
+    }
 
     destination[this.destinationProperty] = value;
 
@@ -188,18 +215,22 @@ export class DataMappingLeaf {
    * @param schema
    */
   public import(schema: any) {
-    this.normalizers = schema.normalizers;
+    this.normalizers = Array.isArray(schema.normalizers) ? schema.normalizers : [];
 
     this.excludedNormalizers = new Set<DataNormalizerUniqueKey>()
-    if (schema.hasOwnProperty("excludedNormalizers")) {
+    if (schema.hasOwnProperty("excludedNormalizers") && schema.excludedNormalizers) {
       for (const item in schema.excludedNormalizers) {
-        this.excludeNormalizer(item);
+        if (schema.excludedNormalizers.hasOwnProperty(item) === false) {
+          continue;
+        }
+        this.excludedNormalizers.add(item);
       }
     }
 
     this.isOptional = schema.isOptional;
     this.sourceProperty = schema.sourceProperty;
     this.destinationProperty = schema.destinationProperty;
+    this.effectiveNormalizersCache = undefined;
   }
 
   /**

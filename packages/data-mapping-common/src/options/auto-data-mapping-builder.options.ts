@@ -25,10 +25,23 @@ export class AutoDataMappingBuilderOptions {
    */
   logErrors?: boolean;
 
+  /**
+   * When `true`, bypass the AutoDataMappingBuilder schema cache and always rebuild from metadata.
+   *
+   * The cache keys by destinationType only. If the auto-inference depends on the live source shape
+   * (e.g. inferring the element type of an untyped scalar array from `source[propertyKey][0]`),
+   * the first call wins and subsequent calls reuse that decision. Pass `true` when you need fresh
+   * inference per call.
+   *
+   * Default value is `false`.
+   */
+  disableCache: boolean;
+
   constructor(options?: Partial<AutoDataMappingBuilderOptions>) {
     this.isOptionalDefaultValue = options?.isOptionalDefaultValue ?? true;
     this.excludeExtraneousValues = options?.excludeExtraneousValues ?? false;
     this.throwOnErrors = options?.throwOnErrors ?? false;
     this.logErrors = options?.logErrors ?? false;
+    this.disableCache = options?.disableCache ?? false;
   }
 }

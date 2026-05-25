@@ -142,20 +142,29 @@ export class DataMappingNode extends BaseDataMappingNode {
       return;
     }
 
+    const shouldIncludeExtraneous = options?.excludeExtraneousValues === false;
+
     if (this.type === DataMappingNodeTypeEnum.ObjectArray) {
       destination[this.destinationProperty] = [];
     } else {
-      if (this.destinationType) {
-        destination[this.destinationProperty] = plainToInstance(this.destinationType as ClassConstructor<any>, sourceElement);
-      } else {
-        destination[this.destinationProperty] = {}
-      }
+      // Start with an empty target. Source-keyed properties are copied in ONLY when
+      // `excludeExtraneousValues === false` — otherwise we'd leak source-named properties
+      // onto a renamed-destination instance (e.g. both `nestedTitle` and `nestedName`).
+      const sourceIsCopyable = shouldIncludeExtraneous
+        && sourceElement !== null
+        && (typeof sourceElement === "object" || Array.isArray(sourceElement));
 
-      if (options?.excludeExtraneousValues === false) {
-        if(typeof sourceElement === "object" || Array.isArray(sourceElement)) {
+      if (this.destinationType) {
+        destination[this.destinationProperty] = plainToInstance(
+          this.destinationType as ClassConstructor<any>,
+          sourceIsCopyable ? sourceElement : {},
+        );
+      } else {
+        destination[this.destinationProperty] = {};
+        if (sourceIsCopyable) {
           Object.keys(sourceElement).forEach(property => {
             destination[this.destinationProperty][property] = sourceElement[property];
-          })
+          });
         }
       }
     }
@@ -172,21 +181,31 @@ export class DataMappingNode extends BaseDataMappingNode {
 
       let index = 0;
       for (const element of array) {
+        const elementIsCopyable = shouldIncludeExtraneous
+          && element !== null
+          && typeof element === "object";
+
         let dest: any = {};
 
         if (this.destinationType) {
-          if (typeof this.destinationType === "function" && !this.destinationType.prototype) {
-            const destinationType: ArrayMemberTypeFactoryCallbackType = this.destinationType as ArrayMemberTypeFactoryCallbackType;
-            dest = plainToInstance(destinationType(source, this.sourceProperty, index).constructor, options?.excludeExtraneousValues === false ? element : {});
-          } else if (this.destinationType.prototype) {
-            dest = plainToInstance(this.destinationType as ClassConstructor<any>, {})
-          }
-        }
+          let memberConstructor: ClassConstructor<any> | undefined;
 
-        if (options?.excludeExtraneousValues === false) {
+          if (typeof this.destinationType === "function" && !(this.destinationType as any).prototype) {
+            // Factory callback: resolve the concrete class per element. The index is the
+            // *current* element's index (post-fix from a previous bug where it was always 0).
+            const factory = this.destinationType as ArrayMemberTypeFactoryCallbackType;
+            memberConstructor = factory(source, this.sourceProperty, index).constructor;
+          } else if ((this.destinationType as any).prototype) {
+            memberConstructor = this.destinationType as ClassConstructor<any>;
+          }
+
+          if (memberConstructor) {
+            dest = plainToInstance(memberConstructor, elementIsCopyable ? element : {});
+          }
+        } else if (elementIsCopyable) {
           Object.keys(element).forEach(property => {
             dest[property] = element[property];
-          })
+          });
         }
 
         for (const key in this.nodes) {
@@ -200,9 +219,9 @@ export class DataMappingNode extends BaseDataMappingNode {
         }
 
         destinationElement.push(dest);
+        index++;
       }
 
-      index++;
       return;
     }
 
@@ -259,17 +278,23 @@ export class DataMappingNode extends BaseDataMappingNode {
   }
 
   /**
-   * This method exports this node.
+   * This method exports this node. The exported representation is a plain object — it does not mutate
+   * the live tree, so the same builder can continue to be used for mapping after `export()` is called.
+   *
+   * `destinationType` is intentionally not serialized: class constructors aren't transferable, and
+   * factory callbacks (`ArrayMemberTypeFactoryCallbackType`) hold closures. To rehydrate a schema with
+   * the same destination instantiation behavior, decorate the destination class with class-transformer's
+   * `@Type()` and pass the destination class to `DataMapper.map()`.
    */
   public export() {
-    const nodes = this.nodes;
+    const exportedNodes: { [key: string]: any } = {};
 
-    for (const key in nodes) {
-      if (nodes.hasOwnProperty(key) === false) {
+    for (const key in this.nodes) {
+      if (this.nodes.hasOwnProperty(key) === false) {
         continue;
       }
 
-      nodes[key] = nodes[key].export();
+      exportedNodes[key] = this.nodes[key].export();
     }
 
     return {
@@ -277,7 +302,7 @@ export class DataMappingNode extends BaseDataMappingNode {
       "sourceProperty": this.sourceProperty,
       "destinationProperty": this.destinationProperty,
       "isOptional": this.isOptional,
-      "nodes": nodes,
+      "nodes": exportedNodes,
     }
   }
 }

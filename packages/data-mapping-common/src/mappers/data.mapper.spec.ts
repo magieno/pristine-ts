@@ -646,7 +646,7 @@ describe("Data Mapper", () => {
     expect(mapped).toBe(1750874432766)
   })
 
-  it("shouldn't crash when trying to map a string into an object", async() => {
+  it("shouldn't crash when trying to map a string into an object — and should not leak the raw string into the typed slot", async() => {
     class DateOfBirth {
       day: number;
 
@@ -668,6 +668,246 @@ describe("Data Mapper", () => {
 
     const mapped = await dataMapper.autoMap(source, Destination, new AutoDataMappingBuilderOptions({throwOnErrors: true}))
 
-    expect(mapped).toEqual(source)
+    // The mapping must complete (no throw) and the typed slot must contain a proper instance —
+    // not the unmappable source string. The instance is empty because the string couldn't be
+    // coerced into DateOfBirth's fields.
+    expect(mapped).toBeInstanceOf(Destination);
+    expect(mapped.dateOfBirth).toBeInstanceOf(DateOfBirth);
+    expect(mapped.dateOfBirth.day).toBeUndefined();
+    expect(mapped.dateOfBirth.month).toBeUndefined();
+    expect(mapped.dateOfBirth.year).toBeUndefined();
+  })
+
+  describe("Phase 1 regression tests", () => {
+    it("should NOT leak source-keyed properties into a renamed-destination nested instance when excludeExtraneousValues=true", async () => {
+      class NestedSource {
+        nestedTitle: string;
+      }
+
+      class Source {
+        nested: NestedSource;
+      }
+
+      class NestedDestination {
+        nestedName: string;
+      }
+
+      class Destination {
+        child: NestedDestination;
+      }
+
+      const source = new Source();
+      source.nested = new NestedSource();
+      source.nested.nestedTitle = "title-value";
+
+      const dataMappingBuilder = new DataMappingBuilder();
+      dataMappingBuilder
+        .addNestingLevel()
+        .setSourceProperty("nested")
+        .setDestinationProperty("child")
+        .setDestinationType(NestedDestination)
+        .add()
+        .setSourceProperty("nestedTitle")
+        .setDestinationProperty("nestedName")
+        .end()
+        .end();
+
+      const dataMapper = new DataMapper(new AutoDataMappingBuilder(), [], []);
+
+      const destination: Destination = await dataMapper.map(
+        dataMappingBuilder,
+        source,
+        Destination,
+        new (require("../options/data-mapper.options").DataMapperOptions)({excludeExtraneousValues: true}),
+      );
+
+      expect(destination.child).toBeInstanceOf(NestedDestination);
+      expect(destination.child.nestedName).toBe("title-value");
+      // Bug regression: the source key MUST NOT appear on the destination instance.
+      expect((destination.child as any).nestedTitle).toBeUndefined();
+    })
+
+    it("should pass the correct element index to the ArrayMemberTypeFactoryCallback for every element", async () => {
+      class Member {
+        position: number;
+      }
+
+      class Container {
+        items: Member[];
+      }
+
+      const observedIndices: number[] = [];
+
+      const dataMappingBuilder = new DataMappingBuilder();
+      dataMappingBuilder
+        .addArrayOfObjects()
+        .setSourceProperty("items")
+        .setDestinationProperty("items")
+        .setDestinationType((target: any, propertyKey: string, index: number) => {
+          observedIndices.push(index);
+          return new Member();
+        })
+        .add()
+        .setSourceProperty("rank")
+        .setDestinationProperty("position")
+        .end()
+        .end();
+
+      const dataMapper = new DataMapper(new AutoDataMappingBuilder(), [], []);
+
+      await dataMapper.map(dataMappingBuilder, {
+        items: [{rank: 10}, {rank: 11}, {rank: 12}],
+      }, Container);
+
+      expect(observedIndices).toEqual([0, 1, 2]);
+    })
+
+    it("should throw DataNormalizerNotFoundError when a leaf references an unregistered normalizer (scalar)", async () => {
+      const dataMappingBuilder = new DataMappingBuilder();
+      dataMappingBuilder
+        .add()
+        .setSourceProperty("name")
+        .setDestinationProperty("name")
+        .addNormalizer("UNREGISTERED_NORMALIZER")
+        .end();
+
+      const dataMapper = new DataMapper(new AutoDataMappingBuilder(), [], []);
+
+      const {DataNormalizerNotFoundError} = require("../errors/data-normalizer-not-found.error");
+      await expect(dataMapper.map(dataMappingBuilder, {name: "x"})).rejects.toThrowError(DataNormalizerNotFoundError);
+    })
+
+    it("should throw DataNormalizerNotFoundError when a ScalarArray leaf references an unregistered normalizer", async () => {
+      const dataMappingBuilder = new DataMappingBuilder();
+      dataMappingBuilder
+        .addArrayOfScalar()
+        .setSourceProperty("tags")
+        .setDestinationProperty("tags")
+        .addNormalizer("UNREGISTERED_NORMALIZER")
+        .end();
+
+      const dataMapper = new DataMapper(new AutoDataMappingBuilder(), [], []);
+
+      const {DataNormalizerNotFoundError} = require("../errors/data-normalizer-not-found.error");
+      await expect(dataMapper.map(dataMappingBuilder, {tags: ["a", "b"]})).rejects.toThrowError(DataNormalizerNotFoundError);
+    })
+
+    it("should remain usable for mapping after export() — export() must not mutate the live tree", async () => {
+      class Source {
+        title: string;
+      }
+
+      class Destination {
+        name: string;
+      }
+
+      const dataMappingBuilder = new DataMappingBuilder();
+      dataMappingBuilder
+        .add()
+        .setSourceProperty("title")
+        .setDestinationProperty("name")
+        .end();
+
+      const dataMapper = new DataMapper(new AutoDataMappingBuilder(), [], []);
+
+      // Export
+      const schema = dataMappingBuilder.export();
+      expect(schema.nodes.title).toBeDefined();
+
+      // Now map on the SAME builder — must not throw and must still produce the right output.
+      const destination = await dataMapper.map(dataMappingBuilder, {title: "TITLE"}, Destination);
+      expect(destination.name).toBe("TITLE");
+
+      // And calling export() again should still produce the same schema (no cumulative mutation).
+      const secondSchema = dataMappingBuilder.export();
+      expect(secondSchema.nodes.title).toBeDefined();
+      expect(secondSchema.nodes.title._type).toBe("DATA_MAPPING_LEAF");
+    })
+
+    it("should propagate the interceptor's stored options into beforeMapping/afterMapping", async () => {
+      const calls: Array<{phase: string, options: any}> = [];
+
+      const interceptor: DataMappingInterceptorInterface = {
+        async beforeMapping(row: any, options?: any): Promise<any> {
+          calls.push({phase: "before", options});
+          return row;
+        },
+        async afterMapping(row: any, options?: any): Promise<any> {
+          calls.push({phase: "after", options});
+          return row;
+        },
+        getUniqueKey(): DataMappingInterceptorUniqueKeyType {
+          return "options_propagation_interceptor";
+        },
+      };
+
+      const dataMappingBuilder = new DataMappingBuilder();
+      dataMappingBuilder
+        .addBeforeMappingInterceptor("options_propagation_interceptor", {beforeFlag: true})
+        .addAfterMappingInterceptor("options_propagation_interceptor", {afterFlag: 42})
+        .add()
+        .setSourceProperty("name")
+        .setDestinationProperty("name")
+        .end();
+
+      const dataMapper = new DataMapper(new AutoDataMappingBuilder(), [], [interceptor]);
+
+      await dataMapper.map(dataMappingBuilder, {name: "n"});
+
+      expect(calls).toEqual([
+        {phase: "before", options: {beforeFlag: true}},
+        {phase: "after", options: {afterFlag: 42}},
+      ]);
+    })
+
+    it("should throw when end() is called on a node missing destinationProperty", async () => {
+      const dataMappingBuilder = new DataMappingBuilder();
+
+      const {UndefinedDestinationPropertyError} = require("../errors/undefined-destination-property.error");
+
+      expect(() => {
+        dataMappingBuilder
+          .add()
+          .setSourceProperty("title")
+          // No setDestinationProperty(...) here
+          .end();
+      }).toThrowError(UndefinedDestinationPropertyError);
+    })
+
+    it("should reuse the cached schema from AutoDataMappingBuilder on repeated autoMap calls", async () => {
+      class CachedDestination {
+        @property()
+        name: string;
+      }
+
+      const autoBuilder = new AutoDataMappingBuilder();
+      const buildSpy = jest.spyOn(autoBuilder as any, "internalBuild");
+
+      const dataMapper = new DataMapper(autoBuilder, [new StringNormalizer()], []);
+
+      await dataMapper.autoMap({name: "a"}, CachedDestination);
+      await dataMapper.autoMap({name: "b"}, CachedDestination);
+      await dataMapper.autoMap({name: "c"}, CachedDestination);
+
+      // Only the first call should hit internalBuild; the rest reuse the cached schema.
+      expect(buildSpy).toHaveBeenCalledTimes(1);
+    })
+
+    it("should bypass the schema cache when disableCache=true is passed", async () => {
+      class CachedDestination2 {
+        @property()
+        name: string;
+      }
+
+      const autoBuilder = new AutoDataMappingBuilder();
+      const buildSpy = jest.spyOn(autoBuilder as any, "internalBuild");
+
+      const dataMapper = new DataMapper(autoBuilder, [new StringNormalizer()], []);
+
+      await dataMapper.autoMap({name: "a"}, CachedDestination2, new AutoDataMappingBuilderOptions({disableCache: true}));
+      await dataMapper.autoMap({name: "b"}, CachedDestination2, new AutoDataMappingBuilderOptions({disableCache: true}));
+
+      expect(buildSpy).toHaveBeenCalledTimes(2);
+    })
   })
 })

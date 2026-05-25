@@ -14,6 +14,18 @@ import {BooleanNormalizerUniqueKey} from "../normalizers/boolean.normalizer";
 
 export class AutoDataMappingBuilder {
   /**
+   * Schema cache keyed by destination class. The auto-built schema is deterministic in `destinationType`
+   * + the *shape* of the source (which decoration metadata describes), so for a stable class definition
+   * the same builder can be reused across calls. We key only by destinationType to keep things simple;
+   * if the source shape varies and the auto-inference depends on it (e.g. inferring scalar-array member
+   * type from `source[propertyKey][0]`), callers needing fresh inference can bypass the cache via the
+   * `disableCache` option.
+   *
+   * Stored under a WeakMap so unused destination classes can be garbage-collected.
+   */
+  private readonly cache: WeakMap<ClassConstructor<any>, DataMappingBuilder> = new WeakMap();
+
+  /**
    * This method receives a source object and a destinationType that corresponds to the type of the class
    * that the source should be mapped to. It then creates a DataMappingBuilder object that contains the schema
    * needed to map the source to the destinationType.
@@ -22,11 +34,38 @@ export class AutoDataMappingBuilder {
    * @param options
    */
   build(source: any, destinationType: ClassConstructor<any>, options?: AutoDataMappingBuilderOptions): DataMappingBuilder {
+    const resolvedOptions = new AutoDataMappingBuilderOptions(options);
+
+    if (resolvedOptions.disableCache === false) {
+      const cached = this.cache.get(destinationType);
+      if (cached !== undefined) {
+        return cached;
+      }
+    }
+
     const dataMappingBuilder = new DataMappingBuilder();
 
-    this.internalBuild(source, destinationType, dataMappingBuilder, dataMappingBuilder, new AutoDataMappingBuilderOptions(options));
+    this.internalBuild(source, destinationType, dataMappingBuilder, dataMappingBuilder, resolvedOptions);
+
+    if (resolvedOptions.disableCache === false) {
+      this.cache.set(destinationType, dataMappingBuilder);
+    }
 
     return dataMappingBuilder;
+  }
+
+  /**
+   * Clear the cached schema for a destinationType (or the whole cache when no argument is passed).
+   * Useful in tests, or when class metadata changes at runtime (rare).
+   */
+  public clearCache(destinationType?: ClassConstructor<any>): void {
+    if (destinationType === undefined) {
+      // WeakMap has no .clear() — recreate.
+      (this as any).cache = new WeakMap<ClassConstructor<any>, DataMappingBuilder>();
+      return;
+    }
+
+    this.cache.delete(destinationType);
   }
 
   /**

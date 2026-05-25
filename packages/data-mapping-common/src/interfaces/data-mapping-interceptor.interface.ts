@@ -9,14 +9,18 @@ export interface DataMappingInterceptorInterface {
 
   /**
    * This method is called before the row is being mapped and normalized. It allows you to combine fields for example if that's what you want.
+   *
    * @param row
+   * @param options The options associated with this interceptor entry on the builder.
    */
-  beforeMapping(row: any): Promise<any>;
+  beforeMapping(row: any, options?: any): Promise<any>;
 
   /**
    * This method is called after the row is being mapped and normalized. It can allow you to apply operations on each
    * field or combine fields for example.
+   *
    * @param row
+   * @param options The options associated with this interceptor entry on the builder.
    */
-  afterMapping(row: any): Promise<any>;
+  afterMapping(row: any, options?: any): Promise<any>;
 }
