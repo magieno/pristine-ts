@@ -4,17 +4,28 @@ import {IsArray, IsIn, IsOptional, IsString} from "@pristine-ts/class-validator"
 export type TraceFormat = "tree" | "flat" | "json";
 
 /**
- * Flags + positional for `pristine trace <traceId> [--format tree|flat|json] [--run <runId>]`.
+ * Flags + positional for `pristine trace [<id>] [--event-id <x>] [--trace-id <x>] [--request-id <x>] [--format tree|flat|json]`.
  *
- * The positional `<traceId>` lands in the reserved `_` array that `CommandEventMapper`
- * collects bare tokens into. The `traceId` getter reads the first element so the command
- * body uses a meaningful name without indexing the underscore directly.
+ * Look up a trace by any of three correlation ids — `--event-id` is canonical,
+ * `--trace-id` covers the distributed-tracing case (a propagated `traceparent`),
+ * `--request-id` covers HTTP requests with an `x-pristine-request-id` header. A
+ * positional id is tried against all three.
  */
 export class TraceCommandOptions {
-  /** `--run <id>`: pick a specific run instead of searching from the latest. */
+  /** `--event-id <id>`: look up by the canonical event id. */
   @IsOptional()
   @IsString()
-  run?: string;
+  "event-id"?: string;
+
+  /** `--trace-id <id>`: look up by the trace id (distributed-tracing scenarios). */
+  @IsOptional()
+  @IsString()
+  "trace-id"?: string;
+
+  /** `--request-id <id>`: look up by the request id (HTTP `x-pristine-request-id`). */
+  @IsOptional()
+  @IsString()
+  "request-id"?: string;
 
   /** `--format tree|flat|json`: how to render the trace. Defaults to `tree`. */
   @IsOptional()
@@ -22,15 +33,19 @@ export class TraceCommandOptions {
   format?: TraceFormat;
 
   /**
-   * Bare positional tokens, collected in order by `CommandEventMapper`. The decorators
-   * are required for `AutoDataMappingBuilder` to round-trip the field — it skips
-   * properties that aren't in the class metadata.
+   * Bare positional tokens. A positional id is tried against all three correlation
+   * fields by `TraceStore.find(id)`. Decorators are required for `AutoDataMappingBuilder`
+   * to round-trip the field.
    */
   @IsOptional()
   @IsArray()
   _?: string[];
 
-  get traceId(): string | undefined {
-    return this._?.[0];
+  /**
+   * Resolves the lookup id: an explicit flag wins over the positional, and explicit
+   * flags are preferred in `eventId > traceId > requestId` order.
+   */
+  get lookupId(): string | undefined {
+    return this["event-id"] ?? this["trace-id"] ?? this["request-id"] ?? this._?.[0];
   }
 }

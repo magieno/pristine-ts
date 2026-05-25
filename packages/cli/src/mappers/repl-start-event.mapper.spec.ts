@@ -1,10 +1,10 @@
 import "reflect-metadata";
-import {ExecutionContextKeynameEnum} from "@pristine-ts/core";
+import {EventIdGenerationStyleEnum, EventIdManager, ExecutionContextKeynameEnum} from "@pristine-ts/core";
 import {ReplStartEventMapper} from "./repl-start-event.mapper";
 import {StartReplEventPayload} from "../event-payloads/start-repl.event-payload";
 
 describe("ReplStartEventMapper", () => {
-  const mapper = new ReplStartEventMapper();
+  const mapper = new ReplStartEventMapper(new EventIdManager(EventIdGenerationStyleEnum.Uuid));
   const cliContext = {keyname: ExecutionContextKeynameEnum.Cli, context: {}};
 
   describe("supportsMapping", () => {

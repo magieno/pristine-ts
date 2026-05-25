@@ -1,5 +1,6 @@
 import {
   Event,
+  EventIdManager,
   EventMapperInterface,
   EventResponse,
   EventsExecutionOptionsInterface,
@@ -8,7 +9,6 @@ import {
 } from "@pristine-ts/core";
 import {injectable} from "tsyringe";
 import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
-import {v4 as uuidv4} from "uuid";
 import {StartReplEventPayload} from "../event-payloads/start-repl.event-payload";
 import {CliModuleKeyname} from "../cli.module.keyname";
 import {PristineArgv} from "../utils/pristine-argv";
@@ -31,6 +31,9 @@ import {PristineArgv} from "../utils/pristine-argv";
 @moduleScoped(CliModuleKeyname)
 @injectable()
 export class ReplStartEventMapper implements EventMapperInterface<StartReplEventPayload, number> {
+  constructor(private readonly eventIdManager: EventIdManager) {
+  }
+
   supportsMapping(rawEvent: any, executionContext: ExecutionContextInterface<any>): boolean {
     if (executionContext.keyname !== ExecutionContextKeynameEnum.Cli) {
       return false;
@@ -51,7 +54,7 @@ export class ReplStartEventMapper implements EventMapperInterface<StartReplEvent
     const argv = new PristineArgv(Array.isArray(rawEvent) ? rawEvent : []);
     const payload = new StartReplEventPayload(argv.scriptPath);
     return {
-      events: [new Event<StartReplEventPayload>("start-repl", payload, uuidv4())],
+      events: [new Event<StartReplEventPayload>("start-repl", payload, this.eventIdManager.generateEventId())],
       executionOrder: "sequential",
     };
   }

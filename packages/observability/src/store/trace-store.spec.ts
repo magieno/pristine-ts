@@ -15,12 +15,12 @@ interface BuildOptions {
   retainedInstances?: number;
 }
 
-function buildTraceStore(directory: string, instanceId: string, options: BuildOptions = {}): TraceStore {
+function buildTraceStore(directory: string, partitionId: string, options: BuildOptions = {}): TraceStore {
   return new TraceStore(
     options.enabled ?? true,
     directory,
     options.retainedInstances ?? 10,
-    instanceId,
+    partitionId,
   );
 }
 
@@ -42,58 +42,116 @@ function makeTrace(id: string, contextOverrides: Record<string, string> = {}): T
 const tick = () => new Promise(resolve => setTimeout(resolve, 20));
 
 describe("TraceStore", () => {
-  it("writes the trace JSON and appends a request summary on append", () => {
+  it("writes the trace JSON and appends a one-id summary on append", () => {
     const directory = makeTempDir();
-    const store = buildTraceStore(directory, "i1");
+    const store = buildTraceStore(directory, "p1");
 
-    store.append(makeTrace("trace-1"));
+    store.append(makeTrace("event-1"));
 
     const paths = new ObservabilityPaths(directory);
-    expect(fs.existsSync(paths.traceFile("i1", "trace-1"))).toBe(true);
-    expect(fs.existsSync(paths.requestsFile("i1"))).toBe(true);
+    expect(fs.existsSync(paths.traceFile("p1", "event-1"))).toBe(true);
+    expect(fs.existsSync(paths.requestsFile("p1"))).toBe(true);
 
-    const summaries = store.recentRequests("i1");
+    const summaries = store.recentRequests();
     expect(summaries).toHaveLength(1);
-    expect(summaries[0].traceId).toBe("trace-1");
+    expect(summaries[0].eventId).toBe("event-1");
+    // Common case: trace/request ids equal event id, so the summary omits them.
+    expect(summaries[0].traceId).toBeUndefined();
+    expect(summaries[0].requestId).toBeUndefined();
     expect(summaries[0].httpMethod).toBe("GET");
-    expect(summaries[0].httpPath).toBe("/products");
     expect(summaries[0].httpStatus).toBe(200);
     expect(summaries[0].durationMs).toBe(42);
   });
 
-  it("is a no-op when capture is disabled", () => {
+  it("writes divergent traceId only when it differs from eventId", () => {
     const directory = makeTempDir();
-    const store = buildTraceStore(directory, "i2", {enabled: false});
+    const store = buildTraceStore(directory, "p-divergent-trace");
+    const trace = makeTrace("trace-from-upstream", {"event.id": "event-local"});
 
-    store.append(makeTrace("trace-x"));
+    store.append(trace);
 
-    expect(fs.existsSync(new ObservabilityPaths(directory).instanceDirectory("i2"))).toBe(false);
+    const summary = store.recentRequests()[0];
+    expect(summary.eventId).toBe("event-local");
+    expect(summary.traceId).toBe("trace-from-upstream");
+    expect(summary.requestId).toBeUndefined();
   });
 
-  it("find() returns a rehydrated Trace instance, not a serialized object", () => {
+  it("writes divergent requestId only when it differs from eventId", () => {
     const directory = makeTempDir();
-    const store = buildTraceStore(directory, "i3");
-    store.append(makeTrace("trace-rehydrate"));
+    const store = buildTraceStore(directory, "p-divergent-request");
+    const trace = makeTrace("event-1", {"request.id": "client-xyz-99"});
 
-    const found = store.find("trace-rehydrate");
+    store.append(trace);
+
+    const summary = store.recentRequests()[0];
+    expect(summary.eventId).toBe("event-1");
+    expect(summary.requestId).toBe("client-xyz-99");
+    expect(summary.traceId).toBeUndefined();
+  });
+
+  it("is a no-op when capture is disabled", () => {
+    const directory = makeTempDir();
+    const store = buildTraceStore(directory, "p2", {enabled: false});
+
+    store.append(makeTrace("event-x"));
+
+    expect(fs.existsSync(new ObservabilityPaths(directory).instanceDirectory("p2"))).toBe(false);
+  });
+
+  it("find(id) resolves by eventId (direct file lookup)", () => {
+    const directory = makeTempDir();
+    const store = buildTraceStore(directory, "p-find");
+    store.append(makeTrace("event-direct"));
+
+    const found = store.find("event-direct");
     expect(found).toBeDefined();
+    expect(found!.eventId).toBe("event-direct");
     expect(found!.trace).toBeInstanceOf(Trace);
     expect(found!.trace.getDuration()).toBe(42);
     expect(found!.trace.rootSpan).toBeInstanceOf(Span);
   });
 
+  it("find(id) resolves by divergent requestId via the summary index", () => {
+    const directory = makeTempDir();
+    const store = buildTraceStore(directory, "p-find-request");
+    store.append(makeTrace("event-canonical", {"request.id": "client-id-77"}));
+
+    const found = store.find("client-id-77");
+    expect(found).toBeDefined();
+    expect(found!.eventId).toBe("event-canonical");
+  });
+
+  it("find(id) resolves by divergent traceId via the summary index", () => {
+    const directory = makeTempDir();
+    const store = buildTraceStore(directory, "p-find-trace");
+    store.append(makeTrace("trace-upstream", {"event.id": "event-local"}));
+
+    const found = store.find("trace-upstream");
+    expect(found).toBeDefined();
+    expect(found!.eventId).toBe("event-local");
+  });
+
+  it("find(id) returns undefined when no partition has the id", () => {
+    const directory = makeTempDir();
+    const store = buildTraceStore(directory, "p-empty");
+    store.append(makeTrace("event-a"));
+
+    expect(store.find("nonexistent")).toBeUndefined();
+  });
+
   it("findSerialized() returns the raw stored JSON shape", () => {
     const directory = makeTempDir();
-    const store = buildTraceStore(directory, "i4");
-    store.append(makeTrace("trace-serialized"));
+    const store = buildTraceStore(directory, "p-serialized");
+    store.append(makeTrace("event-serialized"));
 
-    const found = store.findSerialized("trace-serialized");
+    const found = store.findSerialized("event-serialized");
     expect(found).toBeDefined();
-    expect(found!.trace.id).toBe("trace-serialized");
+    expect(found!.eventId).toBe("event-serialized");
+    expect(found!.trace.id).toBe("event-serialized");
     expect(found!.trace.rootSpan?.keyname).toBe("root.execution");
   });
 
-  it("find() searches the preferred instance first, then everything else newest-first", async () => {
+  it("find searches partitions newest-first", async () => {
     const directory = makeTempDir();
     const older = buildTraceStore(directory, "older");
     older.append(makeTrace("only-in-older"));
@@ -102,52 +160,51 @@ describe("TraceStore", () => {
     newer.append(makeTrace("only-in-newer"));
 
     const reader = buildTraceStore(directory, "reader");
-    expect(reader.find("only-in-older")!.instanceId).toBe("older");
-    expect(reader.find("only-in-newer")!.instanceId).toBe("newer");
-    // Preferred-but-missing falls back to other instances.
-    expect(reader.find("only-in-older", "newer")!.instanceId).toBe("older");
+    expect(reader.find("only-in-older")).toBeDefined();
+    expect(reader.find("only-in-newer")).toBeDefined();
   });
 
-  it("recentRequests() defaults to the latest instance and respects the limit", async () => {
+  it("recentRequests() returns summaries across every partition, newest first", async () => {
     const directory = makeTempDir();
     const older = buildTraceStore(directory, "older");
-    older.append(makeTrace("t-1"));
+    const tOld = makeTrace("t-old");
+    tOld.startDate = 1000;
+    tOld.endDate = 1010;
+    older.append(tOld);
     await tick();
     const newer = buildTraceStore(directory, "newer");
-    const trace2 = makeTrace("t-2");
-    trace2.startDate = 2000;
-    trace2.endDate = 2050;
-    const trace3 = makeTrace("t-3");
-    trace3.startDate = 3000;
-    trace3.endDate = 3050;
-    newer.append(trace2);
-    newer.append(trace3);
+    const tMid = makeTrace("t-mid");
+    tMid.startDate = 2000;
+    tMid.endDate = 2010;
+    const tNew = makeTrace("t-new");
+    tNew.startDate = 3000;
+    tNew.endDate = 3010;
+    newer.append(tMid);
+    newer.append(tNew);
 
     const reader = buildTraceStore(directory, "reader");
     const summaries = reader.recentRequests();
-    expect(summaries).toHaveLength(2);
-    expect(summaries[0].traceId).toBe("t-3");
-    expect(summaries[1].traceId).toBe("t-2");
+    expect(summaries.map(s => s.eventId)).toEqual(["t-new", "t-mid", "t-old"]);
 
-    expect(reader.recentRequests(undefined, 1)).toHaveLength(1);
+    expect(reader.recentRequests(2).map(s => s.eventId)).toEqual(["t-new", "t-mid"]);
   });
 
-  it("recentTraceIds() returns ids from the latest instance, newest first", async () => {
+  it("recentTraceIds() returns event ids across all partitions, newest first", async () => {
     const directory = makeTempDir();
-    const store = buildTraceStore(directory, "i5");
-    const traceA = makeTrace("a");
-    traceA.startDate = 1000;
-    traceA.endDate = 1050;
-    const traceB = makeTrace("b");
-    traceB.startDate = 2000;
-    traceB.endDate = 2050;
-    store.append(traceA);
-    store.append(traceB);
+    const store = buildTraceStore(directory, "p-recent");
+    const tA = makeTrace("a");
+    tA.startDate = 1000;
+    tA.endDate = 1050;
+    const tB = makeTrace("b");
+    tB.startDate = 2000;
+    tB.endDate = 2050;
+    store.append(tA);
+    store.append(tB);
 
     expect(store.recentTraceIds(5)).toEqual(["b", "a"]);
   });
 
-  it("prunes oldest instances beyond the retained limit on first write", async () => {
+  it("prunes oldest partitions beyond the retained limit on first write", async () => {
     const directory = makeTempDir();
     const paths = new ObservabilityPaths(directory);
     for (const name of ["t-a", "t-b", "t-c"]) {

@@ -2,6 +2,7 @@ import {ApiGatewayEventsHandlingStrategyEnum} from "../enums/api-gateway-events-
 import {AwsApiGatewayConfigurationKeys} from "../aws-api-gateway.configuration-keys";
 import {
   Event,
+  EventIdManager,
   EventMapperInterface,
   EventResponse,
   EventsExecutionOptionsInterface,
@@ -15,7 +16,6 @@ import {AwsApiGatewayModuleKeyname} from "../aws-api-gateway.module.keyname";
 import {ApiGatewayEventTypeEnum} from "../enums/api-gateway-event-type.enum";
 import {BaseApiEventMapper} from "./base-api-event.mapper";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import {v4 as uuidv4} from "uuid";
 
 /**
  * The Http api event mapper maps a raw event to EventsExecutionOptionsInterface with either an HttpApiEventPayload or a Request
@@ -35,7 +35,8 @@ export class HttpApiEventMapper extends BaseApiEventMapper implements EventMappe
    * @param httpRequestsHandlingStrategy The handling strategy to use when handling http api events.
    */
   constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-              @injectConfig(AwsApiGatewayConfigurationKeys.HttpApiEventsHandlingStrategy) private readonly httpRequestsHandlingStrategy: ApiGatewayEventsHandlingStrategyEnum) {
+              @injectConfig(AwsApiGatewayConfigurationKeys.HttpApiEventsHandlingStrategy) private readonly httpRequestsHandlingStrategy: ApiGatewayEventsHandlingStrategyEnum,
+              private readonly eventIdManager: EventIdManager) {
     super();
   }
 
@@ -65,7 +66,7 @@ export class HttpApiEventMapper extends BaseApiEventMapper implements EventMappe
         const request = new Request(
           this.mapHttpMethod(rawEvent.requestContext.http.method),
           rawEvent.requestContext.http.path + (rawEvent.rawQueryString ? "?" + rawEvent.rawQueryString : ""),
-          uuidv4(),
+          this.eventIdManager.generateEventId(),
         );
         request.setHeaders(rawEvent.headers);
         request.body = rawEvent.body;

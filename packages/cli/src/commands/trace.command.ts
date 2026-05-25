@@ -8,13 +8,11 @@ import {CliModuleKeyname} from "../cli.module.keyname";
 import {TraceCommandOptions} from "./trace.command-options";
 
 /**
- * Renders the span tree of one captured trace: `pristine trace <traceId>`.
+ * Renders the span tree of one captured trace. Look it up by any of event/trace/request
+ * id — `pristine trace <id>` tries all three, or use the explicit `--event-id`,
+ * `--trace-id`, `--request-id` flags.
  *
- * The trace id is also the eventId / request id — copy it straight from `pristine
- * requests`. A pure report command: output goes through `CliOutput`.
- *
- * Flags: `--format tree|flat|json` (default `tree`), `--run <id>` (defaults to searching
- * the latest run, then older runs).
+ * `--format tree|flat|json` controls the rendering (defaults to `tree`).
  */
 @tag(ServiceDefinitionTagEnum.Command)
 @moduleScoped(CliModuleKeyname)
@@ -22,7 +20,7 @@ import {TraceCommandOptions} from "./trace.command-options";
 export class TraceCommand implements CommandInterface<TraceCommandOptions> {
   optionsType = TraceCommandOptions;
   name = "p:trace";
-  description = "Render the span tree of a captured trace by its id.";
+  description = "Render the span tree of a captured trace by event/trace/request id.";
 
   constructor(
     private readonly cliOutput: CliOutput,
@@ -31,27 +29,28 @@ export class TraceCommand implements CommandInterface<TraceCommandOptions> {
   }
 
   async run(args: TraceCommandOptions): Promise<ExitCode | number> {
-    const traceId = args.traceId;
-    if (traceId === undefined) {
-      this.cliOutput.writeLine("Usage: pristine trace <traceId> [--format tree|flat|json] [--run <runId>]");
+    const lookupId = args.lookupId;
+    if (lookupId === undefined) {
+      this.cliOutput.writeLine("Usage: pristine trace <id> [--format tree|flat|json]");
+      this.cliOutput.writeLine("       pristine trace --event-id <id> | --trace-id <id> | --request-id <id>");
       return ExitCode.Error;
     }
 
     const format = args.format ?? "tree";
 
     if (format === "json") {
-      const serialized = this.traceStore.findSerialized(traceId, args.run);
+      const serialized = this.traceStore.findSerialized(lookupId);
       if (serialized === undefined) {
-        this.cliOutput.writeLine(`Trace '${traceId}' not found in the observability store.`);
+        this.cliOutput.writeLine(`No trace found matching '${lookupId}'.`);
         return ExitCode.Error;
       }
       this.cliOutput.writeLine(JSON.stringify(serialized.trace, null, 2));
       return ExitCode.Success;
     }
 
-    const found = this.traceStore.find(traceId, args.run);
+    const found = this.traceStore.find(lookupId);
     if (found === undefined) {
-      this.cliOutput.writeLine(`Trace '${traceId}' not found in the observability store.`);
+      this.cliOutput.writeLine(`No trace found matching '${lookupId}'.`);
       return ExitCode.Error;
     }
 

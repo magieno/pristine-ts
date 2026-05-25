@@ -10,16 +10,19 @@ import {SerializedTrace} from "../interfaces/serialized-trace.interface";
 import {TraceDeserializer} from "../serializers/trace-deserializer";
 
 /**
- * The read/write layer for captured traces. The `ObservabilityTracer` (a `Tracer`-tagged
- * transport) calls `append` on every completed trace; the CLI's `trace` and `requests`
- * commands call `find` / `recentRequests` / `recentTraceIds`. The REPL also reads
- * `recentTraceIds` for its tab-completion.
+ * The read/write layer for captured traces. The `ObservabilityTracer` (a `Tracer`-
+ * tagged transport) calls `append` on every completed trace; the CLI's `trace` and
+ * `requests` commands call `find` / `recentRequests` / `recentTraceIds`. The REPL also
+ * reads `recentTraceIds` for its tab-completion.
  *
- * Writes both `traces/<traceId>.json` (the full tree) and an appended one-line summary in
- * `requests.jsonl` (the fast index for `pristine requests`) as a single coupled operation.
- * Each pristine process writes to its own instance directory (keyed by the kernel
- * instantiation id) so two processes never race on the same files. No begin/end ceremony:
- * the directory is lazy-created on first append. Retention is by whole-instance count.
+ * Writes both `traces/<eventId>.json` (the full tree) and an appended one-line
+ * `RequestSummary` in `requests.jsonl` (the fast index for `pristine requests`) as a
+ * single coupled operation. The summary additionally serves as the lookup table that
+ * resolves `requestId` / `traceId` back to the canonical `eventId` when they differ.
+ *
+ * Internally, each pristine process writes to its own per-process directory (keyed by
+ * the kernel instantiation id) so concurrent processes never race. That partition is
+ * invisible to callers — `find` and `recentRequests` walk every directory newest-first.
  *
  * Singleton so multiple appenders within the same process share the in-memory `pruned`
  * latch.
@@ -36,120 +39,108 @@ export class TraceStore {
     @injectConfig(ObservabilityConfigurationKeys.Enabled) private readonly enabled: boolean,
     @injectConfig(ObservabilityConfigurationKeys.Directory) directory: string,
     @injectConfig(ObservabilityConfigurationKeys.RetainedInstances) private readonly retainedInstances: number,
-    @inject(InternalContainerParameterEnum.KernelInstantiationId) private readonly instanceId: string,
+    @inject(InternalContainerParameterEnum.KernelInstantiationId) private readonly partitionId: string,
   ) {
     this.paths = new ObservabilityPaths(directory);
   }
 
   /**
-   * Persists a completed trace: writes `traces/<traceId>.json` (the full tree) and appends
-   * a one-line summary to `requests.jsonl`. No-op when observability is disabled.
+   * Persists a completed trace: writes `traces/<eventId>.json` (the full tree) and
+   * appends a `RequestSummary` to `requests.jsonl`. No-op when observability is
+   * disabled.
    *
-   * HTTP metadata (`http.method`, `http.path`, `http.statusCode`) is read from the trace's
-   * `context` — populated upstream by the networking HTTP-to-trace enrichment. Non-HTTP
-   * traces simply have those fields undefined in the summary.
+   * The summary's optional `traceId` / `requestId` fields are written only when they
+   * differ from the canonical `eventId` (typically only `requestId` for HTTP requests
+   * with an `x-pristine-request-id` header that disagreed with the mapper's event id,
+   * and `traceId` for distributed-tracing scenarios). The common case is a one-id
+   * line — `{eventId, startedAt, durationMs, rootKeyname, ...http}`.
    */
   append(trace: Trace): void {
     if (this.enabled === false) {
       return;
     }
-    this.ensureInstanceDirectory();
+    this.ensurePartitionDirectory();
+    const eventId = this.eventIdOf(trace);
     const traceContent = traceRenderer.renderJson(trace);
-    const requestLine = JSON.stringify(this.buildSummary(trace)) + "\n";
-    fs.writeFileSync(this.paths.traceFile(this.instanceId, trace.id), traceContent);
-    fs.appendFileSync(this.paths.requestsFile(this.instanceId), requestLine);
+    const summary = this.buildSummary(trace, eventId);
+    const requestLine = JSON.stringify(summary) + "\n";
+    fs.writeFileSync(this.paths.traceFile(this.partitionId, eventId), traceContent);
+    fs.appendFileSync(this.paths.requestsFile(this.partitionId), requestLine);
   }
 
   /**
-   * Finds and rehydrates a trace by id, returning a `Trace` instance with its full span
-   * tree rebuilt (instance methods like `getDuration()` work directly). Searches the
-   * preferred instance first when given, then every other instance most-recent first.
+   * Finds and rehydrates a trace by any of `eventId` / `traceId` / `requestId`, returning
+   * a `Trace` instance with its full span tree rebuilt (instance methods like
+   * `getDuration()` work directly). Searches partitions newest-first.
    */
-  find(traceId: string, preferredInstanceId?: string): {trace: Trace; instanceId: string} | undefined {
-    const serialized = this.findSerialized(traceId, preferredInstanceId);
+  find(id: string): {trace: Trace; eventId: string} | undefined {
+    const serialized = this.findSerialized(id);
     if (serialized === undefined) {
       return undefined;
     }
-    return {trace: TraceDeserializer.deserialize(serialized.trace), instanceId: serialized.instanceId};
+    return {trace: TraceDeserializer.deserialize(serialized.trace), eventId: serialized.eventId};
   }
 
   /**
    * Same as `find`, but returns the raw stored JSON. The escape hatch for callers that
    * want to render the on-disk shape verbatim — e.g. `pristine trace --format json`.
    */
-  findSerialized(traceId: string, preferredInstanceId?: string): {trace: SerializedTrace; instanceId: string} | undefined {
-    const ordered = this.searchOrder(preferredInstanceId);
-    for (const instanceId of ordered) {
-      try {
-        const trace = JSON.parse(fs.readFileSync(this.paths.traceFile(instanceId, traceId), "utf8")) as SerializedTrace;
-        return {trace, instanceId};
-      } catch {
-        // Not in this instance — keep looking.
+  findSerialized(id: string): {trace: SerializedTrace; eventId: string} | undefined {
+    for (const partition of this.partitionsNewestFirst()) {
+      // Try direct file lookup first — `id` IS the eventId in the common case.
+      const direct = this.tryLoadTrace(partition, id);
+      if (direct !== undefined) {
+        return {trace: direct, eventId: id};
+      }
+      // Else resolve via the summary index — `id` might be a divergent traceId/requestId.
+      const eventId = this.resolveEventIdFromSummaries(partition, id);
+      if (eventId !== undefined) {
+        const trace = this.tryLoadTrace(partition, eventId);
+        if (trace !== undefined) {
+          return {trace, eventId};
+        }
       }
     }
     return undefined;
   }
 
   /**
-   * The request summaries for an instance, most-recent first, optionally capped to
-   * `limit`. Defaults to the most recent instance.
+   * Recent request summaries across every partition, most-recent first, optionally
+   * capped to `limit`.
    */
-  recentRequests(instanceId?: string, limit?: number): RequestSummary[] {
-    const id = instanceId ?? this.latestInstanceId();
-    if (id === undefined) {
-      return [];
+  recentRequests(limit?: number): RequestSummary[] {
+    const all: RequestSummary[] = [];
+    for (const partition of this.partitionsNewestFirst()) {
+      all.push(...this.readSummaries(partition));
     }
-    const summaries = this.readJsonl<RequestSummary>(this.paths.requestsFile(id))
-      .sort((a, b) => b.startedAt - a.startedAt);
-    return limit === undefined ? summaries : summaries.slice(0, limit);
+    all.sort((a, b) => b.startedAt - a.startedAt);
+    return limit === undefined ? all : all.slice(0, limit);
   }
 
   /**
-   * The most recent trace ids in the latest instance — used by the REPL completer.
+   * The most recent event ids across all partitions — used by the REPL completer.
    */
   recentTraceIds(limit: number): string[] {
-    return this.recentRequests(undefined, limit).map(summary => summary.traceId);
+    return this.recentRequests(limit).map(summary => summary.eventId);
   }
 
-  /**
-   * Every instance directory currently in the store, ordered most-recent first by
-   * directory `mtime`.
-   */
-  list(): string[] {
-    try {
-      return fs.readdirSync(this.paths.root, {withFileTypes: true})
-        .filter(entry => entry.isDirectory())
-        .map(entry => ({name: entry.name, mtime: this.directoryMtime(entry.name)}))
-        .sort((a, b) => b.mtime - a.mtime)
-        .map(entry => entry.name);
-    } catch {
-      return [];
-    }
-  }
-
-  /**
-   * The most recent instance id, or undefined when the store is empty.
-   */
-  latestInstanceId(): string | undefined {
-    return this.list()[0];
-  }
-
-  private searchOrder(preferred?: string): string[] {
-    const all = this.list();
-    if (preferred === undefined) {
-      return all;
-    }
-    return [preferred, ...all.filter(id => id !== preferred)];
-  }
-
-  private buildSummary(trace: Trace): RequestSummary {
+  private buildSummary(trace: Trace, eventId: string): RequestSummary {
     const context = trace.context ?? {};
     const summary = new RequestSummary(
-      trace.id,
+      eventId,
       trace.startDate,
       trace.getDuration(),
       trace.rootSpan?.keyname ?? "",
     );
+
+    // Only persist divergent ids — the common case is all three values equal.
+    if (trace.id !== eventId) {
+      summary.traceId = trace.id;
+    }
+    const requestId = context["request.id"];
+    if (typeof requestId === "string" && requestId !== eventId) {
+      summary.requestId = requestId;
+    }
 
     summary.httpMethod = context["http.method"];
     summary.httpPath = context["http.path"];
@@ -163,34 +154,75 @@ export class TraceStore {
     return summary;
   }
 
-  private ensureInstanceDirectory(): void {
+  /**
+   * The canonical id for a trace. Today the trace's own `id` is set from the kernel's
+   * event id at trace creation, so they're equal. A custom `context["event.id"]`
+   * override wins when present — that's the explicit hook for distributed-tracing setups
+   * where the trace id was overwritten from a propagated `traceparent`.
+   */
+  private eventIdOf(trace: Trace): string {
+    const fromContext = trace.context?.["event.id"];
+    return typeof fromContext === "string" && fromContext.length > 0 ? fromContext : trace.id;
+  }
+
+  private resolveEventIdFromSummaries(partition: string, id: string): string | undefined {
+    for (const summary of this.readSummaries(partition)) {
+      if (summary.eventId === id || summary.traceId === id || summary.requestId === id) {
+        return summary.eventId;
+      }
+    }
+    return undefined;
+  }
+
+  private tryLoadTrace(partition: string, eventId: string): SerializedTrace | undefined {
+    try {
+      return JSON.parse(fs.readFileSync(this.paths.traceFile(partition, eventId), "utf8")) as SerializedTrace;
+    } catch {
+      return undefined;
+    }
+  }
+
+  private readSummaries(partition: string): RequestSummary[] {
+    return this.readJsonl<RequestSummary>(this.paths.requestsFile(partition));
+  }
+
+  private ensurePartitionDirectory(): void {
     if (this.directoryEnsured) {
       return;
     }
-    fs.mkdirSync(this.paths.tracesDirectory(this.instanceId), {recursive: true});
+    fs.mkdirSync(this.paths.tracesDirectory(this.partitionId), {recursive: true});
     this.directoryEnsured = true;
-    this.pruneOldInstances();
+    this.pruneOldPartitions();
   }
 
   /**
-   * Drops instance directories beyond the retained limit, ordered by `mtime`. Once per
-   * process. Best-effort: a failure to prune never blocks a write.
+   * Drops partition directories beyond the retained limit, ordered by `mtime`. Once
+   * per process. Best-effort: a failure to prune never blocks a write.
    */
-  private pruneOldInstances(): void {
+  private pruneOldPartitions(): void {
     if (this.pruned) {
       return;
     }
     this.pruned = true;
     try {
-      const ordered = fs.readdirSync(this.paths.root, {withFileTypes: true})
-        .filter(entry => entry.isDirectory())
-        .map(entry => ({name: entry.name, mtime: this.directoryMtime(entry.name)}))
-        .sort((a, b) => b.mtime - a.mtime);
+      const ordered = this.partitionsNewestFirst();
       for (const stale of ordered.slice(Math.max(this.retainedInstances, 1))) {
-        fs.rmSync(this.paths.instanceDirectory(stale.name), {recursive: true, force: true});
+        fs.rmSync(this.paths.instanceDirectory(stale), {recursive: true, force: true});
       }
     } catch {
       // Best-effort.
+    }
+  }
+
+  private partitionsNewestFirst(): string[] {
+    try {
+      return fs.readdirSync(this.paths.root, {withFileTypes: true})
+        .filter(entry => entry.isDirectory())
+        .map(entry => ({name: entry.name, mtime: this.directoryMtime(entry.name)}))
+        .sort((a, b) => b.mtime - a.mtime)
+        .map(entry => entry.name);
+    } catch {
+      return [];
     }
   }
 

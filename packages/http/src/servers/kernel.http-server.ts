@@ -3,8 +3,7 @@ import http, {IncomingMessage, Server, ServerResponse} from "http";
 import https from "https";
 import fs from "fs";
 import {URL} from "url";
-import {v4 as uuidv4} from "uuid";
-import {ExecutionContextKeynameEnum, Kernel, RuntimeServerInterface} from "@pristine-ts/core";
+import {EventIdManager, ExecutionContextKeynameEnum, Kernel, RuntimeServerInterface} from "@pristine-ts/core";
 import {moduleScoped, Request, Response, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {HttpModuleKeyname} from "../http.module.keyname";
@@ -70,6 +69,7 @@ export class KernelHttpServer implements RuntimeServerInterface {
     @inject(`%${HttpModuleKeyname}.kernel-server.tls.cert-path%`) private readonly defaultTlsCertPath: string,
     @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
     private readonly kernel: Kernel,
+    private readonly eventIdManager: EventIdManager,
   ) {
   }
 
@@ -175,7 +175,7 @@ export class KernelHttpServer implements RuntimeServerInterface {
    * @private
    */
   private async handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
-    const requestId = (req.headers["x-pristine-request-id"] as string | undefined) ?? uuidv4();
+    const requestId = (req.headers["x-pristine-request-id"] as string | undefined) ?? this.eventIdManager.generateEventId();
 
     try {
       const request = await this.mapToPristineRequest(req, requestId);

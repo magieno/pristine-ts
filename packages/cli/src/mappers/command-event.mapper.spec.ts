@@ -1,11 +1,14 @@
 import "reflect-metadata";
 import {CommandEventMapper} from "./command-event.mapper";
-import {ExecutionContextKeynameEnum} from "@pristine-ts/core";
+import {EventIdManager, ExecutionContextKeynameEnum} from "@pristine-ts/core";
+import {EventIdGenerationStyleEnum} from "@pristine-ts/core";
 import {CommandEventPayload} from "../event-payloads/command.event-payload";
+
+const fakeEventIdManager = new EventIdManager(EventIdGenerationStyleEnum.Uuid);
 
 describe('Command Event Mapper', function () {
   it("should properly map the arguments", async () => {
-    const commandEventMapper = new CommandEventMapper();
+    const commandEventMapper = new CommandEventMapper(fakeEventIdManager);
     const mapped = await commandEventMapper.map(["node", "/path/to/pristine", "name", "parameter", "value"], {
       keyname: ExecutionContextKeynameEnum.Cli,
       context: {}
@@ -17,7 +20,7 @@ describe('Command Event Mapper', function () {
   })
 
   it("should properly map the '--' arguments", async () => {
-    const commandEventMapper = new CommandEventMapper();
+    const commandEventMapper = new CommandEventMapper(fakeEventIdManager);
 
     const consoleArguments = [
       ["--parameter", "value"],
@@ -41,7 +44,7 @@ describe('Command Event Mapper', function () {
     }
   })
   it("should properly map multiple '--' arguments with the same name into an array", async () => {
-    const commandEventMapper = new CommandEventMapper();
+    const commandEventMapper = new CommandEventMapper(fakeEventIdManager);
 
     const mapped = await commandEventMapper.map(["node", "/path/to/pristine", "name", "--parameter=value1", "--parameter=value2"], {
       keyname: ExecutionContextKeynameEnum.Cli,
@@ -61,7 +64,7 @@ describe('Command Event Mapper', function () {
 
 
   describe("supportsMapping", () => {
-    const mapper = new CommandEventMapper();
+    const mapper = new CommandEventMapper(fakeEventIdManager);
 
     it("matches argv that names a command under the Cli keyname", () => {
       expect(mapper.supportsMapping(["node", "pristine", "build"], {
@@ -93,7 +96,7 @@ describe('Command Event Mapper', function () {
   });
 
   it("should properly transform booleans, numbers and strings into their intended representation", async () => {
-    const commandEventMapper = new CommandEventMapper();
+    const commandEventMapper = new CommandEventMapper(fakeEventIdManager);
 
     const consoleArguments = [
       {args: ["--parameter", "true"], expectedValue: true},

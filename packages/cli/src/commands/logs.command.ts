@@ -8,11 +8,11 @@ import {CliModuleKeyname} from "../cli.module.keyname";
 import {LogsCommandOptions} from "./logs.command-options";
 
 /**
- * Renders captured logs: `pristine logs` for the whole latest run, `pristine logs <id>`
- * for one request's logs. With `--follow`/`-f` it streams new lines as they're appended
- * (Ctrl-C to stop). A pure report command: output goes through `CliOutput`.
- *
- * Flags: `--follow` / `-f`, `--run <id>` (defaults to the latest run).
+ * Renders captured logs: `pristine logs` for everything (newest first across all
+ * processes), `pristine logs <id>` to filter by any of event/trace/request id, or
+ * the explicit `--event-id` / `--trace-id` / `--request-id` flags. With `--follow`/`-f`
+ * it tails the live writers (Ctrl-C to stop). A pure report command: output goes
+ * through `CliOutput`.
  */
 @tag(ServiceDefinitionTagEnum.Command)
 @moduleScoped(CliModuleKeyname)
@@ -20,7 +20,7 @@ import {LogsCommandOptions} from "./logs.command-options";
 export class LogsCommand implements CommandInterface<LogsCommandOptions> {
   optionsType = LogsCommandOptions;
   name = "p:logs";
-  description = "Show captured logs, optionally for one request, optionally following live.";
+  description = "Show captured logs, optionally filtered by event/trace/request id, optionally following live.";
 
   constructor(
     private readonly cliOutput: CliOutput,
@@ -29,33 +29,35 @@ export class LogsCommand implements CommandInterface<LogsCommandOptions> {
   }
 
   async run(args: LogsCommandOptions): Promise<ExitCode | number> {
-    const instanceId = args.run ?? this.logStore.latestInstanceId();
-    if (instanceId === undefined) {
-      this.cliOutput.writeLine("No captured observability data found. Run your app first.");
+    const filterId = args.filterId;
+    const entries = this.logStore.read(filterId);
+
+    if (entries.length === 0 && args.isFollowing === false) {
+      this.cliOutput.writeLine(filterId === undefined
+        ? "No captured observability data found. Run your app first."
+        : `No logs found matching '${filterId}'.`);
       return ExitCode.Success;
     }
 
-    const traceId = args.traceId;
-
-    for (const entry of this.logStore.read(instanceId)) {
-      this.renderEntry(entry, traceId);
+    for (const entry of entries) {
+      this.render(entry);
     }
 
     if (args.isFollowing === false) {
       return ExitCode.Success;
     }
 
-    return this.followLogs(instanceId, traceId);
+    return this.followLogs(filterId);
   }
 
   /**
-   * Tails the instance's logs file, rendering each newly-appended line until SIGINT.
+   * Tails live writes, rendering each newly-appended line until SIGINT.
    */
-  private followLogs(instanceId: string, traceId?: string): Promise<ExitCode | number> {
+  private followLogs(filterId?: string): Promise<ExitCode | number> {
     return new Promise<ExitCode | number>((resolve) => {
-      const handle = this.logStore.tail(instanceId, (line) => {
+      const handle = this.logStore.tail(filterId, (line) => {
         try {
-          this.renderEntry(JSON.parse(line), traceId);
+          this.render(JSON.parse(line));
         } catch {
           // Skip a malformed line rather than aborting the follow.
         }
@@ -71,16 +73,11 @@ export class LogsCommand implements CommandInterface<LogsCommandOptions> {
   }
 
   /**
-   * Renders one stored log entry through `PrettyLogFormatter`. Skips entries that don't
-   * match the requested trace/event id filter, when one was given.
+   * Renders one stored log entry through `PrettyLogFormatter`. The store keeps `date`
+   * as an ISO string and `severity` as a numeric `SeverityEnum`; rehydrate the date so
+   * the formatter (date-fns) can format it.
    */
-  private renderEntry(entry: Record<string, any>, traceId?: string): void {
-    if (traceId !== undefined && entry.traceId !== traceId && entry.eventId !== traceId) {
-      return;
-    }
-
-    // The store keeps `date` as an ISO string and `severity` as a numeric SeverityEnum —
-    // rehydrate the date so PrettyLogFormatter (date-fns) can format it.
+  private render(entry: Record<string, any>): void {
     entry.date = new Date(entry.date);
     this.cliOutput.writeLine(PrettyLogFormatter.format(entry as any));
   }

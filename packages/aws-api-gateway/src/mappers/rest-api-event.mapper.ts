@@ -3,6 +3,7 @@ import {AwsApiGatewayConfigurationKeys} from "../aws-api-gateway.configuration-k
 import {inject, injectable} from "tsyringe";
 import {
   Event,
+  EventIdManager,
   EventMapperInterface,
   EventResponse,
   EventsExecutionOptionsInterface,
@@ -16,7 +17,6 @@ import {ApiGatewayEventsHandlingStrategyEnum} from "../enums/api-gateway-events-
 import {AwsApiGatewayModuleKeyname} from "../aws-api-gateway.module.keyname";
 import {BaseApiEventMapper} from "./base-api-event.mapper";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import {v4 as uuidv4} from "uuid";
 
 /**
  * The Rest api event mapper maps a raw event to EventsExecutionOptionsInterface with either an RestApiEventResponsePayload or a Request
@@ -36,7 +36,8 @@ export class RestApiEventMapper extends BaseApiEventMapper implements EventMappe
    * @param restApiEventsHandlingStrategy The handling strategy to use when handling rest api events.
    */
   constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-              @injectConfig(AwsApiGatewayConfigurationKeys.RestApiEventsHandlingStrategy) private readonly restApiEventsHandlingStrategy: ApiGatewayEventsHandlingStrategyEnum) {
+              @injectConfig(AwsApiGatewayConfigurationKeys.RestApiEventsHandlingStrategy) private readonly restApiEventsHandlingStrategy: ApiGatewayEventsHandlingStrategyEnum,
+              private readonly eventIdManager: EventIdManager) {
     super();
   }
 
@@ -64,7 +65,7 @@ export class RestApiEventMapper extends BaseApiEventMapper implements EventMappe
   map(rawEvent: any, executionContext: ExecutionContextInterface<any>): EventsExecutionOptionsInterface<RestApiEventPayload | Request> {
     switch (this.restApiEventsHandlingStrategy) {
       case ApiGatewayEventsHandlingStrategyEnum.Request:
-        const request = new Request(this.mapHttpMethod(rawEvent.httpMethod), rawEvent.path, uuidv4());
+        const request = new Request(this.mapHttpMethod(rawEvent.httpMethod), rawEvent.path, this.eventIdManager.generateEventId());
         request.setHeaders(rawEvent.headers);
         request.body = rawEvent.body;
         request.rawBody = rawEvent.body;
@@ -124,7 +125,7 @@ export class RestApiEventMapper extends BaseApiEventMapper implements EventMappe
 
         return {
           executionOrder: "sequential",
-          events: [new Event<RestApiEventPayload>(ApiGatewayEventTypeEnum.RestApiEvent, restApiEventPayload, rawEvent.requestContext.requestId ?? uuidv4())],
+          events: [new Event<RestApiEventPayload>(ApiGatewayEventTypeEnum.RestApiEvent, restApiEventPayload, rawEvent.requestContext.requestId ?? this.eventIdManager.generateEventId())],
         };
     }
 

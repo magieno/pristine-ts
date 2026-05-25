@@ -15,29 +15,29 @@ interface BuildOptions {
   retainedInstances?: number;
 }
 
-function buildLogStore(directory: string, instanceId: string, options: BuildOptions = {}): LogStore {
+function buildLogStore(directory: string, partitionId: string, options: BuildOptions = {}): LogStore {
   return new LogStore(
     options.enabled ?? true,
     directory,
     options.retainedInstances ?? 10,
-    instanceId,
+    partitionId,
   );
 }
 
 const tick = () => new Promise(resolve => setTimeout(resolve, 20));
 
 describe("LogStore", () => {
-  it("lazy-creates the instance directory and appends a log on first write", () => {
+  it("lazy-creates the partition directory and appends a log on first write", () => {
     const directory = makeTempDir();
-    const store = buildLogStore(directory, "i1");
+    const store = buildLogStore(directory, "p1");
 
     const paths = new ObservabilityPaths(directory);
-    expect(fs.existsSync(paths.instanceDirectory("i1"))).toBe(false);
+    expect(fs.existsSync(paths.instanceDirectory("p1"))).toBe(false);
 
     store.append(new LogModel(SeverityEnum.Info, "hello"));
 
-    expect(fs.existsSync(paths.logsFile("i1"))).toBe(true);
-    const entries = store.read("i1");
+    expect(fs.existsSync(paths.logsFile("p1"))).toBe(true);
+    const entries = store.read();
     expect(entries).toHaveLength(1);
     expect(entries[0].message).toBe("hello");
     expect(entries[0].severity).toBe(SeverityEnum.Info);
@@ -45,56 +45,66 @@ describe("LogStore", () => {
 
   it("is a no-op when capture is disabled", () => {
     const directory = makeTempDir();
-    const store = buildLogStore(directory, "i2", {enabled: false});
+    const store = buildLogStore(directory, "p2", {enabled: false});
 
     expect(store.isCaptureEnabled()).toBe(false);
     store.append(new LogModel(SeverityEnum.Info, "ignored"));
 
-    expect(fs.existsSync(new ObservabilityPaths(directory).instanceDirectory("i2"))).toBe(false);
+    expect(fs.existsSync(new ObservabilityPaths(directory).instanceDirectory("p2"))).toBe(false);
   });
 
-  it("read() defaults to the most recent instance when none is specified", async () => {
+  it("read() concatenates across partitions, newest-first", async () => {
     const directory = makeTempDir();
-    const first = buildLogStore(directory, "older");
-    first.append(new LogModel(SeverityEnum.Info, "old-message"));
-    // Force a measurable mtime gap so the newest-first ordering is unambiguous.
+    const older = buildLogStore(directory, "older");
+    older.append(new LogModel(SeverityEnum.Info, "old-message"));
     await tick();
-    const second = buildLogStore(directory, "newer");
-    second.append(new LogModel(SeverityEnum.Info, "new-message"));
+    const newer = buildLogStore(directory, "newer");
+    newer.append(new LogModel(SeverityEnum.Info, "new-message"));
 
     const reader = buildLogStore(directory, "reader");
     const entries = reader.read();
-    expect(entries).toHaveLength(1);
+    expect(entries).toHaveLength(2);
     expect(entries[0].message).toBe("new-message");
+    expect(entries[1].message).toBe("old-message");
   });
 
-  it("prunes oldest instances beyond the retained limit on first write", async () => {
+  it("read(id) filters by traceId / eventId / requestId across partitions", () => {
+    const directory = makeTempDir();
+    const store = buildLogStore(directory, "p-filter");
+
+    const matchTrace = new LogModel(SeverityEnum.Info, "match-trace");
+    matchTrace.traceId = "trace-X";
+    const matchEvent = new LogModel(SeverityEnum.Info, "match-event");
+    matchEvent.eventId = "trace-X";
+    const matchRequest = new LogModel(SeverityEnum.Info, "match-request") as any;
+    matchRequest.requestId = "trace-X";
+    const noMatch = new LogModel(SeverityEnum.Info, "no-match");
+    noMatch.traceId = "trace-Y";
+
+    store.append(matchTrace);
+    store.append(matchEvent);
+    store.append(matchRequest);
+    store.append(noMatch);
+
+    const filtered = store.read("trace-X");
+    expect(filtered).toHaveLength(3);
+    expect(filtered.map(e => e.message).sort()).toEqual(["match-event", "match-request", "match-trace"]);
+  });
+
+  it("prunes oldest partitions beyond the retained limit on first write", async () => {
     const directory = makeTempDir();
     const paths = new ObservabilityPaths(directory);
-    // Seed three pre-existing instance dirs with measurable mtime gaps.
-    for (const name of ["i-a", "i-b", "i-c"]) {
+    for (const name of ["p-a", "p-b", "p-c"]) {
       fs.mkdirSync(paths.instanceDirectory(name), {recursive: true});
       fs.writeFileSync(paths.logsFile(name), "");
       await tick();
     }
 
-    const fresh = buildLogStore(directory, "i-new", {retainedInstances: 2});
+    const fresh = buildLogStore(directory, "p-new", {retainedInstances: 2});
     fresh.append(new LogModel(SeverityEnum.Info, "trigger-prune"));
 
     const remaining = fs.readdirSync(directory).sort();
-    expect(remaining).toEqual(["i-c", "i-new"]);
-  });
-
-  it("list() returns instance ids newest-first by mtime", async () => {
-    const directory = makeTempDir();
-    const a = buildLogStore(directory, "a");
-    a.append(new LogModel(SeverityEnum.Info, "x"));
-    await tick();
-    const b = buildLogStore(directory, "b");
-    b.append(new LogModel(SeverityEnum.Info, "x"));
-
-    expect(b.list()).toEqual(["b", "a"]);
-    expect(b.latestInstanceId()).toBe("b");
+    expect(remaining).toEqual(["p-c", "p-new"]);
   });
 
   it("serializes log objects with cycle protection", () => {
@@ -108,28 +118,31 @@ describe("LogStore", () => {
     log.extra = {a};
 
     expect(() => store.append(log)).not.toThrow();
-    const entries = store.read("cycle");
+    const entries = store.read();
     expect(entries[0].extra.a.label).toBe("a");
     expect(entries[0].extra.a.b.label).toBe("b");
     expect(entries[0].extra.a.b.a).toBe("[Circular]");
   });
 
-  it("tail() emits each newly-appended line until stop()", async () => {
+  it("tail() follows the latest partition's logs, optionally filtered by id", async () => {
     const directory = makeTempDir();
-    const writer = buildLogStore(directory, "tail-instance");
-    writer.append(new LogModel(SeverityEnum.Info, "pre-tail"));
+    const writer = buildLogStore(directory, "tail-partition");
+    writer.append(new LogModel(SeverityEnum.Info, "pre-tail")); // creates the partition dir
 
     const reader = buildLogStore(directory, "reader");
     const lines: string[] = [];
-    const handle = reader.tail("tail-instance", line => lines.push(line));
+    const handle = reader.tail("trace-tail", line => lines.push(line));
 
-    writer.append(new LogModel(SeverityEnum.Info, "post-tail"));
-    // Give the fs.watch callback a moment to fire.
+    const matching = new LogModel(SeverityEnum.Info, "post-tail-match");
+    matching.traceId = "trace-tail";
+    const skipped = new LogModel(SeverityEnum.Info, "post-tail-skip");
+    skipped.traceId = "trace-other";
+    writer.append(matching);
+    writer.append(skipped);
     await new Promise(resolve => setTimeout(resolve, 200));
 
     handle.stop();
-
     expect(lines.length).toBe(1);
-    expect(JSON.parse(lines[0]).message).toBe("post-tail");
+    expect(JSON.parse(lines[0]).message).toBe("post-tail-match");
   });
 });

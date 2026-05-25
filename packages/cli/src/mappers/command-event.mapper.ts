@@ -1,5 +1,6 @@
 import {
   Event,
+  EventIdManager,
   EventMapperInterface,
   EventResponse,
   EventsExecutionOptionsInterface,
@@ -11,12 +12,14 @@ import {CommandEventPayload} from "../event-payloads/command.event-payload";
 import {moduleScoped, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {CliModuleKeyname} from "../cli.module.keyname";
 import {PristineArgv} from "../utils/pristine-argv";
-import {v4 as uuidv4} from "uuid";
 
 @tag(ServiceDefinitionTagEnum.EventMapper)
 @moduleScoped(CliModuleKeyname)
 @injectable()
 export class CommandEventMapper implements EventMapperInterface<CommandEventPayload, number> {
+  constructor(private readonly eventIdManager: EventIdManager) {
+  }
+
   /**
    * Matches argv that names an explicit command. The no-command shape and the bare
    * `pristine repl` form are deliberately rejected here; `ReplStartEventMapper` claims
@@ -137,7 +140,7 @@ export class CommandEventMapper implements EventMapperInterface<CommandEventPayl
     }
 
     return {
-      events: [new Event<CommandEventPayload>("command", command, uuidv4())],
+      events: [new Event<CommandEventPayload>("command", command, this.eventIdManager.generateEventId())],
       executionOrder: "sequential",
     };
   }
