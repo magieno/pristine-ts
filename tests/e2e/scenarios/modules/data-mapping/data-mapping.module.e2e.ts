@@ -41,7 +41,10 @@ describe("Data Mapping", () => {
         expect(dataMapper).toBeInstanceOf(DataMapper);
 
         expect(dataMapper["dataNormalizers"].length).toBe(5);
-        expect(dataMapper["dataTransformerInterceptors"].length).toBe(1);
+        // No interceptors are registered by default — the framework used to ship a
+        // no-op `DefaultDataMappingInterceptor` to placate `resolveAll`, but the
+        // module now uses `isRegistered` so the empty case is genuinely empty.
+        expect(dataMapper["dataTransformerInterceptors"].length).toBe(0);
     })
 
     it("should automap an object to a class", async () => {

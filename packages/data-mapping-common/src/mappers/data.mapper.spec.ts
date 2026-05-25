@@ -13,7 +13,7 @@ import {AutoDataMappingBuilder} from "../builders/auto-data-mapping.builder";
 import {type} from "../decorators/type.decorator";
 import {array} from "../decorators/array.decorator";
 import {DateNormalizer} from "../normalizers/date.normalizer";
-import {StringNormalizer} from "../normalizers/string.normalizer";
+import {StringNormalizer, StringNormalizerUniqueKey} from "../normalizers/string.normalizer";
 import {NumberNormalizer} from "../normalizers/number.normalizer";
 import {AutoDataMappingBuilderOptions} from "../options/auto-data-mapping-builder.options";
 import {PrimitiveType} from "../enums/primitive-type.enum";
@@ -891,6 +891,69 @@ describe("Data Mapper", () => {
 
       // Only the first call should hit internalBuild; the rest reuse the cached schema.
       expect(buildSpy).toHaveBeenCalledTimes(1);
+    })
+
+    it("should invoke the errorLogger callback when autoMap throws and logErrors=true is set", async () => {
+      class FailingDestination {
+        @property() value: string;
+      }
+
+      const calls: Array<{error: Error, context: any}> = [];
+      const errorLogger = (error: Error, context: any) => calls.push({error, context});
+
+      // Use a normalizer that throws to force the catch branch.
+      class ThrowingNormalizer {
+        getUniqueKey() { return StringNormalizerUniqueKey; }
+        normalize(): any { throw new Error("normalizer-boom"); }
+      }
+
+      const dataMapper = new DataMapper(
+        new AutoDataMappingBuilder(),
+        [new ThrowingNormalizer() as any],
+        [],
+        errorLogger,
+      );
+
+      const source = {value: "x"};
+
+      const result = await dataMapper.autoMap(
+        source,
+        FailingDestination,
+        new AutoDataMappingBuilderOptions({logErrors: true, throwOnErrors: false}),
+      );
+
+      // Behavior preserved: source is returned when throwOnErrors=false.
+      expect(result).toBe(source);
+      // And the error went through the logger callback, not console.error.
+      expect(calls.length).toBe(1);
+      expect(calls[0].error.message).toBe("normalizer-boom");
+      expect(calls[0].context.source).toBe(source);
+      expect(calls[0].context.destinationType).toBe(FailingDestination);
+    })
+
+    it("should NOT invoke the errorLogger when logErrors=false (default)", async () => {
+      class FailingDestination2 {
+        @property() value: string;
+      }
+
+      const calls: Array<unknown> = [];
+      const errorLogger = () => calls.push("called");
+
+      class ThrowingNormalizer2 {
+        getUniqueKey() { return StringNormalizerUniqueKey; }
+        normalize(): any { throw new Error("boom-again"); }
+      }
+
+      const dataMapper = new DataMapper(
+        new AutoDataMappingBuilder(),
+        [new ThrowingNormalizer2() as any],
+        [],
+        errorLogger,
+      );
+
+      await dataMapper.autoMap({value: "x"}, FailingDestination2);
+
+      expect(calls.length).toBe(0);
     })
 
     it("should bypass the schema cache when disableCache=true is passed", async () => {
