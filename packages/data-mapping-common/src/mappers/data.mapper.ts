@@ -154,8 +154,7 @@ export class DataMapper {
         throw new DataMappingInterceptorNotFoundError("The interceptor wasn't found and cannot be loaded.", element.key);
       }
 
-      // todo: Pass the options when we start using them.
-      interceptedSource = await interceptor.beforeMapping(interceptedSource);
+      interceptedSource = await interceptor.beforeMapping(interceptedSource, element.options);
     }
 
     // Loop over the properties defined in the builder
@@ -168,7 +167,7 @@ export class DataMapper {
       await node.map(interceptedSource, destination, this.dataNormalizersMap, options);
     }
 
-    // Execute the before interceptors.
+    // Execute the after interceptors.
     for (const element of builder.afterMappingInterceptors) {
       const interceptor: DataMappingInterceptorInterface = this.dataTransformerInterceptorsMap[element.key];
 
@@ -176,8 +175,7 @@ export class DataMapper {
         throw new DataMappingInterceptorNotFoundError("The interceptor wasn't found and cannot be loaded.", element.key);
       }
 
-      // todo pass the options when we start using it.
-      destination = await interceptor.afterMapping(destination);
+      destination = await interceptor.afterMapping(destination, element.options);
     }
 
     if (destinationType) {
