@@ -1,12 +1,15 @@
 import "reflect-metadata";
 import {CommandEventMapper} from "./command-event.mapper";
-import {ExecutionContextKeynameEnum} from "@pristine-ts/core";
+import {EventIdManager, ExecutionContextKeynameEnum} from "@pristine-ts/core";
+import {EventIdGenerationStyleEnum} from "@pristine-ts/core";
 import {CommandEventPayload} from "../event-payloads/command.event-payload";
+
+const fakeEventIdManager = new EventIdManager(EventIdGenerationStyleEnum.Uuid);
 
 describe('Command Event Mapper', function () {
   it("should properly map the arguments", async () => {
-    const commandEventMapper = new CommandEventMapper();
-    const mapped = await commandEventMapper.map(["node", "scriptFilePath", "name", "parameter", "value"], {
+    const commandEventMapper = new CommandEventMapper(fakeEventIdManager);
+    const mapped = await commandEventMapper.map(["node", "/path/to/pristine", "name", "parameter", "value"], {
       keyname: ExecutionContextKeynameEnum.Cli,
       context: {}
     });
@@ -17,7 +20,7 @@ describe('Command Event Mapper', function () {
   })
 
   it("should properly map the '--' arguments", async () => {
-    const commandEventMapper = new CommandEventMapper();
+    const commandEventMapper = new CommandEventMapper(fakeEventIdManager);
 
     const consoleArguments = [
       ["--parameter", "value"],
@@ -27,7 +30,7 @@ describe('Command Event Mapper', function () {
 
     for (let i = 0; i < consoleArguments.length; i++) {
       const args = consoleArguments[i];
-      const mapped = await commandEventMapper.map(["node", "scriptFilePath", "name"].concat(...args), {
+      const mapped = await commandEventMapper.map(["node", "/path/to/pristine", "name"].concat(...args), {
         keyname: ExecutionContextKeynameEnum.Cli,
         context: {}
       });
@@ -36,14 +39,14 @@ describe('Command Event Mapper', function () {
 
       expect(commandEventPayload instanceof CommandEventPayload).toBeTruthy()
       expect(commandEventPayload.name).toBe("name")
-      expect(commandEventPayload.scriptPath).toBe("scriptFilePath")
+      expect(commandEventPayload.scriptPath).toBe("/path/to/pristine")
       expect(commandEventPayload.arguments.parameter).toBe("value")
     }
   })
   it("should properly map multiple '--' arguments with the same name into an array", async () => {
-    const commandEventMapper = new CommandEventMapper();
+    const commandEventMapper = new CommandEventMapper(fakeEventIdManager);
 
-    const mapped = await commandEventMapper.map(["node", "scriptFilePath", "name", "--parameter=value1", "--parameter=value2"], {
+    const mapped = await commandEventMapper.map(["node", "/path/to/pristine", "name", "--parameter=value1", "--parameter=value2"], {
       keyname: ExecutionContextKeynameEnum.Cli,
       context: {}
     });
@@ -52,7 +55,7 @@ describe('Command Event Mapper', function () {
 
     expect(commandEventPayload instanceof CommandEventPayload).toBeTruthy()
     expect(commandEventPayload.name).toBe("name")
-    expect(commandEventPayload.scriptPath).toBe("scriptFilePath")
+    expect(commandEventPayload.scriptPath).toBe("/path/to/pristine")
     expect(Array.isArray(commandEventPayload.arguments.parameter)).toBeTruthy()
     expect((commandEventPayload.arguments.parameter as string[]).length).toBe(2)
     expect((commandEventPayload.arguments.parameter as string[])[0]).toBe("value1")
@@ -60,8 +63,40 @@ describe('Command Event Mapper', function () {
   })
 
 
+  describe("supportsMapping", () => {
+    const mapper = new CommandEventMapper(fakeEventIdManager);
+
+    it("matches argv that names a command under the Cli keyname", () => {
+      expect(mapper.supportsMapping(["node", "pristine", "build"], {
+        keyname: ExecutionContextKeynameEnum.Cli,
+        context: {},
+      })).toBe(true);
+    });
+
+    it("rejects no-command argv so ReplStartEventMapper can claim it", () => {
+      expect(mapper.supportsMapping(["node", "pristine"], {
+        keyname: ExecutionContextKeynameEnum.Cli,
+        context: {},
+      })).toBe(false);
+    });
+
+    it("rejects the bare `repl` command so ReplStartEventMapper can claim it", () => {
+      expect(mapper.supportsMapping(["node", "pristine", "repl"], {
+        keyname: ExecutionContextKeynameEnum.Cli,
+        context: {},
+      })).toBe(false);
+    });
+
+    it("rejects unrelated execution-context keynames", () => {
+      expect(mapper.supportsMapping(["node", "pristine", "build"], {
+        keyname: ExecutionContextKeynameEnum.Http,
+        context: {},
+      })).toBe(false);
+    });
+  });
+
   it("should properly transform booleans, numbers and strings into their intended representation", async () => {
-    const commandEventMapper = new CommandEventMapper();
+    const commandEventMapper = new CommandEventMapper(fakeEventIdManager);
 
     const consoleArguments = [
       {args: ["--parameter", "true"], expectedValue: true},
@@ -76,7 +111,7 @@ describe('Command Event Mapper', function () {
 
     for (let i = 0; i < consoleArguments.length; i++) {
       const args = consoleArguments[i].args;
-      const mapped = await commandEventMapper.map(["node", "scriptFilePath", "name"].concat(...args), {
+      const mapped = await commandEventMapper.map(["node", "/path/to/pristine", "name"].concat(...args), {
         keyname: ExecutionContextKeynameEnum.Cli,
         context: {}
       });

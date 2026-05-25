@@ -42,7 +42,6 @@ describe("Networking - HttpErrorResponder environment-driven sanitization", () =
           importServices: [],
         }, {
             "pristine.logging.consoleLoggerActivated": false,
-            "pristine.logging.fileLoggerActivated": false,
             "pristine.environment": "prod",
         });
 
@@ -67,7 +66,6 @@ describe("Networking - HttpErrorResponder environment-driven sanitization", () =
           importServices: [],
         }, {
             "pristine.logging.consoleLoggerActivated": false,
-            "pristine.logging.fileLoggerActivated": false,
             "pristine.environment": "dev",
         });
 

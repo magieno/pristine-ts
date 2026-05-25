@@ -42,7 +42,6 @@ describe("Response header interception", () => {
         const kernel = new Kernel();
         await kernel.start(moduleTest, {
             "pristine.logging.consoleLoggerActivated": false,
-            "pristine.logging.fileLoggerActivated": false,
             "pristine.networking.defaultContentTypeResponseHeader.isActive": true,
         });
 
@@ -61,7 +60,6 @@ describe("Response header interception", () => {
         const kernel = new Kernel();
         await kernel.start(moduleTest, {
             "pristine.logging.consoleLoggerActivated": false,
-            "pristine.logging.fileLoggerActivated": false,
             "pristine.networking.defaultContentTypeResponseHeader.isActive": false,
         });
 
@@ -80,7 +78,6 @@ describe("Response header interception", () => {
         const kernel = new Kernel();
         await kernel.start(moduleTest, {
             "pristine.logging.consoleLoggerActivated": false,
-            "pristine.logging.fileLoggerActivated": false,
             "pristine.networking.defaultContentTypeResponseHeader.isActive": true,
         });
 

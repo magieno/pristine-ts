@@ -68,23 +68,30 @@ export function traced(spanName?: string): MethodDecorator {
       try {
         return await original.apply(this, args);
       } catch (error) {
-        // Annotate the span with error info so it surfaces in the rendered tree
-        // without forcing the caller to remember to add it themselves. `span.context`
-        // is string-typed by design (cheap to serialize), so we coerce.
-        if (error instanceof Error) {
-          span.context = {
-            ...span.context,
-            error: "true",
-            errorName: error.name,
-            errorMessage: error.message,
-          };
-        } else {
-          span.context = {
-            ...span.context,
-            error: "true",
-            errorName: "non-error-throw",
-            errorMessage: String(error),
-          };
+        // Annotate the span with error info so it surfaces in the rendered tree without
+        // forcing the caller to remember to add it themselves. `span.context` is
+        // string-typed by design (cheap to serialize), so we coerce. The annotation is
+        // wrapped because `error.name`/`error.message`/`String(error)` can all throw on
+        // pathological inputs — and an annotation throw would shadow the original error
+        // being re-thrown below.
+        try {
+          if (error instanceof Error) {
+            span.context = {
+              ...span.context,
+              error: "true",
+              errorName: error.name,
+              errorMessage: error.message,
+            };
+          } else {
+            span.context = {
+              ...span.context,
+              error: "true",
+              errorName: "non-error-throw",
+              errorMessage: String(error),
+            };
+          }
+        } catch {
+          span.context = {...span.context, error: "true", errorName: "annotation-failed"};
         }
         throw error;
       } finally {

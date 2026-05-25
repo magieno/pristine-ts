@@ -96,4 +96,15 @@ export class Request {
   public getHeader(name: string): string | undefined {
     return this.headers[name.toLowerCase()];
   }
+
+  /**
+   * Returns just the path portion of `url`, with any query string stripped. Across the
+   * mappers that build a `Request` (Node HTTP, Express, AWS REST/HTTP API), `url` is
+   * either a bare path (`/products`) or a path with a query string (`/products?q=1`) —
+   * never a full URL with scheme/host — so this is a query-string strip, not a URL parse.
+   */
+  public getPath(): string {
+    const queryIndex = this.url.indexOf("?");
+    return queryIndex === -1 ? this.url : this.url.slice(0, queryIndex);
+  }
 }

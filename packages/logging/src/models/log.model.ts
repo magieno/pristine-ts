@@ -7,7 +7,7 @@ import {OutputHints} from "../types/output-hints.type";
  *
  * Logs carry their own content only — no inline breadcrumb trail. To reconstruct "what
  * happened" around a log entry, look at the trace via the registered tracers
- * (ConsoleTracer, FileTracer, X-Ray, etc.) using the `traceId`/`eventId` on the log.
+ * (ConsoleTracer, the observability tracer, X-Ray, etc.) using the `traceId`/`eventId` on the log.
  */
 export class LogModel {
   /**

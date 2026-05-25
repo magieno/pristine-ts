@@ -66,6 +66,7 @@
     "@pristine-ts/mysql": "file:packages/mysql",
     "@pristine-ts/mysql-common": "file:packages/mysql-comon",
     "@pristine-ts/networking": "file:packages/networking",
+    "@pristine-ts/observability": "file:packages/observability",
     "@pristine-ts/opensearch": "file:packages/opensearch",
     "@pristine-ts/redis": "file:packages/redis",
     "@pristine-ts/scheduling": "file:packages/scheduling",

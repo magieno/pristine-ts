@@ -59,11 +59,17 @@ export class Cli {
 
       this.warnOnCommandCollisions();
 
-      await this.kernel.handle(process.argv, {keyname: ExecutionContextKeynameEnum.Cli, context: null});
-      // The CLI event handler calls `process.exit(exitCode)` itself after the command runs,
-      // so this return is only reached if the dispatcher somehow resolves without exiting —
-      // treat that as a success exit.
-      return 0;
+      // Uniform dispatch: every argv shape flows through `kernel.handle(argv, {keyname:
+      // Cli})`. The mapping layer picks the right payload:
+      //   - `[node, pristine, <command>, ...]` → `CommandEventMapper` → `CliEventHandler`
+      //     runs the command and returns its exit code (no `process.exit`; exiting is
+      //     `bin.ts`'s job).
+      //   - `[node, pristine]` or `[node, pristine, repl, ...]` → `ReplStartEventMapper`
+      //     → `ReplStartEventHandler` runs the interactive session and resolves with the
+      //     exit code on `/exit` or EOF.
+      // No if-REPL branch needed here — the REPL is just another event handler.
+      const exitCode = await this.kernel.handle(process.argv, {keyname: ExecutionContextKeynameEnum.Cli, context: null});
+      return typeof exitCode === "number" ? exitCode : 0;
     } catch (error) {
       return await this.reportFatalError(error);
     }
@@ -126,11 +132,15 @@ export class Cli {
   }
 
   /**
-   * Builds a synthetic outer AppModule that imports both the user's AppModule and CliModule.
+   * Builds a synthetic outer AppModule that imports the user's AppModule plus `CliModule`
+   * — so the CLI's own commands are always registered when the bin is the entry point.
+   * `CliModule` itself imports `ObservabilityModule`, so the logs/traces store travels
+   * along without being named here.
+   *
    * The wrap is unconditional — the kernel dedupes module imports by keyname, so adding
-   * CliModule on top of a graph that already contains it is a no-op rather than an error
-   * or duplicate registration. Cheaper than walking the user's import tree to detect the
-   * already-present case.
+   * `CliModule` on top of a graph that already contains it is a no-op rather than an
+   * error or duplicate registration. Cheaper than walking the user's import tree to
+   * detect the already-present case.
    */
   private wrapWithCliModule(appModule: AppModuleInterface): AppModuleInterface {
     return {

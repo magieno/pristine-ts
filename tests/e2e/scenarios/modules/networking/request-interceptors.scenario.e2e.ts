@@ -88,7 +88,6 @@ describe("Networking - Request Interceptors", () => {
     beforeAll(async () => {
         await kernel.start(testModule, {
             "pristine.logging.consoleLoggerActivated": false,
-            "pristine.logging.fileLoggerActivated": false,
         })
     })
 

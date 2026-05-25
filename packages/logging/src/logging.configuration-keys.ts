@@ -28,10 +28,6 @@ export const LoggingConfigurationKeys = {
   ConsoleLoggerWarningStream: "pristine.logging.consoleLoggerWarningStream",
   ConsoleLoggerErrorStream: "pristine.logging.consoleLoggerErrorStream",
   ConsoleLoggerCriticalStream: "pristine.logging.consoleLoggerCriticalStream",
-  FileLoggerOutputMode: "pristine.logging.fileLoggerOutputMode",
-  FileLoggerActivated: "pristine.logging.fileLoggerActivated",
-  FilePath: "pristine.logging.filePath",
-  FileLoggerPretty: "pristine.logging.fileLoggerPretty",
   ActivateDiagnostics: "pristine.logging.activateDiagnostics",
   MaximumLogsPerSecond: "pristine.logging.maximumLogsPerSecond",
 } as const;
@@ -63,10 +59,6 @@ export interface LoggingConfigurationValueMap {
   "pristine.logging.consoleLoggerWarningStream": StreamEnum;
   "pristine.logging.consoleLoggerErrorStream": StreamEnum;
   "pristine.logging.consoleLoggerCriticalStream": StreamEnum;
-  "pristine.logging.fileLoggerOutputMode": OutputModeEnum;
-  "pristine.logging.fileLoggerActivated": boolean;
-  "pristine.logging.filePath": string;
-  "pristine.logging.fileLoggerPretty": boolean;
   "pristine.logging.activateDiagnostics": boolean;
   "pristine.logging.maximumLogsPerSecond": number;
 }

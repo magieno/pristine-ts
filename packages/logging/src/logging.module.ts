@@ -234,50 +234,6 @@ export const LoggingModule: ModuleInterface = {
       ]
     },
     /**
-     * The output mode, that the file logger should use from the OutputModeEnum.
-     */
-    {
-      parameterName: LoggingModuleKeyname + ".fileLoggerOutputMode",
-      defaultValue: OutputModeEnum.Json,
-      isRequired: false,
-      defaultResolvers: [
-        new EnumResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_FILE_LOGGER_OUTPUT_MODE"), OutputModeEnum),
-      ]
-    },
-    /**
-     * Whether or not the console logger is activated and should output logs.
-     */
-    {
-      parameterName: LoggingModuleKeyname + ".fileLoggerActivated",
-      defaultValue: false,
-      isRequired: false,
-      defaultResolvers: [
-        new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_FILE_LOGGER_ACTIVATED")),
-      ]
-    },
-    /**
-     * The file path to which the file logger should output the logs.
-     */
-    {
-      parameterName: LoggingModuleKeyname + ".filePath",
-      defaultValue: "./logs.txt",
-      isRequired: false,
-      defaultResolvers: [
-        new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_FILE_PATH")),
-      ]
-    },
-    /**
-     * Whether or not the file logger should prettify the outputted logs.
-     */
-    {
-      parameterName: LoggingModuleKeyname + ".fileLoggerPretty",
-      defaultValue: false,
-      isRequired: false,
-      defaultResolvers: [
-        new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_FILE_LOGGER_PRETTY")),
-      ]
-    },
-    /**
      * Whether or not the diagnostic should be activated.
      * When activated, the stack trace and other diagnostic information will be added to the logs.
      * This is an intensive process and can dramatically reduce the performance of the code.

@@ -31,7 +31,6 @@ describe("Configuration", () => {
         await kernel.start(module, {
             "test.test1Parameter": "NotDefault",
             "pristine.logging.consoleLoggerActivated": false,
-            "pristine.logging.fileLoggerActivated": false,
         });
 
         expect(kernel.container.resolve("%test.test1Parameter%")).toBe("NotDefault")
@@ -81,7 +80,6 @@ describe("Configuration", () => {
         await kernel.start(module, {
             "test.test1Parameter": "NotDefault",
             "pristine.logging.consoleLoggerActivated": false,
-            "pristine.logging.fileLoggerActivated": false,
         });
 
         const instance = kernel.container.resolve(TestConfigurationParameterInjectedInConstructor);

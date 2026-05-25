@@ -45,7 +45,6 @@ describe("Request Body Validation", () => {
             providerRegistrations: []
         }, {
             "pristine.logging.consoleLoggerActivated": false,
-            "pristine.logging.fileLoggerActivated": false,
         });
     })
 

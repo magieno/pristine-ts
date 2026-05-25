@@ -4,6 +4,7 @@ import {CoreModule} from "@pristine-ts/core";
 import {ValidationModule} from "@pristine-ts/validation";
 import {LoggingModule, LoggingModuleKeyname, OutputModeEnum, SeverityEnum} from "@pristine-ts/logging";
 import {DataMappingModule} from "@pristine-ts/data-mapping"
+import {ObservabilityModule} from "@pristine-ts/observability";
 
 export * from "./bootstrap/bootstrap";
 export * from "./commands/commands";
@@ -16,6 +17,7 @@ export * from "./managers/managers";
 export * from "./mappers/mappers";
 export * from "./options/options";
 export * from "./reporters/cli-error.reporter";
+export * from "./services/services";
 export * from "./types/types";
 
 // Re-export the `Cli` entrypoint so `bin.ts` (and any other downstream entry script) can
@@ -31,6 +33,12 @@ export const CliModule: ModuleInterface = {
     CoreModule,
     DataMappingModule,
     LoggingModule,
+    // `ObservabilityModule` travels with the CLI: it backs the `logs`/`trace`/`requests`
+    // commands and the `pristine start` capture. Importing it here (rather than only
+    // wrapping it in `Cli.bootstrap`) guarantees its configuration keys are registered
+    // wherever `CliModule` is loaded — including when another module (e.g. `HttpModule`)
+    // pulls `CliModule` in transitively — so observability's `@injectConfig` always resolves.
+    ObservabilityModule,
     ValidationModule,
   ],
   /**

@@ -32,8 +32,6 @@ describe("Logging Module instantiation in the Kernel", () => {
             "pristine.logging.logErrorDepthConfiguration": 10,
             "pristine.logging.logCriticalDepthConfiguration": 10,
             "pristine.logging.consoleLoggerActivated": true,
-            "pristine.logging.fileLoggerActivated": false,
-            "pristine.logging.fileLoggerPretty":false,
         });
 
         const logHandler: LogHandler = await kernel.container.resolve(LogHandler);

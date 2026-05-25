@@ -38,7 +38,6 @@ describe("JWT Module instantiation in the Kernel", () => {
             "pristine.jwt.algorithm": "RS256",
             "pristine.jwt.publicKey": JWTKeys.RS256.withoutPassphrase.public,
             "pristine.logging.consoleLoggerActivated": false,
-            "pristine.logging.fileLoggerActivated": false,
         });
 
         const request: Request = new Request(HttpMethod.Get, "http://localhost:8080/api/2.0/jwt/services", "uuid");
@@ -68,7 +67,6 @@ describe("JWT Module instantiation in the Kernel", () => {
             providerRegistrations: [],
         } as AppModuleInterface, {
             "pristine.logging.consoleLoggerActivated": false,
-            "pristine.logging.fileLoggerActivated": false,
         })).rejects.toThrow(new ConfigurationValidationError(["The Configuration with key: 'pristine.jwt.publicKey' is required and must be defined."]));
     })
 
@@ -85,7 +83,6 @@ describe("JWT Module instantiation in the Kernel", () => {
             "pristine.jwt.algorithm": "RS256",
             "pristine.jwt.publicKey": JWTKeys.RS256.withoutPassphrase.public,
             "pristine.logging.consoleLoggerActivated": false,
-            "pristine.logging.fileLoggerActivated": false,
         });
 
         const request: Request = new Request(HttpMethod.Get, "http://localhost:8080/api/2.0/jwt/services", "uuid");

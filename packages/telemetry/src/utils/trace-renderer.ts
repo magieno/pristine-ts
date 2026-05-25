@@ -2,9 +2,9 @@ import {Trace} from "../models/trace.model";
 import {Span} from "../models/span.model";
 
 /**
- * Pure-function renderers for `Trace` objects. Used by both `ConsoleTracer` (writes to
- * stdout) and `FileTracer` (writes to disk) so the visual output is identical regardless
- * of destination. All methods are stateless — instantiate once and reuse, or use the
+ * Pure-function renderers for `Trace` objects. Used by `ConsoleTracer` (writes to
+ * stdout) and the observability tracer (persists to the store) so the visual output is
+ * identical regardless of destination. All methods are stateless — instantiate once and reuse, or use the
  * exported singleton `traceRenderer` if you don't care.
  */
 export class TraceRenderer {
@@ -120,6 +120,11 @@ export class TraceRenderer {
       endDate: span.endDate,
       duration: span.getDuration(),
       context: span.context,
+      markers: span.markers.map(marker => ({
+        timestamp: marker.timestamp,
+        message: marker.message,
+        attributes: marker.attributes,
+      })),
       children: span.children.map(s => this.serializeSpan(s)),
     };
   }

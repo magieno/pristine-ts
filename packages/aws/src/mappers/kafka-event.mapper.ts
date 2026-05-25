@@ -1,5 +1,6 @@
 import {
   Event,
+  EventIdManager,
   EventMapperInterface,
   EventResponse,
   EventsExecutionOptionsInterface,
@@ -21,6 +22,8 @@ import {AwsModuleKeyname} from "../aws.module.keyname";
 @moduleScoped(AwsModuleKeyname)
 @injectable()
 export class KafkaEventMapper implements EventMapperInterface<KafkaEventPayload, void> {
+  constructor(private readonly eventIdManager: EventIdManager) {
+  }
 
   /**
    * Parses the Kafka event from the AWS kafka connector into a Pristine event.
@@ -32,7 +35,9 @@ export class KafkaEventMapper implements EventMapperInterface<KafkaEventPayload,
     const parsedEvents: Event<KafkaEventPayload>[] = [];
 
     for (const key in rawEvent.records) {
-      const event = new Event<KafkaEventPayload>(KafkaEventType.KafkaEvent, new KafkaEventPayload(), "kafka");
+      // Was the hardcoded literal `"kafka"`, which made every event share the same id —
+      // a bug that broke correlation across messages. Each event now gets its own id.
+      const event = new Event<KafkaEventPayload>(KafkaEventType.KafkaEvent, new KafkaEventPayload(), this.eventIdManager.generateEventId());
       event.payload.eventSource = rawEvent.eventSource;
       event.payload.eventSourceArn = rawEvent.eventSourceArn;
 

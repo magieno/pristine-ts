@@ -33,7 +33,6 @@ describe("Handle events", () => {
             const kernel = new Kernel();
             await kernel.start(moduleTest, {
                 "pristine.logging.consoleLoggerActivated": false,
-                "pristine.logging.fileLoggerActivated": false,
             });
 
             let error
@@ -97,53 +96,53 @@ describe("Handle events", () => {
             const kernel = new Kernel();
             await kernel.start(moduleTest, {
                 "pristine.logging.consoleLoggerActivated": false,
-                "pristine.logging.fileLoggerActivated": false,
             });
 
 
             const response = await kernel.handle(rawEvent, {keyname: ExecutionContextKeynameEnum.AwsLambda, context: undefined});
 
-            const kafkaEvent1: Event<KafkaEventPayload> = {
-                type: KafkaEventType.KafkaEvent,
-                id: "kafka",
-                payload: {
-                    eventSource: "aws:kafka",
-                    eventSourceArn: "arn:aws:kafka:us-east-1:account:cluster/vpc/uuid",
-                    topicName: "mytopic0",
-                    messages: [
-                        {
-                            offset: 15,
-                            partition: 0,
-                            timestamp: new Date(1596480920837),
-                            timestampType: "CREATE_TIME",
-                            value: "hello from kafka"
-                        }
-                    ]
-                }
+            const expectedPayload1 = {
+                eventSource: "aws:kafka",
+                eventSourceArn: "arn:aws:kafka:us-east-1:account:cluster/vpc/uuid",
+                topicName: "mytopic0",
+                messages: [
+                    {
+                        offset: 15,
+                        partition: 0,
+                        timestamp: new Date(1596480920837),
+                        timestampType: "CREATE_TIME",
+                        value: "hello from kafka"
+                    }
+                ]
             };
 
-            const kafkaEvent2: Event<KafkaEventPayload> = {
-                type: KafkaEventType.KafkaEvent,
-                id: "kafka",
-                payload: {
-                    eventSource: "aws:kafka",
-                    eventSourceArn: "arn:aws:kafka:us-east-1:account:cluster/vpc/uuid",
-                    topicName: "mytopic1",
-                    messages: [
-                        {
-                            offset: 15,
-                            partition: 0,
-                            timestamp: new Date(1596480920837),
-                            timestampType: "CREATE_TIME",
-                            value: {
-                                key: "value"
-                            }
+            const expectedPayload2 = {
+                eventSource: "aws:kafka",
+                eventSourceArn: "arn:aws:kafka:us-east-1:account:cluster/vpc/uuid",
+                topicName: "mytopic1",
+                messages: [
+                    {
+                        offset: 15,
+                        partition: 0,
+                        timestamp: new Date(1596480920837),
+                        timestampType: "CREATE_TIME",
+                        value: {
+                            key: "value"
                         }
-                    ]
-                }
+                    }
+                ]
             };
 
-            expect(valuesToBeModified).toEqual([kafkaEvent1, kafkaEvent2]);
+            expect(valuesToBeModified).toHaveLength(2);
+            expect(valuesToBeModified[0].type).toBe(KafkaEventType.KafkaEvent);
+            expect(valuesToBeModified[0].payload).toEqual(expectedPayload1);
+            expect(valuesToBeModified[1].type).toBe(KafkaEventType.KafkaEvent);
+            expect(valuesToBeModified[1].payload).toEqual(expectedPayload2);
+            // Each event has its own generated id (previously they all shared the literal
+            // `"kafka"`, which made correlation across messages impossible).
+            expect(valuesToBeModified[0].id).toBeTruthy();
+            expect(valuesToBeModified[1].id).toBeTruthy();
+            expect(valuesToBeModified[0].id).not.toBe(valuesToBeModified[1].id);
         })
     });
 });

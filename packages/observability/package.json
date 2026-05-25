@@ -1,0 +1,59 @@
+{
+  "name": "@pristine-ts/observability",
+  "version": "2.0.5",
+  "description": "",
+  "module": "dist/lib/esm/observability.module.js",
+  "main": "dist/lib/cjs/observability.module.js",
+  "types": "dist/types/observability.module.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
+    "prepublish": "npm run build",
+    "test": "jest",
+    "test:cov": "jest --coverage"
+  },
+  "dependencies": {
+    "@pristine-ts/common": "file:../common",
+    "@pristine-ts/configuration": "file:../configuration",
+    "@pristine-ts/logging": "file:../logging",
+    "@pristine-ts/telemetry": "file:../telemetry"
+  },
+  "files": [
+    "dist"
+  ],
+  "author": "",
+  "license": "ISC",
+  "publishConfig": {
+    "access": "public"
+  },
+  "jest": {
+    "transform": {
+      ".(ts|tsx)": "ts-jest"
+    },
+    "globals": {
+      "ts-jest": {
+        "tsconfig": {
+          "strictNullChecks": false
+        }
+      }
+    },
+    "testEnvironment": "node",
+    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/test/"
+    ],
+    "collectCoverageFrom": [
+      "src/*.{js,ts}"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/magieno/pristine-ts.git",
+    "directory": "packages/observability"
+  }
+}

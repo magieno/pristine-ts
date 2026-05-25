@@ -36,7 +36,6 @@ describe("Express - Request Execution", () => {
                 importServices: [HealthController],
             }, {
                 "pristine.logging.consoleLoggerActivated" : false,
-                "pristine.logging.fileLoggerActivated" : false,
             });
 
             const port = server.address().port;

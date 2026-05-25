@@ -4,9 +4,11 @@ import {ApiGatewayEventsHandlingStrategyEnum} from "../enums/api-gateway-events-
 import {HttpMethod, Request, Response} from "@pristine-ts/common";
 import {ApiGatewayEventTypeEnum} from "../enums/api-gateway-event-type.enum";
 import {HttpApiEventPayload} from "../event-payloads/http-api.event-payload";
-import {EventResponse} from "@pristine-ts/core";
+import {EventIdGenerationStyleEnum, EventIdManager, EventResponse} from "@pristine-ts/core";
 import {HttpApiEventResponsePayload} from "../event-response-payloads/http-api.event-response-payload";
 import {LogHandlerMock} from "../../../../tests/mocks/log.handler.mock";
+
+const fakeEventIdManager = new EventIdManager(EventIdGenerationStyleEnum.Uuid);
 
 describe("Http request mapper", () => {
   const executionContext = {keyname: "", context: {}};
@@ -84,7 +86,7 @@ describe("Http request mapper", () => {
   };
 
   it("should map an http api request into a Request Object", () => {
-    const httpApiEventMapper = new HttpApiEventMapper(new LogHandlerMock(), ApiGatewayEventsHandlingStrategyEnum.Request);
+    const httpApiEventMapper = new HttpApiEventMapper(new LogHandlerMock(), ApiGatewayEventsHandlingStrategyEnum.Request, fakeEventIdManager);
 
     expect(httpApiEventMapper.supportsMapping(rawEvent, executionContext));
 
@@ -125,7 +127,7 @@ describe("Http request mapper", () => {
   })
 
   it("should map an http api request properly into an Event Object", () => {
-    const httpApiEventMapper = new HttpApiEventMapper(new LogHandlerMock(), ApiGatewayEventsHandlingStrategyEnum.Event);
+    const httpApiEventMapper = new HttpApiEventMapper(new LogHandlerMock(), ApiGatewayEventsHandlingStrategyEnum.Event, fakeEventIdManager);
 
     expect(httpApiEventMapper.supportsMapping(rawEvent, executionContext));
 

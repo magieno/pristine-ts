@@ -23,7 +23,6 @@ describe("Data Mapping", () => {
         const kernel = new Kernel();
         await kernel.start(moduleTest, {
             "pristine.logging.consoleLoggerActivated": false,
-            "pristine.logging.fileLoggerActivated": false,
         });
 
         const autoDataMappingBuilder = kernel.container.resolve(AutoDataMappingBuilder)
@@ -35,7 +34,6 @@ describe("Data Mapping", () => {
         const kernel = new Kernel();
         await kernel.start(moduleTest, {
             "pristine.logging.consoleLoggerActivated": false,
-            "pristine.logging.fileLoggerActivated": false,
         });
 
         const dataMapper = kernel.container.resolve(DataMapper)
@@ -50,7 +48,6 @@ describe("Data Mapping", () => {
         const kernel = new Kernel();
         await kernel.start(moduleTest, {
             "pristine.logging.consoleLoggerActivated": false,
-            "pristine.logging.fileLoggerActivated": false,
         });
 
         const dataMapper = kernel.container.resolve(DataMapper)
