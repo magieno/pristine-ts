@@ -142,90 +142,144 @@ export class DataMappingNode extends BaseDataMappingNode {
       return;
     }
 
-    const shouldIncludeExtraneous = options?.excludeExtraneousValues === false;
+    // Whether source-keyed properties should be carried through to the destination.
+    // When `excludeExtraneousValues === true`, only renamed destination keys (written by
+    // sub-nodes below) end up on the destination — source keys are dropped.
+    const includeSourceKeys = options?.excludeExtraneousValues === false;
 
     if (this.type === DataMappingNodeTypeEnum.ObjectArray) {
+      // Array case: handled below in its own loop. Just pre-allocate the array here.
       destination[this.destinationProperty] = [];
     } else {
-      // Start with an empty target. Source-keyed properties are copied in ONLY when
-      // `excludeExtraneousValues === false` — otherwise we'd leak source-named properties
-      // onto a renamed-destination instance (e.g. both `nestedTitle` and `nestedName`).
-      const sourceIsCopyable = shouldIncludeExtraneous
-        && sourceElement !== null
-        && (typeof sourceElement === "object" || Array.isArray(sourceElement));
-
-      if (this.destinationType) {
-        destination[this.destinationProperty] = plainToInstance(
-          this.destinationType as ClassConstructor<any>,
-          sourceIsCopyable ? sourceElement : {},
-        );
-      } else {
-        destination[this.destinationProperty] = {};
-        if (sourceIsCopyable) {
-          Object.keys(sourceElement).forEach(property => {
-            destination[this.destinationProperty][property] = sourceElement[property];
-          });
-        }
-      }
+      // Single-object case: build the destination value once, then let sub-nodes overlay
+      // renamed keys onto it.
+      destination[this.destinationProperty] = this.buildDestinationObject(sourceElement, includeSourceKeys);
     }
 
     const destinationElement = destination[this.destinationProperty];
 
     if (this.type === DataMappingNodeTypeEnum.ObjectArray) {
-      // This means that the source[propertyKey] contains an array of objects and each object should be mapped
-      const array = source[this.sourceProperty];
+      const sourceArray = source[this.sourceProperty];
 
-      if (Array.isArray(array) === false) {
-        throw new ArrayDataMappingNodeInvalidSourcePropertyTypeError(`According to your schema, the property '${this.sourceProperty}' in the source object must contain an Array of objects. Instead, it contains: '${typeof array}'.`, this.sourceProperty);
+      if (Array.isArray(sourceArray) === false) {
+        throw new ArrayDataMappingNodeInvalidSourcePropertyTypeError(`According to your schema, the property '${this.sourceProperty}' in the source object must contain an Array of objects. Instead, it contains: '${typeof sourceArray}'.`, this.sourceProperty);
       }
 
-      let index = 0;
-      for (const element of array) {
-        const elementIsCopyable = shouldIncludeExtraneous
-          && element !== null
-          && typeof element === "object";
+      // For each source element: build the destination object (whose concrete class may
+      // depend on the element index when `destinationType` is a factory callback), let the
+      // sub-nodes overlay their renamed keys, then push.
+      for (let index = 0; index < sourceArray.length; index++) {
+        const element = sourceArray[index];
+        const dest = this.buildArrayMemberDestination(source, element, index, includeSourceKeys);
 
-        let dest: any = {};
-
-        if (this.destinationType) {
-          let memberConstructor: ClassConstructor<any> | undefined;
-
-          if (typeof this.destinationType === "function" && !(this.destinationType as any).prototype) {
-            // Factory callback: resolve the concrete class per element. The index is the
-            // *current* element's index (post-fix from a previous bug where it was always 0).
-            const factory = this.destinationType as ArrayMemberTypeFactoryCallbackType;
-            memberConstructor = factory(source, this.sourceProperty, index).constructor;
-          } else if ((this.destinationType as any).prototype) {
-            memberConstructor = this.destinationType as ClassConstructor<any>;
-          }
-
-          if (memberConstructor) {
-            dest = plainToInstance(memberConstructor, elementIsCopyable ? element : {});
-          }
-        } else if (elementIsCopyable) {
-          Object.keys(element).forEach(property => {
-            dest[property] = element[property];
-          });
-        }
-
-        for (const key in this.nodes) {
-          if (this.nodes.hasOwnProperty(key) === false) {
-            continue;
-          }
-
-          const node = this.nodes[key];
-
-          await node.map(element, dest, normalizersMap, options);
-        }
+        await this.runSubNodes(element, dest, normalizersMap, options);
 
         destinationElement.push(dest);
-        index++;
       }
 
       return;
     }
 
-    // When the current node is not an array, we simply iterate
+    // Single-object case: sub-nodes write into the destination we just built above.
+    await this.runSubNodes(sourceElement, destinationElement, normalizersMap, options);
+  }
+
+  /**
+   * Build the destination object for the single-object case.
+   *
+   * If a `destinationType` (class constructor) is set, instantiate the class. Otherwise return
+   * a plain object. When `includeSourceKeys` is true, the source's own enumerable properties are
+   * seeded onto the result so they survive the mapping; sub-nodes then overlay renamed keys on top.
+   *
+   * Note: the single-object case treats `destinationType` strictly as a class constructor.
+   * Factory callbacks only make sense for the per-element ObjectArray case below.
+   */
+  private buildDestinationObject(sourceElement: any, includeSourceKeys: boolean): any {
+    const seedFromSource = includeSourceKeys
+      && sourceElement !== null
+      && (typeof sourceElement === "object" || Array.isArray(sourceElement));
+
+    if (this.destinationType !== undefined) {
+      return plainToInstance(
+        this.destinationType as ClassConstructor<any>,
+        seedFromSource ? sourceElement : {},
+      );
+    }
+
+    const result: any = {};
+    if (seedFromSource) {
+      Object.keys(sourceElement).forEach(property => {
+        result[property] = sourceElement[property];
+      });
+    }
+    return result;
+  }
+
+  /**
+   * Build the destination object for a single element of an ObjectArray. Mirrors
+   * `buildDestinationObject`, with two extra wrinkles unique to arrays:
+   *
+   *   1. `destinationType` can be a *factory callback* instead of a fixed class. The callback
+   *      receives the source array's parent + the element's index and returns an instance of
+   *      the concrete class to use. This is how polymorphic arrays work (e.g. some elements
+   *      become `Cat`, others `Dog`).
+   *   2. The seed value is the per-element object, not the whole array.
+   */
+  private buildArrayMemberDestination(source: any, element: any, index: number, includeSourceKeys: boolean): any {
+    const seedFromSource = includeSourceKeys && element !== null && typeof element === "object";
+
+    if (this.destinationType === undefined) {
+      // Untyped array — produce a plain object, optionally seeded with the element's own keys.
+      const result: any = {};
+      if (seedFromSource) {
+        Object.keys(element).forEach(property => {
+          result[property] = element[property];
+        });
+      }
+      return result;
+    }
+
+    const memberConstructor = this.resolveArrayMemberConstructor(source, index);
+    return plainToInstance(memberConstructor, seedFromSource ? element : {});
+  }
+
+  /**
+   * Resolve the concrete class constructor for a single element of an ObjectArray.
+   *
+   * `destinationType` here is one of two things:
+   *
+   *   - a **class constructor** (uniform array — every element maps to the same class), or
+   *   - a **factory callback** of shape `(source, sourceProperty, index) => instance`
+   *     (polymorphic array — class is chosen per element).
+   *
+   * JavaScript gives us no clean way to distinguish a class constructor from a callback —
+   * both are `typeof === "function"`. The conventional discriminant: a class constructor has
+   * a `.prototype` object (where its instance methods live); an arrow function does not.
+   *
+   * Caveat: a regular `function() { ... }` expression used as a callback would also have a
+   * `.prototype` and would be mis-classified as a class. The public type only documents the
+   * arrow-function form (`ArrayMemberTypeFactoryCallbackType = (...) => any`), and in practice
+   * callers use arrow functions, so this is safe for documented usage.
+   */
+  private resolveArrayMemberConstructor(source: any, index: number): ClassConstructor<any> {
+    const destinationType = this.destinationType!;
+    const isFactoryCallback = typeof destinationType === "function"
+      && (destinationType as any).prototype === undefined;
+
+    if (isFactoryCallback) {
+      const factory = destinationType as ArrayMemberTypeFactoryCallbackType;
+      const sampleInstance = factory(source, this.sourceProperty, index);
+      return sampleInstance.constructor as ClassConstructor<any>;
+    }
+
+    return destinationType as ClassConstructor<any>;
+  }
+
+  /**
+   * Run every direct child node against `(sourceElement, destinationElement)`. Each child
+   * writes its mapped destination property onto `destinationElement`.
+   */
+  private async runSubNodes(sourceElement: any, destinationElement: any, normalizersMap: { [key in DataNormalizerUniqueKey]: DataNormalizerInterface<any, any> }, options?: DataMapperOptions): Promise<void> {
     for (const key in this.nodes) {
       if (this.nodes.hasOwnProperty(key) === false) {
         continue;
