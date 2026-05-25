@@ -36,7 +36,7 @@ export class AutoDataMappingBuilder {
   build(source: any, destinationType: ClassConstructor<any>, options?: AutoDataMappingBuilderOptions): DataMappingBuilder {
     const resolvedOptions = new AutoDataMappingBuilderOptions(options);
 
-    if (resolvedOptions.disableCache === false) {
+    if (resolvedOptions.disableCache !== true) {
       const cached = this.cache.get(destinationType);
       if (cached !== undefined) {
         return cached;
@@ -47,7 +47,7 @@ export class AutoDataMappingBuilder {
 
     this.internalBuild(source, destinationType, dataMappingBuilder, dataMappingBuilder, resolvedOptions);
 
-    if (resolvedOptions.disableCache === false) {
+    if (resolvedOptions.disableCache !== true) {
       this.cache.set(destinationType, dataMappingBuilder);
     }
 

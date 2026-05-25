@@ -33,9 +33,10 @@ export class AutoDataMappingBuilderOptions {
    * the first call wins and subsequent calls reuse that decision. Pass `true` when you need fresh
    * inference per call.
    *
-   * Default value is `false`.
+   * Default value is `false`. Optional in the type so existing consumers passing a plain object
+   * literal (without instantiating `AutoDataMappingBuilderOptions`) remain compatible.
    */
-  disableCache: boolean;
+  disableCache?: boolean;
 
   constructor(options?: Partial<AutoDataMappingBuilderOptions>) {
     this.isOptionalDefaultValue = options?.isOptionalDefaultValue ?? true;
