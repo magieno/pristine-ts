@@ -893,15 +893,14 @@ describe("Data Mapper", () => {
       expect(buildSpy).toHaveBeenCalledTimes(1);
     })
 
-    it("should invoke the errorLogger callback when autoMap throws and logErrors=true is set", async () => {
+    it("should invoke the custom errorReporter when autoMap throws and logErrors=true is set", async () => {
       class FailingDestination {
         @property() value: string;
       }
 
-      const calls: Array<{error: Error, context: any}> = [];
-      const errorLogger = (error: Error, context: any) => calls.push({error, context});
+      const calls: Array<{error: Error, context: {source: unknown, destinationType: unknown}}> = [];
+      const errorReporter = (error: Error, context: any) => calls.push({error, context});
 
-      // Use a normalizer that throws to force the catch branch.
       class ThrowingNormalizer {
         getUniqueKey() { return StringNormalizerUniqueKey; }
         normalize(): any { throw new Error("normalizer-boom"); }
@@ -911,7 +910,7 @@ describe("Data Mapper", () => {
         new AutoDataMappingBuilder(),
         [new ThrowingNormalizer() as any],
         [],
-        errorLogger,
+        errorReporter,
       );
 
       const source = {value: "x"};
@@ -922,22 +921,22 @@ describe("Data Mapper", () => {
         new AutoDataMappingBuilderOptions({logErrors: true, throwOnErrors: false}),
       );
 
-      // Behavior preserved: source is returned when throwOnErrors=false.
+      // Source is returned when throwOnErrors=false.
       expect(result).toBe(source);
-      // And the error went through the logger callback, not console.error.
+      // Custom reporter received the error and context.
       expect(calls.length).toBe(1);
       expect(calls[0].error.message).toBe("normalizer-boom");
       expect(calls[0].context.source).toBe(source);
       expect(calls[0].context.destinationType).toBe(FailingDestination);
     })
 
-    it("should NOT invoke the errorLogger when logErrors=false (default)", async () => {
+    it("should NOT invoke the errorReporter when logErrors=false (default)", async () => {
       class FailingDestination2 {
         @property() value: string;
       }
 
       const calls: Array<unknown> = [];
-      const errorLogger = () => calls.push("called");
+      const errorReporter = () => calls.push("called");
 
       class ThrowingNormalizer2 {
         getUniqueKey() { return StringNormalizerUniqueKey; }
@@ -948,12 +947,82 @@ describe("Data Mapper", () => {
         new AutoDataMappingBuilder(),
         [new ThrowingNormalizer2() as any],
         [],
-        errorLogger,
+        errorReporter,
       );
 
       await dataMapper.autoMap({value: "x"}, FailingDestination2);
 
       expect(calls.length).toBe(0);
+    })
+
+    it("should default to console.error when no errorReporter is provided", async () => {
+      class FailingDestination3 {
+        @property() value: string;
+      }
+
+      class ThrowingNormalizer3 {
+        getUniqueKey() { return StringNormalizerUniqueKey; }
+        normalize(): any { throw new Error("frontend-boom"); }
+      }
+
+      // No reporter passed → built-in console.error fallback is used.
+      const dataMapper = new DataMapper(
+        new AutoDataMappingBuilder(),
+        [new ThrowingNormalizer3() as any],
+        [],
+      );
+
+      const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+      try {
+        await dataMapper.autoMap(
+          {value: "x"},
+          FailingDestination3,
+          new AutoDataMappingBuilderOptions({logErrors: true, throwOnErrors: false}),
+        );
+
+        expect(consoleSpy).toHaveBeenCalledTimes(1);
+        // First arg is the header, second is the error, third is the context object.
+        const [header, error, context] = consoleSpy.mock.calls[0];
+        expect(header).toContain("[DataMapper]");
+        expect((error as Error).message).toBe("frontend-boom");
+        expect((context as any).destinationType).toBe(FailingDestination3);
+      } finally {
+        consoleSpy.mockRestore();
+      }
+    })
+
+    it("should suppress reporting when a no-op errorReporter is passed (explicit opt-out)", async () => {
+      class FailingDestination4 {
+        @property() value: string;
+      }
+
+      class ThrowingNormalizer4 {
+        getUniqueKey() { return StringNormalizerUniqueKey; }
+        normalize(): any { throw new Error("silent-boom"); }
+      }
+
+      const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+      try {
+        const dataMapper = new DataMapper(
+          new AutoDataMappingBuilder(),
+          [new ThrowingNormalizer4() as any],
+          [],
+          () => {},  // explicit no-op reporter
+        );
+
+        await dataMapper.autoMap(
+          {value: "x"},
+          FailingDestination4,
+          new AutoDataMappingBuilderOptions({logErrors: true, throwOnErrors: false}),
+        );
+
+        // No-op reporter swallowed the report; console wasn't touched either.
+        expect(consoleSpy).not.toHaveBeenCalled();
+      } finally {
+        consoleSpy.mockRestore();
+      }
     })
 
     it("should bypass the schema cache when disableCache=true is passed", async () => {

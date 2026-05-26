@@ -15,23 +15,32 @@ import {AutoMapPrimitiveTypeNormalizerNotFoundError} from "../errors/auto-map-pr
 import {NumberNormalizerUniqueKey} from "../normalizers/number.normalizer";
 import {BooleanNormalizerUniqueKey} from "../normalizers/boolean.normalizer";
 import {DateNormalizerUniqueKey} from "../normalizers/date.normalizer";
-import {DataMapperErrorLogger} from "../types/data-mapper-error-logger.type";
+import {DataMapperErrorReporter} from "../types/data-mapper-error-reporter.type";
+import {ConsoleErrorReporter} from "../reporters/console-error.reporter";
 
 export class DataMapper {
   private readonly dataNormalizersMap: { [key in DataNormalizerUniqueKey]: DataNormalizerInterface<any, any> } = {}
   private readonly dataTransformerInterceptorsMap: { [key in DataMappingInterceptorUniqueKeyType]: DataMappingInterceptorInterface } = {}
+
+  /**
+   * Resolved error reporter — either the one passed to the constructor, or the built-in
+   * `console.error` fallback. Resolved once so the catch path doesn't ?? on every call.
+   */
+  private readonly errorReporter: DataMapperErrorReporter;
 
   public constructor(
     private readonly autoDataMappingBuilder: AutoDataMappingBuilder,
     private readonly dataNormalizers: DataNormalizerInterface<any, any>[],
     private readonly dataTransformerInterceptors: DataMappingInterceptorInterface[],
     /**
-     * Optional sink for errors that `autoMap` would otherwise swallow when `logErrors: true`.
-     * Kept as a plain callback so this class can stay free of a logging-framework dependency
-     * (data-mapping-common is consumed by frontends too). The DI-wired DataMapper in
-     * `@pristine-ts/data-mapping` adapts a `LogHandlerInterface` into this callback.
+     * Where `autoMap` should send errors when `logErrors: true` is set in the call options.
+     *
+     * Default: writes to `console.error`. Pass a custom function to route into your app's
+     * logger (e.g. the DI-wired DataMapper in `@pristine-ts/data-mapping` adapts this to
+     * `LogHandlerInterface`). Pass `() => {}` to silence reports even when `logErrors` is on.
      */
-    private readonly errorLogger?: DataMapperErrorLogger,) {
+    errorReporter?: DataMapperErrorReporter,) {
+    this.errorReporter = errorReporter ?? ConsoleErrorReporter.report;
     dataNormalizers.forEach(dataNormalizer => {
       this.dataNormalizersMap[dataNormalizer.getUniqueKey()] = dataNormalizer;
     })
@@ -118,8 +127,8 @@ export class DataMapper {
         excludeExtraneousValues: options?.excludeExtraneousValues,
       }));
     } catch (e) {
-      if (options?.logErrors && this.errorLogger !== undefined) {
-        this.errorLogger(e as Error, {source, destinationType});
+      if (options?.logErrors) {
+        this.errorReporter(e as Error, {source, destinationType});
       }
 
       if (options?.throwOnErrors) {

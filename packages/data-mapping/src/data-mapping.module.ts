@@ -66,20 +66,17 @@ export const DataMappingModule: ModuleInterface = {
           ? container.resolveAll<DataMappingInterceptorInterface>(DataMappingInterceptorInterfaceToken)
           : [];
 
+        // Adapter: data-mapping-common takes a plain callback so it can be used in
+        // frontend bundles without pulling @pristine-ts/logging. Here on the backend we
+        // bridge that callback to the framework's standard LogHandlerInterface so reports
+        // flow through LogStore / Sentry / whatever the project has configured.
         const logHandler = container.resolve<LogHandlerInterface>("LogHandlerInterface");
 
         return new DataMapper(
           container.resolve(AutoDataMappingBuilder),
           container.resolveAll<DataNormalizerInterface<any, any>>(DataNormalizerInterfaceToken),
           interceptors,
-          (error, context) => {
-            // Adapter: route the framework-agnostic error callback into the project's
-            // standard logging pipeline (LogStore, Sentry, etc.).
-            logHandler.error("DataMapper.autoMap caught an error.", {
-              error,
-              ...context,
-            });
-          },
+          (error, context) => logHandler.error("DataMapper.autoMap caught an error.", {error, ...context}),
         );
       }
     },

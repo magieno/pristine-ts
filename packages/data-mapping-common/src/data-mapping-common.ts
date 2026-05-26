@@ -8,4 +8,5 @@ export * from "./nodes/nodes";
 export * from "./normalizer-options/normalizer-options";
 export * from "./normalizers/normalizers";
 export * from "./options/options";
+export * from "./reporters/reporters";
 export * from "./types/types";
