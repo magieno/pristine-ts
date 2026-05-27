@@ -18,13 +18,10 @@ import {LogHandlerInterface} from "@pristine-ts/logging";
 // modules unless you specifically just want the raw classes (like in the frontend).
 export * from "@pristine-ts/data-mapping-common";
 
-const DataMappingInterceptorInterfaceToken = "DataMappingInterceptorInterface";
-const DataNormalizerInterfaceToken = "DataNormalizerInterface";
-
 // The built-in normalizers don't carry the `@tag` decorator themselves (they live in
 // data-mapping-common, which we want to keep frontend-friendly and decorator-light), so we
 // register them against the framework's tag registry from here at module load. The kernel
-// reads this registry during bootstrap to expose them via `resolveAll(DataNormalizerInterface)`.
+// reads this registry during bootstrap to expose them via `resolveAll("DataNormalizerInterface")`.
 const normalizers = [
   StringNormalizer,
   NumberNormalizer,
@@ -37,7 +34,7 @@ normalizers.forEach((normalizer: any) => {
   taggedProviderRegistrationsRegistry.push({
     constructor: normalizer,
     providerRegistration: {
-      token: DataNormalizerInterfaceToken,
+      token: "DataNormalizerInterface",
       useToken: normalizer,
     },
   });
@@ -62,8 +59,8 @@ export const DataMappingModule: ModuleInterface = {
         // Interceptors are optional. Use `isRegistered` rather than relying on a
         // placeholder no-op interceptor: tsyringe's `resolveAll` throws when no
         // providers are registered, so we guard the call ourselves.
-        const interceptors = container.isRegistered(DataMappingInterceptorInterfaceToken, true)
-          ? container.resolveAll<DataMappingInterceptorInterface>(DataMappingInterceptorInterfaceToken)
+        const interceptors = container.isRegistered("DataMappingInterceptorInterface", true)
+          ? container.resolveAll<DataMappingInterceptorInterface>("DataMappingInterceptorInterface")
           : [];
 
         // Adapter: data-mapping-common takes a plain callback so it can be used in
@@ -74,7 +71,7 @@ export const DataMappingModule: ModuleInterface = {
 
         return new DataMapper(
           container.resolve(AutoDataMappingBuilder),
-          container.resolveAll<DataNormalizerInterface<any, any>>(DataNormalizerInterfaceToken),
+          container.resolveAll<DataNormalizerInterface<any, any>>("DataNormalizerInterface"),
           interceptors,
           (error, context) => logHandler.error("DataMapper.autoMap caught an error.", {error, ...context}),
         );
