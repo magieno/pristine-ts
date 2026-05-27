@@ -9,6 +9,7 @@ import {ArrayDataMappingNodeInvalidSourcePropertyTypeError} from "../errors/arra
 import {ClassConstructor, plainToInstance} from "class-transformer";
 import {DataMapperOptions} from "../options/data-mapper.options";
 import {ArrayMemberTypeFactoryCallbackType} from "../types/array-member-type-factory-callback.type";
+import {DataMappingSerializer} from "../serializers/data-mapping.serializer";
 
 export class DataMappingNode extends BaseDataMappingNode {
   /**
@@ -292,71 +293,33 @@ export class DataMappingNode extends BaseDataMappingNode {
   }
 
   /**
-   * This method imports a schema.
-   *
-   * @param schema
+   * Rehydrate this node from a previously-exported sub-schema. Children are rebuilt via
+   * `DataMappingSerializer.importChildren`, the same helper `DataMappingBuilder.import` uses
+   * (so the two stay consistent).
    */
   public import(schema: any) {
     this.sourceProperty = schema.sourceProperty;
     this.destinationProperty = schema.destinationProperty;
     this.isOptional = schema.isOptional;
-    this.nodes = {};
-
-    const nodes = schema.nodes;
-
-    for (const key in nodes) {
-      if (nodes.hasOwnProperty(key) === false) {
-        continue;
-      }
-
-      const nodeInfo = nodes[key];
-
-      const type: DataMappingNodeTypeEnum = nodeInfo["_type"];
-
-      switch (type) {
-        case DataMappingNodeTypeEnum.ScalarArray:
-        case DataMappingNodeTypeEnum.Leaf:
-          const leaf = new DataMappingLeaf(this.root, this, type);
-          leaf.import(nodeInfo);
-          this.nodes[leaf.sourceProperty] = leaf;
-          continue;
-
-        case DataMappingNodeTypeEnum.Node:
-        case DataMappingNodeTypeEnum.ObjectArray:
-          const node = new DataMappingNode(this.root, this, type);
-          node.import(nodeInfo);
-          this.nodes[node.sourceProperty] = node;
-          ;
-      }
-    }
+    this.nodes = DataMappingSerializer.importChildren(this.root, this, schema.nodes);
   }
 
   /**
-   * This method exports this node. The exported representation is a plain object — it does not mutate
-   * the live tree, so the same builder can continue to be used for mapping after `export()` is called.
+   * Export this node as a plain object. Does not mutate the live tree — the builder remains
+   * usable for mapping after this call returns.
    *
-   * `destinationType` is intentionally not serialized: class constructors aren't transferable, and
-   * factory callbacks (`ArrayMemberTypeFactoryCallbackType`) hold closures. To rehydrate a schema with
-   * the same destination instantiation behavior, decorate the destination class with class-transformer's
-   * `@Type()` and pass the destination class to `DataMapper.map()`.
+   * `destinationType` is intentionally not serialized: class constructors aren't transferable,
+   * and factory callbacks (`ArrayMemberTypeFactoryCallbackType`) hold closures. To rehydrate a
+   * schema with the same destination instantiation behavior, decorate the destination class
+   * with class-transformer's `@Type()` and pass the destination class to `DataMapper.map()`.
    */
   public export() {
-    const exportedNodes: { [key: string]: any } = {};
-
-    for (const key in this.nodes) {
-      if (this.nodes.hasOwnProperty(key) === false) {
-        continue;
-      }
-
-      exportedNodes[key] = this.nodes[key].export();
-    }
-
     return {
       "_type": this.type,
       "sourceProperty": this.sourceProperty,
       "destinationProperty": this.destinationProperty,
       "isOptional": this.isOptional,
-      "nodes": exportedNodes,
+      "nodes": DataMappingSerializer.exportChildren(this.nodes),
     }
   }
 }
