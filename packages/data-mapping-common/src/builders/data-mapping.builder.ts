@@ -7,6 +7,7 @@ import {DataAfterMappingInterceptorAlreadyAddedError} from "../errors/data-after
 import {DataMappingLeaf} from "../nodes/data-mapping.leaf";
 import {BaseDataMappingNode} from "../nodes/base-data-mapping.node";
 import {DataMappingNodeTypeEnum} from "../enums/data-mapping-node-type.enum";
+import {DataMappingSerializer} from "../serializers/data-mapping.serializer";
 
 export class DataMappingBuilder extends BaseDataMappingNode {
   public normalizers: { key: DataNormalizerUniqueKey, options: any }[] = [];
@@ -138,61 +139,24 @@ export class DataMappingBuilder extends BaseDataMappingNode {
   }
 
   /**
-   * This method imports a schema.
-   *
-   * @param schema
+   * Rehydrate this builder from a previously-exported schema. Replaces every field this
+   * class owns; child nodes are rebuilt via `DataMappingSerializer.importChildren`, which is
+   * the same helper `DataMappingNode.import` uses (so the two stay consistent).
    */
   public import(schema: any) {
     this.normalizers = schema.normalizers;
     this.beforeMappingInterceptors = schema.beforeMappingInterceptors;
     this.afterMappingInterceptors = schema.afterMappingInterceptors;
-
-    const nodes = schema.nodes;
-
-    for (const key in nodes) {
-      if (nodes.hasOwnProperty(key) === false) {
-        continue;
-      }
-
-      const nodeInfo = nodes[key];
-
-      const type: DataMappingNodeTypeEnum = nodeInfo["_type"];
-
-      switch (type) {
-        case DataMappingNodeTypeEnum.ScalarArray:
-        case DataMappingNodeTypeEnum.Leaf:
-          const leaf = new DataMappingLeaf(this, this, type);
-          leaf.import(nodeInfo);
-          this.nodes[leaf.sourceProperty] = leaf;
-          continue;
-
-        case DataMappingNodeTypeEnum.Node:
-        case DataMappingNodeTypeEnum.ObjectArray:
-          const node = new DataMappingNode(this, this, type);
-          node.import(nodeInfo);
-          this.nodes[node.sourceProperty] = node;
-          ;
-      }
-    }
+    this.nodes = DataMappingSerializer.importChildren(this, this, schema.nodes);
   }
 
   /**
-   * This method exports the schema as a plain object. The export does not mutate the live tree —
-   * the builder remains usable for mapping after this call returns.
+   * Export the schema as a plain object. The export does not mutate the live tree — the
+   * builder remains usable for mapping after this call returns.
    */
   public export() {
-    const exportedNodes: { [key: string]: any } = {};
-
-    for (const key in this.nodes) {
-      if (this.nodes.hasOwnProperty(key) === false) {
-        continue;
-      }
-
-      exportedNodes[key] = this.nodes[key].export();
-    }
-
     return {
-      "nodes": exportedNodes,
+      "nodes": DataMappingSerializer.exportChildren(this.nodes),
       "normalizers": this.normalizers,
       "beforeMappingInterceptors": this.beforeMappingInterceptors,
       "afterMappingInterceptors": this.afterMappingInterceptors,

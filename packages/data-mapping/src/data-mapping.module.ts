@@ -1,4 +1,4 @@
-import {ModuleInterface, taggedProviderRegistrationsRegistry} from "@pristine-ts/common";
+import {ModuleInterface} from "@pristine-ts/common";
 import {DataMappingModuleKeyname} from "./data-mapping.module.keyname";
 import {
   AutoDataMappingBuilder,
@@ -19,26 +19,16 @@ import {LogHandlerInterface} from "@pristine-ts/logging";
 export * from "@pristine-ts/data-mapping-common";
 
 // The built-in normalizers don't carry the `@tag` decorator themselves (they live in
-// data-mapping-common, which we want to keep frontend-friendly and decorator-light), so we
-// register them against the framework's tag registry from here at module load. The kernel
-// reads this registry during bootstrap to expose them via `resolveAll("DataNormalizerInterface")`.
-const normalizers = [
+// data-mapping-common, which we want to keep frontend-friendly and decorator-light). They
+// are aliased here under the "DataNormalizerInterface" tag via providerRegistrations so the
+// registration is tied to module initialization rather than to module-file import order.
+const builtInNormalizers = [
   StringNormalizer,
   NumberNormalizer,
   DateNormalizer,
   BooleanNormalizer,
   LowercaseNormalizer,
 ];
-
-normalizers.forEach((normalizer: any) => {
-  taggedProviderRegistrationsRegistry.push({
-    constructor: normalizer,
-    providerRegistration: {
-      token: "DataNormalizerInterface",
-      useToken: normalizer,
-    },
-  });
-});
 
 export const DataMappingModule: ModuleInterface = {
   keyname: DataMappingModuleKeyname,
@@ -48,6 +38,10 @@ export const DataMappingModule: ModuleInterface = {
       token: AutoDataMappingBuilder,
       useClass: AutoDataMappingBuilder,
     },
+    ...builtInNormalizers.map(normalizer => ({
+      token: "DataNormalizerInterface",
+      useToken: normalizer,
+    })),
     {
       token: DataMapper,
       // ── container.resolve / container.resolveAll, justified ───────────────────

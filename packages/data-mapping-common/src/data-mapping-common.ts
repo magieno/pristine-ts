@@ -9,4 +9,5 @@ export * from "./normalizer-options/normalizer-options";
 export * from "./normalizers/normalizers";
 export * from "./options/options";
 export * from "./reporters/reporters";
+export * from "./serializers/serializers";
 export * from "./types/types";
