@@ -1,0 +1,74 @@
+{
+  "name": "@pristine-ts/mysql-cli",
+  "version": "2.0.11",
+  "description": "Pristine CLI commands and TypeScript-defined SQL migrations for @pristine-ts/mysql.",
+  "module": "dist/lib/esm/mysql-cli.module.js",
+  "main": "dist/lib/cjs/mysql-cli.module.js",
+  "types": "dist/types/mysql-cli.module.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
+    "prepublish": "npm run build",
+    "test": "jest",
+    "test:cov": "jest --coverage"
+  },
+  "files": [
+    "dist"
+  ],
+  "author": "",
+  "license": "ISC",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@pristine-ts/class-validator": "^2.0.4",
+    "@pristine-ts/cli": "file:../cli",
+    "@pristine-ts/common": "file:../common",
+    "@pristine-ts/configuration": "file:../configuration",
+    "@pristine-ts/core": "file:../core",
+    "@pristine-ts/file": "file:../file",
+    "@pristine-ts/logging": "file:../logging",
+    "@pristine-ts/mysql": "file:../mysql",
+    "@pristine-ts/telemetry": "file:../telemetry",
+    "mysql2": "^3.10.0",
+    "tsyringe": "^4.8.0"
+  },
+  "jest": {
+    "transform": {
+      ".(ts|tsx)": "ts-jest"
+    },
+    "globals": {
+      "ts-jest": {
+        "tsconfig": {
+          "strictNullChecks": false
+        }
+      }
+    },
+    "testEnvironment": "node",
+    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/test/"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 90,
+        "functions": 95,
+        "lines": 95,
+        "statements": 95
+      }
+    },
+    "collectCoverageFrom": [
+      "src/*.{js,ts}"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/magieno/pristine-ts.git",
+    "directory": "packages/mysql-cli"
+  }
+}
