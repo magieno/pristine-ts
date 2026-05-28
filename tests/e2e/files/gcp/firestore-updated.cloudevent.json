@@ -1,0 +1,25 @@
+{
+  "specversion": "1.0",
+  "id": "fs-event-2",
+  "type": "google.cloud.firestore.document.v1.updated",
+  "source": "//firestore.googleapis.com/projects/test-project/databases/(default)",
+  "time": "2026-05-25T12:05:00.000Z",
+  "datacontenttype": "application/json",
+  "data": {
+    "value": {
+      "name": "projects/test-project/databases/(default)/documents/users/abc123",
+      "fields": {
+        "email": {"stringValue": "user@example.com"},
+        "active": {"booleanValue": false}
+      }
+    },
+    "oldValue": {
+      "name": "projects/test-project/databases/(default)/documents/users/abc123",
+      "fields": {
+        "email": {"stringValue": "user@example.com"},
+        "active": {"booleanValue": true}
+      }
+    },
+    "updateMask": {"fieldPaths": ["active"]}
+  }
+}

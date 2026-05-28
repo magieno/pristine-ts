@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.json",
+  "include": [
+    "src"
+  ],
+  "compilerOptions": {
+    "declarationDir": "dist/types",
+    "outDir": "dist/lib/esm",
+    "strict": false
+  },
+  "exclude": [
+    "./**/*.spec.ts",
+    "dist"
+  ]
+}

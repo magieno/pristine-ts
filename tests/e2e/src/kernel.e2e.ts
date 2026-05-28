@@ -153,4 +153,62 @@ describe("Kernel.ts", () => {
             expect(kernel.container.resolveAll("CommonTag").length).toBe(2);
         })
     })
+
+    describe("GCP modules co-exist with the framework core", () => {
+        it("starts a kernel with all 5 GCP modules imported", async () => {
+            const {gcpTestModule} = await import("./gcp-test.module");
+
+            // Configure the required keys these modules ask for via the kernel start
+            // config — these are the only keys with isRequired: true across the GCP set.
+            const kernel = new Kernel();
+            await kernel.start(gcpTestModule, {
+                "pristine.logging.consoleLoggerActivated": false,
+                "pristine.gcp.projectId": "e2e-test-project",
+                "pristine.gcp-identity-platform.projectId": "e2e-test-project",
+            } as any);
+
+            // The four GCP event mappers (from @pristine-ts/gcp) plus the three GCP HTTP
+            // mappers (from @pristine-ts/gcp-functions) should all be tag-registered.
+            const {ServiceDefinitionTagEnum} = await import("@pristine-ts/common");
+            const mappers = kernel.container.resolveAll(ServiceDefinitionTagEnum.EventMapper);
+            const mapperNames = mappers.map((m: any) => m.constructor.name);
+            expect(mapperNames).toEqual(expect.arrayContaining([
+                "PubSubEventMapper",
+                "CloudStorageEventMapper",
+                "FirestoreEventMapper",
+                "EventarcEventMapper",
+                "CloudFunctionGen1HttpEventMapper",
+                "CloudFunctionGen2HttpEventMapper",
+                "CloudRunHttpEventMapper",
+            ]));
+
+            // The Cloud Trace tracer should be tag-registered.
+            const tracers = kernel.container.resolveAll(ServiceDefinitionTagEnum.Tracer);
+            const tracerNames = tracers.map((t: any) => t.constructor.name);
+            expect(tracerNames).toEqual(expect.arrayContaining(["CloudTraceTracer"]));
+
+            // The Cloud Scheduler event handler should be resolvable. We resolve it
+            // directly by class rather than via `resolveAll(EventHandler)`, because
+            // some framework-internal handlers (RequestEventHandler) take a runtime-
+            // only `CURRENT_CHILD_CONTAINER` token that doesn't exist outside the
+            // active pipeline.
+            const {CloudSchedulerEventHandler} = await import("@pristine-ts/gcp-scheduling");
+            const handler = kernel.container.resolve(CloudSchedulerEventHandler);
+            expect(handler).toBeInstanceOf(CloudSchedulerEventHandler);
+        });
+
+        it("IdentityPlatformAuthenticator resolves as a singleton", async () => {
+            const {gcpTestModule} = await import("./gcp-test.module");
+            const {IdentityPlatformAuthenticator} = await import("@pristine-ts/gcp-identity-platform");
+            const kernel = new Kernel();
+            await kernel.start(gcpTestModule, {
+                "pristine.logging.consoleLoggerActivated": false,
+                "pristine.gcp.projectId": "e2e-test-project",
+                "pristine.gcp-identity-platform.projectId": "e2e-test-project",
+            } as any);
+            const a = kernel.container.resolve(IdentityPlatformAuthenticator);
+            const b = kernel.container.resolve(IdentityPlatformAuthenticator);
+            expect(a).toBe(b);
+        });
+    });
 })

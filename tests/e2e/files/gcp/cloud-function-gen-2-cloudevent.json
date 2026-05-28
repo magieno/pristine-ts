@@ -1,0 +1,13 @@
+{
+  "method": "POST",
+  "url": "/",
+  "headers": {
+    "ce-specversion": "1.0",
+    "ce-id": "gen2-ce-1",
+    "ce-type": "com.example.custom",
+    "ce-source": "//example.com/source",
+    "ce-time": "2026-05-25T12:00:00.000Z",
+    "content-type": "application/json"
+  },
+  "body": {"hello": "world"}
+}

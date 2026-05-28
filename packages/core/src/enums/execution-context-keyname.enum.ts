@@ -10,4 +10,16 @@ export enum ExecutionContextKeynameEnum {
   Http = "HTTP",
   Jest = "JEST",
   Cli = "CLI",
+  /**
+   * GCP Cloud Functions (Gen 1 HTTP-trigger or Gen 2 with a CloudEvent envelope). Set by the
+   * entry-point shim that calls `kernel.handle(rawEvent, { keyname: GcpCloudFunction, context })`.
+   * `@pristine-ts/gcp-functions` HTTP event mappers gate on this value in `supportsMapping(...)`.
+   */
+  GcpCloudFunction = "GCP_CLOUD_FUNCTION",
+  /**
+   * GCP Cloud Run. Set by the entry-point shim when running inside a Cloud Run container
+   * fronted by the framework's HTTP entry. `@pristine-ts/gcp-functions`'s
+   * `CloudRunHttpEventMapper` gates on this value.
+   */
+  GcpCloudRun = "GCP_CLOUD_RUN",
 }

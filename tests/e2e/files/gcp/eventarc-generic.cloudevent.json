@@ -1,0 +1,13 @@
+{
+  "specversion": "1.0",
+  "id": "eventarc-event-1",
+  "type": "com.example.something.v1.happened",
+  "source": "//pubsub.googleapis.com/projects/test-project/topics/some-topic",
+  "subject": "things/widget-42",
+  "time": "2026-05-25T12:00:00.000Z",
+  "datacontenttype": "application/json",
+  "data": {
+    "widget": "42",
+    "action": "did-something"
+  }
+}

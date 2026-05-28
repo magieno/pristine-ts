@@ -1,0 +1,68 @@
+{
+  "name": "@pristine-ts/gcp-scheduling",
+  "version": "2.0.10",
+  "description": "",
+  "module": "dist/lib/esm/gcp-scheduling.module.js",
+  "main": "dist/lib/cjs/gcp-scheduling.module.js",
+  "types": "dist/types/gcp-scheduling.module.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
+    "prepublish": "npm run build",
+    "test": "jest",
+    "test:cov": "jest --coverage"
+  },
+  "files": [
+    "dist"
+  ],
+  "author": "",
+  "license": "ISC",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@pristine-ts/common": "file:../common",
+    "@pristine-ts/gcp": "file:../gcp",
+    "@pristine-ts/gcp-functions": "file:../gcp-functions",
+    "@pristine-ts/logging": "file:../logging",
+    "@pristine-ts/scheduling": "file:../scheduling"
+  },
+  "jest": {
+    "transform": {
+      ".(ts|tsx)": "ts-jest"
+    },
+    "globals": {
+      "ts-jest": {
+        "tsconfig": {
+          "strictNullChecks": false
+        }
+      }
+    },
+    "testEnvironment": "node",
+    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/test/"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 90,
+        "functions": 95,
+        "lines": 95,
+        "statements": 95
+      }
+    },
+    "collectCoverageFrom": [
+      "src/*.{js,ts}"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/magieno/pristine-ts.git",
+    "directory": "packages/gcp-scheduling"
+  }
+}

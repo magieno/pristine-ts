@@ -1,0 +1,12 @@
+{
+  "message": {
+    "messageId": "scheduler-msg-1",
+    "data": "ZGFpbHlfam9i",
+    "attributes": {
+      "userAgent": "Google-Cloud-Scheduler",
+      "jobName": "projects/test-project/locations/us-central1/jobs/daily-cleanup"
+    },
+    "publishTime": "2026-05-25T03:00:00.000Z"
+  },
+  "subscription": "projects/test-project/subscriptions/scheduler-sub"
+}
