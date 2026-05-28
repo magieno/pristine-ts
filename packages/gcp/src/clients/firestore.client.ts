@@ -5,17 +5,14 @@ import {Firestore} from "@google-cloud/firestore";
 import {GcpModuleKeyname} from "../gcp.module.keyname";
 import {GcpConfigurationKeys} from "../gcp.configuration-keys";
 import {FirestoreClientInterface} from "../interfaces/firestore-client.interface";
-import {FirestoreCollection} from "../decorators/dynamic-collection-name.decorator";
 
 /**
- * Client for Google Cloud Firestore (Native mode). Mirrors `DynamoDbClient` in
- * `@pristine-ts/aws`: provides typed CRUD against a `@dynamicCollectionName`-decorated
- * class, plus a `findBySecondaryIndex` for indexed field-equality lookups.
+ * Client for Google Cloud Firestore (Native mode). Provides typed CRUD against a
+ * model class plus a `findBySecondaryIndex` for indexed field-equality lookups.
  *
- * Document↔object mapping uses the class name (and the `FirestoreCollection` symbol if
- * set via `@dynamicCollectionName`) as the collection key; fields are persisted
- * verbatim. A typed decorator-based mapper (`@firestoreCollection` / `@firestoreField`)
- * is a Phase 4 extension — for now, plain TypeScript classes work via property copy.
+ * Document↔object mapping uses the class name (lowercased) as the collection key;
+ * fields are persisted verbatim via property copy. A typed decorator-based mapper
+ * (`@firestoreCollection` / `@firestoreField`) is a future extension.
  */
 @tag("FirestoreClientInterface")
 @moduleScoped(GcpModuleKeyname)
@@ -34,13 +31,11 @@ export class FirestoreClient implements FirestoreClientInterface {
   }
 
   /**
-   * Resolves the Firestore collection name for a model class. Prefers the
-   * `FirestoreCollection` symbol stamped by `@dynamicCollectionName`; falls back to the
-   * class name lowercased.
+   * Resolves the Firestore collection name for a model class — the class name
+   * lowercased.
    */
   private getCollectionName<T>(classType: { new(): T }): string {
-    const stamped = (classType.prototype as any)[FirestoreCollection];
-    return stamped ?? classType.name.toLowerCase();
+    return classType.name.toLowerCase();
   }
 
   @traced()
