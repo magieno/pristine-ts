@@ -2,60 +2,9 @@ import {DataMappingNode} from "./data-mapping.node";
 import {DataMappingLeaf} from "./data-mapping.leaf";
 import {UndefinedSourcePropertyError} from "../errors/undefined-source-property.error";
 import {UndefinedDestinationPropertyError} from "../errors/undefined-destination-property.error";
-import {DataNormalizerUniqueKey} from "../types/data-normalizer-unique-key.type";
-import {ClassConstructor} from "class-transformer";
-import {ArrayMemberTypeFactoryCallbackType} from "../types/array-member-type-factory-callback.type";
-
-/**
- * Options for a leaf field (`field()` and `arrayOfScalars()`).
- *
- * Inline interface — these are small, internal to the fluent API, and won't grow runtime
- * defaults the way the existing `DataMapperOptions` / `AutoDataMappingBuilderOptions` classes
- * do. Splitting them into their own files would be ceremony without payoff.
- */
-export interface FluentLeafOptions {
-  /**
-   * Normalizers to apply to the value as it flows from source to destination. Each entry is
-   * either a unique key (shorthand) or `{key, options}` to pass normalizer-specific options.
-   */
-  normalizers?: Array<DataNormalizerUniqueKey | {key: DataNormalizerUniqueKey, options?: any}>;
-
-  /**
-   * Normalizers added at the builder root that should NOT apply to this leaf. Useful when a
-   * global normalizer (e.g. lowercase everything) needs to be skipped for one specific field
-   * (e.g. an API key that's case-sensitive).
-   */
-  excludeNormalizers?: DataNormalizerUniqueKey[];
-
-  /**
-   * When true, the leaf is skipped silently if the source property is missing. When false /
-   * undefined, a missing source property throws `DataMappingSourcePropertyNotFoundError`.
-   */
-  isOptional?: boolean;
-}
-
-/**
- * Options for a single nested object (`nested()`).
- */
-export interface FluentNestedOptions {
-  isOptional?: boolean;
-  /**
-   * If set, the destination property is instantiated as this class (via `plainToInstance`).
-   * Without it, the destination is a plain object.
-   */
-  destinationType?: ClassConstructor<any>;
-}
-
-/**
- * Options for an array of nested objects (`arrayOfObjects()`).
- *
- * `destinationType` here accepts a factory callback in addition to a class constructor, for
- * polymorphic arrays where each element maps to a different class.
- */
-export interface FluentArrayOfObjectsOptions {
-  isOptional?: boolean;
-  destinationType?: ClassConstructor<any> | ArrayMemberTypeFactoryCallbackType;
-}
+import {FluentLeafOptions} from "../interfaces/fluent-leaf-options.interface";
+import {FluentNestedOptions} from "../interfaces/fluent-nested-options.interface";
+import {FluentArrayOfObjectsOptions} from "../interfaces/fluent-array-of-objects-options.interface";
 
 export abstract class BaseDataMappingNode {
   public nodes: { [sourceProperty in string]: DataMappingNode | DataMappingLeaf } = {};
