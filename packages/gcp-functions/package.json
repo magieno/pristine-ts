@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/gcp-functions",
-  "version": "2.0.10",
+  "version": "2.0.12",
   "description": "",
   "module": "dist/lib/esm/gcp-functions.module.js",
   "main": "dist/lib/cjs/gcp-functions.module.js",

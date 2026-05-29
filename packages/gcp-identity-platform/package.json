@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/gcp-identity-platform",
-  "version": "2.0.10",
+  "version": "2.0.12",
   "description": "",
   "module": "dist/lib/esm/gcp-identity-platform.module.js",
   "main": "dist/lib/cjs/gcp-identity-platform.module.js",

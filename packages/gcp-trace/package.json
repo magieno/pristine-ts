@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/gcp-trace",
-  "version": "2.0.10",
+  "version": "2.0.12",
   "description": "",
   "module": "dist/lib/esm/gcp-trace.module.js",
   "main": "dist/lib/cjs/gcp-trace.module.js",
