@@ -1,0 +1,13 @@
+{
+  "specversion": "1.0",
+  "id": "cs-event-2",
+  "type": "google.cloud.storage.object.v1.deleted",
+  "source": "//storage.googleapis.com/projects/_/buckets/test-bucket",
+  "subject": "objects/path/to/file.txt",
+  "time": "2026-05-25T12:05:00.000Z",
+  "datacontenttype": "application/json",
+  "data": {
+    "bucket": "test-bucket",
+    "name": "path/to/file.txt"
+  }
+}

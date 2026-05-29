@@ -1,0 +1,72 @@
+{
+  "name": "@pristine-ts/gcp",
+  "version": "2.0.10",
+  "description": "",
+  "module": "dist/lib/esm/gcp.module.js",
+  "main": "dist/lib/cjs/gcp.module.js",
+  "types": "dist/types/gcp.module.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
+    "prepublish": "npm run build",
+    "test": "jest",
+    "test:cov": "jest --coverage"
+  },
+  "files": [
+    "dist"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google-cloud/eventarc-publishing": "^2.0.0",
+    "@google-cloud/firestore": "^7.10.0",
+    "@google-cloud/pubsub": "^4.8.0",
+    "@google-cloud/secret-manager": "^5.6.0",
+    "@google-cloud/storage": "^7.14.0",
+    "@pristine-ts/common": "file:../common",
+    "@pristine-ts/core": "file:../core",
+    "@pristine-ts/logging": "file:../logging",
+    "uuid": "^9.0.1"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "jest": {
+    "transform": {
+      ".(ts|tsx)": "ts-jest"
+    },
+    "globals": {
+      "ts-jest": {
+        "tsconfig": {
+          "strictNullChecks": false
+        }
+      }
+    },
+    "testEnvironment": "node",
+    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/test/"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 90,
+        "functions": 95,
+        "lines": 95,
+        "statements": 95
+      }
+    },
+    "collectCoverageFrom": [
+      "src/*.{js,ts}"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/magieno/pristine-ts.git",
+    "directory": "packages/gcp"
+  }
+}

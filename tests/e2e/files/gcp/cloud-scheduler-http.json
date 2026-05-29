@@ -1,0 +1,12 @@
+{
+  "method": "POST",
+  "url": "/scheduler/tick",
+  "headers": {
+    "host": "scheduler-target.cloudfunctions.net",
+    "x-cloudscheduler": "true",
+    "x-cloudscheduler-jobname": "projects/test-project/locations/us-central1/jobs/hourly-rollup",
+    "x-cloudscheduler-scheduletime": "2026-05-25T13:00:00.000Z",
+    "user-agent": "Google-Cloud-Scheduler"
+  },
+  "body": ""
+}

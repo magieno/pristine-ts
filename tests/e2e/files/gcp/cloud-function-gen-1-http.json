@@ -1,0 +1,13 @@
+{
+  "method": "POST",
+  "url": "/api/users?active=true",
+  "headers": {
+    "host": "example.cloudfunctions.net",
+    "content-type": "application/json",
+    "x-pristine-request-id": "gen1-req-1"
+  },
+  "query": {"active": "true"},
+  "body": "{\"name\":\"alice\"}",
+  "rawBody": "{\"name\":\"alice\"}",
+  "ip": "10.0.0.1"
+}

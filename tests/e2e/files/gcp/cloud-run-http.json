@@ -1,0 +1,10 @@
+{
+  "method": "GET",
+  "url": "/api/health",
+  "headers": {
+    "host": "test-service-abc.a.run.app",
+    "user-agent": "curl/8.0"
+  },
+  "query": {},
+  "ip": "10.0.0.2"
+}
