@@ -2,6 +2,7 @@ import "reflect-metadata";
 import {ExitCode} from "@pristine-ts/common";
 import {MysqlMigrateCreateCommand} from "./mysql-migrate-create.command";
 import {MysqlMigrateCreateCommandOptions} from "./mysql-migrate-create.command-options";
+import {Validator} from "@pristine-ts/class-validator";
 
 const makeArgs = (overrides: Partial<MysqlMigrateCreateCommandOptions>): MysqlMigrateCreateCommandOptions =>
   Object.assign(new MysqlMigrateCreateCommandOptions(), overrides);
@@ -22,24 +23,12 @@ describe("MysqlMigrateCreateCommand", () => {
     expect(scaffoldCreate).toHaveBeenCalledWith(expect.objectContaining({descriptiveName: "init"}));
   });
 
-  it("falls back to positional from `_` when --name not given", async () => {
-    const scaffoldCreate = jest.fn().mockResolvedValue({
-      filePath: "/tmp/02-add.sql-migrations.ts", className: "Add_02", migrationName: "02-add", barrelUpdated: false,
-    });
+  it("requires a name — validation rejects options when neither --name nor the prompt supplied one", async () => {
+    const validator = new Validator();
 
-    const cmd = new MysqlMigrateCreateCommand("src/sql-migrations", "",
-      {create: scaffoldCreate} as any, makeCliOutput() as any, makeLog() as any);
+    const errors = await validator.validate(makeArgs({}));
 
-    expect(await cmd.run(makeArgs({_: ["add"]}))).toBe(ExitCode.Success);
-    expect(scaffoldCreate).toHaveBeenCalledWith(expect.objectContaining({descriptiveName: "add"}));
-  });
-
-  it("returns Error when no descriptive name is supplied", async () => {
-    const scaffoldCreate = jest.fn();
-    const cmd = new MysqlMigrateCreateCommand("src/sql-migrations", "",
-      {create: scaffoldCreate} as any, makeCliOutput() as any, makeLog() as any);
-    expect(await cmd.run(makeArgs({}))).toBe(ExitCode.Error);
-    expect(scaffoldCreate).not.toHaveBeenCalled();
+    expect(errors.some((error) => error.property === "name")).toBe(true);
   });
 
   it("passes configUniqueKeynames when --config is given", async () => {

@@ -99,7 +99,7 @@ Leave the field undefined to apply against every targeted config.
 | `pristine mysql:migrate [--config <k>] [--dry-run] [--force]` | Apply pending migrations. Refuses to proceed on drift unless `--force`. Halts on first failure. |
 | `pristine mysql:status  [--config <k>]` | Print Pending / Applied / Modified / Orphaned for every migration. Always exits 0. |
 | `pristine mysql:verify  [--config <k>]` | Same scan as `status`, exits non-zero on drift. Use as a CI gate. |
-| `pristine mysql:create <name> [--config <k>]` | Scaffold a new `<NN>-<slug>.sql-migrations.ts` file with the next sequential number. |
+| `pristine mysql:create --name <name> [--config <k>]` | Scaffold a new `<NN>-<slug>.sql-migrations.ts` file with the next sequential number. Prompts for the name when `--name` is omitted on an interactive terminal. |
 
 `--config` defaults to `__default__`.
 

@@ -12,6 +12,8 @@ import {
 import {CommandInterface} from "../interfaces/command.interface";
 import {CliEventHandler} from "./cli.event-handler";
 import {CommandArgumentResolver} from "../services/command-argument-resolver";
+import {CommandParameterPrompter} from "../services/command-parameter-prompter";
+import {CliPrompt} from "../managers/cli-prompt.manager";
 
 /**
  * Builds a `DataMapper` with the same normalizers `DataMappingModule` ships, so the
@@ -78,7 +80,7 @@ const buildHandler = (): {handler: CliEventHandler; logHandler: CapturingLogHand
   const validator = new Validator();
   const handler = new CliEventHandler(
     captured as any,
-    new CommandArgumentResolver(validator, buildDataMapper()),
+    new CommandArgumentResolver(validator, buildDataMapper(), new CommandParameterPrompter(new CliPrompt(), false)),
     [],
   );
   return {handler, logHandler: captured};

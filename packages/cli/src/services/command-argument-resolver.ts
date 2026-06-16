@@ -5,6 +5,7 @@ import {AutoDataMappingBuilderOptions, DataMapper} from "@pristine-ts/data-mappi
 import {CommandInterface} from "../interfaces/command.interface";
 import {CliModuleKeyname} from "../cli.module.keyname";
 import {CliErrorCode} from "../errors/cli-error-code.enum";
+import {CommandParameterPrompter} from "./command-parameter-prompter";
 
 /**
  * Maps a command's raw parsed arguments onto a typed, validated instance of its
@@ -18,15 +19,19 @@ export class CommandArgumentResolver {
   constructor(
     private readonly validator: Validator,
     private readonly dataMapper: DataMapper,
+    private readonly commandParameterPrompter: CommandParameterPrompter,
   ) {
   }
 
   /**
    * For commands that opt out of typed options (`optionsType === null`), passes the raw
-   * args through unchanged. Otherwise maps them onto a real instance of `optionsType`
-   * via the framework `DataMapper` (whose `autoMap` produces a real class instance —
-   * prototype + decorator metadata intact — so `class-validator` finds its rules) and
-   * validates it.
+   * args through unchanged. Otherwise it first applies the command's `@commandParameter`
+   * metadata — binding aliased flags onto their property and interactively asking for any
+   * missing parameters that declare a question — then maps the result onto a real instance
+   * of `optionsType` via the framework `DataMapper` (whose `autoMap` produces a real class
+   * instance — prototype + decorator metadata intact — so `class-validator` finds its rules)
+   * and validates it. Prompted values flow through the same mapping + validation, so they're
+   * coerced and checked like any flag the user typed.
    *
    * Throws `UsageError` for mapping failures and `ValidationError` for validation
    * failures — both carry structured `details` for `CliErrorReporter`.
@@ -36,11 +41,13 @@ export class CommandArgumentResolver {
       return rawArgs;
     }
 
+    const preparedArgs = await this.commandParameterPrompter.fillMissingParameters(command.optionsType, rawArgs);
+
     let mapped: any;
     try {
       // `throwOnErrors: true` so a normalizer failure surfaces here instead of `autoMap`
       // silently returning the source object (which would defeat validation downstream).
-      mapped = await this.dataMapper.autoMap(rawArgs, command.optionsType, new AutoDataMappingBuilderOptions({throwOnErrors: true}));
+      mapped = await this.dataMapper.autoMap(preparedArgs, command.optionsType, new AutoDataMappingBuilderOptions({throwOnErrors: true}));
     } catch (cause) {
       throw new UsageError(
         `Failed to map CLI arguments to '${command.optionsType.name}': ${(cause as Error).message}`,

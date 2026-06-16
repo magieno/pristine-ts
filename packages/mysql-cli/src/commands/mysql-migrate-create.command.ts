@@ -9,7 +9,7 @@ import {MysqlMigrationScaffoldManager} from "../managers/mysql-migration-scaffol
 import {MysqlMigrateCreateCommandOptions} from "./mysql-migrate-create.command-options";
 
 /**
- * `pristine mysql:create <name> [--config <keyname>]`
+ * `pristine mysql:create --name <name> [--config <keyname>]`
  *
  * Scaffolds a new `.sql-migrations.ts` file under the configured scaffold path
  * (`pristine.mysql-cli.scaffold.path`, default `src/sql-migrations`). When the
@@ -40,11 +40,9 @@ export class MysqlMigrateCreateCommand implements CommandInterface<MysqlMigrateC
   }
 
   public async run(args: MysqlMigrateCreateCommandOptions): Promise<ExitCode | number> {
-    const descriptiveName = args.descriptiveName;
-    if (descriptiveName === undefined || descriptiveName.length === 0) {
-      this.logHandler.error("mysql:create requires a descriptive name (e.g. `pristine mysql:create add-products-table`).");
-      return ExitCode.Error;
-    }
+    // `name` is a required, validated parameter — by the time `run` is reached it has been
+    // supplied on the command line or asked for interactively (see its `@commandParameter`).
+    const descriptiveName = args.name;
 
     const projectRoot = process.cwd();
     const absoluteScaffoldPath = path.resolve(projectRoot, this.scaffoldPath);

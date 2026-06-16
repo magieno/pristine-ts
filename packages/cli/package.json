@@ -26,11 +26,13 @@
   "dependencies": {
     "@inquirer/prompts": "^7.2.0",
     "@pristine-ts/common": "file:../common",
+    "@pristine-ts/configuration": "file:../configuration",
     "@pristine-ts/core": "file:../core",
     "@pristine-ts/data-mapping": "file:../data-mapping",
     "@pristine-ts/data-mapping-common": "file:../data-mapping-common",
     "@pristine-ts/file": "file:../file",
     "@pristine-ts/logging": "file:../logging",
+    "@pristine-ts/metadata": "^1.0.16",
     "@pristine-ts/observability": "file:../observability",
     "@pristine-ts/telemetry": "file:../telemetry",
     "@pristine-ts/validation": "file:../validation",
