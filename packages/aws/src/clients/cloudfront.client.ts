@@ -12,7 +12,7 @@ import {
   GetInvalidationResult
 } from "@aws-sdk/client-cloudfront"
 import {CloudfrontClientInterface} from "../interfaces/cloudfront-client.interface";
-import {v4 as uuidv4} from 'uuid';
+import {randomUUID} from "crypto";
 import {ClientOptionsInterface} from "../interfaces/client-options.interface";
 
 /**
@@ -74,7 +74,7 @@ export class CloudfrontClient implements CloudfrontClientInterface {
           Items: paths,
           Quantity: paths.length,
         },
-        CallerReference: uuidv4(),
+        CallerReference: randomUUID(),
       }
     })
     try {

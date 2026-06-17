@@ -14,6 +14,7 @@ import {
   MetadataEnum,
   MetadataUtil,
   NotFoundError,
+  ObjectUtil,
   Request,
   Response,
   ServiceDefinitionTagEnum,
@@ -24,7 +25,6 @@ import {AuthenticationManagerInterface, AuthorizerManagerInterface} from "@prist
 import {SpanKeynameEnum, TracingManagerInterface} from "@pristine-ts/telemetry";
 import {controllerRegistry} from "./decorators/controller.decorator";
 import {RouteMethodDecorator} from "./interfaces/route-method-decorator.interface";
-import {mergeWith} from "lodash";
 import {RequestInterceptorInterface} from "./interfaces/request-interceptor.interface";
 import {CachedRouterRoute} from "./cache/cached.router-route";
 import {RouterCache} from "./cache/router.cache";
@@ -115,7 +115,7 @@ export class Router implements RouterInterface {
         // the appropriate controller method
         const route = new Route(controller.prototype.constructor, routeMethodDecorator.methodKeyname);
         route.methodArguments = MetadataUtil.getMethodParametersMetadata(controller.prototype, methodPropertyKey);
-        const context = mergeWith({}, MetadataUtil.getRouteContext(controller.prototype.constructor), MetadataUtil.getRouteContext(controller.prototype, methodPropertyKey));
+        const context = ObjectUtil.deepMerge(MetadataUtil.getRouteContext(controller.prototype.constructor), MetadataUtil.getRouteContext(controller.prototype, methodPropertyKey));
         route.context = context;
 
         // Build the proper path

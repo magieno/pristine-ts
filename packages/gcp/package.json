@@ -24,8 +24,7 @@
     "@google-cloud/storage": "^7.14.0",
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/core": "file:../core",
-    "@pristine-ts/logging": "file:../logging",
-    "uuid": "^9.0.1"
+    "@pristine-ts/logging": "file:../logging"
   },
   "publishConfig": {
     "access": "public"

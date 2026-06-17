@@ -84,21 +84,18 @@ export class PristineConfigFileLoader {
   }
 
   /**
-   * Loads the config file via the appropriate mechanism for its extension: jiti for `.ts`
-   * (in-process TS transform with no build step needed), native dynamic import for `.js`.
-   * Extracts the default export, falling back to a named `pristineConfig` export.
+   * Loads the config file via Node's native dynamic `import()`: a `.ts` config is handled by
+   * Node's built-in TypeScript type-stripping (Node >= 22.18, no build step needed); a `.js`
+   * config loads directly. Extracts the default export, falling back to a named
+   * `pristineConfig` export.
    */
   private async importConfigFile(absolutePath: string): Promise<PristineConfigFile> {
-    const ext = path.extname(absolutePath).toLowerCase();
     let loaded: any;
 
-    if (ext === ".ts") {
-      const jitiModule = await this.dynamicImport("jiti");
-      const createJiti = jitiModule.default ?? jitiModule.createJiti ?? jitiModule;
-      const jiti = createJiti(absolutePath, {interopDefault: true});
-      loaded = jiti(absolutePath);
-    } else {
+    try {
       loaded = await this.dynamicImport(`file://${absolutePath}`);
+    } catch (error) {
+      throw this.describeImportError(error, absolutePath);
     }
 
     const parsed = loaded?.default ?? loaded?.pristineConfig ?? loaded;
@@ -111,5 +108,32 @@ export class PristineConfigFileLoader {
     }
 
     return parsed as PristineConfigFile;
+  }
+
+  /**
+   * Translates Node's low-level module-loading failures for a `.ts` config into an
+   * actionable error, distinguishing "this Node is too old / stripping disabled"
+   * (`ERR_UNKNOWN_FILE_EXTENSION`) from "the config uses non-erasable TypeScript"
+   * (`ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX`). Any other error passes through unchanged so
+   * genuine config bugs surface as-is.
+   */
+  private describeImportError(error: any, absolutePath: string): Error {
+    if (error?.code === "ERR_UNKNOWN_FILE_EXTENSION") {
+      return new Error(
+        `[pristine] Loading '${absolutePath}' requires Node >= 22.18 (native TypeScript ` +
+        `type-stripping); you are running ${process.version}. Upgrade Node, or rename the ` +
+        `file to 'pristine.config.js'.`,
+      );
+    }
+
+    if (error?.code === "ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX") {
+      return new Error(
+        `[pristine] '${absolutePath}' uses TypeScript that Node cannot type-strip (enum, ` +
+        `namespace, parameter properties, ...). Use only erasable TypeScript in your config, ` +
+        `or rename the file to 'pristine.config.js'.\nOriginal error: ${error?.message ?? error}`,
+      );
+    }
+
+    return error instanceof Error ? error : new Error(String(error));
   }
 }
