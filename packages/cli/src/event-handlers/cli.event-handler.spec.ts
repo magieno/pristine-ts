@@ -80,7 +80,7 @@ const buildHandler = (): {handler: CliEventHandler; logHandler: CapturingLogHand
   const validator = new Validator();
   const handler = new CliEventHandler(
     captured as any,
-    new CommandArgumentResolver(validator, buildDataMapper(), new CommandParameterPrompter(new CliPrompt(), false)),
+    new CommandArgumentResolver(validator, buildDataMapper(), new CommandParameterPrompter(new CliPrompt(), {writeLine: (): void => {}} as any, validator, buildDataMapper(), false)),
     [],
   );
   return {handler, logHandler: captured};
