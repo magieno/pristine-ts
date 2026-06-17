@@ -87,7 +87,7 @@ export class CommandParameterPrompter {
         continue;
       }
 
-      const value = await this.promptForValue(optionsType, propertyKey, options.question);
+      const value = await this.promptForValue(optionsType, propertyKey, options);
       if (value !== undefined) {
         args[propertyKey] = value;
       }
@@ -137,6 +137,7 @@ export class CommandParameterPrompter {
    * Asks for a single parameter's value, rendering and validating it according to the
    * property's declared type:
    *
+   *   - sensitive values are read with the input masked and never trimmed;
    *   - booleans render as `(y/n)` and accept y/yes/true/1 & n/no/false/0;
    *   - enum-constrained values (`@IsIn` / `@IsEnum`) list their choices;
    *   - every other answer is coerced (via the data mapper) and validated (via the validator)
@@ -147,13 +148,18 @@ export class CommandParameterPrompter {
    * budget is exhausted — in which case the absent value falls through to validation.
    * @private
    */
-  private async promptForValue(optionsType: ClassConstructor<any>, propertyKey: string, question: string): Promise<any> {
-    const isBoolean = Reflect.getMetadata("design:type", optionsType.prototype, propertyKey) === Boolean;
-    const choices = isBoolean ? undefined : this.getChoices(optionsType, propertyKey);
-    const prompt = this.formatQuestion(this.decorateQuestion(question, isBoolean, choices));
+  private async promptForValue(optionsType: ClassConstructor<any>, propertyKey: string, options: CommandParameterOptions): Promise<any> {
+    const sensitive = options.sensitive === true;
+    const isBoolean = sensitive === false && Reflect.getMetadata("design:type", optionsType.prototype, propertyKey) === Boolean;
+    const choices = (sensitive || isBoolean) ? undefined : this.getChoices(optionsType, propertyKey);
+    const prompt = this.formatQuestion(this.decorateQuestion(options.question ?? "", isBoolean, choices));
 
     for (let attempt = 0; attempt < CommandParameterPrompter.MaxAttempts; attempt++) {
-      const raw = (await this.cliPrompt.readLine(prompt)).trim();
+      // Secrets go through the masked reader and are never trimmed (a password may legitimately
+      // contain surrounding whitespace); ordinary answers are trimmed.
+      const raw = sensitive
+        ? await this.cliPrompt.readSecret(prompt)
+        : (await this.cliPrompt.readLine(prompt)).trim();
 
       // Nothing entered → leave the value unset so validation reports it (and a required
       // field surfaces the same way it would have without a prompt).

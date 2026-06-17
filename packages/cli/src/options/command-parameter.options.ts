@@ -21,4 +21,11 @@ export interface CommandParameterOptions {
    * When omitted, the parameter is never asked for; a missing value is left to validation.
    */
   question?: string;
+
+  /**
+   * Marks the value as a secret (password, token, connection string with credentials, …).
+   * When asked for interactively, the input is masked rather than echoed, and the answer is
+   * never trimmed or printed back in any re-ask/validation feedback.
+   */
+  sensitive?: boolean;
 }

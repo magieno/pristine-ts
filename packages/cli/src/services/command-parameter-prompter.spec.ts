@@ -19,12 +19,18 @@ import {CliErrorCode} from "../errors/cli-error-code.enum";
  */
 class FakeCliPrompt {
   public readonly questions: string[] = [];
+  public readonly secretQuestions: string[] = [];
 
   constructor(private readonly answers: string[] = []) {
   }
 
   async readLine(question: string): Promise<string> {
     this.questions.push(question);
+    return this.answers.shift() ?? "";
+  }
+
+  async readSecret(question: string): Promise<string> {
+    this.secretQuestions.push(question);
     return this.answers.shift() ?? "";
   }
 }
@@ -98,6 +104,12 @@ class MaxLengthOptions {
   @IsString()
   @MaxLength(5)
   shortName!: string;
+}
+
+class SensitiveOptions {
+  @commandParameter({question: "Database password?", sensitive: true})
+  @IsString()
+  password?: string;
 }
 
 class ConflictOptions {
@@ -309,6 +321,17 @@ describe("CommandParameterPrompter", () => {
       expect(result.shortName).toBe("ok");
       expect(prompt.questions).toHaveLength(2);
       expect(output.lines.length).toBeGreaterThan(0);
+    });
+
+    it("reads a sensitive value through the masked reader, not the plain reader", async () => {
+      setTty(true);
+      const {prompter, prompt} = build(["s3cr3t"]);
+
+      const result = await prompter.fillMissingParameters(SensitiveOptions, {});
+
+      expect(prompt.secretQuestions).toEqual(["Database password? "]);
+      expect(prompt.questions).toEqual([]);
+      expect(result.password).toBe("s3cr3t");
     });
 
     it("gives up after the attempt budget and leaves the value unset", async () => {
