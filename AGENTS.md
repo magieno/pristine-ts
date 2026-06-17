@@ -51,5 +51,35 @@ The monorepo contains several packages under `packages/`. Key packages include:
 *   Structure mirrors the framework's modularity.
 *   `getting-started/` contains the primary learning path.
 
+## 7. Parallel git worktrees
+
+Parallel tasks/agents use a **container layout**: a folder named after the repo holds the
+clone in `master/` and each worktree as a **flat sibling** named after its task/branch (a
+`/` in the branch becomes `-` in the dir name). `master/` is the anchor — it stays on
+`master` and owns the installed `node_modules`; worktrees are disposable.
+
+```
+pristine-ts/                    <- container (named after the repo)
+├── master/                     <- anchor checkout, stays on master
+├── improve-logging/            <- worktree (branch improve-logging)
+└── feature-x/                  <- worktree (branch feature/x)
+```
+
+Worktrees are the **recommended default** for parallel or substantial work; small one-off
+branches can still be done in `master/`. The default base branch is always `master`.
+
+**Create / remove:**
+
+```
+scripts/worktree-new.sh <task> [base]              # base defaults to master
+scripts/worktree-rm.sh  <task> [--force] [--delete-branch]
+```
+
+**Provisioning:** dependencies are **isolated per worktree** — creation runs `npm ci` in
+every dir with a `package.json` + `package-lock.json` (root first, so the root's
+`file:packages/*` links resolve before the per-package installs); then build with
+`npm run build`. Nothing else is shared from `master`: pristine-ts has no data dir, docker
+stack, or local `.env` to link.
+
 ---
 **Note:** This file is a living document for agents. Update it as you discover new patterns or requirements.
