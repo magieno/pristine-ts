@@ -14,6 +14,7 @@ import {
   MetadataEnum,
   MetadataUtil,
   NotFoundError,
+  ObjectUtil,
   Request,
   Response,
   ServiceDefinitionTagEnum,
@@ -24,7 +25,6 @@ import {AuthenticationManagerInterface, AuthorizerManagerInterface} from "@prist
 import {SpanKeynameEnum, TracingManagerInterface} from "@pristine-ts/telemetry";
 import {controllerRegistry} from "./decorators/controller.decorator";
 import {RouteMethodDecorator} from "./interfaces/route-method-decorator.interface";
-import {ObjectUtil} from "./utils/object.util";
 import {RequestInterceptorInterface} from "./interfaces/request-interceptor.interface";
 import {CachedRouterRoute} from "./cache/cached.router-route";
 import {RouterCache} from "./cache/router.cache";

@@ -1,10 +1,11 @@
 import {ObjectUtil} from "./object.util";
 
 /**
- * These tests lock in the `lodash.merge` semantics the router relies on when combining a
- * class-level and a method-level route context (see Router.setup). This path was previously
- * uncovered; `ObjectUtil.deepMerge` replaced `lodash.mergeWith({}, ...)` and must behave
- * identically for the shared-key, nested-object and array cases below.
+ * Locks in the `lodash.merge` semantics `ObjectUtil.deepMerge` reproduces: deep-merging a
+ * key present on both sides, merging arrays by index, skipping `undefined` sources, and never
+ * mutating the inputs. (Originally extracted from the networking router, which combines a
+ * class-level and a method-level route context — the shared-key, nested-object and array
+ * cases below mirror that usage.)
  */
 describe("ObjectUtil.deepMerge", () => {
   it("should deep-merge a key present on both sides instead of overwriting it (route @responseHeader)", () => {
