@@ -42,6 +42,11 @@ The monorepo contains several packages under `packages/`. Key packages include:
 *   **Role:** Handles all interactions with the standard output/input for CLI commands.
 *   **Requirement:** Must remain lightweight. Do not introduce heavy UI libraries like `inquirer` or `ora` unless absolutely necessary and approved. Implement features using native ANSI codes and `readline`.
 
+### Command options & `@commandParameter` (`@pristine-ts/cli`)
+*   A command's flags are declared as a class (its `optionsType`) decorated with `@pristine-ts/class-validator` rules. `CommandArgumentResolver` maps argv onto an instance and validates it before `run()`.
+*   `@commandParameter({flag?, question?})` (property decorator) describes a single CLI parameter: `flag` rebinds it to a differently-named flag (default = the property name); `question` makes the CLI ask for it interactively when it's absent. Model a required-but-askable value as a normal **required** field carrying `@commandParameter({question})` — not as an optional field hand-checked inside `run()`.
+*   Interactive prompting is gated by the `pristine.cli.interactiveParameters` configuration (default `true`) and is skipped automatically when stdin is not a TTY, so CI fails validation instead of hanging on a prompt.
+
 ### Documentation (`docs/`)
 *   Structure mirrors the framework's modularity.
 *   `getting-started/` contains the primary learning path.

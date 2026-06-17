@@ -5,10 +5,15 @@ import {ValidationModule} from "@pristine-ts/validation";
 import {LoggingModule, LoggingModuleKeyname, OutputModeEnum, SeverityEnum} from "@pristine-ts/logging";
 import {DataMappingModule} from "@pristine-ts/data-mapping"
 import {ObservabilityModule} from "@pristine-ts/observability";
+import {BooleanResolver, EnvironmentVariableResolver} from "@pristine-ts/configuration";
+import {CliConfigurationKeys} from "./cli.configuration-keys";
 
 export * from "./bootstrap/bootstrap";
+export * from "./cli.configuration-keys";
 export * from "./commands/commands";
 export * from "./config/config";
+export * from "./decorators/decorators";
+export * from "./enums/enums";
 export * from "./errors/errors";
 export * from "./event-handlers/event-handlers";
 export * from "./event-payloads/event-payloads";
@@ -28,7 +33,22 @@ export {Cli} from "./cli";
 
 export const CliModule: ModuleInterface = {
   keyname: CliModuleKeyname,
-  configurationDefinitions: [],
+  configurationDefinitions: [
+    /**
+     * Whether the CLI may interactively ask for missing command parameters that declare a
+     * `question` via `@commandParameter`. Defaults to enabled; turn it off (here, in
+     * `pristine.config.ts`, or via the env var below) to keep the CLI non-interactive.
+     * Prompting is also skipped automatically whenever stdin is not an interactive terminal.
+     */
+    {
+      parameterName: CliConfigurationKeys.InteractiveParameters,
+      isRequired: false,
+      defaultValue: true,
+      defaultResolvers: [
+        new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_CLI_INTERACTIVE_PARAMETERS")),
+      ],
+    },
+  ],
   importModules: [
     CoreModule,
     DataMappingModule,
