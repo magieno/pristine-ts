@@ -27,7 +27,6 @@
     "access": "public"
   },
   "dependencies": {
-    "@inquirer/prompts": "^7.2.0",
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/configuration": "file:../configuration",
     "@pristine-ts/core": "file:../core",

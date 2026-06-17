@@ -12,6 +12,7 @@ import {CliOutput} from "../managers/cli-output.manager";
 import {CliDecoratorMetadataKeynameEnum} from "../enums/cli-decorator-metadata-keyname.enum";
 import {CommandParameterOptions} from "../options/command-parameter.options";
 import {CliErrorCode} from "../errors/cli-error-code.enum";
+import {BooleanAnswerParser} from "../utils/boolean-answer-parser";
 
 /**
  * Applies a command's `@commandParameter` metadata to its raw, parsed arguments before they
@@ -168,7 +169,7 @@ export class CommandParameterPrompter {
       }
 
       if (isBoolean) {
-        const parsed = this.parseBoolean(raw);
+        const parsed = BooleanAnswerParser.parse(raw);
         if (parsed === undefined) {
           this.cliOutput.writeLine("Please answer yes (y) or no (n).");
           continue;
@@ -269,22 +270,6 @@ export class CommandParameterPrompter {
       }
     }
 
-    return undefined;
-  }
-
-  /**
-   * Interprets a free-text answer as a boolean the way traditional CLIs do. Returns undefined
-   * for anything unrecognized so the caller can re-ask.
-   * @private
-   */
-  private parseBoolean(raw: string): boolean | undefined {
-    const normalized = raw.toLowerCase();
-    if (normalized === "y" || normalized === "yes" || normalized === "true" || normalized === "1") {
-      return true;
-    }
-    if (normalized === "n" || normalized === "no" || normalized === "false" || normalized === "0") {
-      return false;
-    }
     return undefined;
   }
 

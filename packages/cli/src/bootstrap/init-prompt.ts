@@ -1,5 +1,5 @@
 import {injectable} from "tsyringe";
-import {DynamicImporter} from "./dynamic-importer";
+import {CliPrompt} from "../managers/cli-prompt.manager";
 
 /**
  * Answers the init flow needs to gather. Each field corresponds to one config value that
@@ -16,8 +16,8 @@ export interface InitAnswers {
 }
 
 /**
- * Interactive Q&A for `pristine init`. Lazy-loads `@inquirer/prompts` so the dep cost is
- * only paid when actually prompting (the same pattern as `BuildStalenessPrompt` uses).
+ * Interactive Q&A for `pristine init`. Prompts through {@link CliPrompt}, the CLI's native
+ * (no third-party dependency) terminal-prompt manager.
  *
  * Each method takes a "current value" so callers can pre-fill answers from CLI flags and
  * only prompt for the gaps. Returning the same value the user passed in is intentional —
@@ -31,7 +31,7 @@ export class InitPrompt {
   private readonly defaultTsconfig: string = "tsconfig.json";
   private readonly defaultFormat: "esm" | "cjs" | "both" = "esm";
 
-  constructor(private readonly dynamicImporter: DynamicImporter) {
+  constructor(private readonly cliPrompt: CliPrompt) {
   }
 
   isInteractive(): boolean {
@@ -40,66 +40,42 @@ export class InitPrompt {
 
   async askSourcePath(current: string | undefined): Promise<string> {
     if (current !== undefined) return current;
-    const inquirer = await this.dynamicImporter.import("@inquirer/prompts");
-    const input: (config: any) => Promise<string> = inquirer.input;
-    return input({
-      message: "Where does your AppModule source file live?",
-      default: this.defaultSourcePath,
-    });
+    return this.cliPrompt.input("Where does your AppModule source file live?", this.defaultSourcePath);
   }
 
   async askOutputPath(current: string | undefined): Promise<string> {
     if (current !== undefined) return current;
-    const inquirer = await this.dynamicImporter.import("@inquirer/prompts");
-    const input: (config: any) => Promise<string> = inquirer.input;
-    return input({
-      message: "Where should the compiled AppModule output land?",
-      default: this.defaultOutputPath,
-    });
+    return this.cliPrompt.input("Where should the compiled AppModule output land?", this.defaultOutputPath);
   }
 
   async askTsconfig(current: string | undefined): Promise<string> {
     if (current !== undefined) return current;
-    const inquirer = await this.dynamicImporter.import("@inquirer/prompts");
-    const input: (config: any) => Promise<string> = inquirer.input;
-    return input({
-      message: "Which tsconfig should `pristine build` use?",
-      default: this.defaultTsconfig,
-    });
+    return this.cliPrompt.input("Which tsconfig should `pristine build` use?", this.defaultTsconfig);
   }
 
   async askFormat(current: "esm" | "cjs" | "both" | undefined): Promise<"esm" | "cjs" | "both"> {
     if (current !== undefined) return current;
-    const inquirer = await this.dynamicImporter.import("@inquirer/prompts");
-    const select: (config: any) => Promise<"esm" | "cjs" | "both"> = inquirer.select;
-    return select({
-      message: "Which build format do you want?",
-      choices: [
+    return this.cliPrompt.select<"esm" | "cjs" | "both">(
+      "Which build format do you want?",
+      [
         {name: "esm  (modern, recommended)", value: "esm"},
         {name: "cjs  (CommonJS)", value: "cjs"},
         {name: "both (publish ESM + CJS)", value: "both"},
       ],
-      default: this.defaultFormat,
-    });
+      this.defaultFormat,
+    );
   }
 
   async askScaffoldSource(current: boolean | undefined, sourcePath: string): Promise<boolean> {
     if (current !== undefined) return current;
-    const inquirer = await this.dynamicImporter.import("@inquirer/prompts");
-    const confirm: (config: any) => Promise<boolean> = inquirer.confirm;
-    return confirm({
-      message: `Scaffold a starter AppModule at ${sourcePath}?`,
-      default: true,
-    });
+    return this.cliPrompt.confirm(`Scaffold a starter AppModule at ${sourcePath}?`, true);
   }
 
   async askWritePackageScripts(current: boolean | undefined): Promise<boolean> {
     if (current !== undefined) return current;
-    const inquirer = await this.dynamicImporter.import("@inquirer/prompts");
-    const confirm: (config: any) => Promise<boolean> = inquirer.confirm;
-    return confirm({
-      message: "Add `build`, `start`, `verify` scripts to package.json (only ones that don't already exist)?",
-      default: true,
-    });
+    return this.cliPrompt.confirm(
+      "Add `build`, `start`, `verify` scripts to package.json (only ones that don't already exist)?",
+      true,
+    );
   }
 }

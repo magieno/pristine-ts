@@ -42,6 +42,12 @@ The monorepo contains several packages under `packages/`. Key packages include:
 *   **Role:** Handles all interactions with the standard output/input for CLI commands.
 *   **Requirement:** Must remain lightweight. Do not introduce heavy UI libraries like `inquirer` or `ora` unless absolutely necessary and approved. Implement features using native ANSI codes and `readline`.
 
+### Interactive prompts (`@pristine-ts/cli`)
+*   The CLI's interactive prompts are **fully native — no third-party prompt library** (the old `@inquirer/prompts` dependency was removed). Do not re-add one; extend the existing primitives instead.
+*   `CliPrompt` (`managers/cli-prompt.manager.ts`) is the prompt surface: `input` / `confirm` (line-based, via `readline/promises`), `select` (arrow-key menu) and `readSecret` (masked input). The last two read keystrokes through `TerminalKeyReader` (`managers/terminal-key-reader.manager.ts`), the single place that flips stdin into raw mode (restored in every exit path).
+*   `Ctrl+C` rejects every prompt with `PromptCancelledError` (exit code 130, `kind: UserError` so the reporter prints it cleanly); callers that treat cancellation as a normal branch catch it via `instanceof`.
+*   Raw bytes are decoded by the pure, unit-tested `TerminalKeyDecoder` (`utils/`); yes/no answers go through the shared `BooleanAnswerParser` (`utils/`), reused by `CommandParameterPrompter`.
+
 ### Command options & `@commandParameter` (`@pristine-ts/cli`)
 *   A command's flags are declared as a class (its `optionsType`) decorated with `@pristine-ts/class-validator` rules. `CommandArgumentResolver` maps argv onto an instance and validates it before `run()`.
 *   `@commandParameter({flag?, question?})` (property decorator) describes a single CLI parameter: `flag` rebinds it to a differently-named flag (default = the property name); `question` makes the CLI ask for it interactively when it's absent. Model a required-but-askable value as a normal **required** field carrying `@commandParameter({question})` — not as an optional field hand-checked inside `run()`.
