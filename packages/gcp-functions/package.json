@@ -22,8 +22,7 @@
   "dependencies": {
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/core": "file:../core",
-    "@pristine-ts/networking": "file:../networking",
-    "uuid": "^9.0.1"
+    "@pristine-ts/networking": "file:../networking"
   },
   "jest": {
     "transform": {

@@ -34,8 +34,7 @@
     "@pristine-ts/core": "file:../core",
     "@pristine-ts/logging": "file:../logging",
     "@pristine-ts/networking": "file:../networking",
-    "@pristine-ts/security": "file:../security",
-    "uuid": "^9.0.1"
+    "@pristine-ts/security": "file:../security"
   },
   "publishConfig": {
     "access": "public"

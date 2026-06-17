@@ -1,7 +1,7 @@
 import {injectable, inject} from "tsyringe";
 import {CoreModuleKeyname} from "../core.module.keyname";
 import {EventIdGenerationStyleEnum} from "../enums/event-id-generation-style.enum";
-import {v4 as uuidv4} from "uuid";
+import {randomUUID} from "crypto";
 
 @injectable()
 export class EventIdManager {
@@ -55,7 +55,7 @@ export class EventIdManager {
   generateEventId(): string {
     switch (this.eventIdGenerationStyleEnum) {
       case EventIdGenerationStyleEnum.Uuid:
-        return uuidv4();
+        return randomUUID();
       case EventIdGenerationStyleEnum.HumanReadable:
         return this.generateHumanReadableEventId();
     }

@@ -14,7 +14,7 @@ import {
 import {ConfigurationManager, ModuleConfigurationValue} from "@pristine-ts/configuration";
 import {ProviderRegistrationError} from "./errors/provider-registration.error";
 import {Span, SpanKeynameEnum, TracingManagerInterface} from "@pristine-ts/telemetry";
-import {v4 as uuidv4} from 'uuid';
+import {randomUUID} from "crypto";
 import {ExecutionContextInterface} from "./interfaces/execution-context.interface";
 import {EventPipeline} from "./pipelines/event.pipeline";
 import {Event} from "./models/event";
@@ -41,7 +41,7 @@ export class Kernel {
    * Contains the unique instantiation identifier of this specific kernel instance.
    * @public
    */
-  public instantiationId: string = uuidv4();
+  public instantiationId: string = randomUUID();
   /**
    * Contains a map of all the modules that were instantiated indexed by the modules names.
    * @public Exposed read-only so commands like `pristine info` can introspect the boot graph.

@@ -41,7 +41,7 @@ import {
   UpdateStackCommandOutput,
 } from "@aws-sdk/client-cloudformation";
 import {CloudformationClientInterface} from "../interfaces/cloudformation-client.interface";
-import {v4 as uuid} from "uuid";
+import {randomUUID} from "crypto";
 import {CloudformationDeploymentStatusEnum} from "../enums/cloudformation-deployment-status.enum";
 import {NotFoundError} from "@pristine-ts/common";
 import {ClientOptionsInterface} from "../interfaces/client-options.interface";
@@ -403,7 +403,7 @@ export class CloudformationClient implements CloudformationClientInterface {
       });
     }
 
-    const changeSetName = `p-${uuid()}`;
+    const changeSetName = `p-${randomUUID()}`;
 
     // Check if the stack exists or not first.
     let changeSetType: ChangeSetType = ChangeSetType.UPDATE;

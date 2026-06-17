@@ -24,11 +24,7 @@
     "@pristine-ts/configuration": "file:../configuration",
     "@pristine-ts/logging": "file:../logging",
     "@pristine-ts/security": "file:../security",
-    "@pristine-ts/telemetry": "file:../telemetry",
-    "uuid": "^9.0.1"
-  },
-  "devDependencies": {
-    "@types/uuid": "^9.0.6"
+    "@pristine-ts/telemetry": "file:../telemetry"
   },
   "jest": {
     "transform": {
