@@ -1,6 +1,7 @@
 import {injectable} from "tsyringe";
 import {BuildManifestStalenessEnum} from "./build-manifest-staleness.enum";
-import {DynamicImporter} from "./dynamic-importer";
+import {CliPrompt} from "../managers/cli-prompt.manager";
+import {PromptCancelledError} from "../errors/prompt-cancelled.error";
 
 /**
  * When the build manifest is stale (source edited, output missing, etc.), `AppModuleLoader`
@@ -15,7 +16,7 @@ import {DynamicImporter} from "./dynamic-importer";
 export class BuildStalenessPrompt {
   private readonly promptMessage: string = "Run `pristine build` now to refresh?";
 
-  constructor(private readonly dynamicImporter: DynamicImporter) {
+  constructor(private readonly cliPrompt: CliPrompt) {
   }
 
   isInteractive(): boolean {
@@ -50,17 +51,14 @@ export class BuildStalenessPrompt {
    * for cancellation (Ctrl+C). Caller decides what to do with each outcome.
    */
   async prompt(reason: BuildManifestStalenessEnum): Promise<boolean | undefined> {
-    const inquirer = await this.dynamicImporter.import("@inquirer/prompts");
-    const confirm: (config: any) => Promise<boolean> = inquirer.confirm;
-
     try {
-      return await confirm({
-        message: `${this.describe(reason)}\n  ${this.promptMessage}`,
-        default: true,
-      });
-    } catch {
-      // @inquirer throws on Ctrl+C. Treat as a clean cancellation.
-      return undefined;
+      return await this.cliPrompt.confirm(`${this.describe(reason)}\n  ${this.promptMessage}`, true);
+    } catch (error) {
+      if (error instanceof PromptCancelledError) {
+        // Ctrl+C — treat as a clean cancellation so the caller can exit with the explanation.
+        return undefined;
+      }
+      throw error;
     }
   }
 }

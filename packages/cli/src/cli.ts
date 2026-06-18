@@ -13,6 +13,8 @@ import {SourceHasher} from "./bootstrap/source-hasher";
 import {ConfigLoader} from "./config/config-loader";
 import {CliModule} from "./cli.module";
 import {CliErrorReporter} from "./reporters/cli-error.reporter";
+import {CliPrompt} from "./managers/cli-prompt.manager";
+import {TerminalKeyReader} from "./managers/terminal-key-reader.manager";
 
 /**
  * Boots the CLI: discovers the consumer's AppModule, starts the kernel, and dispatches
@@ -163,7 +165,8 @@ export class Cli {
     const sourceHasher = new SourceHasher();
     const buildManifestReader = new BuildManifestReader();
     const buildManifestChecker = new BuildManifestChecker(sourceHasher);
-    const buildStalenessPrompt = new BuildStalenessPrompt(dynamicImporter);
+    const cliPrompt = new CliPrompt(new TerminalKeyReader());
+    const buildStalenessPrompt = new BuildStalenessPrompt(cliPrompt);
     const buildRunner = new BuildRunner();
     return new AppModuleLoader(
       configLoader,

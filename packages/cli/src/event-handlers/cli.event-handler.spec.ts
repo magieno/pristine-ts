@@ -15,7 +15,7 @@ import {CommandArgumentResolver} from "../services/command-argument-resolver";
 import {CommandOptionsResolver} from "../services/command-options-resolver";
 import {CommandParameterPrompter} from "../services/command-parameter-prompter";
 import {CliPrompt} from "../managers/cli-prompt.manager";
-import {DynamicImporter} from "../bootstrap/dynamic-importer";
+import {TerminalKeyReader} from "../managers/terminal-key-reader.manager";
 
 /**
  * Builds a `DataMapper` with the same normalizers `DataMappingModule` ships, so the
@@ -80,7 +80,7 @@ class CapturingLogHandler {
 const buildHandler = (): {handler: CliEventHandler; logHandler: CapturingLogHandler} => {
   const captured = new CapturingLogHandler();
   const validator = new Validator();
-  const prompter = new CommandParameterPrompter(new CliPrompt(new DynamicImporter()), {writeLine: (): void => {}} as any, validator, buildDataMapper(), false);
+  const prompter = new CommandParameterPrompter(new CliPrompt(new TerminalKeyReader()), {writeLine: (): void => {}} as any, validator, buildDataMapper(), false);
   const optionsResolver = new CommandOptionsResolver(validator, buildDataMapper(), prompter);
   const handler = new CliEventHandler(
     captured as any,

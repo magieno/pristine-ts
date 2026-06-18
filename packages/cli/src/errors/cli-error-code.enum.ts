@@ -15,4 +15,10 @@ export enum CliErrorCode {
    * A programming error in the command's options definition, not bad user input.
    */
   CommandParameterFlagConflict = "COMMAND_PARAMETER_FLAG_CONFLICT",
+
+  /**
+   * The user cancelled an interactive prompt with `Ctrl+C`. Carried by
+   * `PromptCancelledError` — a clean, user-initiated cancellation, not a failure.
+   */
+  PromptCancelled = "PROMPT_CANCELLED",
 }
