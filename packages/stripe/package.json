@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/stripe",
-  "version": "2.0.15",
+  "version": "2.0.16",
   "description": "",
   "module": "dist/lib/esm/stripe.module.js",
   "main": "dist/lib/cjs/stripe.module.js",
