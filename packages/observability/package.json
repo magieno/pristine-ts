@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/observability",
-  "version": "2.0.16",
+  "version": "2.0.17",
   "description": "",
   "module": "dist/lib/esm/observability.module.js",
   "main": "dist/lib/cjs/observability.module.js",
