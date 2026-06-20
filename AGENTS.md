@@ -87,5 +87,40 @@ every dir with a `package.json` + `package-lock.json` (root first, so the root's
 `npm run build`. Nothing else is shared from `master`: pristine-ts has no data dir, docker
 stack, or local `.env` to link.
 
+## 8. Publishing & releasing (npm)
+
+Releases are automated: a push to `master` runs **only** the `publish` job in
+`.github/workflows/build.yml`. The `build` job (tests/lint/e2e/perf) is gated to
+non-`master` refs, so **tests do not run on master** — a red master means a *publish*
+failure, not a broken build. The job runs `lerna version patch` (commits + tags + pushes)
+then `lerna publish from-git`, authenticating to npm via **OIDC trusted publishing**
+(`id-token: write`; there is intentionally no NPM token or `.npmrc`).
+
+**The catch:** OIDC can publish new *versions* of existing packages, but cannot *create* a
+brand-new package. The first time a new `@pristine-ts/*` package would be published, npm
+returns `E404 Not found`, `lerna publish` aborts, and master fails on **every** merge until
+that package exists on npm. (This stalled master from May–June 2026 as `auth0`,
+`observability`, `gcp*`, and `mysql-cli` were added.)
+
+### Checklist: adding a new publishable package
+
+1. Give its `package.json` `"publishConfig": { "access": "public" }` (match an existing
+   package). Truly internal packages should instead set `"private": true` so lerna skips them.
+2. **Bootstrap it onto npm once**, locally, with an account that can create packages in the
+   `@pristine-ts` scope — `lerna publish from-package` publishes only registry-missing
+   versions and rewrites the `file:../*` deps to semver:
+
+   ```
+   npm login
+   scripts/publish-new-packages.sh         # publishes every version missing from npm
+   ```
+
+3. **Configure the trusted publisher** for the new package on npmjs.com (Package → Settings
+   → Trusted Publisher → GitHub Actions: repo `magieno/pristine-ts`, workflow
+   `.github/workflows/build.yml`), matching `@pristine-ts/core`. Without this, future CI
+   publishes of the package keep failing.
+4. Verify: `scripts/publish-new-packages.sh --check` lists any package whose local version
+   isn't on npm and exits non-zero if so — safe to wire into the PR `build` job as a guard.
+
 ---
 **Note:** This file is a living document for agents. Update it as you discover new patterns or requirements.
