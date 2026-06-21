@@ -11,6 +11,18 @@ export enum CliErrorCode {
   ArgumentValidationFailed = "ARGUMENT_VALIDATION_FAILED",
 
   /**
+   * A required command-line argument was missing. Reported with the command's `Usage:` synopsis
+   * (exit 64). Distinct from a value supplied but invalid (`InvalidArgument`).
+   */
+  MissingRequiredArgument = "MISSING_REQUIRED_ARGUMENT",
+
+  /**
+   * A supplied command-line argument failed validation. Reported as a clean
+   * `Invalid <flag> '<value>'. …` line (exit 64).
+   */
+  InvalidArgument = "INVALID_ARGUMENT",
+
+  /**
    * Two `@commandParameter` properties on the same options class resolve to the same flag.
    * A programming error in the command's options definition, not bad user input.
    */

@@ -33,6 +33,6 @@ export class CommandArgumentResolver {
     if (command.optionsType === null) {
       return rawArgs;
     }
-    return this.commandOptionsResolver.resolve(command.optionsType, rawArgs);
+    return this.commandOptionsResolver.resolve(command.optionsType, rawArgs, {commandName: command.name});
   }
 }
