@@ -62,4 +62,14 @@ export interface PristineErrorOptions {
    *   operators. `PristineError.from` marks unknown throws as `SystemError`.
    */
   kind?: PristineErrorKind;
+
+  /**
+   * Presentation hint for the CLI boundary. When `true`, `CliErrorReporter` prints `message`
+   * verbatim (with its own line breaks) and omits the `✗ CODE:` headline and the per-field
+   * `details` rendering — for errors whose `message` is already a fully formatted, user-facing
+   * block (e.g. a command's `Usage:` synopsis or an `Invalid <flag> '<value>'. …` line), where
+   * the diagnostic envelope would be noise. Honored for user errors only; ignored at the HTTP
+   * boundary.
+   */
+  plain?: boolean;
 }

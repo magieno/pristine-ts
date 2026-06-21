@@ -1,6 +1,6 @@
 import "reflect-metadata";
-import {ValidationError} from "@pristine-ts/common";
-import {IsNotEmpty, IsString, Validator} from "@pristine-ts/class-validator";
+import {ExitCode, UsageError} from "@pristine-ts/common";
+import {IsNotEmpty, IsString, MaxLength, Validator} from "@pristine-ts/class-validator";
 import {
   AutoDataMappingBuilder,
   BooleanNormalizer,
@@ -11,9 +11,13 @@ import {
 } from "@pristine-ts/data-mapping";
 import {CommandOptionsResolver} from "./command-options-resolver";
 import {CommandParameterPrompter} from "./command-parameter-prompter";
+import {CommandArgumentErrorFormatter} from "./command-argument-error-formatter";
+import {CommandUsageRenderer} from "./command-usage-renderer";
+import {ProgramNameResolver} from "./program-name-resolver";
+import {CliErrorCode} from "../errors/cli-error-code.enum";
 import {commandParameter} from "../decorators/command-parameter.decorator";
 
-/** Minimal `CliPrompt` stand-in that replays scripted answers for both readers. */
+/** Minimal `CliPrompt` stand-in that replays scripted answers for both readers + select. */
 class FakeCliPrompt {
   constructor(private readonly answers: string[] = []) {
   }
@@ -25,6 +29,10 @@ class FakeCliPrompt {
   async readSecret(): Promise<string> {
     return this.answers.shift() ?? "";
   }
+
+  async select(_message: string, choices: {value: any}[]): Promise<any> {
+    return choices[0]?.value;
+  }
 }
 
 const buildDataMapper = (): DataMapper => new DataMapper(
@@ -33,10 +41,20 @@ const buildDataMapper = (): DataMapper => new DataMapper(
   [],
 );
 
+/** Stand-in child container that simply news up a referenced provider class. */
+const noopContainer = {resolve: (ctor: any) => new ctor()} as any;
+
 class WizardOptions {
   @commandParameter({question: "Project name?"})
   @IsString()
   @IsNotEmpty()
+  name!: string;
+}
+
+class ShortNameOptions {
+  @commandParameter()
+  @IsString()
+  @MaxLength(3)
   name!: string;
 }
 
@@ -47,8 +65,10 @@ const buildResolver = (answers: string[], enabled: boolean): CommandOptionsResol
     new Validator(),
     buildDataMapper(),
     enabled,
+    noopContainer,
   );
-  return new CommandOptionsResolver(new Validator(), buildDataMapper(), prompter);
+  const formatter = new CommandArgumentErrorFormatter(new CommandUsageRenderer());
+  return new CommandOptionsResolver(new Validator(), buildDataMapper(), prompter, formatter, new ProgramNameResolver(""));
 };
 
 describe("CommandOptionsResolver", () => {
@@ -85,10 +105,30 @@ describe("CommandOptionsResolver", () => {
     expect(result.name).toBe("seeded");
   });
 
-  it("throws ValidationError when a required value cannot be filled (non-interactive)", async () => {
+  it("throws a plain Usage UsageError (exit 64) when a required value is missing (non-interactive)", async () => {
     setTty(false);
     const resolver = buildResolver([], true);
 
-    await expect(resolver.resolve(WizardOptions, {})).rejects.toBeInstanceOf(ValidationError);
+    const error: any = await resolver.resolve(WizardOptions, {}, {commandName: "init"}).catch((e) => e);
+
+    expect(error).toBeInstanceOf(UsageError);
+    expect(error.message).toContain("Usage:");
+    expect(error.message).toContain("init");
+    expect(error.message).toContain("--name=<name>");
+    expect(error.options.plain).toBe(true);
+    expect(error.options.exitCode).toBe(ExitCode.Usage);
+    expect(error.options.code).toBe(CliErrorCode.MissingRequiredArgument);
+  });
+
+  it("throws a plain Invalid UsageError when a supplied value is invalid (non-interactive)", async () => {
+    setTty(false);
+    const resolver = buildResolver([], true);
+
+    const error: any = await resolver.resolve(ShortNameOptions, {name: "toolong"}, {commandName: "init"}).catch((e) => e);
+
+    expect(error).toBeInstanceOf(UsageError);
+    expect(error.message.startsWith("Invalid name 'toolong'. ")).toBe(true);
+    expect(error.options.code).toBe(CliErrorCode.InvalidArgument);
+    expect(error.options.exitCode).toBe(ExitCode.Usage);
   });
 });

@@ -50,6 +50,15 @@ export class CliErrorReporter {
     const isDev = this.environmentManager.getEnvironment() === PristineEnvironment.Development;
     const isUserError = e.options.kind !== PristineErrorKind.SystemError;
 
+    // Plain mode: the message is already a fully formatted, user-facing block (a command's
+    // `Usage:` synopsis, an `Invalid <flag> …` line). Print it verbatim — no `✗ CODE:` envelope,
+    // no `details` rendering — and return its exit code. Honored for user errors only; a
+    // SystemError is never surfaced verbatim in production.
+    if (e.options.plain === true && isUserError) {
+      this.write(`${e.message}\n`);
+      return e.options.exitCode ?? ExitCode.Error;
+    }
+
     // Headline: in production, system errors get a generic message so we don't dump
     // internal-bug messages to the user. User errors always show their own message.
     const headline = isUserError || isDev ? e.message : "Internal Error";

@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import {IsNotEmpty, IsNumber, IsOptional, IsString, Validator} from "@pristine-ts/class-validator";
-import {PristineError, UsageError, ValidationError, ExitCode} from "@pristine-ts/common";
+import {PristineError, UsageError, ExitCode} from "@pristine-ts/common";
 import {
   AutoDataMappingBuilder,
   BooleanNormalizer,
@@ -14,6 +14,9 @@ import {CliEventHandler} from "./cli.event-handler";
 import {CommandArgumentResolver} from "../services/command-argument-resolver";
 import {CommandOptionsResolver} from "../services/command-options-resolver";
 import {CommandParameterPrompter} from "../services/command-parameter-prompter";
+import {CommandArgumentErrorFormatter} from "../services/command-argument-error-formatter";
+import {CommandUsageRenderer} from "../services/command-usage-renderer";
+import {ProgramNameResolver} from "../services/program-name-resolver";
 import {CliPrompt} from "../managers/cli-prompt.manager";
 import {TerminalKeyReader} from "../managers/terminal-key-reader.manager";
 
@@ -80,8 +83,10 @@ class CapturingLogHandler {
 const buildHandler = (): {handler: CliEventHandler; logHandler: CapturingLogHandler} => {
   const captured = new CapturingLogHandler();
   const validator = new Validator();
-  const prompter = new CommandParameterPrompter(new CliPrompt(new TerminalKeyReader()), {writeLine: (): void => {}} as any, validator, buildDataMapper(), false);
-  const optionsResolver = new CommandOptionsResolver(validator, buildDataMapper(), prompter);
+  const container = {resolve: (ctor: any) => new ctor()} as any;
+  const prompter = new CommandParameterPrompter(new CliPrompt(new TerminalKeyReader()), {writeLine: (): void => {}} as any, validator, buildDataMapper(), false, container);
+  const formatter = new CommandArgumentErrorFormatter(new CommandUsageRenderer());
+  const optionsResolver = new CommandOptionsResolver(validator, buildDataMapper(), prompter, formatter, new ProgramNameResolver(""));
   const handler = new CliEventHandler(
     captured as any,
     new CommandArgumentResolver(optionsResolver),
@@ -181,22 +186,20 @@ describe("CliEventHandler.resolveArgs", () => {
       expect(typeof args.port).toBe("number");
     });
 
-    it("throws a ValidationError with structured details when a required field fails validation", async () => {
+    it("throws a plain Usage UsageError when a required field is missing", async () => {
       const {handler} = buildHandler();
 
-      // FixtureRequiredOptions.name is `@IsString @IsNotEmpty` — an empty mapping fails
-      // `IsNotEmpty` reliably even after DataMapper's coercion.
-      const promise = handler.resolveArgs(fixtureRequiredCommand(), {});
+      // FixtureRequiredOptions.name is `@IsString @IsNotEmpty` — an empty mapping leaves it
+      // undefined, which the formatter reports as a missing required argument (the Usage line).
+      const error: any = await handler.resolveArgs(fixtureRequiredCommand(), {}).catch((e) => e);
 
-      await expect(promise).rejects.toBeInstanceOf(ValidationError);
-      await expect(promise).rejects.toMatchObject({
-        options: expect.objectContaining({
-          code: "ARGUMENT_VALIDATION_FAILED",
-          details: expect.objectContaining({
-            name: expect.any(Array),
-          }),
-        }),
-      });
+      expect(error).toBeInstanceOf(UsageError);
+      expect(error.message).toContain("Usage:");
+      expect(error.message).toContain("fixture-required");
+      expect(error.message).toContain("--name=<name>");
+      expect(error.options.code).toBe("MISSING_REQUIRED_ARGUMENT");
+      expect(error.options.plain).toBe(true);
+      expect(error.options.details).toMatchObject({missing: "name"});
     });
   });
 });

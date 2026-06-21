@@ -17,6 +17,13 @@ export const CliConfigurationKeys = {
    * input is not an interactive terminal, regardless of this value.
    */
   InteractiveParameters: "pristine.cli.interactiveParameters",
+
+  /**
+   * Explicit program name shown in generated `Usage:` lines (e.g. `myapp`). Optional: when unset,
+   * the CLI derives the name from `argv[1]`, falling back to `pristine`. Set it for launch shapes
+   * where `argv[1]` isn't the friendly name (e.g. `node dist/bin/cli.cjs`).
+   */
+  BinName: "pristine.cli.binName",
 } as const;
 
 /**
@@ -26,6 +33,7 @@ export const CliConfigurationKeys = {
  */
 export interface CliConfigurationValueMap {
   "pristine.cli.interactiveParameters": boolean;
+  "pristine.cli.binName": string;
 }
 
 declare module "@pristine-ts/common" {

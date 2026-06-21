@@ -48,6 +48,19 @@ export const CliModule: ModuleInterface = {
         new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_CLI_INTERACTIVE_PARAMETERS")),
       ],
     },
+    /**
+     * Program name shown in generated `Usage:` lines. Defaults to empty so `ProgramNameResolver`
+     * falls back to `basename(argv[1])` (then `pristine`); set it (here, in `pristine.config.ts`,
+     * or via the env var) to force a name.
+     */
+    {
+      parameterName: CliConfigurationKeys.BinName,
+      isRequired: false,
+      defaultValue: "",
+      defaultResolvers: [
+        new EnvironmentVariableResolver("PRISTINE_CLI_BIN_NAME"),
+      ],
+    },
   ],
   importModules: [
     CoreModule,
