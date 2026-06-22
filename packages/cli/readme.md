@@ -782,32 +782,40 @@ provenance markers. Use this when discovery is doing something unexpected.
 
 ## How `pristine` finds your AppModule
 
-When the CLI starts, it walks this cascade. The first match wins.
+There is exactly **one** supported way to declare your AppModule: the `cli.appModule` block in
+`pristine.config.{ts,js}`. The loader does **not** scan `package.json`, does **not** scan `dist/`
+by convention, and does **not** cache a previous selection — those earlier mechanisms were
+removed. The flow is two-tier:
 
 ```
-1. pristine.config.ts → appModule.path
-        ↓ (not set?)
-2. package.json → pristine.appModule.path
-        ↓ (deprecated alias: pristine.appModule.cjsPath, prints warning)
-        ↓ (not set?)
-3. .pristine/last-app-module        ← cached selection from a previous TTY prompt
-        ↓ (not set?)
-4. Convention scan: dist/, dist/lib/cjs/, dist/lib/esm/, build/, .
-   for *.module.{js,mjs,cjs}
-        ├── named app.module.* → score 0
-        └── exports an AppModule symbol → score 10
-   ── one match? → use it
-   ── multiple equally-ranked + TTY? → prompt
-   ── multiple equally-ranked + no TTY? → exit with actionable error
-        ↓ (no candidates?)
-5. Legacy node_modules/@pristine-ts/* scan (synthetic AppModule)
-        ↓ (still nothing?)
-6. Built-in CliModule fallback (so p:help etc. always work)
+1. Read pristine.config.{ts,js} (walking up from cwd).
+        │
+        ├─ cli.appModule.sourcePath + outputPath both set?
+        │     → manifest gate (is the build fresh? prompt on a TTY, fail on CI),
+        │       then import outputPath and read `export` (default: "AppModule").
+        │
+        └─ otherwise → the CliModule-only fallback below.
+
+2. CliModule-only fallback — used when there is no config file, no cli.appModule block, or the
+   configured outputPath fails to import. Scrapes node_modules/@pristine-ts/* for the modules
+   they contribute (so built-ins like p:help / p:list still work) and adds CliModule.
+   YOUR AppModule and its commands are NOT loaded in this mode.
 ```
 
-If a configured AppModule path can't be loaded (file missing, import error), the CLI
-warns to stderr and falls back to the CliModule fallback. Built-in commands like
-`pristine p:config:print` still work so you can debug.
+The fallback is the only escape hatch — it keeps `pristine init` / `pristine help` runnable on a
+broken or fresh project. It is **not** a discovery tier. When the loader falls back even though
+you expected your AppModule to load, it warns to stderr so the failure isn't invisible (otherwise
+a command like `cicd:run` simply "doesn't exist" with no explanation):
+
+- **Configured `outputPath` can't be imported** (missing file, import error) →
+  `[pristine] Failed to load AppModule from '…'`.
+- **`pristine.config.ts` present but missing `cli.appModule`** → a "no 'cli.appModule'" warning.
+- **Leftover `package.json` `pristine.appModule.{path,cjsPath}`** (the discovery field removed in
+  2.x, now ignored) → a "legacy field … is ignored" warning. Move it into `pristine.config.ts`
+  or run `pristine init`.
+
+A genuinely empty project (no config file, no legacy field) stays silent so a first-run
+`pristine init` isn't noisy.
 
 ### Module formats
 
