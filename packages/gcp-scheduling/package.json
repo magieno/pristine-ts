@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/gcp-scheduling",
-  "version": "2.0.18",
+  "version": "2.0.19",
   "description": "",
   "module": "dist/lib/esm/gcp-scheduling.module.js",
   "main": "dist/lib/cjs/gcp-scheduling.module.js",
