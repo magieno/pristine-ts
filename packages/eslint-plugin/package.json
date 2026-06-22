@@ -1,7 +1,7 @@
 {
   "name": "@pristine-ts/eslint-plugin",
   "private": true,
-  "version": "2.0.19",
+  "version": "2.0.20",
   "description": "ESLint rules for projects using the Pristine framework. Currently ships one rule: inject-config-type-match.",
   "module": "dist/lib/esm/index.js",
   "main": "dist/lib/cjs/index.js",
