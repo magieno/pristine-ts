@@ -25,6 +25,7 @@ export * from "./router";
 export * from "./responders/http-error.responder";
 
 export * from "./networking.configuration-keys";
+export * from "./networking.module.keyname";
 export const NetworkingModule: ModuleInterface = {
   keyname: NetworkingModuleKeyname,
   importModules: [

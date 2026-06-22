@@ -24,6 +24,7 @@ export * from "./options/options";
 export * from "./reporters/cli-error.reporter";
 export * from "./services/services";
 export * from "./types/types";
+export * from "./cli.module.keyname";
 
 // Re-export the `Cli` entrypoint so `bin.ts` (and any other downstream entry script) can
 // invoke `new (require('@pristine-ts/cli').Cli)().bootstrap()` to load the same physical
