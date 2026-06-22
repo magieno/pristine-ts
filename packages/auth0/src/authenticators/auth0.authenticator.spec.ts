@@ -1,9 +1,24 @@
 import "reflect-metadata"
 import {Auth0Authenticator} from "./auth0.authenticator";
 import {HttpMethod, Request} from "@pristine-ts/common";
-import * as jwt from "jsonwebtoken";
+import {sign} from "crypto";
 import {HttpClientInterface, HttpRequestInterface, HttpResponseInterface} from "@pristine-ts/http";
 import {LogHandlerInterface} from "@pristine-ts/logging";
+
+/**
+ * Signs a JWT with RS256 using native Node crypto. This replaces jsonwebtoken's
+ * `jwt.sign` in these tests so the package no longer depends on `jsonwebtoken`.
+ */
+const signToken = (payload: any, privateKeyPem: string, options: { keyid?: string } = {}): string => {
+  const header: { alg: string; typ: string; kid?: string } = {alg: "RS256", typ: "JWT"};
+  if (options.keyid !== undefined) {
+    header.kid = options.keyid;
+  }
+  const toBase64Url = (value: object): string => Buffer.from(JSON.stringify(value)).toString("base64url");
+  const signingInput = toBase64Url(header) + "." + toBase64Url(payload);
+  const signature = sign("RSA-SHA256", Buffer.from(signingInput), privateKeyPem).toString("base64url");
+  return signingInput + "." + signature;
+};
 
 const logHandlerMock: LogHandlerInterface = {
   critical(message: string, extra?: any): void {
@@ -179,7 +194,7 @@ describe("Auth0 authenticator ", () => {
 
   it("should getAndVerifyClaims", async () => {
     const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
-    const token = jwt.sign(payload, privateKey, {algorithm: 'RS256'});
+    const token = signToken(payload, privateKey);
     const context = {
       options: {
         expectedAudience: "https://pristine-ts.com",
@@ -192,7 +207,7 @@ describe("Auth0 authenticator ", () => {
 
   it("should throw error when getAndVerifyClaims and token does not have expected audience", async () => {
     const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
-    const token = jwt.sign(payload, privateKey, {algorithm: 'RS256'});
+    const token = signToken(payload, privateKey);
     const context = {
       options: {
         expectedAudience: "https://pristine-ts.com123",
@@ -206,7 +221,7 @@ describe("Auth0 authenticator ", () => {
 
   it("should throw error when getAndVerifyClaims and token does not have expected scope", async () => {
     const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
-    const token = jwt.sign(payload, privateKey, {algorithm: 'RS256'});
+    const token = signToken(payload, privateKey);
     const context = {
       options: {
         expectedAudience: "https://pristine-ts.com",
@@ -220,27 +235,27 @@ describe("Auth0 authenticator ", () => {
   it("should not getAndVerifyClaims if expired", async () => {
     const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
     payload.exp = 1500000;
-    const token = jwt.sign(payload, privateKey, {algorithm: 'RS256'});
+    const token = signToken(payload, privateKey);
     expect(() => auth0Authenticator["getAndVerifyClaims"](token, publicKey1)).toThrow(new Error("Invalid jwt: jwt expired"));
   });
 
   it("should not getAndVerifyClaims if auth time after", async () => {
     const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
     payload.auth_time = 1500000000000;
-    const token = jwt.sign(payload, privateKey, {algorithm: 'RS256'});
+    const token = signToken(payload, privateKey);
     expect(() => auth0Authenticator["getAndVerifyClaims"](token, publicKey1)).toThrow(new Error('Claim is expired or invalid'));
   });
 
   it("should not getAndVerifyClaims if issuer different", async () => {
     const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
     payload.iss = "issuer";
-    const token = jwt.sign(payload, privateKey, {algorithm: 'RS256'});
+    const token = signToken(payload, privateKey);
     expect(() => auth0Authenticator["getAndVerifyClaims"](token, publicKey1)).toThrow(new Error('Claim issuer is invalid'));
   });
 
   it("should getKeyFromToken", async () => {
     const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
-    const token = jwt.sign(payload, privateKey, {algorithm: 'RS256', keyid: "687dfb71-7ce9-42b5-b77c-c39ac2dfd21e"});
+    const token = signToken(payload, privateKey, {keyid: "687dfb71-7ce9-42b5-b77c-c39ac2dfd21e"});
     const pems = {
       "687dfb71-7ce9-42b5-b77c-c39ac2dfd21e": publicKey1,
       "fgjhlkhjlkhexample=": "-----BEGIN PUBLIC KEY-----\nMDEwDQYJKoZIhvcNAQEBBQADIAAwHQIWALII4ZZOo6ffLoKffLqd+IaXsWpqZQID\nAQAB\n-----END PUBLIC KEY-----\n"
@@ -250,7 +265,7 @@ describe("Auth0 authenticator ", () => {
 
   it("should not getKeyFromToken if unknow kid", async () => {
     const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
-    const token = jwt.sign(payload, privateKey, {algorithm: 'RS256', keyid: "hello"});
+    const token = signToken(payload, privateKey, {keyid: "hello"});
     const pems = {
       "687dfb71-7ce9-42b5-b77c-c39ac2dfd21e": publicKey1,
       "fgjhlkhjlkhexample=": "-----BEGIN PUBLIC KEY-----\nMDEwDQYJKoZIhvcNAQEBBQADIAAwHQIWALII4ZZOo6ffLoKffLqd+IaXsWpqZQID\nAQAB\n-----END PUBLIC KEY-----\n"
@@ -260,7 +275,7 @@ describe("Auth0 authenticator ", () => {
 
   it("should getTokenHeader", async () => {
     const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
-    const token = jwt.sign(payload, privateKey, {algorithm: 'RS256', keyid: tokenHeader.kid});
+    const token = signToken(payload, privateKey, {keyid: tokenHeader.kid});
     expect(auth0Authenticator["getTokenHeader"](token)).toEqual(tokenHeader);
   });
 
@@ -282,7 +297,7 @@ describe("Auth0 authenticator ", () => {
     await auth0Authenticator.setContext(context);
     const request: Request = new Request(HttpMethod.Get, "", "uuid");
     request.setHeaders({
-      "Authorization": "Bearer " + jwt.sign(payload, privateKey, {algorithm: 'RS256', keyid: tokenHeader.kid})
+      "Authorization": "Bearer " + signToken(payload, privateKey, {keyid: tokenHeader.kid})
     });
 
     expect(await auth0Authenticator["authenticate"](request)).toEqual({

@@ -1,12 +1,11 @@
 import {inject, injectable, singleton} from "tsyringe";
-import * as jwt from "jsonwebtoken";
+import {createPublicKey, verify} from "crypto";
 import {HttpMethod, IdentityInterface, Request, traced} from "@pristine-ts/common";
 import {TokenHeaderInterface} from "../interfaces/token-header.interface";
 import {ClaimInterface} from "../interfaces/claim.interface";
 import {AuthenticatorInterface} from "@pristine-ts/security";
 import {HttpClientInterface, ResponseTypeEnum} from "@pristine-ts/http";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import jwkToBuffer from "jwk-to-pem";
 import {Auth0ModuleKeyname} from "../auth0.module.keyname";
 
 /**
@@ -120,9 +119,11 @@ export class Auth0Authenticator implements AuthenticatorInterface {
 
     const publicKeys = publicKeysResponse.body;
 
-    // Create a map key id : key.
+    // Create a map key id : key. The JWK is converted to a SPKI PEM using native Node
+    // crypto (replacing the jwk-to-pem dependency); the PEM output is byte-for-byte
+    // identical to what jwk-to-pem produced.
     const pems: { [key: string]: string } = publicKeys.keys.reduce((agg: any, current: any) => {
-      agg[current.kid] = jwkToBuffer(current);
+      agg[current.kid] = createPublicKey({key: current, format: "jwk"}).export({type: "spki", format: "pem"}) as string;
       return agg;
     }, {} as { [key: string]: string });
 
@@ -167,7 +168,7 @@ export class Auth0Authenticator implements AuthenticatorInterface {
   private getAndVerifyClaims(token: string, key: string): ClaimInterface {
     let claim;
     try {
-      claim = jwt.verify(token, key) as ClaimInterface;
+      claim = this.verifyTokenAndDecode(token, key);
     } catch (err) {
       throw new Error("Invalid jwt: " + (err as Error).message);
     }
@@ -196,6 +197,43 @@ export class Auth0Authenticator implements AuthenticatorInterface {
           throw new Error("Claim does not contain the required scope: '" + scope + "'");
         }
       }
+    }
+
+    return claim;
+  }
+
+  /**
+   * Verifies the RS256 signature of the token with the provided PEM public key and
+   * returns the decoded claims. Throws if the token is malformed, the signature is
+   * invalid, or the token is expired.
+   *
+   * This replaces `jsonwebtoken`'s `verify` with native Node crypto so the package no
+   * longer pulls in the `jsonwebtoken` -> `jws` -> `jwa` -> `buffer-equal-constant-time`
+   * chain, whose reliance on the `SlowBuffer` API breaks under Node 26.
+   *
+   * @param token The string token.
+   * @param key The PEM-encoded public key to verify the token with.
+   * @private
+   */
+  private verifyTokenAndDecode(token: string, key: string): ClaimInterface {
+    const tokenSections = (token || "").split(".");
+    if (tokenSections.length !== 3) {
+      throw new Error("jwt malformed");
+    }
+
+    const signingInput = tokenSections[0] + "." + tokenSections[1];
+    const signature = Buffer.from(tokenSections[2], "base64url");
+
+    // Auth0 signs its tokens with RS256; pinning the algorithm also guards against
+    // algorithm-substitution attacks.
+    if (verify("RSA-SHA256", Buffer.from(signingInput), key, signature) === false) {
+      throw new Error("invalid signature");
+    }
+
+    const claim = JSON.parse(Buffer.from(tokenSections[1], "base64url").toString("utf8")) as ClaimInterface;
+
+    if (claim.exp !== undefined && Math.floor(Date.now() / 1000) >= claim.exp) {
+      throw new Error("jwt expired");
     }
 
     return claim;
