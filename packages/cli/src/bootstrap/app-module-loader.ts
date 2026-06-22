@@ -123,9 +123,14 @@ export class AppModuleLoader {
         appModule = await this.buildFallbackAppModule(projectRoot);
       }
     } else {
-      // Stage 4 (no `cli.appModule` block, or no config file at all): substitute the
-      // CliModule-only AppModule so the bin can still bootstrap the user's project.
-      // First-run case (`pristine init` from a fresh project) lands here.
+      // Stage 4 (no `cli.appModule` resolved): substitute the CliModule-only AppModule so the
+      // bin can still bootstrap. A genuinely fresh project (no config file, no legacy field)
+      // stays quiet so `pristine init` / `pristine help` aren't noisy. But when the user clearly
+      // expected their AppModule to load — a config file that forgot `cli.appModule`, or a
+      // leftover `package.json` `pristine.appModule` field from before 2.x — warn loudly so the
+      // failure isn't invisible. Without this, a user command like `cicd:run` simply "doesn't
+      // exist" with no explanation. (This is the "old paths fail loudly" the migration docs promise.)
+      this.warnNoAppModuleResolved(projectRoot, resolvedConfig.configFilePath);
       appModule = await this.buildFallbackAppModule(projectRoot);
     }
 
@@ -147,6 +152,70 @@ export class AppModuleLoader {
     }
 
     return new LoadedAppModule(appModule, plugins);
+  }
+
+  /**
+   * Emits an actionable stderr warning when the loader is about to fall back to a CliModule-only
+   * AppModule because no `cli.appModule` resolved — but only in the cases where the user most
+   * likely expected their AppModule to load. A pristine-free project (no config file AND no
+   * legacy field) stays silent so `pristine init` on a fresh checkout isn't noisy.
+   *
+   * Two cases warn:
+   *   1. A legacy `package.json` `pristine.appModule.{path,cjsPath}` field is still present. That
+   *      discovery mechanism was removed in 2.x; the field is now silently ignored, which is
+   *      exactly the "silent half-migration" the docs promise not to allow — so we flag it.
+   *   2. A config file exists but declares no `cli.appModule`.
+   * @private
+   */
+  private warnNoAppModuleResolved(projectRoot: string, configFilePath: string | undefined): void {
+    const legacyField = this.detectLegacyPackageJsonAppModule(projectRoot);
+    if (legacyField !== undefined) {
+      process.stderr.write(
+        `[pristine] Found a legacy '${legacyField}' field in package.json. That AppModule-discovery ` +
+        `mechanism was removed in 2.x — Pristine no longer reads package.json, so the field is ignored.\n` +
+        `[pristine] Your AppModule is NOT loaded and its commands are missing (only built-in commands run). ` +
+        `Move it to a pristine.config.ts (cli.appModule.sourcePath + outputPath) — run \`pristine init\`.\n`,
+      );
+      return;
+    }
+    if (configFilePath !== undefined) {
+      process.stderr.write(
+        `[pristine] '${path.basename(configFilePath)}' has no 'cli.appModule' — your AppModule is NOT ` +
+        `loaded, so only built-in commands are available.\n` +
+        `[pristine] Add cli.appModule.sourcePath + outputPath (or run \`pristine init\`) to load it.\n`,
+      );
+    }
+    // No config file and no legacy field → genuine fresh / built-in-only use; stay silent.
+  }
+
+  /**
+   * Best-effort read of the project's package.json to detect a legacy AppModule-discovery field.
+   * Returns the dotted path of the offending field (`pristine.appModule.cjsPath` /
+   * `pristine.appModule.path`, or `pristine.appModule` when neither sub-key is a string) when
+   * present, else undefined. A missing or unparseable package.json yields undefined.
+   * @private
+   */
+  private detectLegacyPackageJsonAppModule(projectRoot: string): string | undefined {
+    try {
+      const packageJsonPath = path.resolve(projectRoot, "package.json");
+      if (fs.existsSync(packageJsonPath) === false) {
+        return undefined;
+      }
+      const parsed = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+      const appModule = parsed?.pristine?.appModule;
+      if (appModule === undefined || appModule === null) {
+        return undefined;
+      }
+      if (typeof appModule.cjsPath === "string") {
+        return "pristine.appModule.cjsPath";
+      }
+      if (typeof appModule.path === "string") {
+        return "pristine.appModule.path";
+      }
+      return "pristine.appModule";
+    } catch {
+      return undefined;
+    }
   }
 
   /**
