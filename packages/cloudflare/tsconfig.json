@@ -5,6 +5,7 @@
   ],
   "compilerOptions": {
     "declarationDir": "dist/types",
+    "rootDir": "src",
     "types": [
       "jest"
     ],
