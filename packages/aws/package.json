@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/aws",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "",
   "module": "dist/lib/esm/aws.module.js",
   "main": "dist/lib/cjs/aws.module.js",
