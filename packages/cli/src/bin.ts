@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-require-imports */
 // This file is intentionally CJS `require()` rather than ESM `import`. It runs as the bin
 // entry compiled to dist/lib/cjs/bin.js, where (a) the load order matters (reflect-metadata
 // MUST initialize before any decorated class is touched) and (b) static `import` cannot be

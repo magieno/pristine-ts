@@ -24,14 +24,17 @@ module.exports = {
             {'ts-ignore': 'allow-with-description'},
         ],
         "@typescript-eslint/no-empty-function": "off",
-        "@typescript-eslint/ban-types": [
-            'error',
-            {
-                "types": {
-                    "Function": false,
-                }
-            }
-        ]
+        // `ban-types` was removed in @typescript-eslint v8 and split into
+        // dedicated rules. The only customization here was allowing the
+        // `Function` type, so we simply disable its replacement rule.
+        "@typescript-eslint/no-unsafe-function-type": "off",
+        // Empty interfaces are used intentionally as declaration-merging
+        // extension points (e.g. PristineConfigurationValueMap), so allow
+        // them while still flagging the empty `{}` object type.
+        "@typescript-eslint/no-empty-object-type": ["error", {"allowInterfaces": "always"}],
+        // The codebase relies on the `cond && sideEffect()` short-circuit idiom,
+        // which v8's recommended config flags via no-unused-expressions.
+        "@typescript-eslint/no-unused-expressions": ["error", {"allowShortCircuit": true, "allowTernary": true}]
     }
 }
 

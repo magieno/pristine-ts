@@ -34,14 +34,14 @@
   "devDependencies": {
     "@types/jest": "^29.5.7",
     "@types/node": "^18.18.8",
-    "@typescript-eslint/eslint-plugin": "^6.9.1",
-    "@typescript-eslint/parser": "^6.9.1",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
     "eslint": "^8.52.0",
     "jest": "^29.7.0",
     "jest-extended": "^4.0.2",
     "lerna": "^9.0.3",
-    "ts-jest": "^29.1.1",
-    "typescript": "^5.2.2"
+    "ts-jest": "^29.4.11",
+    "typescript": "^6.0.0"
   },
   "dependencies": {
     "@pristine-ts/auth0": "file:packages/auth0",

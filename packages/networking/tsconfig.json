@@ -5,6 +5,7 @@
   ],
   "compilerOptions": {
     "declarationDir": "dist/types",
+    "rootDir": "src",
     "outDir": "dist/lib/esm",
     "lib": ["es2020", "es2022.error"]
   },

@@ -7,6 +7,7 @@
     "moduleResolution": "bundler",
     "module": "ES2020",
     "declarationDir": "dist/types",
+    "rootDir": "src",
     "outDir": "dist/lib/esm"
   },
   "exclude": [
