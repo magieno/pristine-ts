@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/mysql-cli",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Pristine CLI commands and TypeScript-defined SQL migrations for @pristine-ts/mysql.",
   "module": "dist/lib/esm/mysql-cli.module.js",
   "main": "dist/lib/cjs/mysql-cli.module.js",
