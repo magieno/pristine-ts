@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/file",
-  "version": "2.0.21",
+  "version": "3.0.0",
   "description": "",
   "module": "dist/lib/esm/file.module.js",
   "main": "dist/lib/cjs/file.module.js",
