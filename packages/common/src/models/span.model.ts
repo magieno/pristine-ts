@@ -1,4 +1,4 @@
-import {randomUUID} from "crypto";
+import {UuidGenerator} from "../utils/uuid.util";
 import {SpanLifecycleOwnerInterface} from "./span-lifecycle-owner.interface";
 import {SpanMarker} from "./span-marker.model";
 import {Trace} from "./trace.model";
@@ -71,7 +71,7 @@ export class Span {
    * @param context The context to associate with the span.
    */
   public constructor(public keyname: string, id?: string, context?: { [key: string]: string }) {
-    this.id = id ?? randomUUID();
+    this.id = id ?? UuidGenerator.generate();
     this.context = context ?? {};
   }
 

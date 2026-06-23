@@ -1,7 +1,7 @@
-import {AsyncLocalStorage} from "async_hooks";
 import {DependencyContainer, injectable} from "tsyringe";
 import {EventContext} from "../contexts/event-context";
 import {TracingManagerInterface} from "../interfaces/tracing-manager.interface";
+import {eventContextStorage} from "./event-context.als";
 
 /**
  * Owns the `AsyncLocalStorage` instance that propagates the active `EventContext`
@@ -18,17 +18,14 @@ import {TracingManagerInterface} from "../interfaces/tracing-manager.interface";
  *     Captures the current context and returns a wrapped function that restores it
  *     on call.
  *
- * Why static state inside an `@injectable()` class: the `AsyncLocalStorage` instance
- * itself must be a single process-wide singleton — multiple instances would each track
- * their own propagation chain and contexts wouldn't be visible across them. Making the
- * ALS `private static readonly` while keeping the class `@injectable()` lets DI consumers
- * resolve it normally (and substitute fakes in tests) while the underlying state stays
- * shared and consistent.
+ * The backing storage lives in `./event-context.als` (a single process-wide
+ * `AsyncLocalStorage`) rather than being constructed here, so a browser build can swap it
+ * for a synchronous shim — `async_hooks` is Node-only. Keeping the storage shared while the
+ * class stays `@injectable()` lets DI consumers resolve the manager normally (and substitute
+ * fakes in tests) while the underlying state stays shared and consistent.
  */
 @injectable()
 export class EventContextManager {
-  private static readonly als = new AsyncLocalStorage<EventContext>();
-
   /**
    * Installs `ctx` as the active `EventContext` for the duration of `fn` (and every
    * async chain reachable from it). Returns whatever `fn` returns. Used by Pristine's
@@ -37,13 +34,13 @@ export class EventContextManager {
   run<T>(ctx: EventContext, fn: () => T): T;
   run<T>(ctx: EventContext, fn: () => Promise<T>): Promise<T>;
   run<T>(ctx: EventContext, fn: () => T | Promise<T>): T | Promise<T> {
-    return EventContextManager.als.run(ctx, fn);
+    return eventContextStorage.run(ctx, fn);
   }
 
   /** Returns the active `EventContext`, or `undefined` if no context is installed
    *  (i.e. we're outside any `run()` call). */
   current(): EventContext | undefined {
-    return EventContextManager.als.getStore();
+    return eventContextStorage.getStore();
   }
 
   /** Convenience: the `eventId` of the active context, or `undefined`. */
@@ -78,17 +75,16 @@ export class EventContextManager {
   bind<F extends (...args: any[]) => any>(fn: F): F {
     const ctx = this.current();
     if (ctx === undefined) return fn;
-    const als = EventContextManager.als;
-    return ((...args: any[]) => als.run(ctx, () => fn(...args))) as F;
+    return ((...args: any[]) => eventContextStorage.run(ctx, () => fn(...args))) as F;
   }
 
   // ── Static convenience mirrors. ────────────────────────────────────────────────
   // For callers that don't want DI noise (e.g. utility code, decorators, helpers
   // that don't have a constructor to inject through). All forwarding to the same
-  // shared ALS instance.
+  // shared storage instance.
 
   static current(): EventContext | undefined {
-    return EventContextManager.als.getStore();
+    return eventContextStorage.getStore();
   }
 
   static eventId(): string | undefined {
@@ -110,7 +106,6 @@ export class EventContextManager {
   static bind<F extends (...args: any[]) => any>(fn: F): F {
     const ctx = EventContextManager.current();
     if (ctx === undefined) return fn;
-    const als = EventContextManager.als;
-    return ((...args: any[]) => als.run(ctx, () => fn(...args))) as F;
+    return ((...args: any[]) => eventContextStorage.run(ctx, () => fn(...args))) as F;
   }
 }

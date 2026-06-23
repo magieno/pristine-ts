@@ -5,6 +5,10 @@
   "module": "dist/lib/esm/common.module.js",
   "main": "dist/lib/cjs/common.module.js",
   "types": "dist/types/common.module.d.ts",
+  "browser": {
+    "./dist/lib/esm/managers/event-context.als.js": "./dist/lib/esm/managers/event-context.als.browser.js",
+    "./dist/lib/cjs/managers/event-context.als.js": "./dist/lib/cjs/managers/event-context.als.browser.js"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
     "prepublish": "npm run build",
