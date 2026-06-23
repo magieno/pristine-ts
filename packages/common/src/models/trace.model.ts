@@ -1,4 +1,4 @@
-import {randomUUID} from "crypto";
+import {UuidGenerator} from "../utils/uuid.util";
 import {Span} from "./span.model";
 
 /**
@@ -49,7 +49,7 @@ export class Trace {
    * @param context The context associated with the trace.
    */
   public constructor(id?: string, context?: { [key: string]: string }) {
-    this.id = id ?? randomUUID();
+    this.id = id ?? UuidGenerator.generate();
     this.context = context ?? {};
   }
 
