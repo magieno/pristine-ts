@@ -125,6 +125,40 @@ describe("CliPrompt", () => {
       const prompt = build();
       await expect(prompt.select("Format?", [])).rejects.toThrow();
     });
+
+    // Regression: a label wider than the terminal used to be written in full and wrapped onto a
+    // second screen row. The repaint backs the cursor up by the choice COUNT, so a wrapped row
+    // left it mid-menu and the redraw duplicated/corrupted the list. Every rendered row must now
+    // fit the width so it stays exactly one screen row.
+    it("clips each choice row to the terminal width so a long label never wraps", async () => {
+      const longChoices = [
+        {name: "a-very-long-choice-label-that-would-wrap-the-line", value: "a"},
+        {name: "another-extremely-long-choice-label-goes-here-too", value: "b"},
+      ];
+      const originalColumns = Object.getOwnPropertyDescriptor(process.stdout, "columns");
+      Object.defineProperty(process.stdout, "columns", {value: 20, configurable: true});
+
+      try {
+        await build([DOWN, ENTER]).select("Pick one", longChoices);
+
+        const stripAnsi = (value: string) => value.replace(/\x1b\[[0-9;?]*[A-Za-z]/g, "");
+        const rows = (process.stdout.write as jest.Mock).mock.calls
+          .map((call) => stripAnsi(String(call[0])).replace(/\n$/, ""))
+          .filter((line) => /^(?:❯ |\s{2})\S/.test(line)); // rendered choice rows only
+
+        expect(rows.length).toBeGreaterThan(0);
+        for (const row of rows) {
+          expect(row.length).toBeLessThanOrEqual(20 - 1); // never reaches the edge -> never wraps
+        }
+        expect(rows.some((row) => row.endsWith("…"))).toBe(true); // proof the clip engaged
+      } finally {
+        if (originalColumns) {
+          Object.defineProperty(process.stdout, "columns", originalColumns);
+        } else {
+          delete (process.stdout as {columns?: number}).columns;
+        }
+      }
+    });
   });
 
   describe("readSecret", () => {
