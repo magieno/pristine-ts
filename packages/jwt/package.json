@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/jwt",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "",
   "module": "dist/lib/esm/jwt.module.js",
   "main": "dist/lib/cjs/jwt.module.js",
