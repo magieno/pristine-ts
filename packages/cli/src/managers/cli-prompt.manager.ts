@@ -181,25 +181,40 @@ export class CliPrompt {
 
   /**
    * Writes the choice rows, highlighting the active one with a colored pointer. Each row is
-   * cleared before it's written so a repaint never leaves a longer previous label behind.
+   * cleared before it's written (so a repaint never leaves a longer previous label behind) and
+   * clipped to the terminal width by {@link formatChoiceRow} (so a row never wraps — see there).
    * @private
    */
   private renderChoices<T>(choices: {name: string; value: T}[], active: number): void {
     choices.forEach((choice, index) => {
       clearLine(process.stdout, 0);
       cursorTo(process.stdout, 0);
-
-      if (index === active) {
-        process.stdout.write(`${CliPrompt.CYAN}${CliPrompt.POINTER} ${choice.name}${CliPrompt.RESET}\n`);
-      } else {
-        process.stdout.write(`  ${choice.name}\n`);
-      }
+      process.stdout.write(`${this.formatChoiceRow(choice.name, index === active)}\n`);
     });
   }
 
   /**
-   * Moves the cursor back up over the previously-rendered choice rows and rewrites them, so
-   * the menu updates in place as the selection moves.
+   * Builds one choice row — `❯ <name>` for the active row, `  <name>` otherwise — CLIPPED to the
+   * terminal width so a label longer than the terminal can't wrap onto a second screen row.
+   * {@link repaintChoices} backs the cursor up by the choice COUNT, which only lands on the first
+   * row if every choice occupies exactly one screen row; a wrapped row desyncs that count and the
+   * redraw duplicates (and, via the per-row clear, corrupts) the menu. The colour codes are
+   * zero-width, so the visible text is clipped first and then wrapped in colour; `- 1` keeps the
+   * row one column short of the edge, dodging the terminal's last-column "pending wrap".
+   * @private
+   */
+  private formatChoiceRow(name: string, isActive: boolean): string {
+    const text = `${isActive ? `${CliPrompt.POINTER} ` : "  "}${name}`;
+    const width = Math.max(1, (process.stdout.columns || 80) - 1);
+    const clipped = text.length > width ? `${text.slice(0, width - 1)}…` : text;
+    return isActive ? `${CliPrompt.CYAN}${clipped}${CliPrompt.RESET}` : clipped;
+  }
+
+  /**
+   * Moves the cursor back up over the previously-rendered choice rows and rewrites them, so the
+   * menu updates in place as the selection moves. Relies on every choice occupying exactly one
+   * screen row — guaranteed by {@link formatChoiceRow}'s width clip — so `-choices.length` lands
+   * back on the first row.
    * @private
    */
   private repaintChoices<T>(choices: {name: string; value: T}[], active: number): void {
