@@ -1,11 +1,10 @@
 # Changelog — @pristine-ts/cli
 
-## Unreleased (proposed 3.1.0 — minor)
+## 3.0.5
 
 Hardening of `@pristine-ts/cli` for ESM / bundled runtimes, following the `__dirname is not
-defined` boot crash fixed in 3.0.4. A **minor** release is recommended (rather than a patch)
-because the `HttpModule → CliModule` decoupling changes one observable default for HTTP/Lambda
-apps — see the migration note below.
+defined` boot crash fixed in 3.0.4. Note that the `HttpModule → CliModule` decoupling changes one
+observable default for HTTP/Lambda apps — see the migration note below.
 
 ### Fixed / Changed
 
