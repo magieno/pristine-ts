@@ -1,8 +1,11 @@
 import {ModuleInterface} from "@pristine-ts/common";
 import {HttpModuleKeyname} from "./http.module.keyname";
 import {LoggingModule} from "@pristine-ts/logging";
+import {CoreModule} from "@pristine-ts/core";
+import {DataMappingModule} from "@pristine-ts/data-mapping";
+import {ObservabilityModule} from "@pristine-ts/observability";
+import {ValidationModule} from "@pristine-ts/validation";
 import {BooleanResolver, EnvironmentVariableResolver, NumberResolver} from "@pristine-ts/configuration";
-import {CliModule} from "@pristine-ts/cli";
 import {KernelHttpServer} from "./servers/kernel.http-server";
 
 export * from "./http.module.keyname";
@@ -20,12 +23,19 @@ export * from "./wrappers/wrappers";
 export * from "./http.configuration-keys";
 export const HttpModule: ModuleInterface = {
   keyname: HttpModuleKeyname,
-  // CliModule is imported so HTTP apps get the CLI runtime that backs HttpModule's own commands
-  // (`pristine start`, the file server, etc.) and so its configuration keys are always
-  // registered. This does NOT force CLI commands to be constructed at kernel start: CliEventHandler
-  // resolves commands lazily (only when a CommandEvent is actually handled), so a plain HTTP/Lambda
-  // request never instantiates a command. See CliEventHandler.handle().
-  importModules: [LoggingModule, CliModule],
+  // HttpModule imports only the framework modules it genuinely needs. It used to import CliModule,
+  // but that dragged the entire `@pristine-ts/cli` package — every command, the REPL event
+  // handlers, terminal/readline machinery, the build/plugin bootstrap, and CLI-only config keys —
+  // into every HTTP/Lambda app and into consumer ESM bundles, none of which runs there. The only
+  // thing HttpModule actually got from CliModule was the set of framework modules CliModule
+  // re-exported (Core/DataMapping/Observability/Validation); those are imported directly here, so
+  // the transitive service graph is unchanged while the CLI package is dropped entirely.
+  //
+  // HttpModule's own CLI command (`file-server:start`) still works under `pristine`: the CLI bin
+  // (`Cli.bootstrap`) always wraps the AppModule with CliModule, so the CLI runtime is present, and
+  // the command — being `@tag(Command)` — is discovered from the container wherever HttpModule is
+  // loaded. It is never constructed on the HTTP path (CliEventHandler resolves commands lazily).
+  importModules: [CoreModule, DataMappingModule, LoggingModule, ObservabilityModule, ValidationModule],
   configurationDefinitions: [
     {
       parameterName: `${HttpModuleKeyname}.logging-enabled`,
