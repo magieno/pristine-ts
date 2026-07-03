@@ -11,10 +11,15 @@ apps — see the migration note below.
 
 - **CLI version reporting now works in bundled ESM (no more `"unknown"`).** The version shown by
   `pristine info` comes from a build-time constant (`src/generated/version.ts`, generated from
-  `package.json` on `prebuild`/`pretest` by `scripts/generate-version.mjs`) instead of a runtime
-  `package.json` read. A baked-in constant resolves identically in CommonJS, native ESM, and
-  bundled ESM — no filesystem access, no `__dirname`, no `import.meta`. The runtime path-resolution
-  helper (`CliPackageJsonResolver`) is removed, since the constant supersedes it entirely.
+  `package.json` by `scripts/generate-version.mjs`) instead of a runtime `package.json` read. A
+  baked-in constant resolves identically in CommonJS, native ESM, and bundled ESM — no filesystem
+  access, no `__dirname`, no `import.meta`. The runtime path-resolution helper
+  (`CliPackageJsonResolver`) is removed, since the constant supersedes it entirely.
+
+  The constant is generated on `prebuild`, `pretest`, and `prepack`. The `prepack` hook is what
+  keeps a published release correct: `lerna publish` bumps `package.json` and then packs, and
+  `prepack` rebuilds from the just-bumped version so the shipped tarball always reports the right
+  version. `src/generated/version.ts` is a generated file and is git-ignored.
 
 - **`HttpModule` no longer imports `CliModule`.** Importing the full `CliModule` dragged the entire
   `@pristine-ts/cli` package — every command, the REPL event handlers, terminal/readline machinery,
