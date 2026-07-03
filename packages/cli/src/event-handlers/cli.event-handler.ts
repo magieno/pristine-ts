@@ -1,4 +1,4 @@
-import {inject, injectable, injectAll} from "tsyringe";
+import {DependencyContainer, inject, injectable} from "tsyringe";
 import {Event, EventHandlerInterface} from "@pristine-ts/core";
 import {CommandEventPayload} from "../event-payloads/command.event-payload";
 import {CommandEvent} from "../types/command-event.type";
@@ -17,7 +17,7 @@ export class CliEventHandler implements EventHandlerInterface<any, any> {
   constructor(
     @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
     private readonly commandArgumentResolver: CommandArgumentResolver,
-    @injectAll(ServiceDefinitionTagEnum.Command) private readonly commands: CommandInterface<any>[]) {
+    @inject(ServiceDefinitionTagEnum.CurrentChildContainer) private readonly container: DependencyContainer) {
   }
 
   /**
@@ -31,7 +31,21 @@ export class CliEventHandler implements EventHandlerInterface<any, any> {
    * without the process dying after the first command.
    */
   async handle(event: CommandEvent): Promise<CommandEventResponse> {
-    const command = this.commands.find(c => c.name === event.payload.name);
+    // ── container.resolveAll, justified ─────────────────────────────────────────
+    // Per CLAUDE.md: constructor-time `@injectAll(ServiceDefinitionTagEnum.Command)` would
+    // force-construct EVERY command the instant this handler is built. Because this handler is
+    // itself an `EventHandler`, EventDispatcher's `@injectAll(EventHandler)` builds it (and thus
+    // every command) during per-event dispatch — including in HTTP/Lambda apps, which import
+    // CliModule transitively (HttpModule → CliModule) but never actually run a command. A single
+    // command with an eager constructor (e.g. InfoCommand reading `__dirname`) would then crash
+    // the whole runtime at first request. Resolving lazily here defers command construction to
+    // the moment a command event is genuinely handled — which only happens on the CLI path,
+    // where `supports()` matched a `CommandEventPayload`. The child container is
+    // constructor-injected (registered by the kernel under `CurrentChildContainer`), so only the
+    // enumeration is late-bound.
+    const commands: CommandInterface<any>[] = this.container.resolveAll(ServiceDefinitionTagEnum.Command);
+
+    const command = commands.find(c => c.name === event.payload.name);
     if (command === undefined) {
       // Throws a UsageError (exit 64, `EX_USAGE`). The bin's `.catch` will route it
       // through `CliErrorReporter.report` which prints a clean one-line stderr and

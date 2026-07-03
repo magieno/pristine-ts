@@ -1,6 +1,4 @@
-import fs from "fs";
 import os from "os";
-import path from "path";
 import {ModuleInterface, moduleScoped, ServiceDefinitionTagEnum, tag, ExitCode} from "@pristine-ts/common";
 import {inject, injectable} from "tsyringe";
 import {LogHandlerInterface} from "@pristine-ts/logging";
@@ -9,6 +7,7 @@ import {CliOutput} from "../managers/cli-output.manager";
 import {CliModuleKeyname} from "../cli.module.keyname";
 import {ConfigLoader} from "../config/config-loader";
 import {AppModuleLoader} from "../bootstrap/app-module-loader";
+import {CliPackageJsonResolver} from "../utils/cli-package-json.resolver";
 
 /**
  * Diagnostic command. Prints framework version, runtime environment, resolved config +
@@ -28,18 +27,12 @@ export class InfoCommand implements CommandInterface<null> {
   name = "p:info";
   description = "Print framework version, runtime environment, and the loaded module graph.";
 
-  /**
-   * Resolved at command construction time so `pristine info` reports the version of the cli
-   * that's actually running, not whatever happens to live in the user's project root. The
-   * package.json sits four levels up from dist/lib/cjs/commands/.
-   */
-  private readonly cliPackageJsonPath: string = path.resolve(__dirname, "..", "..", "..", "..", "package.json");
-
   constructor(
     @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
     private readonly cliOutput: CliOutput,
     private readonly configLoader: ConfigLoader,
     private readonly appModuleLoader: AppModuleLoader,
+    private readonly cliPackageJsonResolver: CliPackageJsonResolver,
   ) {
   }
 
@@ -51,7 +44,7 @@ export class InfoCommand implements CommandInterface<null> {
 
   private printRuntimeBanner(): void {
     this.cliOutput.writeLine("Pristine CLI");
-    this.cliOutput.writeLine(`  Version:        ${this.readCliVersion()}`);
+    this.cliOutput.writeLine(`  Version:        ${this.cliPackageJsonResolver.readVersion()}`);
     this.cliOutput.writeLine(`  Node:           ${process.version}`);
     this.cliOutput.writeLine(`  Platform:       ${os.platform()} ${os.arch()} (${os.release()})`);
     this.cliOutput.writeLine(`  CWD:            ${process.cwd()}`);
@@ -102,15 +95,6 @@ export class InfoCommand implements CommandInterface<null> {
     }
 
     return ExitCode.Success;
-  }
-
-  private readCliVersion(): string {
-    try {
-      const pkg = JSON.parse(fs.readFileSync(this.cliPackageJsonPath, "utf8"));
-      return pkg.version ?? "unknown";
-    } catch {
-      return "unknown";
-    }
   }
 
   /**
