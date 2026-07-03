@@ -2,7 +2,10 @@ import "reflect-metadata"
 import {moduleScoped, ServiceDefinitionTagEnum, tag, ExitCode} from "@pristine-ts/common";
 import {HttpModuleKeyname} from "../http.module.keyname";
 import {inject, injectable} from "tsyringe";
-import {CommandInterface} from "@pristine-ts/cli";
+// Type-only import so the CLI command contract is available for typing without emitting a runtime
+// `require("@pristine-ts/cli")`, which would pull CLI code into HTTP/Lambda bundles that never run
+// it (HttpModule does not import CliModule).
+import type {CommandInterface} from "@pristine-ts/cli";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {FileHttpServer} from "../servers/file.http-server";
 import {FileServerCommandOptions} from "./file-server.command-options";

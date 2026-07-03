@@ -7,7 +7,7 @@ import {CliOutput} from "../managers/cli-output.manager";
 import {CliModuleKeyname} from "../cli.module.keyname";
 import {ConfigLoader} from "../config/config-loader";
 import {AppModuleLoader} from "../bootstrap/app-module-loader";
-import {CliPackageJsonResolver} from "../utils/cli-package-json.resolver";
+import {CLI_VERSION} from "../generated/version";
 
 /**
  * Diagnostic command. Prints framework version, runtime environment, resolved config +
@@ -32,7 +32,6 @@ export class InfoCommand implements CommandInterface<null> {
     private readonly cliOutput: CliOutput,
     private readonly configLoader: ConfigLoader,
     private readonly appModuleLoader: AppModuleLoader,
-    private readonly cliPackageJsonResolver: CliPackageJsonResolver,
   ) {
   }
 
@@ -44,7 +43,10 @@ export class InfoCommand implements CommandInterface<null> {
 
   private printRuntimeBanner(): void {
     this.cliOutput.writeLine("Pristine CLI");
-    this.cliOutput.writeLine(`  Version:        ${this.cliPackageJsonResolver.readVersion()}`);
+    // CLI_VERSION is baked in at build time from package.json (see scripts/generate-version.mjs).
+    // A constant resolves correctly regardless of how the CLI is loaded — CommonJS, native ESM, or
+    // an ESM bundle where the code no longer sits next to its package.json and __dirname is absent.
+    this.cliOutput.writeLine(`  Version:        ${CLI_VERSION}`);
     this.cliOutput.writeLine(`  Node:           ${process.version}`);
     this.cliOutput.writeLine(`  Platform:       ${os.platform()} ${os.arch()} (${os.release()})`);
     this.cliOutput.writeLine(`  CWD:            ${process.cwd()}`);

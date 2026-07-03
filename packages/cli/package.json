@@ -9,8 +9,10 @@
     "pristine": "dist/bin/pristine.cjs"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json && node scripts/build-bin.mjs",
+    "build": "node scripts/generate-version.mjs && tsc -p tsconfig.json && tsc -p tsconfig.cjs.json && node scripts/build-bin.mjs",
+    "prepack": "npm run build",
     "prepublish": "npm run build",
+    "pretest": "node scripts/generate-version.mjs",
     "test": "jest",
     "test:cov": "jest --coverage",
     "pristine:command": "pristine help"

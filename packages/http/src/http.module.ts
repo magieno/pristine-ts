@@ -1,8 +1,11 @@
 import {ModuleInterface} from "@pristine-ts/common";
 import {HttpModuleKeyname} from "./http.module.keyname";
 import {LoggingModule} from "@pristine-ts/logging";
+import {CoreModule} from "@pristine-ts/core";
+import {DataMappingModule} from "@pristine-ts/data-mapping";
+import {ObservabilityModule} from "@pristine-ts/observability";
+import {ValidationModule} from "@pristine-ts/validation";
 import {BooleanResolver, EnvironmentVariableResolver, NumberResolver} from "@pristine-ts/configuration";
-import {CliModule} from "@pristine-ts/cli";
 import {KernelHttpServer} from "./servers/kernel.http-server";
 
 export * from "./http.module.keyname";
@@ -20,12 +23,14 @@ export * from "./wrappers/wrappers";
 export * from "./http.configuration-keys";
 export const HttpModule: ModuleInterface = {
   keyname: HttpModuleKeyname,
-  // CliModule is imported so HTTP apps get the CLI runtime that backs HttpModule's own commands
-  // (`pristine start`, the file server, etc.) and so its configuration keys are always
-  // registered. This does NOT force CLI commands to be constructed at kernel start: CliEventHandler
-  // resolves commands lazily (only when a CommandEvent is actually handled), so a plain HTTP/Lambda
-  // request never instantiates a command. See CliEventHandler.handle().
-  importModules: [LoggingModule, CliModule],
+  // These are exactly the framework modules HttpModule's request pipeline depends on. CliModule is
+  // deliberately absent: importing it would pull the entire `@pristine-ts/cli` package (every
+  // command, the REPL event handlers, terminal/readline machinery, the build/plugin bootstrap, and
+  // CLI-only config keys) into HTTP/Lambda runtimes and consumer ESM bundles, where none of it
+  // runs. HttpModule's own `file-server:start` command still works under `pristine` because the CLI
+  // bin (`Cli.bootstrap`) wraps the AppModule with CliModule, and the command — being
+  // `@tag(Command)` — is then discovered from the container wherever HttpModule is loaded.
+  importModules: [CoreModule, DataMappingModule, LoggingModule, ObservabilityModule, ValidationModule],
   configurationDefinitions: [
     {
       parameterName: `${HttpModuleKeyname}.logging-enabled`,

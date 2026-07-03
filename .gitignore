@@ -52,3 +52,6 @@ tests/perf/generation/output/*
 
 # Auto-generated API reference (regenerate with `npm run docs:reference`)
 docs/getting-started/13-reference/api
+
+# Generated at build time (scripts/generate-version.mjs)
+packages/cli/src/generated/
