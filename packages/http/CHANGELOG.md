@@ -1,6 +1,6 @@
 # Changelog — @pristine-ts/http
 
-## Unreleased (proposed 3.1.0 — minor)
+## 3.0.5
 
 - **`HttpModule` no longer imports `CliModule`.** It now imports only the framework modules it
   genuinely uses (`Core`, `DataMapping`, `Logging`, `Observability`, `Validation`), dropping the
