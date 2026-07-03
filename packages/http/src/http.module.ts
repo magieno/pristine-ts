@@ -23,18 +23,13 @@ export * from "./wrappers/wrappers";
 export * from "./http.configuration-keys";
 export const HttpModule: ModuleInterface = {
   keyname: HttpModuleKeyname,
-  // HttpModule imports only the framework modules it genuinely needs. It used to import CliModule,
-  // but that dragged the entire `@pristine-ts/cli` package — every command, the REPL event
-  // handlers, terminal/readline machinery, the build/plugin bootstrap, and CLI-only config keys —
-  // into every HTTP/Lambda app and into consumer ESM bundles, none of which runs there. The only
-  // thing HttpModule actually got from CliModule was the set of framework modules CliModule
-  // re-exported (Core/DataMapping/Observability/Validation); those are imported directly here, so
-  // the transitive service graph is unchanged while the CLI package is dropped entirely.
-  //
-  // HttpModule's own CLI command (`file-server:start`) still works under `pristine`: the CLI bin
-  // (`Cli.bootstrap`) always wraps the AppModule with CliModule, so the CLI runtime is present, and
-  // the command — being `@tag(Command)` — is discovered from the container wherever HttpModule is
-  // loaded. It is never constructed on the HTTP path (CliEventHandler resolves commands lazily).
+  // These are exactly the framework modules HttpModule's request pipeline depends on. CliModule is
+  // deliberately absent: importing it would pull the entire `@pristine-ts/cli` package (every
+  // command, the REPL event handlers, terminal/readline machinery, the build/plugin bootstrap, and
+  // CLI-only config keys) into HTTP/Lambda runtimes and consumer ESM bundles, where none of it
+  // runs. HttpModule's own `file-server:start` command still works under `pristine` because the CLI
+  // bin (`Cli.bootstrap`) wraps the AppModule with CliModule, and the command — being
+  // `@tag(Command)` — is then discovered from the container wherever HttpModule is loaded.
   importModules: [CoreModule, DataMappingModule, LoggingModule, ObservabilityModule, ValidationModule],
   configurationDefinitions: [
     {

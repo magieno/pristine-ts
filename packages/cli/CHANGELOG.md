@@ -13,9 +13,8 @@ apps — see the migration note below.
   `pristine info` comes from a build-time constant (`src/generated/version.ts`, generated from
   `package.json` on `prebuild`/`pretest` by `scripts/generate-version.mjs`) instead of a runtime
   `package.json` read. A baked-in constant resolves identically in CommonJS, native ESM, and
-  bundled ESM — no filesystem access, no `__dirname`, no `import.meta`. The old `__dirname`-guarded
-  filesystem read is retained only as a fallback and still degrades to `"unknown"` rather than
-  throwing.
+  bundled ESM — no filesystem access, no `__dirname`, no `import.meta`. The runtime path-resolution
+  helper (`CliPackageJsonResolver`) is removed, since the constant supersedes it entirely.
 
 - **`HttpModule` no longer imports `CliModule`.** Importing the full `CliModule` dragged the entire
   `@pristine-ts/cli` package — every command, the REPL event handlers, terminal/readline machinery,

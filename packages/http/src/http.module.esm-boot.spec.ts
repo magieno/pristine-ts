@@ -4,13 +4,11 @@ import {AppModuleInterface, ServiceDefinitionTagEnum} from "@pristine-ts/common"
 import {HttpModule} from "./http.module";
 
 /**
- * Regression guards for the ESM/bundled-boot crash fixed in 3.0.4 and the CliModule decoupling in
- * this change. The original crash (`ReferenceError: __dirname is not defined`) fired when a plain
- * HTTP/Lambda app booted: HttpModule imported CliModule, whose InfoCommand read `__dirname` in an
- * eager field initializer, and the per-event EventDispatcher construction built it.
- *
- * These tests boot a real kernel that imports HttpModule and exercise the per-event handler
- * construction path, asserting it never throws and that no CLI machinery is dragged in.
+ * Guards two invariants an HTTP/Lambda app relies on to boot in an ESM-bundled runtime:
+ *  - booting a kernel that imports HttpModule, and constructing every EventHandler on the per-event
+ *    dispatch path, never throws (a handler/command reading a CommonJS-only global such as
+ *    `__dirname` in a constructor would throw `ReferenceError: __dirname is not defined` here); and
+ *  - HttpModule pulls no `@pristine-ts/cli` machinery into that graph.
  */
 describe("HttpModule ESM/bundled-boot hardening", () => {
   const appModuleWithHttp = (): AppModuleInterface => ({
@@ -39,11 +37,10 @@ describe("HttpModule ESM/bundled-boot hardening", () => {
   });
 
   it("constructs every EventHandler on the per-event dispatch path without throwing", async () => {
-    // Reproduces the exact step that crashed before 3.0.4: dispatching an event resolves the
-    // EventDispatcher from a fresh child container, which eagerly constructs every EventHandler.
-    // A handler/command that read a CJS-only global (e.g. `__dirname`) in a constructor or field
-    // initializer would throw here in a bundled-ESM runtime. Asserting no throw guards against a
-    // future class silently reintroducing that crash.
+    // Dispatching an event resolves the EventDispatcher from a fresh child container, which eagerly
+    // constructs every EventHandler. This is the point where a handler/command that reads a
+    // CJS-only global (e.g. `__dirname`) in a constructor or field initializer would throw in a
+    // bundled-ESM runtime, so asserting no throw here covers that whole construction path.
     const kernel = new Kernel();
     await kernel.start(appModuleWithHttp());
 

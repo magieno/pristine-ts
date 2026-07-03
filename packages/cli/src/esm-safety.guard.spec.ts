@@ -4,16 +4,15 @@ import path from "path";
 
 /**
  * Static guard: scans every package's `src` (excluding tests) for **executable** uses of
- * CommonJS-only globals — `__dirname`, `__filename`, and `import.meta` — that would break in a
+ * CommonJS-only globals — `__dirname`, `__filename`, and `import.meta` — that break in a
  * bundled-ESM runtime. `__dirname`/`__filename` are undefined in ESM (`ReferenceError` when read
  * bare); a literal `import.meta` is a syntax error the instant a file loads as CommonJS. Any of
- * them in a DI-constructable class can reintroduce the `__dirname is not defined` boot crash fixed
- * in 3.0.4.
+ * them reached during DI construction crashes an ESM-bundled app at kernel start, so this guard
+ * fails the build before such code can ship.
  *
- * The only sanctioned use is a `typeof`-guarded read (`typeof __dirname !== "undefined" ? ... `),
- * as in {@link CliPackageJsonResolver}'s filesystem fallback — those lines are allowed. Comments
- * and string literals are stripped before scanning, so documentation that merely mentions these
- * tokens does not trip the guard.
+ * The only sanctioned use is a `typeof`-guarded read (`typeof __dirname !== "undefined" ? ...`);
+ * those lines are allowed. Comments and string literals are stripped before scanning, so
+ * documentation or messages that merely mention these tokens do not trip the guard.
  */
 
 /** Walk up from this test file to the monorepo root (the directory that contains `packages/`). */
@@ -118,8 +117,8 @@ describe("ESM-safety guard: no unguarded CommonJS-only globals in package source
         .join("\n");
       throw new Error(
         "Found unguarded CommonJS-only global(s) that break in bundled-ESM runtimes.\n" +
-        "Use a `typeof __dirname !== \"undefined\"` guard (see CliPackageJsonResolver) or a build-time " +
-        "constant instead:\n" + report,
+        "Use a `typeof __dirname !== \"undefined\"` guard, or a build-time constant (see " +
+        "scripts/generate-version.mjs) instead:\n" + report,
       );
     }
 
