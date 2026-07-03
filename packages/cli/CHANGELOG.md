@@ -1,5 +1,19 @@
 # Changelog — @pristine-ts/cli
 
+## 3.0.7
+
+### Fixed
+
+- **`pristine build` now writes relocatable build manifests.** `.pristine/build-manifest.json`
+  recorded the AppModule source/output as **absolute** paths, so a project built in one directory
+  and then moved or copied elsewhere — e.g. an installer that builds in a staging dir and swaps the
+  result into place — saw a permanent `appModule.sourcePath no longer matches the last build`
+  staleness prompt, which in a non-interactive or repeatedly-spawned context could loop
+  indefinitely. The manifest now stores paths **relative to the project root**, and
+  `BuildManifestChecker` resolves them against the current root before comparing. Manifests written
+  by older versions (absolute paths) keep validating unchanged, since `path.resolve` leaves an
+  already-absolute path untouched.
+
 ## 3.0.5
 
 Hardening of `@pristine-ts/cli` for ESM / bundled runtimes, following the `__dirname is not

@@ -2,6 +2,7 @@ import "reflect-metadata";
 import fs from "fs";
 import os from "os";
 import path from "path";
+import {BuildManifest} from "./build-manifest";
 import {BuildManifestChecker} from "./build-manifest-checker";
 import {BuildManifestReader} from "./build-manifest-reader";
 import {BuildManifestStalenessEnum} from "./build-manifest-staleness.enum";
@@ -63,6 +64,15 @@ describe("Build manifest", () => {
       expect(read!.appModuleOutputPath).toBe(written.appModuleOutputPath);
       expect(read!.sourceHash).toBe(written.sourceHash);
       expect(read!.builtAt).toBe(written.builtAt);
+    });
+
+    it("stores paths relative to the project root", () => {
+      writeFile("src/app.module.ts", "x");
+      writeFile("dist/app.module.js", "y");
+      const manifest = writer.write(projectRoot, "src/app.module.ts", "dist/app.module.js");
+      expect(manifest.appModuleSourcePath).toBe(path.join("src", "app.module.ts"));
+      expect(manifest.appModuleOutputPath).toBe(path.join("dist", "app.module.js"));
+      expect(path.isAbsolute(manifest.appModuleSourcePath)).toBe(false);
     });
 
     it("returns undefined when no manifest file exists", () => {
@@ -137,6 +147,41 @@ describe("Build manifest", () => {
       fs.unlinkSync(path.resolve(projectRoot, "src/app.module.ts"));
       expect(checker.check(manifest, projectRoot, "src/app.module.ts", "dist/app.module.js"))
         .toBe(BuildManifestStalenessEnum.SourceContentChanged);
+    });
+
+    it("stays Fresh after the built project is relocated (relative paths)", () => {
+      writeFile("src/app.module.ts", "x");
+      writeFile("dist/app.module.js", "y");
+      const manifest = writer.write(projectRoot, "src/app.module.ts", "dist/app.module.js");
+
+      // Recreate the same tree under a different root and validate the manifest against it —
+      // as if the project (and its .pristine manifest) had been built here then moved there.
+      const movedRoot = fs.mkdtempSync(path.join(os.tmpdir(), "pristine-moved-"));
+      try {
+        fs.mkdirSync(path.resolve(movedRoot, "src"), {recursive: true});
+        fs.mkdirSync(path.resolve(movedRoot, "dist"), {recursive: true});
+        fs.writeFileSync(path.resolve(movedRoot, "src/app.module.ts"), "x");
+        fs.writeFileSync(path.resolve(movedRoot, "dist/app.module.js"), "y");
+        expect(checker.check(manifest, movedRoot, "src/app.module.ts", "dist/app.module.js"))
+          .toBe(BuildManifestStalenessEnum.Fresh);
+      } finally {
+        fs.rmSync(movedRoot, {recursive: true, force: true});
+      }
+    });
+
+    it("accepts a legacy manifest that stored absolute paths", () => {
+      const absSource = writeFile("src/app.module.ts", "x");
+      const absOutput = writeFile("dist/app.module.js", "y");
+      // Older versions persisted absolute paths; path.resolve leaves them untouched, so a
+      // legacy manifest must still validate as Fresh.
+      const legacy = new BuildManifest(
+        absSource,
+        absOutput,
+        sourceHasher.hashFile(absSource),
+        new Date().toISOString(),
+      );
+      expect(checker.check(legacy, projectRoot, "src/app.module.ts", "dist/app.module.js"))
+        .toBe(BuildManifestStalenessEnum.Fresh);
     });
   });
 });

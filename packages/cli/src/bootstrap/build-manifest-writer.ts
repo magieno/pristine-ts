@@ -26,9 +26,13 @@ export class BuildManifestWriter {
     const absoluteSource = path.resolve(projectRoot, sourcePath);
     const absoluteOutput = path.resolve(projectRoot, outputPath);
 
+    // Persist the paths RELATIVE to projectRoot so the manifest is relocatable: a build
+    // produced in one directory stays valid after the project is moved or copied elsewhere
+    // (e.g. an installer that builds in a staging dir then swaps it into place). The hash is
+    // still taken from the absolute path; only the relative form is written to disk.
     const manifest = new BuildManifest(
-      absoluteSource,
-      absoluteOutput,
+      path.relative(projectRoot, absoluteSource),
+      path.relative(projectRoot, absoluteOutput),
       this.sourceHasher.hashFile(absoluteSource),
       new Date().toISOString(),
     );

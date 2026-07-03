@@ -34,24 +34,31 @@ export class BuildManifestChecker {
     const absoluteConfiguredSource = path.resolve(projectRoot, configuredSourcePath);
     const absoluteConfiguredOutput = path.resolve(projectRoot, configuredOutputPath);
 
-    if (manifest.appModuleSourcePath !== absoluteConfiguredSource) {
+    // Manifest paths are stored relative to projectRoot (see BuildManifestWriter) so the
+    // build is relocatable — resolve them against the *current* projectRoot before comparing.
+    // path.resolve leaves an already-absolute path untouched, so manifests written by older
+    // versions (which stored absolute paths) keep validating exactly as before.
+    const manifestSource = path.resolve(projectRoot, manifest.appModuleSourcePath);
+    const manifestOutput = path.resolve(projectRoot, manifest.appModuleOutputPath);
+
+    if (manifestSource !== absoluteConfiguredSource) {
       return BuildManifestStalenessEnum.SourcePathChanged;
     }
 
-    if (manifest.appModuleOutputPath !== absoluteConfiguredOutput) {
+    if (manifestOutput !== absoluteConfiguredOutput) {
       return BuildManifestStalenessEnum.OutputPathChanged;
     }
 
-    if (fs.existsSync(manifest.appModuleOutputPath) === false) {
+    if (fs.existsSync(manifestOutput) === false) {
       return BuildManifestStalenessEnum.OutputMissing;
     }
 
-    if (fs.existsSync(manifest.appModuleSourcePath) === false) {
+    if (fs.existsSync(manifestSource) === false) {
       // Source vanished — report as content-changed since "missing" is the extreme form.
       return BuildManifestStalenessEnum.SourceContentChanged;
     }
 
-    const currentHash = this.sourceHasher.hashFile(manifest.appModuleSourcePath);
+    const currentHash = this.sourceHasher.hashFile(manifestSource);
     if (currentHash !== manifest.sourceHash) {
       return BuildManifestStalenessEnum.SourceContentChanged;
     }
