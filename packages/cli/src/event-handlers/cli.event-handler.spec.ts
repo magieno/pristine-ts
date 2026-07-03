@@ -11,6 +11,8 @@ import {
 } from "@pristine-ts/data-mapping";
 import {CommandInterface} from "../interfaces/command.interface";
 import {CliEventHandler} from "./cli.event-handler";
+import {CommandEventPayload} from "../event-payloads/command.event-payload";
+import {CommandNotFoundError} from "../errors/command-not-found.error";
 import {CommandArgumentResolver} from "../services/command-argument-resolver";
 import {CommandOptionsResolver} from "../services/command-options-resolver";
 import {CommandParameterPrompter} from "../services/command-parameter-prompter";
@@ -80,17 +82,19 @@ class CapturingLogHandler {
  * only inputs we want to vary across tests are `command` and `rawArgs`; everything else
  * stays the same so each test is small.
  */
-const buildHandler = (): {handler: CliEventHandler; logHandler: CapturingLogHandler} => {
+const buildHandler = (currentChildContainer?: any): {handler: CliEventHandler; logHandler: CapturingLogHandler} => {
   const captured = new CapturingLogHandler();
   const validator = new Validator();
   const container = {resolve: (ctor: any) => new ctor()} as any;
   const prompter = new CommandParameterPrompter(new CliPrompt(new TerminalKeyReader()), {writeLine: (): void => {}} as any, validator, buildDataMapper(), false, container);
   const formatter = new CommandArgumentErrorFormatter(new CommandUsageRenderer());
   const optionsResolver = new CommandOptionsResolver(validator, buildDataMapper(), prompter, formatter, new ProgramNameResolver(""));
+  // Commands are now resolved lazily from the current child container inside handle(); the
+  // resolveArgs() tests never call handle(), so an empty-resolving container stand-in is enough.
   const handler = new CliEventHandler(
     captured as any,
     new CommandArgumentResolver(optionsResolver),
-    [],
+    currentChildContainer ?? {resolveAll: (): CommandInterface<any>[] => []} as any,
   );
   return {handler, logHandler: captured};
 };
@@ -134,6 +138,61 @@ describe("CliEventHandler.resolveArgs", () => {
       const args = await handler.resolveArgs(command, {});
 
       expect(args).toEqual({});
+    });
+  });
+
+  describe("lazy command resolution", () => {
+    /**
+     * Builds a CommandEvent whose payload carries a command name. `handle()` reads
+     * `payload.name`/`payload.arguments`, so a real CommandEventPayload is enough.
+     */
+    const buildCommandEvent = (name: string): any => {
+      const payload = new CommandEventPayload(name, "");
+      return {payload};
+    };
+
+    it("does NOT resolve (construct) any command at construction time", () => {
+      // Regression: the handler used to `@injectAll(ServiceDefinitionTagEnum.Command)` in its
+      // constructor, force-constructing EVERY command the moment EventDispatcher built the handler
+      // during per-event dispatch — including in HTTP/Lambda apps that pull CliModule in
+      // transitively but never run a command. A single command with an eager constructor (e.g.
+      // InfoCommand reading __dirname) then crashed the runtime. Commands must be resolved only
+      // when a command is actually handled.
+      let resolveAllCalls = 0;
+      const container = {
+        resolveAll: (): CommandInterface<any>[] => {resolveAllCalls++; return [];},
+      };
+
+      buildHandler(container);
+
+      expect(resolveAllCalls).toBe(0);
+    });
+
+    it("resolves commands from the current child container only when handling a command event", async () => {
+      let resolveAllCalls = 0;
+      const run = jest.fn(async () => ExitCode.Success);
+      const command: CommandInterface<any> = {name: "do-thing", optionsType: null, run};
+      const container = {
+        resolveAll: (): CommandInterface<any>[] => {resolveAllCalls++; return [command];},
+      };
+      const {handler} = buildHandler(container);
+
+      expect(resolveAllCalls).toBe(0);
+
+      const response = await handler.handle(buildCommandEvent("do-thing"));
+
+      expect(resolveAllCalls).toBe(1);
+      expect(run).toHaveBeenCalledTimes(1);
+      expect(response.response).toBe(ExitCode.Success);
+    });
+
+    it("throws CommandNotFoundError when the lazily-resolved set has no matching command", async () => {
+      const container = {resolveAll: (): CommandInterface<any>[] => []};
+      const {handler} = buildHandler(container);
+
+      const error = await handler.handle(buildCommandEvent("missing")).catch((e) => e);
+
+      expect(error).toBeInstanceOf(CommandNotFoundError);
     });
   });
 

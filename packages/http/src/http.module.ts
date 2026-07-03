@@ -20,6 +20,11 @@ export * from "./wrappers/wrappers";
 export * from "./http.configuration-keys";
 export const HttpModule: ModuleInterface = {
   keyname: HttpModuleKeyname,
+  // CliModule is imported so HTTP apps get the CLI runtime that backs HttpModule's own commands
+  // (`pristine start`, the file server, etc.) and so its configuration keys are always
+  // registered. This does NOT force CLI commands to be constructed at kernel start: CliEventHandler
+  // resolves commands lazily (only when a CommandEvent is actually handled), so a plain HTTP/Lambda
+  // request never instantiates a command. See CliEventHandler.handle().
   importModules: [LoggingModule, CliModule],
   configurationDefinitions: [
     {
