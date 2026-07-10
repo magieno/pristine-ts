@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/sqlite",
-  "version": "3.0.6",
+  "version": "4.0.0",
   "description": "",
   "module": "dist/lib/esm/sqlite.module.js",
   "main": "dist/lib/cjs/sqlite.module.js",
