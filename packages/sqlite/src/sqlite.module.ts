@@ -11,8 +11,6 @@ export * from "./interfaces/interfaces";
 
 export * from "./sqlite.module.keyname";
 
-export * from "@pristine-ts/database-common";
-
 export const SqliteModule: ModuleInterface = {
   keyname: SqliteModuleKeyname,
   importModules: [

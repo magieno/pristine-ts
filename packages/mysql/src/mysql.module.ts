@@ -10,11 +10,6 @@ export * from "./interfaces/interfaces";
 
 export * from "./mysql.module.keyname";
 
-// The entity decorators, naming strategies and search models moved to
-// @pristine-ts/database-common (shared with @pristine-ts/sqlite); re-exported here so
-// existing imports from @pristine-ts/mysql keep working.
-export * from "@pristine-ts/database-common";
-
 export const MysqlModule: ModuleInterface = {
   keyname: MysqlModuleKeyname,
   importModules: [

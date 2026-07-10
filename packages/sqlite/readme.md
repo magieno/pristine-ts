@@ -28,12 +28,12 @@ export const AppModule: AppModuleInterface = {
 };
 ```
 
-Entities use the shared `@table`/`@column` decorators from `@pristine-ts/database-common`
-(re-exported by this module), which means the same entity class works with
-`@pristine-ts/mysql` — e.g. SQLite locally and in unit tests, MySQL in production:
+Entities use the shared `@table`/`@column` decorators from `@pristine-ts/database-common`,
+which means the same entity class works with `@pristine-ts/mysql` — e.g. SQLite locally and
+in unit tests, MySQL in production:
 
 ```typescript
-import {column, snakeCaseColumnStrategy, camelCaseColumnStrategy, table} from "@pristine-ts/sqlite";
+import {column, snakeCaseColumnStrategy, camelCaseColumnStrategy, table} from "@pristine-ts/database-common";
 
 @table({
   tableName: "users",
@@ -52,6 +52,8 @@ export class User {
 Inject the `SqliteClient` and use the same API shape as the `MysqlClient`:
 
 ```typescript
+import {SearchQuery} from "@pristine-ts/database-common";
+
 await sqliteClient.create("app", user);
 const user = await sqliteClient.get("app", User, "user-1");
 const results = await sqliteClient.search("app", User, new SearchQuery({query: "etienne"}));
