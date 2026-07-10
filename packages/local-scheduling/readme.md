@@ -54,17 +54,20 @@ timers:
 
 You do not start the scheduler yourself: the module registers a `LocalSchedulerRuntimeServer`
 (a `RuntimeServerInterface`), so **`pristine start` starts it — arming every tagged task — and
-stops it on shutdown**, alongside your HTTP/gRPC servers. Resolve `LocalSchedulerManager` only
-when you need the dynamic API; call `start()` / `stop()` by hand only if you embed the kernel
-yourself instead of using `pristine start`.
+stops it on shutdown**, alongside your HTTP/gRPC servers. Under the hood it does two steps —
+`SchedulableTaskManager.register()` (discover the tagged tasks and register them) then the
+scheduler's `start()`. Both are injectable, so **any other entry point — a custom command, an
+embedded bootstrap — can run the same two steps**. Resolve `LocalSchedulerManager` only when you
+need the dynamic API; call `start()` / `stop()` by hand only if you embed the kernel yourself
+instead of using `pristine start`.
 
 ### Static: a task that declares its schedule
 
 A `SchedulableInterface` is a `ScheduledTaskInterface` (from `@pristine-ts/scheduling`) that
 *additionally* declares *when* it should run. Keeping it a separate interface makes it
 explicit that a driver must be present to honour the schedule. Tag the class with
-`@tag(ServiceDefinitionTagEnum.Schedulable)`; every tagged class is discovered and
-**auto-registered on `start()`**.
+`@tag(ServiceDefinitionTagEnum.Schedulable)`; `SchedulableTaskManager` discovers every tagged
+class and registers it when the scheduler starts (automatically under `pristine start`).
 
 ```typescript
 import "reflect-metadata";

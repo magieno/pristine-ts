@@ -1,10 +1,9 @@
-import {inject, injectable, injectAll, singleton} from "tsyringe";
-import {moduleScoped, tag, ServiceDefinitionTagEnum} from "@pristine-ts/common";
+import {inject, injectable, singleton} from "tsyringe";
+import {moduleScoped, tag} from "@pristine-ts/common";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {LocalSchedulingModuleKeyname} from "../local-scheduling.module.keyname";
 import {CronSchedule} from "../schedules/cron.schedule";
 import {LocalSchedulerInterface} from "../interfaces/local-scheduler.interface";
-import {SchedulableInterface} from "../interfaces/schedulable.interface";
 import {ScheduleInterface} from "../interfaces/schedule.interface";
 import {ScheduleOptions} from "../interfaces/schedule-options.interface";
 import {ScheduleDescriptor} from "../interfaces/schedule-descriptor.interface";
@@ -20,14 +19,12 @@ import {ScheduleState} from "../interfaces/schedule-state.interface";
  * itself and runs each task on its own {@link ScheduleInterface} (cron, one-off date, ...)
  * from inside the Node process.
  *
- * It offers two registration paths that share one id space and one set of timers:
- *
- * - **Dynamic** — schedules registered, replaced, and removed at runtime by id, which suits a
- *   consumer that loads user-defined schedules from a database and mutates them from HTTP
- *   controllers.
- * - **Static** — any class tagged {@link ServiceDefinitionTagEnum.Schedulable} that implements
- *   {@link SchedulableInterface} is discovered via `@injectAll` and **auto-registered on
- *   `start()`** from the schedules it declares.
+ * Schedules are registered dynamically — added, replaced, and removed at runtime by id, which
+ * suits a consumer that loads user-defined schedules from a database and mutates them from HTTP
+ * controllers. Build-time tasks that declare their own schedule ({@link SchedulableInterface})
+ * are discovered and registered by {@link SchedulableTaskManager} before `start()`, sharing this
+ * same id space and set of timers — the manager itself stays a pure engine that knows nothing
+ * about DI tags.
  *
  * **Timer strategy:** each schedule owns a single chained `setTimeout` armed for its next
  * occurrence, re-armed after every fire. The delay is always recomputed from the current time
@@ -62,13 +59,8 @@ export class LocalSchedulerManager implements LocalSchedulerInterface {
 
   /**
    * @param logHandler The log handler used to report skips, task errors, and lifecycle.
-   * @param schedulables Every class tagged {@link ServiceDefinitionTagEnum.Schedulable}. Injected optionally, so the
-   *   collection is simply empty when none is tagged. They are registered on `start()`.
-   *   Defaults to `[]` so the manager can also be constructed directly (e.g. in tests)
-   *   without wiring the collection.
    */
-  constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-              @injectAll(ServiceDefinitionTagEnum.Schedulable, {isOptional: true}) private readonly schedulables: SchedulableInterface[] = []) {
+  constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface) {
   }
 
   public get isStarted(): boolean {
@@ -158,10 +150,6 @@ export class LocalSchedulerManager implements LocalSchedulerInterface {
       return;
     }
 
-    // Register statically-tagged tasks first (while still stopped, so they only register and
-    // don't arm yet), then arm everything — tagged and dynamic — in one pass.
-    this.registerSchedulables();
-
     this.started = true;
     this.logHandler.info("LocalSchedulerManager: starting.", {extra: {scheduleCount: this.states.size}});
 
@@ -186,44 +174,6 @@ export class LocalSchedulerManager implements LocalSchedulerInterface {
     // Timers are already cleared synchronously above, so no new fires occur. We only wait for
     // invocations that were already running to settle, enabling a graceful shutdown.
     await Promise.allSettled(Array.from(this.inFlightInvocations));
-  }
-
-  /**
-   * Registers each statically-tagged {@link SchedulableInterface} from the schedules it
-   * declares. Called once by `start()`. Each task's registration id derives from its class
-   * name (suffixed with the schedule index when a task declares more than one schedule). A
-   * task whose id is already registered (a collision with a dynamic schedule, or a repeat call
-   * after stop→start) is skipped, and a task whose `getSchedules()` throws is logged and
-   * skipped — neither prevents the others, or the scheduler, from starting.
-   */
-  private registerSchedulables(): void {
-    for (const schedulable of this.schedulables) {
-      const name = schedulable.constructor?.name ?? "Schedulable";
-
-      try {
-        const schedules = schedulable.getSchedules();
-
-        schedules.forEach((schedule, index) => {
-          const id = schedules.length > 1 ? `${name}#${index}` : name;
-
-          if (this.states.has(id)) {
-            this.logHandler.warning("LocalSchedulerManager: a tagged task's id is already registered; skipping it.", {
-              extra: {id, task: name},
-            });
-            return;
-          }
-
-          this.schedule(id, schedule, (eventId) => schedulable.run(eventId));
-        });
-      } catch (error) {
-        this.logHandler.error("LocalSchedulerManager: failed to register a tagged task; skipping it.", {
-          extra: {
-            task: name,
-            error: error instanceof Error ? (error.stack ?? error.message) : String(error),
-          },
-        });
-      }
-    }
   }
 
   private resolveSchedule(schedule: ScheduleInterface | string): ScheduleInterface {
