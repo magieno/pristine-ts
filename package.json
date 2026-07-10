@@ -67,6 +67,7 @@
     "@pristine-ts/gcp-trace": "file:packages/gcp-trace",
     "@pristine-ts/http": "file:packages/http",
     "@pristine-ts/jwt": "file:packages/jwt",
+    "@pristine-ts/local-scheduling": "file:packages/local-scheduling",
     "@pristine-ts/logging": "file:packages/logging",
     "@pristine-ts/mysql": "file:packages/mysql",
     "@pristine-ts/networking": "file:packages/networking",
