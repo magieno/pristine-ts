@@ -22,7 +22,6 @@
     "packages/jwt/src",
     "packages/logging/src",
     "packages/mysql/src",
-    "packages/mysql-common/src",
     "packages/networking/src",
     "packages/opensearch/src",
     "packages/redis/src",

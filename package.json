@@ -69,7 +69,6 @@
     "@pristine-ts/jwt": "file:packages/jwt",
     "@pristine-ts/logging": "file:packages/logging",
     "@pristine-ts/mysql": "file:packages/mysql",
-    "@pristine-ts/mysql-common": "file:packages/mysql-common",
     "@pristine-ts/networking": "file:packages/networking",
     "@pristine-ts/observability": "file:packages/observability",
     "@pristine-ts/opensearch": "file:packages/opensearch",

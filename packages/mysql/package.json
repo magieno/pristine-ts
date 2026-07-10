@@ -26,7 +26,6 @@
     "@pristine-ts/data-mapping-common": "file:../data-mapping-common",
     "@pristine-ts/database-common": "file:../database-common",
     "@pristine-ts/metadata": "^1.0.16",
-    "@pristine-ts/mysql-common": "file:../mysql-common",
     "@pristine-ts/security": "file:../security",
     "@pristine-ts/telemetry": "file:../telemetry",
     "mysql2": "^3.10.0",
