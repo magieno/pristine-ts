@@ -68,13 +68,18 @@ import {
   SchedulableInterface, ScheduleInterface, CronSchedule,
 } from "@pristine-ts/local-scheduling";
 
+// Typed configuration keys for your app, mirroring each package's `XxxConfigurationKeys`
+// (e.g. `JwtConfigurationKeys`) — a const object, not a magic string at the call site.
+export const AppConfigurationKeys = {
+  CleanupCron: "app.cleanup.cron",
+} as const;
+
 @tag(ServiceDefinitionTagEnum.Schedulable)
 @injectable()
 export class NightlyCleanupTask implements SchedulableInterface {
-  // Config is injected as a resolved value by its key (registered in a module's
-  // `configurationDefinitions`). Because getSchedules() is a method, the schedule can be
-  // computed from any injected dependency — a config value, a repository, etc.
-  constructor(@injectConfig("app.cleanup.cron") private readonly cleanupCron: string) {}
+  // Because getSchedules() is a method, the schedule can be computed from any injected
+  // dependency — here a configuration value resolved by its key.
+  constructor(@injectConfig(AppConfigurationKeys.CleanupCron) private readonly cleanupCron: string) {}
 
   getSchedules(): ScheduleInterface[] {
     return [new CronSchedule(this.cleanupCron)];
@@ -84,6 +89,24 @@ export class NightlyCleanupTask implements SchedulableInterface {
     // ...the work. `eventId` correlates logs to the specific occurrence.
   }
 }
+```
+
+The key is declared in your application module's `configurationDefinitions`, so the
+configuration system resolves it (from an environment variable, a default, etc.) — the same
+way `@pristine-ts/jwt` declares its own keys:
+
+```typescript
+import {EnvironmentVariableResolver} from "@pristine-ts/configuration";
+
+// in your AppModule:
+configurationDefinitions: [
+  {
+    parameterName: AppConfigurationKeys.CleanupCron,
+    isRequired: false,
+    defaultValue: "0 3 * * *",
+    defaultResolvers: [new EnvironmentVariableResolver("APP_CLEANUP_CRON")],
+  },
+],
 ```
 
 A tagged task is registered under an id derived from its **class name** (suffixed `#0`, `#1`,
