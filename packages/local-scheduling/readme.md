@@ -52,6 +52,12 @@ timers:
 2. **Dynamically**, through `LocalSchedulerManager`'s runtime API (typically fed from a
    database at bootstrap and mutated by HTTP controllers).
 
+You do not start the scheduler yourself: the module registers a `LocalSchedulerRuntimeServer`
+(a `RuntimeServerInterface`), so **`pristine start` starts it — arming every tagged task — and
+stops it on shutdown**, alongside your HTTP/gRPC servers. Resolve `LocalSchedulerManager` only
+when you need the dynamic API; call `start()` / `stop()` by hand only if you embed the kernel
+yourself instead of using `pristine start`.
+
 ### Static: a task that declares its schedule
 
 A `SchedulableInterface` is a `ScheduledTaskInterface` (from `@pristine-ts/scheduling`) that
@@ -118,33 +124,40 @@ with the default policies; for per-schedule policies (overlap, catch-up) use the
 
 ### Dynamic: schedules as runtime state
 
-Resolve `LocalSchedulerManager`, register schedules (typically from a database at bootstrap),
-then `start()`:
+Inject `LocalSchedulerManager` (by class, or by the `"LocalSchedulerInterface"` token) wherever
+you load or mutate schedules — a service that reads them from a database at bootstrap, an HTTP
+controller that edits them. There is no manual `start()`: `schedule()` arms immediately when the
+scheduler is already running (it is, under `pristine start`), otherwise on start.
 
 ```typescript
-import {Kernel} from "@pristine-ts/core";
-import {LocalSchedulerManager} from "@pristine-ts/local-scheduling";
+import {injectable, inject} from "tsyringe";
+import {LocalSchedulerInterface} from "@pristine-ts/local-scheduling";
 
-const kernel = new Kernel();
-await kernel.start(AppModule);
-const scheduler = kernel.container.resolve(LocalSchedulerManager);
+@injectable()
+export class RoutineScheduler {
+  constructor(
+    @inject("LocalSchedulerInterface") private readonly scheduler: LocalSchedulerInterface,
+    @inject("RoutineRunnerInterface") private readonly runner: RoutineRunnerInterface,
+  ) {}
 
-for (const s of await scheduleRepository.findAll()) {
-  scheduler.schedule(
-    `routine:${s.routineId}:${s.id}`,
-    s.cronExpression,                // a cron string is shorthand for a CronSchedule
-    (eventId) => routineExecutionManager.execute(s.routineId, eventId),
-  );
+  // Register a schedule loaded from your database.
+  register(routineId: string, scheduleId: string, cronExpression: string): void {
+    this.scheduler.schedule(
+      `routine:${routineId}:${scheduleId}`,
+      cronExpression,                 // a cron string is shorthand for a CronSchedule
+      (eventId) => this.runner.execute(routineId, eventId),
+    );
+  }
+
+  // Edit or remove them at runtime — e.g. from an HTTP controller.
+  reschedule(routineId: string, scheduleId: string, cronExpression: string): void {
+    this.scheduler.reschedule(`routine:${routineId}:${scheduleId}`, cronExpression);
+  }
+
+  unregister(routineId: string, scheduleId: string): void {
+    this.scheduler.unschedule(`routine:${routineId}:${scheduleId}`);
+  }
 }
-
-scheduler.start();
-```
-
-Mutate schedules at runtime — for example from an HTTP controller:
-
-```typescript
-scheduler.reschedule(`routine:${routineId}:${scheduleId}`, "*/10 * * * *");
-scheduler.unschedule(`routine:${routineId}:${scheduleId}`);
 ```
 
 ## Schedules
@@ -160,6 +173,36 @@ scheduler drives any kind through the same contract (`ScheduleInterface`):
 Both are accepted anywhere a schedule is expected (`schedule()`, `reschedule()`, a task's
 `getSchedules()`), and a plain cron **string** is accepted as shorthand for a `CronSchedule`.
 New schedule kinds only need to implement `ScheduleInterface` — the scheduler needs no change.
+
+## Building expressions
+
+Prefer not to hand-write cron? `CronExpressionBuilder` composes an expression from typed,
+self-describing calls — each sets one field, and a fresh builder is already "every minute":
+
+```typescript
+import {CronExpressionBuilder, MonthEnum, DayOfWeekEnum} from "@pristine-ts/local-scheduling";
+
+new CronExpressionBuilder().dailyAt(3).toString();                            // "0 3 * * *"
+new CronExpressionBuilder().weeklyOn(DayOfWeekEnum.Sunday, 2, 30).toString(); // "30 2 * * 0"
+
+const schedule = new CronExpressionBuilder()   // every 15 min, 09:00-17:00, Mon-Fri
+  .everyMinutes(15)
+  .hoursBetween(9, 17)
+  .daysOfWeekBetween(DayOfWeekEnum.Monday, DayOfWeekEnum.Friday)
+  .toSchedule();                               // -> CronSchedule, ready for schedule()/getSchedules()
+```
+
+- **Per-field setters** — `atMinute(...)` / `atHour(...)` / `onDayOfMonth(...)` / `inMonth(...)` /
+  `onDayOfWeek(...)` (variadic lists), `everyMinutes(n)` / `everyHours(n)` / … (steps), and
+  `minutesBetween(a, b, step?)` / `hoursBetween(a, b, step?)` / … (ranges). `atSecond(...)` /
+  `everySeconds(n)` add the optional sixth seconds field.
+- **High-level helpers** — `hourlyAtMinute(m)`, `dailyAt(hour, minute?)`,
+  `weeklyOn(dayOfWeek, hour, minute?)`, `monthlyOn(dayOfMonth, hour, minute?)`.
+- **Terminals** — `toString()` (the raw string), `build()` (a validated `CronExpression`, which
+  throws `InvalidCronExpressionError` on an out-of-range value), and `toSchedule()` (a
+  `CronSchedule`).
+- `MonthEnum` and `DayOfWeekEnum` are exported so `inMonth(MonthEnum.January)` and
+  `onDayOfWeek(DayOfWeekEnum.Monday)` read intent instead of raw numbers.
 
 ## `LocalSchedulerManager`
 
