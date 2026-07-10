@@ -20,6 +20,7 @@
     "packages/file/src",
     "packages/http/src",
     "packages/jwt/src",
+    "packages/local-scheduling/src",
     "packages/logging/src",
     "packages/mysql/src",
     "packages/networking/src",
