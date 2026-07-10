@@ -15,6 +15,7 @@
     "packages/core/src",
     "packages/data-mapping/src",
     "packages/data-mapping-common/src",
+    "packages/database-common/src",
     "packages/express/src",
     "packages/file/src",
     "packages/http/src",
@@ -28,6 +29,7 @@
     "packages/scheduling/src",
     "packages/security/src",
     "packages/sentry/src",
+    "packages/sqlite/src",
     "packages/stripe/src",
     "packages/telemetry/src",
     "packages/validation/src"

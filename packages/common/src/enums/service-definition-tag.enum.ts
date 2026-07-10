@@ -29,6 +29,7 @@ export enum ServiceDefinitionTagEnum {
    */
   RuntimeServer = "RuntimeServerInterface",
   ScheduledTask = "ScheduledTaskInterface",
+  SqliteConfig = "SqliteConfig",
   Tracer = "TracerInterface",
   Voter = "VoterInterface",
 }

@@ -1,4 +1,4 @@
-import {Pool} from "mysql2/promise";
+import {DatabaseSync, StatementResultingChanges} from "node:sqlite";
 import {
   ColumnDecoratorMetadataInterface,
   SearchQuery,
@@ -6,16 +6,22 @@ import {
   TableDecoratorMetadataInterface
 } from "@pristine-ts/database-common";
 
-export interface MysqlClientInterface {
+export interface SqliteClientInterface {
   /**
-   * This method returns a pool of connections to the database.
+   * This method returns the database handle corresponding to the config unique keyname, opening it if needed.
    * @param configUniqueKeyname
    * @param force
    */
-  getPool(configUniqueKeyname: string, force?: boolean, options?: {
+  getDatabase(configUniqueKeyname: string, force?: boolean, options?: {
     eventId?: string,
     eventGroupId?: string
-  }): Promise<Pool>;
+  }): Promise<DatabaseSync>;
+
+  /**
+   * This method closes the database handle corresponding to the config unique keyname, if it is open.
+   * @param configUniqueKeyname
+   */
+  close(configUniqueKeyname: string): Promise<void>;
 
   /**
    * This method returns the table metadata for a given class.
@@ -61,7 +67,8 @@ export interface MysqlClientInterface {
   getColumnName<T extends { [key: string]: any; }>(classType: { new(): T; }, propertyName: string): string
 
   /**
-   * This method returns the column name for a given class and property name.
+   * This method executes a SQL statement that doesn't return rows (INSERT, UPDATE, DELETE, DDL) and
+   * returns the resulting changes.
    * @param configUniqueKeyname
    * @param sqlStatement
    * @param values
@@ -69,10 +76,10 @@ export interface MysqlClientInterface {
   executeSql(configUniqueKeyname: string, sqlStatement: string, values: any[], options?: {
     eventId?: string,
     eventGroupId?: string
-  }): Promise<any>
+  }): Promise<StatementResultingChanges>
 
   /**
-   * This method returns the column name for a given class and property name.
+   * This method executes a SQL statement and returns the rows it produces.
    * @param configUniqueKeyname
    * @param sqlStatement
    * @param values

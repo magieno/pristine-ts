@@ -1,5 +1,6 @@
 import {inject, injectable, injectAll, singleton} from "tsyringe";
-import {MysqlClientInterface} from "../interfaces/mysql-client.interface";
+import {DatabaseSync, StatementResultingChanges} from "node:sqlite";
+import {SqliteClientInterface} from "../interfaces/sqlite-client.interface";
 import {ClassMetadata, PropertyMetadata} from "@pristine-ts/metadata";
 import {
   ColumnDecoratorMetadataInterface,
@@ -9,64 +10,75 @@ import {
   SearchResult,
   TableDecoratorMetadataInterface
 } from "@pristine-ts/database-common";
-import {createPool, Pool} from "mysql2/promise";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {DataMapper} from "@pristine-ts/data-mapping-common";
 import {tag, traced} from "@pristine-ts/common";
-import {MysqlConfig} from "../configs/mysql.config";
-import {MysqlConfigProviderInterface} from "../interfaces/mysql-config-provider.interface";
+import {SqliteConfig} from "../configs/sqlite.config";
+import {SqliteConfigProviderInterface} from "../interfaces/sqlite-config-provider.interface";
+import {SqliteJournalModeEnum} from "../enums/sqlite-journal-mode.enum";
 
-@tag("MysqlClientInterface")
+@tag("SqliteClientInterface")
 @injectable()
 @singleton()
-export class MysqlClient implements MysqlClientInterface {
-  private pools: Map<string, Pool> = new Map<string, Pool>();
+export class SqliteClient implements SqliteClientInterface {
+  private databases: Map<string, DatabaseSync> = new Map<string, DatabaseSync>();
 
   constructor(
-    @injectAll("MysqlConfigProviderInterface") private readonly mysqlConfigProviders: MysqlConfigProviderInterface[],
+    @injectAll("SqliteConfigProviderInterface") private readonly sqliteConfigProviders: SqliteConfigProviderInterface[],
     @inject('LogHandlerInterface') private readonly logHandler: LogHandlerInterface,
     private readonly dataMapper: DataMapper,
   ) {
   }
 
   /**
-   * This method returns a pool of connections to the database.
+   * This method returns the database handle corresponding to the config unique keyname, opening it if needed.
    * @param configUniqueKeyname
    * @param force
    */
   @traced()
-  async getPool(configUniqueKeyname: string, force: boolean = false, options?: {
+  async getDatabase(configUniqueKeyname: string, force: boolean = false, options?: {
     eventId?: string,
     eventGroupId?: string
-  }): Promise<Pool> {
-    if (!this.pools.has(configUniqueKeyname) && !force) {
+  }): Promise<DatabaseSync> {
+    if (!this.databases.has(configUniqueKeyname) || force) {
       try {
-        const mysqlConfig = await this.getMysqlConfig(configUniqueKeyname);
+        const sqliteConfig = await this.getSqliteConfig(configUniqueKeyname);
 
-        const pool = createPool({
-          connectionLimit: mysqlConfig.connectionLimit,
-          host: mysqlConfig.host,
-          port: mysqlConfig.port,
-          user: mysqlConfig.user,
-          password: mysqlConfig.password,
-          database: mysqlConfig.database,
-          debug: mysqlConfig.debug,
-          multipleStatements: mysqlConfig.multipleStatements ?? false,
-          ...options,
+        // An empty filename would silently open a temporary on-disk database that is deleted on
+        // close (SQLite semantics), which almost certainly hides a missing configuration.
+        if (sqliteConfig.filename === "") {
+          throw new Error(`The sqlite config with the unique keyname ${configUniqueKeyname} has an empty filename. Register a SqliteConfig with a file path or ":memory:".`);
+        }
+
+        const previousDatabase = this.databases.get(configUniqueKeyname);
+        if (previousDatabase !== undefined) {
+          previousDatabase.close();
+          this.databases.delete(configUniqueKeyname);
+        }
+
+        const database = new DatabaseSync(sqliteConfig.filename, {
+          readOnly: sqliteConfig.readOnly ?? false,
+          enableForeignKeyConstraints: sqliteConfig.enableForeignKeyConstraints ?? true,
+          timeout: sqliteConfig.busyTimeoutMs ?? 5000,
         });
 
-        this.pools.set(configUniqueKeyname, pool);
+        // `:memory:` databases have no on-disk journal and read-only connections cannot change
+        // the journal mode, so the pragma only applies to writable, file-backed databases.
+        if (sqliteConfig.filename !== ":memory:" && sqliteConfig.readOnly !== true) {
+          database.exec(`PRAGMA journal_mode = ${sqliteConfig.journalMode ?? SqliteJournalModeEnum.Wal};`);
+        }
 
-        this.logHandler.debug('MysqlClient: MySql Adapter Pool generated successfully.', {
+        this.databases.set(configUniqueKeyname, database);
+
+        this.logHandler.debug('SqliteClient: SQLite database opened successfully.', {
           eventId: options?.eventId,
           eventGroupId: options?.eventGroupId,
           extra: {
-            mysqlConfig,
-            pool,
+            sqliteConfig,
           }
         });
       } catch (error) {
-        this.logHandler.error("MysqlClient: Could not create the connection pool.", {
+        this.logHandler.error("SqliteClient: Could not open the SQLite database.", {
           eventId: options?.eventId,
           eventGroupId: options?.eventGroupId, highlights: {error}
         })
@@ -75,7 +87,22 @@ export class MysqlClient implements MysqlClientInterface {
       }
     }
 
-    return this.pools.get(configUniqueKeyname) as Pool;
+    return this.databases.get(configUniqueKeyname) as DatabaseSync;
+  }
+
+  /**
+   * This method closes the database handle corresponding to the config unique keyname, if it is open.
+   * @param configUniqueKeyname
+   */
+  async close(configUniqueKeyname: string): Promise<void> {
+    const database = this.databases.get(configUniqueKeyname);
+
+    if (database === undefined) {
+      return;
+    }
+
+    database.close();
+    this.databases.delete(configUniqueKeyname);
   }
 
   /**
@@ -191,7 +218,8 @@ export class MysqlClient implements MysqlClientInterface {
   }
 
   /**
-   * This method returns the column name for a given class and property name.
+   * This method executes a SQL statement that doesn't return rows (INSERT, UPDATE, DELETE, DDL) and
+   * returns the resulting changes.
    * @param configUniqueKeyname
    * @param sqlStatement
    * @param values
@@ -200,19 +228,20 @@ export class MysqlClient implements MysqlClientInterface {
   async executeSql(configUniqueKeyname: string, sqlStatement: string, values: any[], options?: {
     eventId?: string,
     eventGroupId?: string
-  }): Promise<any> {
-    const pool = await this.getPool(configUniqueKeyname);
+  }): Promise<StatementResultingChanges> {
+    const database = await this.getDatabase(configUniqueKeyname);
 
-    this.logHandler.debug("MysqlClient: Executing SQL statement.", {
+    this.logHandler.debug("SqliteClient: Executing SQL statement.", {
       eventId: options?.eventId,
       eventGroupId: options?.eventGroupId,
       highlights: {sqlStatement, values}
     });
 
     try {
-      const result = await pool.query(sqlStatement, values);
+      const statement = database.prepare(sqlStatement);
+      const result = statement.run(...this.normalizeValues(values));
 
-      this.logHandler.debug("MysqlClient: Successfully executed the SQL statement.", {
+      this.logHandler.debug("SqliteClient: Successfully executed the SQL statement.", {
         eventId: options?.eventId, eventGroupId: options?.eventGroupId,
         highlights: {
           sqlStatement,
@@ -221,9 +250,9 @@ export class MysqlClient implements MysqlClientInterface {
         }
       })
 
-      return result[0];
+      return result;
     } catch (error) {
-      this.logHandler.error("MysqlClient: There was an error executing the SQL statement.", {
+      this.logHandler.error("SqliteClient: There was an error executing the SQL statement.", {
         eventId: options?.eventId, eventGroupId: options?.eventGroupId,
         highlights: {
           sqlStatement,
@@ -237,7 +266,7 @@ export class MysqlClient implements MysqlClientInterface {
   }
 
   /**
-   * This method returns the column name for a given class and property name.
+   * This method executes a SQL statement and returns the rows it produces.
    * @param configUniqueKeyname
    * @param sqlStatement
    * @param values
@@ -247,18 +276,21 @@ export class MysqlClient implements MysqlClientInterface {
     eventId?: string,
     eventGroupId?: string
   }): Promise<any> {
-    const pool = await this.getPool(configUniqueKeyname);
+    const database = await this.getDatabase(configUniqueKeyname);
 
-    this.logHandler.debug("MysqlClient: Executing SQL statement.", {
+    this.logHandler.debug("SqliteClient: Executing SQL statement.", {
       eventId: options?.eventId,
       eventGroupId: options?.eventGroupId,
       highlights: {sqlStatement, values}
     });
 
     try {
-      const result = await pool.query(sqlStatement, values);
+      const statement = database.prepare(sqlStatement);
+      // node:sqlite returns rows as null-prototype objects, which breaks `constructor`-based
+      // metadata lookups and the data mapper; copy them into plain objects.
+      const result: any = statement.all(...this.normalizeValues(values)).map((row) => ({...row}));
 
-      this.logHandler.debug("MysqlClient: Successfully executed the SQL statement.", {
+      this.logHandler.debug("SqliteClient: Successfully executed the SQL statement.", {
         eventId: options?.eventId, eventGroupId: options?.eventGroupId,
         extra: {
           sqlStatement,
@@ -267,9 +299,9 @@ export class MysqlClient implements MysqlClientInterface {
         }
       })
 
-      return result[0];
+      return result;
     } catch (error) {
-      this.logHandler.error("MysqlClient: There was an error executing the SQL statement.", {
+      this.logHandler.error("SqliteClient: There was an error executing the SQL statement.", {
         highlights: {
           sqlStatement,
           values,
@@ -312,7 +344,7 @@ export class MysqlClient implements MysqlClientInterface {
             try {
               result[newKey] = JSON.parse(result[key]);
             } catch (e) {
-              this.logHandler.warning("MysqlClient: Could not parse the JSON blob. It will be returned as is.", {
+              this.logHandler.warning("SqliteClient: Could not parse the JSON blob. It will be returned as is.", {
                 eventId: options?.eventId, eventGroupId: options?.eventGroupId,
                 highlights: {
                   error: e,
@@ -360,9 +392,9 @@ export class MysqlClient implements MysqlClientInterface {
   }): Promise<T | null> {
     const sql = `SELECT * FROM ${this.getTableMetadata(classType).tableName} WHERE ${this.getPrimaryKeyColumnName(classType)} = ?`;
 
-    const values = await this.executeSql(configUniqueKeyname, sql, [primaryKey]);
+    const values = await this.querySql(configUniqueKeyname, sql, [primaryKey], options);
 
-    return (await this.mapResults(classType, values, options))[0];
+    return (await this.mapResults(classType, values, options))[0] ?? null;
   }
 
   /**
@@ -563,7 +595,7 @@ export class MysqlClient implements MysqlClientInterface {
       sql += " ORDER BY " + orderBy.join(", ");
     }
 
-    const totalNumberOfResults = (await this.executeSql(configUniqueKeyname, "SELECT COUNT(*) as total_number_of_results FROM `" + tableName + "` WHERE 1=1 " + sql, sqlValues, options))[0]["total_number_of_results"];
+    const totalNumberOfResults = (await this.querySql(configUniqueKeyname, "SELECT COUNT(*) as total_number_of_results FROM `" + tableName + "` WHERE 1=1 " + sql, sqlValues, options))[0]["total_number_of_results"];
 
     //
     // PAGING
@@ -572,7 +604,7 @@ export class MysqlClient implements MysqlClientInterface {
     // If there's a page, add the limit and offset
     sql += " LIMIT " + query.maximumNumberOfResultsPerPage + " OFFSET " + (query.page - 1) * query.maximumNumberOfResultsPerPage;
 
-    const response = await this.executeSql(configUniqueKeyname, "SELECT * FROM `" + tableName + "` WHERE 1=1 " + sql, sqlValues, options);
+    const response = await this.querySql(configUniqueKeyname, "SELECT * FROM `" + tableName + "` WHERE 1=1 " + sql, sqlValues, options);
 
     const searchResult = new SearchResult<any>();
     searchResult.page = query.page;
@@ -585,16 +617,39 @@ export class MysqlClient implements MysqlClientInterface {
   }
 
   /**
-   * This method returns the mysql config corresponding to the unique keyname.
+   * This method returns the sqlite config corresponding to the unique keyname.
    * @param configUniqueKeyname
    */
-  private async getMysqlConfig(configUniqueKeyname: string): Promise<MysqlConfig> {
-    const mysqlConfig = this.mysqlConfigProviders.find(mysqlConfigProvider => mysqlConfigProvider.supports(configUniqueKeyname));
+  private async getSqliteConfig(configUniqueKeyname: string): Promise<SqliteConfig> {
+    const sqliteConfig = this.sqliteConfigProviders.find(sqliteConfigProvider => sqliteConfigProvider.supports(configUniqueKeyname));
 
-    if (!mysqlConfig) {
-      throw new Error(`The mysql config with the keyname ${configUniqueKeyname} does not exist.`);
+    if (!sqliteConfig) {
+      throw new Error(`The sqlite config with the keyname ${configUniqueKeyname} does not exist.`);
     }
 
-    return await mysqlConfig.getMysqlConfig(configUniqueKeyname) as MysqlConfig;
+    return await sqliteConfig.getSqliteConfig(configUniqueKeyname) as SqliteConfig;
+  }
+
+  /**
+   * node:sqlite only binds null, number, bigint, string and binary values. mysql2 accepts
+   * booleans and Dates directly, so to keep entity classes portable across both clients the
+   * values are normalized here before binding.
+   */
+  private normalizeValues(values: any[]): any[] {
+    return values.map((value) => {
+      if (value === undefined || value === null) {
+        return null;
+      }
+
+      if (typeof value === "boolean") {
+        return value ? 1 : 0;
+      }
+
+      if (value instanceof Date) {
+        return value.toISOString();
+      }
+
+      return value;
+    });
   }
 }

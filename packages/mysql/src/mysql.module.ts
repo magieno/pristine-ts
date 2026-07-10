@@ -6,13 +6,14 @@ import {MysqlModuleKeyname} from "./mysql.module.keyname";
 export * from "./clients/clients";
 export * from "./config-providers/config-providers";
 export * from "./configs/configs";
-export * from "./decorators/decorators";
-export * from "./enums/enums";
 export * from "./interfaces/interfaces";
-export * from "./strategies/strategies";
-export * from "./types/types";
 
 export * from "./mysql.module.keyname";
+
+// The entity decorators, naming strategies and search models moved to
+// @pristine-ts/database-common (shared with @pristine-ts/sqlite); re-exported here so
+// existing imports from @pristine-ts/mysql keep working.
+export * from "@pristine-ts/database-common";
 
 export const MysqlModule: ModuleInterface = {
   keyname: MysqlModuleKeyname,

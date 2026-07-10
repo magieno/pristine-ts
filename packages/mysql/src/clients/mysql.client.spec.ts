@@ -1,7 +1,11 @@
 import "reflect-metadata";
-import {column} from "../decorators/column.decorator";
-import {table} from "../decorators/table.decorator";
-import {snakeCaseColumnStrategy} from "../strategies/snake-case-column.strategy";
+import {
+  camelCaseColumnStrategy,
+  column,
+  SearchQuery,
+  snakeCaseColumnStrategy,
+  table
+} from "@pristine-ts/database-common";
 import {MysqlClient} from "./mysql.client";
 import {
   AutoDataMappingBuilder,
@@ -10,8 +14,6 @@ import {
   NumberNormalizer,
   StringNormalizer
 } from "@pristine-ts/data-mapping-common";
-import {camelCaseColumnStrategy} from "../strategies/camel-case-column.strategy";
-import {SearchQuery} from "@pristine-ts/mysql-common";
 
 describe('MySQL Client', () => {
   @table({
