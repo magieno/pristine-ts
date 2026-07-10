@@ -469,5 +469,26 @@ describe("LocalSchedulerManager", () => {
       expect(() => scheduler.start()).not.toThrow();
       expect(scheduler.list().filter((descriptor) => descriptor.id === "nightly")).toHaveLength(1);
     });
+
+    it("does not double-register a multi-schedule tagged task across stop()/start()", async () => {
+      const run = jest.fn();
+      const task = makeSchedulable(
+        "multi",
+        [new CronSchedule("0 * * * *"), new DateSchedule(new Date(startOfYear + 2 * MINUTE_MS))],
+        run,
+      );
+      const scheduler = new LocalSchedulerManager(logHandler, [task]);
+
+      scheduler.start();
+      await scheduler.stop();
+      expect(() => scheduler.start()).not.toThrow();
+
+      // Both suffixed schedules survive as one distinct registration each — neither duplicated
+      // (which would throw) nor dropped — and both re-arm on the second start.
+      expect(scheduler.list().filter((descriptor) => descriptor.id === "multi#0")).toHaveLength(1);
+      expect(scheduler.list().filter((descriptor) => descriptor.id === "multi#1")).toHaveLength(1);
+      expect(scheduler.getNextExecutionDate("multi#0")).toEqual(new Date(2027, 0, 1, 1, 0, 0));
+      expect(scheduler.getNextExecutionDate("multi#1")).toEqual(new Date(startOfYear + 2 * MINUTE_MS));
+    });
   });
 });
