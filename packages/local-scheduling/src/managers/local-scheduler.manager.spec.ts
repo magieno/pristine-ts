@@ -1,9 +1,11 @@
 import "reflect-metadata";
 import {LocalSchedulerManager} from "./local-scheduler.manager";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import {ScheduledTaskInvocationContext} from "../interfaces/scheduled-task-invocation-context.interface";
-import {CronScheduledTaskInterface} from "../interfaces/cron-scheduled-task.interface";
-import {CronScheduledTaskConfiguration} from "../interfaces/cron-scheduled-task-configuration.interface";
+import {SchedulableInterface} from "../interfaces/schedulable.interface";
+import {ScheduleInterface} from "../interfaces/schedule.interface";
+import {ScheduledTaskFunction} from "../types/scheduled-task-function.type";
+import {CronSchedule} from "../schedules/cron.schedule";
+import {DateSchedule} from "../schedules/date.schedule";
 import {InvalidCronExpressionError} from "../errors/invalid-cron-expression.error";
 import {ScheduleAlreadyExistsError} from "../errors/schedule-already-exists.error";
 import {ScheduleNotFoundError} from "../errors/schedule-not-found.error";
@@ -31,6 +33,25 @@ const deferred = (): {promise: Promise<void>, resolve: () => void} => {
   return {promise, resolve};
 };
 
+/**
+ * Builds a {@link SchedulableInterface} whose class name is `name` — the local scheduler
+ * derives a tagged task's registration id from its class name, so a real named class (not a
+ * plain object literal, whose `constructor.name` is `"Object"`) is what a test needs.
+ */
+const makeSchedulable = (name: string, schedules: ScheduleInterface[], runFn: ScheduledTaskFunction = jest.fn()): SchedulableInterface => {
+  const ctor = ({
+    [name]: class implements SchedulableInterface {
+      getSchedules(): ScheduleInterface[] {
+        return schedules;
+      }
+      run(eventId?: string): Promise<void> {
+        return Promise.resolve(runFn(eventId));
+      }
+    },
+  } as Record<string, new () => SchedulableInterface>)[name];
+  return new ctor();
+};
+
 describe("LocalSchedulerManager", () => {
   let logHandler: jest.Mocked<LogHandlerInterface>;
   let manager: LocalSchedulerManager;
@@ -55,9 +76,10 @@ describe("LocalSchedulerManager", () => {
 
       manager.schedule("a", "* * * * *", jest.fn());
       expect(manager.has("a")).toBe(true);
-      expect(manager.list()).toEqual([
-        expect.objectContaining({id: "a", expression: "* * * * *", isRunning: false}),
-      ]);
+
+      const [entry] = manager.list();
+      expect(entry).toEqual(expect.objectContaining({id: "a", isRunning: false}));
+      expect(entry.schedule.toString()).toBe("* * * * *");
 
       manager.start();
       expect(manager.isStarted).toBe(true);
@@ -72,6 +94,11 @@ describe("LocalSchedulerManager", () => {
       expect(() => manager.schedule("a", "not a cron", jest.fn())).toThrow(InvalidCronExpressionError);
     });
 
+    it("accepts a ScheduleInterface instance as well as a cron string", () => {
+      manager.schedule("obj", new CronSchedule("0 0 * * *"), jest.fn());
+      expect(manager.list()[0].schedule.toString()).toBe("0 0 * * *");
+    });
+
     it("unschedule() returns whether something was removed and cancels the timer", () => {
       manager.schedule("a", "* * * * *", jest.fn());
       manager.start();
@@ -80,10 +107,10 @@ describe("LocalSchedulerManager", () => {
       expect(manager.unschedule("a")).toBe(false);
     });
 
-    it("reschedule() changes the expression and throws on an unknown id", () => {
+    it("reschedule() changes the schedule and throws on an unknown id", () => {
       manager.schedule("a", "* * * * *", jest.fn());
       manager.reschedule("a", "0 0 * * *");
-      expect(manager.list()[0].expression).toBe("0 0 * * *");
+      expect(manager.list()[0].schedule.toString()).toBe("0 0 * * *");
       expect(() => manager.reschedule("missing", "* * * * *")).toThrow(ScheduleNotFoundError);
     });
 
@@ -109,20 +136,29 @@ describe("LocalSchedulerManager", () => {
       expect(task).toHaveBeenCalledTimes(2); // proves it re-armed
     });
 
-    it("passes a fire context to the task", async () => {
-      let received: ScheduledTaskInvocationContext | undefined;
-      const task = jest.fn((context: ScheduledTaskInvocationContext) => {
-        received = context;
+    it("passes an eventId identifying the occurrence to the task", async () => {
+      let received: string | undefined;
+      const task = jest.fn((eventId?: string) => {
+        received = eventId;
       });
       manager.schedule("ctx", "* * * * *", task);
       manager.start();
 
       await jest.advanceTimersByTimeAsync(MINUTE_MS);
-      expect(received).toEqual(expect.objectContaining({
-        id: "ctx",
-        scheduledExecutionDate: new Date(2027, 0, 1, 0, 1, 0),
-        isCatchUp: false,
-      }));
+      expect(received).toMatch(/^ctx:\d{4}-\d{2}-\d{2}T/);
+    });
+
+    it("fires a one-off DateSchedule once, then leaves it unarmed", async () => {
+      const task = jest.fn();
+      manager.schedule("once", new DateSchedule(new Date(startOfYear + 2 * MINUTE_MS)), task);
+      manager.start();
+
+      await jest.advanceTimersByTimeAsync(2 * MINUTE_MS);
+      expect(task).toHaveBeenCalledTimes(1);
+
+      await jest.advanceTimersByTimeAsync(60 * MINUTE_MS);
+      expect(task).toHaveBeenCalledTimes(1); // never fires again
+      expect(manager.getNextExecutionDate("once")).toBeUndefined();
     });
 
     it("allows scheduling before start() and arms on start", async () => {
@@ -151,7 +187,7 @@ describe("LocalSchedulerManager", () => {
       manager.schedule("never", "0 0 30 2 *", jest.fn());
       manager.start();
       expect(manager.getNextExecutionDate("never")).toBeUndefined();
-      expect(logHandler.warning).toHaveBeenCalledWith(
+      expect(logHandler.debug).toHaveBeenCalledWith(
         expect.stringContaining("no upcoming occurrence"),
         expect.anything(),
       );
@@ -286,16 +322,12 @@ describe("LocalSchedulerManager", () => {
     });
 
     it("fires a single catch-up when catchUp is true", async () => {
-      let received: ScheduledTaskInvocationContext | undefined;
-      const task = jest.fn((context: ScheduledTaskInvocationContext) => {
-        received = context;
-      });
+      const task = jest.fn();
       manager.schedule("m", "* * * * *", task, {catchUp: true});
       manager.start();
 
       await fireLate(10 * MINUTE_MS);
       expect(task).toHaveBeenCalledTimes(1);
-      expect(received?.isCatchUp).toBe(true);
     });
   });
 
@@ -330,18 +362,10 @@ describe("LocalSchedulerManager", () => {
     });
   });
 
-  describe("static cron-scheduled tasks (tagged)", () => {
-    const makeTask = (
-      configuration: CronScheduledTaskConfiguration,
-      run: (context: ScheduledTaskInvocationContext) => void | Promise<void> = jest.fn(),
-    ): CronScheduledTaskInterface => ({
-      getScheduleConfiguration: () => configuration,
-      run,
-    });
-
-    it("auto-registers and fires tagged tasks on start()", async () => {
+  describe("static schedulable tasks (tagged)", () => {
+    it("auto-registers and fires tagged tasks on start(), keyed by class name", async () => {
       const run = jest.fn();
-      const task = makeTask({id: "nightly", cronExpression: "* * * * *"}, run);
+      const task = makeSchedulable("nightly", [new CronSchedule("* * * * *")], run);
       const scheduler = new LocalSchedulerManager(logHandler, [task]);
 
       expect(scheduler.has("nightly")).toBe(false); // registered on start(), not before
@@ -350,25 +374,32 @@ describe("LocalSchedulerManager", () => {
 
       await jest.advanceTimersByTimeAsync(MINUTE_MS);
       expect(run).toHaveBeenCalledTimes(1);
-      expect(run.mock.calls[0][0]).toEqual(expect.objectContaining({id: "nightly", isCatchUp: false}));
+      expect(run.mock.calls[0][0]).toMatch(/^nightly:/); // eventId
     });
 
-    it("registers with the declared cron expression", () => {
-      const task = makeTask({id: "hourly", cronExpression: "0 * * * *"});
+    it("registers with the declared schedule", () => {
+      const task = makeSchedulable("hourly", [new CronSchedule("0 * * * *")]);
       const scheduler = new LocalSchedulerManager(logHandler, [task]);
       scheduler.start();
       expect(scheduler.getNextExecutionDate("hourly")).toEqual(new Date(2027, 0, 1, 1, 0, 0));
     });
 
-    it("passes the declared options through (allowOverlap)", async () => {
-      const run = jest.fn(() => new Promise<void>(() => undefined)); // never settles
-      const task = makeTask({id: "ov", cronExpression: "* * * * *", options: {allowOverlap: true}}, run);
+    it("arms one timer per schedule when a task declares several, suffixing the id", async () => {
+      const run = jest.fn();
+      const task = makeSchedulable(
+        "multi",
+        [new CronSchedule("0 * * * *"), new DateSchedule(new Date(startOfYear + 2 * MINUTE_MS))],
+        run,
+      );
       const scheduler = new LocalSchedulerManager(logHandler, [task]);
       scheduler.start();
 
-      await jest.advanceTimersByTimeAsync(MINUTE_MS);
-      await jest.advanceTimersByTimeAsync(MINUTE_MS);
-      expect(run).toHaveBeenCalledTimes(2); // concurrent -> options were applied
+      expect(scheduler.has("multi#0")).toBe(true);
+      expect(scheduler.has("multi#1")).toBe(true);
+
+      await jest.advanceTimersByTimeAsync(2 * MINUTE_MS); // only the DateSchedule (#1) is due
+      expect(run).toHaveBeenCalledTimes(1);
+      expect(run.mock.calls[0][0]).toMatch(/^multi#1:/);
     });
 
     it("works with no tagged tasks (optional injection)", () => {
@@ -380,9 +411,9 @@ describe("LocalSchedulerManager", () => {
     it("skips a tagged task whose id collides with a dynamic schedule (dynamic wins)", async () => {
       const dynamicRun = jest.fn();
       const taggedRun = jest.fn();
-      const scheduler = new LocalSchedulerManager(logHandler, [makeTask({id: "dup", cronExpression: "* * * * *"}, taggedRun)]);
+      const scheduler = new LocalSchedulerManager(logHandler, [makeSchedulable("Report", [new CronSchedule("* * * * *")], taggedRun)]);
 
-      scheduler.schedule("dup", "* * * * *", dynamicRun); // dynamic registered first
+      scheduler.schedule("Report", "* * * * *", dynamicRun); // dynamic registered first, same id
       scheduler.start();
 
       await jest.advanceTimersByTimeAsync(MINUTE_MS);
@@ -394,14 +425,14 @@ describe("LocalSchedulerManager", () => {
       );
     });
 
-    it("isolates a tagged task whose configuration throws, still registering the others", () => {
-      const bad: CronScheduledTaskInterface = {
-        getScheduleConfiguration: () => {
-          throw new Error("bad config");
-        },
-        run: jest.fn(),
-      };
-      const scheduler = new LocalSchedulerManager(logHandler, [bad, makeTask({id: "good", cronExpression: "* * * * *"})]);
+    it("isolates a tagged task whose getSchedules() throws, still registering the others", () => {
+      const bad: SchedulableInterface = new (class Bad implements SchedulableInterface {
+        getSchedules(): ScheduleInterface[] {
+          throw new Error("bad schedules");
+        }
+        run = jest.fn();
+      })();
+      const scheduler = new LocalSchedulerManager(logHandler, [bad, makeSchedulable("good", [new CronSchedule("* * * * *")])]);
 
       scheduler.start();
       expect(scheduler.has("good")).toBe(true);
@@ -411,15 +442,18 @@ describe("LocalSchedulerManager", () => {
       );
     });
 
-    it("isolates a tagged task with an invalid cron expression", () => {
-      const scheduler = new LocalSchedulerManager(logHandler, [
-        makeTask({id: "invalid", cronExpression: "not a cron"}),
-        makeTask({id: "good", cronExpression: "* * * * *"}),
-      ]);
+    it("isolates a tagged task whose schedule is an invalid cron expression", () => {
+      const invalid: SchedulableInterface = new (class Invalid implements SchedulableInterface {
+        getSchedules(): ScheduleInterface[] {
+          return [new CronSchedule("not a cron")]; // throws during construction
+        }
+        run = jest.fn();
+      })();
+      const scheduler = new LocalSchedulerManager(logHandler, [invalid, makeSchedulable("good", [new CronSchedule("* * * * *")])]);
 
       scheduler.start();
       expect(scheduler.has("good")).toBe(true);
-      expect(scheduler.has("invalid")).toBe(false);
+      expect(scheduler.has("Invalid")).toBe(false);
       expect(logHandler.error).toHaveBeenCalledWith(
         expect.stringContaining("failed to register a tagged task"),
         expect.anything(),
@@ -427,7 +461,7 @@ describe("LocalSchedulerManager", () => {
     });
 
     it("does not double-register tagged tasks across stop()/start()", async () => {
-      const task = makeTask({id: "nightly", cronExpression: "* * * * *"});
+      const task = makeSchedulable("nightly", [new CronSchedule("* * * * *")]);
       const scheduler = new LocalSchedulerManager(logHandler, [task]);
 
       scheduler.start();

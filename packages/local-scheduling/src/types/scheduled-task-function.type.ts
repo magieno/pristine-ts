@@ -1,12 +1,10 @@
-import {ScheduledTaskInvocationContext} from "../interfaces/scheduled-task-invocation-context.interface";
-
 /**
- * The function a schedule runs on each fire.
+ * The function a dynamically-registered schedule runs on each fire.
  *
- * The {@link ScheduledTaskInvocationContext} argument is optional to consume: a plain
- * `() => Promise<void>` (or a synchronous `() => void`) is assignable to this type, so the
- * common case stays terse while richer tasks can inspect the fire metadata. A returned
- * promise is awaited, which is what lets the overlap policy detect a still-running
- * invocation.
+ * It receives the `eventId` the scheduler generates for the occurrence (correlating logs to
+ * a specific fire), mirroring {@link ScheduledTaskInterface.run}. The argument is optional to
+ * consume: a plain `() => Promise<void>` (or a synchronous `() => void`) is assignable to
+ * this type, so the common case stays terse. A returned promise is awaited, which is what
+ * lets the overlap policy detect a still-running invocation.
  */
-export type ScheduledTaskFunction = (context: ScheduledTaskInvocationContext) => void | Promise<void>;
+export type ScheduledTaskFunction = (eventId?: string) => void | Promise<void>;

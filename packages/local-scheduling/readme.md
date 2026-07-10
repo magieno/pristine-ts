@@ -1,22 +1,23 @@
 # @pristine-ts/local-scheduling
 
-In-process cron scheduling for long-running Pristine applications.
+In-process scheduling for long-running Pristine applications.
 
-`@pristine-ts/scheduling` is deliberately trigger-agnostic — `SchedulerManager.runTasks()`
-runs your tagged `ScheduledTaskInterface`s whenever *something external* fires it, and
-`@pristine-ts/aws-scheduling` supplies that trigger via AWS EventBridge. That model is
-perfect for a serverless function invoked on a cron rule.
+`@pristine-ts/scheduling` is deliberately trigger-agnostic — a `ScheduledTaskInterface` is
+just work (`run()`), and *something external* decides when it runs: `SchedulerManager.runTasks()`
+is fired by AWS EventBridge (via `@pristine-ts/aws-scheduling`), an HTTP request, or a manual
+call. That model is perfect for a serverless function invoked on a cron rule.
 
-This module solves the other case: an **always-up Node process** (an HTTP server, a
-worker) that needs to run tasks on cron schedules from *inside* the process, with **no
-external trigger**. It ships a standards-compliant cron parser and a scheduler whose
-schedules are ordinary runtime state — created, edited, and deleted at runtime — which
-suits a consumer that loads user-defined schedules from a database and mutates them from
-HTTP controllers.
+This module solves the other case: an **always-up Node process** (an HTTP server, a worker)
+that must run tasks on their own schedules from *inside* the process, with **no external
+trigger**. It owns the clock: it reads each task's declared schedule and arms an in-process
+timer for it. Schedules are polymorphic (a recurring cron, a one-off date, ...) and can also
+be created, edited, and deleted at runtime — which suits a consumer that loads user-defined
+schedules from a database and mutates them from HTTP controllers.
 
 It is platform-neutral (nothing AWS-specific) and has **zero third-party runtime
-dependencies** — the cron engine is written in-house. It coexists with
-`@pristine-ts/scheduling` and `@pristine-ts/aws-scheduling`; none of them interfere.
+dependencies** — the cron engine is written in-house. It builds on `@pristine-ts/scheduling`
+(a schedulable task *is* a scheduled task, see below) and coexists with
+`@pristine-ts/aws-scheduling` and the other drivers; none of them interfere.
 
 ## Installation
 
@@ -39,21 +40,70 @@ export const AppModule: AppModuleInterface = {
 };
 ```
 
-## Quick start
+## Two ways to schedule
 
-Resolve `LocalSchedulerManager`, register your schedules (typically from a database at
-bootstrap), then `start()`:
+A driver — not the task — decides when a task runs. This module is that driver for an
+in-process daemon, and it sources schedules two ways that share one id space and one set of
+timers:
+
+1. **Statically**, from tasks that declare their own schedule (`SchedulableInterface`),
+   auto-registered when the scheduler starts.
+2. **Dynamically**, through `LocalSchedulerManager`'s runtime API (typically fed from a
+   database at bootstrap and mutated by HTTP controllers).
+
+### Static: a task that declares its schedule
+
+A `SchedulableInterface` is a `ScheduledTaskInterface` (from `@pristine-ts/scheduling`) that
+*additionally* declares *when* it should run. Keeping it a separate interface makes it
+explicit that a driver must be present to honour the schedule. Tag the class with
+`@tag(SchedulableTag)`; every tagged class is discovered and **auto-registered on `start()`**.
 
 ```typescript
-import {LocalSchedulerManager} from "@pristine-ts/local-scheduling";
+import {injectable, inject} from "@pristine-ts/core";
+import {tag} from "@pristine-ts/common";
+import {
+  SchedulableInterface, SchedulableTag, ScheduleInterface, CronSchedule,
+} from "@pristine-ts/local-scheduling";
+
+@tag(SchedulableTag)
+@injectable()
+export class NightlyCleanupTask implements SchedulableInterface {
+  constructor(@inject("MyConfig") private readonly config: MyConfig) {}
+
+  getSchedules(): ScheduleInterface[] {
+    // Return one or several schedules, of any kind. Computed here (not a decorator
+    // argument), so it can read injected dependencies.
+    return [new CronSchedule(this.config.cleanupCron)];
+  }
+
+  async run(eventId?: string): Promise<void> {
+    // ...the work. `eventId` correlates logs to the specific occurrence.
+  }
+}
+```
+
+A tagged task is registered under an id derived from its **class name** (suffixed `#0`, `#1`,
+… when it declares more than one schedule). Names are used as-is, so keep them distinct and,
+if you minify server code, preserve class names — or use the dynamic API below, where ids are
+explicit. A tagged task whose id is already taken, or whose `getSchedules()` throws, is logged
+and skipped — it never prevents the others, or the scheduler, from starting. Static tasks run
+with the default policies; for per-schedule policies (overlap, catch-up) use the dynamic API.
+
+### Dynamic: schedules as runtime state
+
+Resolve `LocalSchedulerManager`, register schedules (typically from a database at bootstrap),
+then `start()`:
+
+```typescript
+import {LocalSchedulerManager, CronSchedule} from "@pristine-ts/local-scheduling";
 
 const scheduler = container.resolve(LocalSchedulerManager);
 
 for (const s of await scheduleRepository.findAll()) {
   scheduler.schedule(
     `routine:${s.routineId}:${s.id}`,
-    s.cronExpression,
-    () => routineExecutionManager.execute(s.routineId, "cron"),
+    s.cronExpression,                // a cron string is shorthand for a CronSchedule
+    (eventId) => routineExecutionManager.execute(s.routineId, eventId),
   );
 }
 
@@ -67,37 +117,41 @@ scheduler.reschedule(`routine:${routineId}:${scheduleId}`, "*/10 * * * *");
 scheduler.unschedule(`routine:${routineId}:${scheduleId}`);
 ```
 
-Preview upcoming runs, or validate user input before persisting it:
+## Schedules
 
-```typescript
-import {CronExpression} from "@pristine-ts/local-scheduling";
+A schedule answers one question — *when does this next run?* — and is polymorphic, so the
+scheduler drives any kind through the same contract (`ScheduleInterface`):
 
-new CronExpression("*/5 9-17 * * 1-5").getNextExecutionDates(new Date(), 3);
+| Schedule | When it fires |
+|---|---|
+| `new CronSchedule("0 3 * * *")` | Recurring, on a cron expression (string or a `CronExpression`). |
+| `new DateSchedule(new Date("2026-12-31T23:59:00"))` | Once, at a fixed instant; afterwards it is left unarmed. |
 
-CronExpression.isValid(userInput); // -> boolean, no try/catch
-```
+Both are accepted anywhere a schedule is expected (`schedule()`, `reschedule()`, a task's
+`getSchedules()`), and a plain cron **string** is accepted as shorthand for a `CronSchedule`.
+New schedule kinds only need to implement `ScheduleInterface` — the scheduler needs no change.
 
 ## `LocalSchedulerManager`
 
-Injectable, module-scoped, and tagged `"LocalSchedulerInterface"` (inject by class or by
-that token). It is a **process-wide singleton**, so the code that starts it at bootstrap
-and the controllers that mutate schedules at runtime share the same instance and timers.
+Injectable, module-scoped, and tagged `"LocalSchedulerInterface"` (inject by class or by that
+token). It is a **process-wide singleton**, so the code that starts it at bootstrap and the
+controllers that mutate schedules at runtime share the same instance and timers.
 
 | Method | Description |
 |---|---|
-| `schedule(id, cron, task, options?)` | Register a task. `cron` is a string or a `CronExpression`. Arms immediately if already started, otherwise on `start()`. Throws `ScheduleAlreadyExistsError` on a duplicate id, `InvalidCronExpressionError` on a bad string. |
+| `schedule(id, schedule, task, options?)` | Register a task. `schedule` is a `ScheduleInterface` or a cron string. Arms immediately if already started, otherwise on `start()`. Throws `ScheduleAlreadyExistsError` on a duplicate id, `InvalidCronExpressionError` on a bad cron string. |
 | `unschedule(id)` | Cancel and remove a schedule. Returns `true` if one was removed. |
-| `reschedule(id, cron)` | Replace a schedule's expression (task and options preserved). Throws `ScheduleNotFoundError` if absent. |
+| `reschedule(id, schedule)` | Replace a schedule (task and options preserved). Throws `ScheduleNotFoundError` if absent. |
 | `has(id)` | Whether a schedule is registered. |
-| `list()` | A snapshot (`ScheduledTaskDescriptor[]`) of every schedule, with its next execution date and running state. |
+| `list()` | A snapshot (`ScheduleDescriptor[]`) of every schedule, with its `schedule`, next execution date, and running state. |
 | `getNextExecutionDate(id)` | The next armed date for a schedule. |
-| `start()` | Arm every registered schedule. Idempotent. |
+| `start()` | Register tagged tasks, then arm every schedule. Idempotent. |
 | `stop()` | Cancel every timer synchronously (no fire happens after `stop()` returns) and resolve once in-flight tasks have settled — `await` it for a graceful shutdown. |
 | `isStarted` | Whether the scheduler is started. |
 
-The `task` receives a `ScheduledTaskInvocationContext` (`{ id, scheduledExecutionDate,
-invocationDate, isCatchUp }`), but a plain `() => Promise<void>` is assignable too, so the
-argument is optional to consume.
+The `task` receives the `eventId` the scheduler generates for each occurrence
+(`"<id>:<scheduled-ISO-date>"`), mirroring `ScheduledTaskInterface.run`. A plain
+`() => Promise<void>` is assignable too, so the argument is optional to consume.
 
 ### Per-schedule options
 
@@ -109,55 +163,35 @@ scheduler.schedule("report", "0 * * * *", task, {
 });
 ```
 
-- **Overlap** — by default a schedule never runs concurrently with itself: if it fires
-  while the previous invocation is still running, that fire is skipped (and logged). Set
+- **Overlap** — by default a schedule never runs concurrently with itself: if it fires while
+  the previous invocation is still running, that fire is skipped (and logged). Set
   `allowOverlap: true` to run anyway.
 - **Missed fires** — if the host sleeps or the event loop stalls past an occurrence, the
   default is to skip the missed occurrence and arm for the next future one. Set
-  `catchUp: true` to fire **at most one** catch-up on wake (multiple missed occurrences
-  still collapse into one).
-- **Task errors** — a task that throws or rejects is caught and logged via the
-  `LogHandler`; the scheduling loop is never broken.
+  `catchUp: true` to fire **at most one** catch-up on wake (multiple missed occurrences still
+  collapse into one).
+- **Task errors** — a task that throws or rejects is caught and logged via the `LogHandler`;
+  the scheduling loop is never broken.
 
-### Static, class-based tasks
+### Timer strategy
 
-For schedules known at build time, implement `CronScheduledTaskInterface` and tag the
-class with `@tag(CronScheduledTaskTag)`. Every such class is discovered and
-**auto-registered on `start()`** from the configuration it returns — no manual `schedule()`
-call. Because the configuration comes from a method, a task can compute its schedule from
-injected dependencies.
-
-```typescript
-import {injectable, inject} from "@pristine-ts/core";
-import {tag} from "@pristine-ts/common";
-import {
-  CronScheduledTaskInterface, CronScheduledTaskConfiguration, CronScheduledTaskTag,
-  ScheduledTaskInvocationContext,
-} from "@pristine-ts/local-scheduling";
-
-@tag(CronScheduledTaskTag)
-@injectable()
-export class NightlyCleanupTask implements CronScheduledTaskInterface {
-  constructor(@inject("MyConfig") private readonly config: MyConfig) {}
-
-  getScheduleConfiguration(): CronScheduledTaskConfiguration {
-    return { id: "cleanup:nightly", cronExpression: this.config.cleanupCron, options: { catchUp: true } };
-  }
-
-  async run(context: ScheduledTaskInvocationContext): Promise<void> {
-    // ...
-  }
-}
-```
-
-Static and dynamic schedules share one id space and one set of timers. A tagged task whose
-`id` is already registered (or whose configuration is invalid) is logged and skipped — it
-never prevents the others, or the scheduler, from starting.
+Each schedule owns a single chained `setTimeout`, re-armed from `Date.now()` after every fire
+(so it never drifts) and **chunked** past the `2^31-1` ms (~24.8 day) ceiling. Re-arming
+happens *before* the task runs, so a long task never delays subsequent occurrences.
 
 ## `CronExpression`
 
-Parses and validates a standard **5-field** cron expression (with an optional leading
-**6th seconds field**) and computes upcoming dates.
+Parses and validates a standard **5-field** cron expression (with an optional leading **6th
+seconds field**) and computes upcoming dates. `CronSchedule` wraps it; you can also use it
+directly to preview runs or validate user input before persisting it:
+
+```typescript
+import {CronExpression} from "@pristine-ts/local-scheduling";
+
+new CronExpression("*/5 9-17 * * 1-5").getNextExecutionDates(new Date(), 3);
+
+CronExpression.isValid(userInput); // -> boolean, no try/catch
+```
 
 ```
 ┌───────────── second (0-59)      (optional 6th field)
@@ -169,12 +203,12 @@ Parses and validates a standard **5-field** cron expression (with an optional le
 * * * * * *
 ```
 
-- Each field supports `*`, single values, ranges (`a-b`), lists (`a,b,c`), and steps
-  (`*/n`, `a-b/n`, `a/n`). Month and day-of-week accept case-insensitive names.
+- Each field supports `*`, single values, ranges (`a-b`), lists (`a,b,c`), and steps (`*/n`,
+  `a-b/n`, `a/n`). Month and day-of-week accept case-insensitive names.
 - Ranges must be ascending; write wrap-arounds as lists (`FRI,SAT,SUN`).
 - **Day-of-month / day-of-week OR rule:** when both are restricted (neither is `*`), the
-  expression matches when *either* matches — e.g. `30 4 1,15 * 5` runs at 04:30 on the 1st
-  and 15th **and** every Friday.
+  expression matches when *either* matches — e.g. `30 4 1,15 * 5` runs at 04:30 on the 1st and
+  15th **and** every Friday.
 
 | Member | Description |
 |---|---|
@@ -185,15 +219,15 @@ Parses and validates a standard **5-field** cron expression (with an optional le
 
 ### Time semantics
 
-All computations use the host's **system local time**. Across a spring-forward DST
-transition a non-existent local time is skipped; across a fall-back transition a repeated
-local time fires once. The API is shaped so an IANA timezone can be added later as an
-optional argument without changing existing signatures.
+All computations use the host's **system local time**. Across a spring-forward DST transition
+a non-existent local time is skipped; across a fall-back transition a repeated local time
+fires once. The API is shaped so an IANA timezone can be added later as an optional argument
+without changing existing signatures.
 
 ## Errors
 
-All extend the framework's `PristineError`, so they surface with the right HTTP status if
-they reach a controller boundary:
+All extend the framework's `PristineError`, so they surface with the right HTTP status if they
+reach a controller boundary:
 
 - `InvalidCronExpressionError` — **400**; carries the offending `expression` and `field`.
 - `ScheduleNotFoundError` — **404**.
