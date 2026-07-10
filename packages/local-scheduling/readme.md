@@ -28,6 +28,7 @@ npm install @pristine-ts/local-scheduling
 Import the module into your application module:
 
 ```typescript
+import {AppModuleInterface} from "@pristine-ts/common";
 import {LocalSchedulingModule} from "@pristine-ts/local-scheduling";
 
 export const AppModule: AppModuleInterface = {
@@ -56,24 +57,27 @@ timers:
 A `SchedulableInterface` is a `ScheduledTaskInterface` (from `@pristine-ts/scheduling`) that
 *additionally* declares *when* it should run. Keeping it a separate interface makes it
 explicit that a driver must be present to honour the schedule. Tag the class with
-`@tag(SchedulableTag)`; every tagged class is discovered and **auto-registered on `start()`**.
+`@tag(ServiceDefinitionTagEnum.Schedulable)`; every tagged class is discovered and
+**auto-registered on `start()`**.
 
 ```typescript
-import {injectable, inject} from "@pristine-ts/core";
-import {tag} from "@pristine-ts/common";
+import "reflect-metadata";
+import {injectable} from "tsyringe";
+import {injectConfig, tag, ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {
-  SchedulableInterface, SchedulableTag, ScheduleInterface, CronSchedule,
+  SchedulableInterface, ScheduleInterface, CronSchedule,
 } from "@pristine-ts/local-scheduling";
 
-@tag(SchedulableTag)
+@tag(ServiceDefinitionTagEnum.Schedulable)
 @injectable()
 export class NightlyCleanupTask implements SchedulableInterface {
-  constructor(@inject("MyConfig") private readonly config: MyConfig) {}
+  // Config is injected as a resolved value by its key (registered in a module's
+  // `configurationDefinitions`). Because getSchedules() is a method, the schedule can be
+  // computed from any injected dependency — a config value, a repository, etc.
+  constructor(@injectConfig("app.cleanup.cron") private readonly cleanupCron: string) {}
 
   getSchedules(): ScheduleInterface[] {
-    // Return one or several schedules, of any kind. Computed here (not a decorator
-    // argument), so it can read injected dependencies.
-    return [new CronSchedule(this.config.cleanupCron)];
+    return [new CronSchedule(this.cleanupCron)];
   }
 
   async run(eventId?: string): Promise<void> {
@@ -95,9 +99,12 @@ Resolve `LocalSchedulerManager`, register schedules (typically from a database a
 then `start()`:
 
 ```typescript
-import {LocalSchedulerManager, CronSchedule} from "@pristine-ts/local-scheduling";
+import {Kernel} from "@pristine-ts/core";
+import {LocalSchedulerManager} from "@pristine-ts/local-scheduling";
 
-const scheduler = container.resolve(LocalSchedulerManager);
+const kernel = new Kernel();
+await kernel.start(AppModule);
+const scheduler = kernel.container.resolve(LocalSchedulerManager);
 
 for (const s of await scheduleRepository.findAll()) {
   scheduler.schedule(

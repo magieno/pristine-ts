@@ -1,8 +1,7 @@
 import {inject, injectable, injectAll, singleton} from "tsyringe";
-import {moduleScoped, tag} from "@pristine-ts/common";
+import {moduleScoped, tag, ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {LocalSchedulingModuleKeyname} from "../local-scheduling.module.keyname";
-import {SchedulableTag} from "../schedulable.tag";
 import {CronSchedule} from "../schedules/cron.schedule";
 import {LocalSchedulerInterface} from "../interfaces/local-scheduler.interface";
 import {SchedulableInterface} from "../interfaces/schedulable.interface";
@@ -26,7 +25,7 @@ import {ScheduleState} from "../interfaces/schedule-state.interface";
  * - **Dynamic** — schedules registered, replaced, and removed at runtime by id, which suits a
  *   consumer that loads user-defined schedules from a database and mutates them from HTTP
  *   controllers.
- * - **Static** — any class tagged {@link SchedulableTag} that implements
+ * - **Static** — any class tagged {@link ServiceDefinitionTagEnum.Schedulable} that implements
  *   {@link SchedulableInterface} is discovered via `@injectAll` and **auto-registered on
  *   `start()`** from the schedules it declares.
  *
@@ -63,13 +62,13 @@ export class LocalSchedulerManager implements LocalSchedulerInterface {
 
   /**
    * @param logHandler The log handler used to report skips, task errors, and lifecycle.
-   * @param schedulables Every class tagged {@link SchedulableTag}. Injected optionally, so the
+   * @param schedulables Every class tagged {@link ServiceDefinitionTagEnum.Schedulable}. Injected optionally, so the
    *   collection is simply empty when none is tagged. They are registered on `start()`.
    *   Defaults to `[]` so the manager can also be constructed directly (e.g. in tests)
    *   without wiring the collection.
    */
   constructor(@inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
-              @injectAll(SchedulableTag, {isOptional: true}) private readonly schedulables: SchedulableInterface[] = []) {
+              @injectAll(ServiceDefinitionTagEnum.Schedulable, {isOptional: true}) private readonly schedulables: SchedulableInterface[] = []) {
   }
 
   public get isStarted(): boolean {

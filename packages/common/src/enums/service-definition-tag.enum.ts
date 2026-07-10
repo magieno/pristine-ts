@@ -28,6 +28,13 @@ export enum ServiceDefinitionTagEnum {
    * in their respective modules (e.g. `KernelHttpServer` in `@pristine-ts/http`).
    */
   RuntimeServer = "RuntimeServerInterface",
+  /**
+   * A {@link ScheduledTask} that additionally declares its own schedule(s) so an in-process
+   * driver can run it without an external trigger. Implementations live in
+   * `@pristine-ts/local-scheduling` (`SchedulableInterface`), where `LocalSchedulerManager`
+   * resolves the collection and arms a timer per declared schedule.
+   */
+  Schedulable = "SchedulableInterface",
   ScheduledTask = "ScheduledTaskInterface",
   SqliteConfig = "SqliteConfig",
   Tracer = "TracerInterface",

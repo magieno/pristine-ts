@@ -11,13 +11,12 @@ export * from "./models/models";
 export * from "./schedules/schedules";
 export * from "./types/types";
 
-export * from "./schedulable.tag";
 export * from "./local-scheduling.module.keyname";
 
 /**
  * The local-scheduling module. Import it into your application module to make
  * {@link LocalSchedulerManager} injectable and to have every {@link SchedulableInterface} you
- * tag with `@tag(SchedulableTag)` auto-registered when the scheduler starts.
+ * tag with `@tag(ServiceDefinitionTagEnum.Schedulable)` auto-registered when the scheduler starts.
  *
  * It builds on `@pristine-ts/scheduling` — a {@link SchedulableInterface} is a
  * {@link ScheduledTaskInterface} that also declares its schedule — and is otherwise

@@ -12,12 +12,12 @@ import {ScheduleInterface} from "./schedule.interface";
  * trigger. Keeping this a separate interface — rather than adding a schedule to every
  * scheduled task — makes it explicit that a driver must be present to honour the schedule.
  *
- * Tag the implementing class with `@tag(SchedulableTag)` (and `@injectable()`); the local
+ * Tag the implementing class with `@tag(ServiceDefinitionTagEnum.Schedulable)` (and `@injectable()`); the local
  * scheduler injects every tagged class and, on `start()`, arms one timer per schedule the
  * task returns.
  *
  * ```ts
- * @tag(SchedulableTag)
+ * @tag(ServiceDefinitionTagEnum.Schedulable)
  * @injectable()
  * export class NightlyCleanupTask implements SchedulableInterface {
  *   constructor(@inject("MyConfig") private readonly config: MyConfig) {}
