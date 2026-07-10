@@ -1,1 +1,0 @@
-export * from "./column-naming-strategy.type";

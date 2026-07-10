@@ -64,7 +64,11 @@ jobs:
           key: eslint-${{ matrix.node-version }}-${{ github.sha }}
           restore-keys: |
             eslint-${{ matrix.node-version }}-
-      - run: npx eslint --ext .ts --cache --cache-location .eslintcache packages/**
+      # Lint each package's `src/` rather than `packages/**`: the latter also matches any
+      # dist-only directory that the `packages/*/dist` build cache resurrects for a package
+      # deleted on the branch (e.g. a removed package), which makes eslint fail with "all
+      # files ignored". Source lives under src/, so this is both correct and robust.
+      - run: npx eslint --ext .ts --cache --cache-location .eslintcache packages/*/src
       # Cache jest's tmp cache (ts-jest compiled output, jest haste-map, etc.). Each jest
       # run hashes the project root and writes to /tmp/jest_<hash>; the glob covers every
       # package's slot. Skipping ts-jest re-compilation of unchanged sources is the bulk of

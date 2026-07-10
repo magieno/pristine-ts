@@ -1,7 +1,10 @@
 import {Pool} from "mysql2/promise";
-import {TableDecoratorMetadataInterface} from "./table-decorator-metadata.interface";
-import {ColumnDecoratorMetadataInterface} from "./column-decorator-metadata.interface";
-import {SearchQuery, SearchResult} from "@pristine-ts/mysql-common";
+import {
+  ColumnDecoratorMetadataInterface,
+  SearchQuery,
+  SearchResult,
+  TableDecoratorMetadataInterface
+} from "@pristine-ts/database-common";
 
 export interface MysqlClientInterface {
   /**

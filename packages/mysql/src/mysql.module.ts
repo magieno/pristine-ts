@@ -6,11 +6,7 @@ import {MysqlModuleKeyname} from "./mysql.module.keyname";
 export * from "./clients/clients";
 export * from "./config-providers/config-providers";
 export * from "./configs/configs";
-export * from "./decorators/decorators";
-export * from "./enums/enums";
 export * from "./interfaces/interfaces";
-export * from "./strategies/strategies";
-export * from "./types/types";
 
 export * from "./mysql.module.keyname";
 

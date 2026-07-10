@@ -1,1 +1,0 @@
-export type ColumnNamingStrategyType = (columnName: string) => string;

@@ -1,13 +1,17 @@
 import {inject, injectable, injectAll, singleton} from "tsyringe";
 import {MysqlClientInterface} from "../interfaces/mysql-client.interface";
 import {ClassMetadata, PropertyMetadata} from "@pristine-ts/metadata";
-import {DecoratorMetadataKeynameEnum} from "../enums/decorator-metadata-keyname.enum";
-import {TableDecoratorMetadataInterface} from "../interfaces/table-decorator-metadata.interface";
-import {ColumnDecoratorMetadataInterface} from "../interfaces/column-decorator-metadata.interface";
+import {
+  ColumnDecoratorMetadataInterface,
+  DecoratorMetadataKeynameEnum,
+  FilteringOperatorEnum,
+  SearchQuery,
+  SearchResult,
+  TableDecoratorMetadataInterface
+} from "@pristine-ts/database-common";
 import {createPool, Pool} from "mysql2/promise";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {DataMapper} from "@pristine-ts/data-mapping-common";
-import {FilteringOperatorEnum, SearchQuery, SearchResult} from "@pristine-ts/mysql-common";
 import {tag, traced} from "@pristine-ts/common";
 import {MysqlConfig} from "../configs/mysql.config";
 import {MysqlConfigProviderInterface} from "../interfaces/mysql-config-provider.interface";
