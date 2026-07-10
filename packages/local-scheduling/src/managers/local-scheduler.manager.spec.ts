@@ -1,6 +1,9 @@
 import "reflect-metadata";
 import {LocalSchedulerManager} from "./local-scheduler.manager";
 import {LogHandlerInterface} from "@pristine-ts/logging";
+import {SchedulableInterface} from "../interfaces/schedulable.interface";
+import {ScheduleInterface} from "../interfaces/schedule.interface";
+import {ScheduledTaskFunction} from "../types/scheduled-task-function.type";
 import {CronSchedule} from "../schedules/cron.schedule";
 import {DateSchedule} from "../schedules/date.schedule";
 import {InvalidCronExpressionError} from "../errors/invalid-cron-expression.error";
@@ -28,6 +31,25 @@ const deferred = (): {promise: Promise<void>, resolve: () => void} => {
     resolve = r;
   });
   return {promise, resolve};
+};
+
+/**
+ * Builds a {@link SchedulableInterface} whose class name is `name` — the local scheduler
+ * derives a tagged task's registration id from its class name, so a real named class (not a
+ * plain object literal, whose `constructor.name` is `"Object"`) is what a test needs.
+ */
+const makeSchedulable = (name: string, schedules: ScheduleInterface[], runFn: ScheduledTaskFunction = jest.fn()): SchedulableInterface => {
+  const ctor = ({
+    [name]: class implements SchedulableInterface {
+      getSchedules(): ScheduleInterface[] {
+        return schedules;
+      }
+      run(eventId?: string): Promise<void> {
+        return Promise.resolve(runFn(eventId));
+      }
+    },
+  } as Record<string, new () => SchedulableInterface>)[name];
+  return new ctor();
 };
 
 describe("LocalSchedulerManager", () => {
@@ -337,6 +359,115 @@ describe("LocalSchedulerManager", () => {
       await jest.advanceTimersByTimeAsync(MINUTE_MS);
       expect(task).toHaveBeenCalledTimes(2);
       expect(logHandler.error).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe("static schedulable tasks (tagged)", () => {
+    it("auto-registers and fires tagged tasks on start(), keyed by class name", async () => {
+      const run = jest.fn();
+      const task = makeSchedulable("nightly", [new CronSchedule("* * * * *")], run);
+      const scheduler = new LocalSchedulerManager(logHandler, [task]);
+
+      expect(scheduler.has("nightly")).toBe(false); // registered on start(), not before
+      scheduler.start();
+      expect(scheduler.has("nightly")).toBe(true);
+
+      await jest.advanceTimersByTimeAsync(MINUTE_MS);
+      expect(run).toHaveBeenCalledTimes(1);
+      expect(run.mock.calls[0][0]).toMatch(/^nightly:/); // eventId
+    });
+
+    it("registers with the declared schedule", () => {
+      const task = makeSchedulable("hourly", [new CronSchedule("0 * * * *")]);
+      const scheduler = new LocalSchedulerManager(logHandler, [task]);
+      scheduler.start();
+      expect(scheduler.getNextExecutionDate("hourly")).toEqual(new Date(2027, 0, 1, 1, 0, 0));
+    });
+
+    it("arms one timer per schedule when a task declares several, suffixing the id", async () => {
+      const run = jest.fn();
+      const task = makeSchedulable(
+        "multi",
+        [new CronSchedule("0 * * * *"), new DateSchedule(new Date(startOfYear + 2 * MINUTE_MS))],
+        run,
+      );
+      const scheduler = new LocalSchedulerManager(logHandler, [task]);
+      scheduler.start();
+
+      expect(scheduler.has("multi#0")).toBe(true);
+      expect(scheduler.has("multi#1")).toBe(true);
+
+      await jest.advanceTimersByTimeAsync(2 * MINUTE_MS); // only the DateSchedule (#1) is due
+      expect(run).toHaveBeenCalledTimes(1);
+      expect(run.mock.calls[0][0]).toMatch(/^multi#1:/);
+    });
+
+    it("works with no tagged tasks (optional injection)", () => {
+      const scheduler = new LocalSchedulerManager(logHandler, []);
+      expect(() => scheduler.start()).not.toThrow();
+      expect(scheduler.list()).toEqual([]);
+    });
+
+    it("skips a tagged task whose id collides with a dynamic schedule (dynamic wins)", async () => {
+      const dynamicRun = jest.fn();
+      const taggedRun = jest.fn();
+      const scheduler = new LocalSchedulerManager(logHandler, [makeSchedulable("Report", [new CronSchedule("* * * * *")], taggedRun)]);
+
+      scheduler.schedule("Report", "* * * * *", dynamicRun); // dynamic registered first, same id
+      scheduler.start();
+
+      await jest.advanceTimersByTimeAsync(MINUTE_MS);
+      expect(dynamicRun).toHaveBeenCalledTimes(1);
+      expect(taggedRun).not.toHaveBeenCalled();
+      expect(logHandler.warning).toHaveBeenCalledWith(
+        expect.stringContaining("already registered"),
+        expect.anything(),
+      );
+    });
+
+    it("isolates a tagged task whose getSchedules() throws, still registering the others", () => {
+      const bad: SchedulableInterface = new (class Bad implements SchedulableInterface {
+        getSchedules(): ScheduleInterface[] {
+          throw new Error("bad schedules");
+        }
+        run = jest.fn();
+      })();
+      const scheduler = new LocalSchedulerManager(logHandler, [bad, makeSchedulable("good", [new CronSchedule("* * * * *")])]);
+
+      scheduler.start();
+      expect(scheduler.has("good")).toBe(true);
+      expect(logHandler.error).toHaveBeenCalledWith(
+        expect.stringContaining("failed to register a tagged task"),
+        expect.anything(),
+      );
+    });
+
+    it("isolates a tagged task whose schedule is an invalid cron expression", () => {
+      const invalid: SchedulableInterface = new (class Invalid implements SchedulableInterface {
+        getSchedules(): ScheduleInterface[] {
+          return [new CronSchedule("not a cron")]; // throws during construction
+        }
+        run = jest.fn();
+      })();
+      const scheduler = new LocalSchedulerManager(logHandler, [invalid, makeSchedulable("good", [new CronSchedule("* * * * *")])]);
+
+      scheduler.start();
+      expect(scheduler.has("good")).toBe(true);
+      expect(scheduler.has("Invalid")).toBe(false);
+      expect(logHandler.error).toHaveBeenCalledWith(
+        expect.stringContaining("failed to register a tagged task"),
+        expect.anything(),
+      );
+    });
+
+    it("does not double-register tagged tasks across stop()/start()", async () => {
+      const task = makeSchedulable("nightly", [new CronSchedule("* * * * *")]);
+      const scheduler = new LocalSchedulerManager(logHandler, [task]);
+
+      scheduler.start();
+      await scheduler.stop();
+      expect(() => scheduler.start()).not.toThrow();
+      expect(scheduler.list().filter((descriptor) => descriptor.id === "nightly")).toHaveLength(1);
     });
   });
 });
