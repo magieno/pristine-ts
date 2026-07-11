@@ -1,12 +1,13 @@
 import {inject, injectable, singleton} from "tsyringe";
 import {createPublicKey, verify} from "crypto";
-import {HttpMethod, IdentityInterface, Request, traced} from "@pristine-ts/common";
+import {HttpMethod, IdentityInterface, injectConfig, Request, traced} from "@pristine-ts/common";
 import {TokenHeaderInterface} from "../interfaces/token-header.interface";
 import {ClaimInterface} from "../interfaces/claim.interface";
-import {AuthenticatorInterface} from "@pristine-ts/security";
+import {Auth0AuthenticatorOptionsInterface} from "../interfaces/auth0-authenticator-options.interface";
+import {AuthenticatorContextInterface, AuthenticatorInterface} from "@pristine-ts/security";
 import {HttpClientInterface, ResponseTypeEnum} from "@pristine-ts/http";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import {Auth0ModuleKeyname} from "../auth0.module.keyname";
+import {Auth0ConfigurationKeys} from "../auth0.configuration-keys";
 
 /**
  * The Auth0Authenticator is an authenticator that can be passed to the @authenticator decorator on a
@@ -17,6 +18,14 @@ import {Auth0ModuleKeyname} from "../auth0.module.keyname";
 @singleton()
 @injectable()
 export class Auth0Authenticator implements AuthenticatorInterface {
+
+  /**
+   * Phantom marker consumed by the `@authenticator` decorator to type-check its options
+   * argument against {@link Auth0AuthenticatorOptionsInterface}, i.e.
+   * `@authenticator(Auth0Authenticator, {expectedAudience, expectedScopes})`. `declare`
+   * makes it type-only — it emits no runtime field.
+   */
+  declare static readonly __options?: Auth0AuthenticatorOptionsInterface;
 
   /**
    * The cached PEMs to avoid fetching everytime.
@@ -37,20 +46,27 @@ export class Auth0Authenticator implements AuthenticatorInterface {
   private publicKeyUrl: string;
 
   /**
-   * The context passed by the decorator.
+   * The context passed by the decorator. Its `options` (typed as
+   * {@link Auth0AuthenticatorOptionsInterface}) carry the per-route Auth0 settings.
    * @private
    */
-  private context: any;
+  private context?: AuthenticatorContextInterface;
 
   /**
    * The Auth0 authenticator that can be passed to the @authenticator decorator.
    * @param issuerDomain The Auth0 issuer domain (without the http://).
    * @param httpClient The Http client to use to make the requests to the issuer.
    * @param logHandler The log handler to print some logs.
+   * @param configuredAudience The audience (`aud` claim) expected on tokens, configured at
+   *   the module level via `pristine.auth0.expected.audience` /
+   *   `PRISTINE_AUTH0_EXPECTED_AUDIENCE`. Optional: resolves to `""` ("unset") when not
+   *   configured, in which case the audience check is skipped unless a per-decorator
+   *   `expectedAudience` option is provided.
    */
-  constructor(@inject(`%${Auth0ModuleKeyname}.issuer.domain%`) private readonly issuerDomain: string,
+  constructor(@injectConfig(Auth0ConfigurationKeys.IssuerDomain) private readonly issuerDomain: string,
               @inject("HttpClientInterface") private readonly httpClient: HttpClientInterface,
               @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
+              @injectConfig(Auth0ConfigurationKeys.ExpectedAudience) private readonly configuredAudience?: string,
   ) {
     this.auth0Issuer = this.getAuth0Issuer();
     this.publicKeyUrl = this.getPublicKeyUrl();
@@ -63,6 +79,16 @@ export class Auth0Authenticator implements AuthenticatorInterface {
   setContext(context: any): Promise<void> {
     this.context = context;
     return Promise.resolve();
+  }
+
+  /**
+   * Returns the typed options carried on the decorator context, or `undefined` when no
+   * context or options were set. Reading through this accessor keeps the `context` access
+   * null-safe and gives the option reads a concrete type.
+   * @private
+   */
+  private getOptions(): Auth0AuthenticatorOptionsInterface | undefined {
+    return this.context?.options;
   }
 
   /**
@@ -183,15 +209,39 @@ export class Auth0Authenticator implements AuthenticatorInterface {
       throw new Error('Claim issuer is invalid');
     }
 
-    // If the context has an expected audience verify that this audience is included in the token.
-    if (this.context.options?.expectedAudience && claim.aud.includes(this.context.options?.expectedAudience) === false) {
-      throw new Error('Claim audience does not include expected audience');
+    const options = this.getOptions();
+
+    // Resolve the expected audience with precedence: the per-decorator option first (a
+    // per-route override), then the module-level configured audience. The check is only
+    // enforced when an audience is actually set — with neither an option nor configuration
+    // (the config resolves to the "" sentinel when unset), the `aud` claim is not validated,
+    // preserving the previous opt-in behavior.
+    const expectedAudience = options?.expectedAudience ?? this.configuredAudience;
+
+    // Normalize to a list of non-empty audiences. This supports an array of expected
+    // audiences (the check becomes "the token's aud intersects the expected set") and drops
+    // the "" sentinel used when nothing is configured.
+    const expectedAudiences: string[] = (Array.isArray(expectedAudience) ? expectedAudience : [expectedAudience])
+      .filter((audience): audience is string => typeof audience === "string" && audience.length > 0);
+
+    if (expectedAudiences.length > 0) {
+      // `aud` per RFC 7519 can be either a single string or an array of strings (Auth0
+      // commonly issues an array, e.g. the API id plus `/userinfo`). Normalize to an array
+      // so membership is an EXACT match rather than the substring match `String.includes`
+      // would perform on a single-string `aud`.
+      const audClaim: string | string[] = claim.aud;
+      const tokenAudiences: string[] = Array.isArray(audClaim) ? audClaim : [audClaim];
+
+      if (expectedAudiences.some((audience) => tokenAudiences.includes(audience)) === false) {
+        throw new Error('Claim audience does not include expected audience');
+      }
     }
 
     // If the context has expected scopes, verify that the token has those scopes.
-    if (this.context.options?.expectedScopes) {
+    const expectedScopesOption = options?.expectedScopes;
+    if (expectedScopesOption) {
       const providedScopes: string[] = claim.scope.split(' ');
-      const expectedScopes = Array.isArray(this.context.options?.expectedScopes) === false ? [this.context.options?.expectedScopes] : this.context.options?.expectedScopes
+      const expectedScopes = Array.isArray(expectedScopesOption) ? expectedScopesOption : [expectedScopesOption];
       for (const scope of expectedScopes) {
         if (providedScopes.includes(scope) === false) {
           throw new Error("Claim does not contain the required scope: '" + scope + "'");
