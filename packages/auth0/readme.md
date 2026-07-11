@@ -75,6 +75,9 @@ export class MyController {
 `expectedAudience` accepts either a single audience (`string`) or several (`string[]`); with an array, the check passes
 when the token's `aud` intersects the expected set.
 
+These options are type-checked against `Auth0AuthenticatorOptionsInterface` — a mistyped or wrong-typed option (e.g.
+`expectedScope` instead of `expectedScopes`) is a compile error.
+
 **Resolution precedence** (first match wins):
 
 1. The `@authenticator(Auth0Authenticator, {expectedAudience})` decorator option, when present.

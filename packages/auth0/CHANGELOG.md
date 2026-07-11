@@ -25,5 +25,10 @@
   Both a string and an array `aud` are now normalized to a list before an exact-membership check.
 
 - Added a typed `Auth0AuthenticatorOptionsInterface` for the `@authenticator` options (`expectedAudience` /
-  `expectedScopes`, previously untyped `any`) and an `Auth0ConfigurationKeys` constant + `Auth0ConfigurationValueMap`
-  for the package's configuration keys (mirroring `@pristine-ts/jwt`).
+  `expectedScopes`, previously untyped `any`) and an `Auth0ConfigurationKeys` constant for the package's
+  configuration keys.
+
+- **`@authenticator(Auth0Authenticator, …)` options are now type-checked.** `Auth0Authenticator` declares a phantom
+  `static __options` marker that the (now generic) `@authenticator` decorator infers, so a mistyped or wrong-typed
+  option — e.g. `expectedScope` instead of `expectedScopes`, or a non-string audience — is a compile error at the
+  call site. Requires `@pristine-ts/security` >= 4.0.3; authenticators without the marker are unaffected.

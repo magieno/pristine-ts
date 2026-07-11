@@ -10,6 +10,7 @@ export * from "./factories/factories";
 export * from "./guards/guards";
 export * from "./interfaces/interfaces";
 export * from "./managers/managers";
+export * from "./types/types";
 export * from "./security.module.keyname";
 
 export * from "./security.configuration-keys";

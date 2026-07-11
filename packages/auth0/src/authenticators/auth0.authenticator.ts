@@ -20,6 +20,14 @@ import {Auth0ConfigurationKeys} from "../auth0.configuration-keys";
 export class Auth0Authenticator implements AuthenticatorInterface {
 
   /**
+   * Phantom marker consumed by the `@authenticator` decorator to type-check its options
+   * argument against {@link Auth0AuthenticatorOptionsInterface}, i.e.
+   * `@authenticator(Auth0Authenticator, {expectedAudience, expectedScopes})`. `declare`
+   * makes it type-only — it emits no runtime field.
+   */
+  declare static readonly __options?: Auth0AuthenticatorOptionsInterface;
+
+  /**
    * The cached PEMs to avoid fetching everytime.
    * @private
    */
