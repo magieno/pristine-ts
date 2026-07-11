@@ -305,4 +305,109 @@ describe("Auth0 authenticator ", () => {
       claims: payload
     });
   });
+
+  describe("audience resolution (decorator option vs. configured audience)", () => {
+    // The token's default `aud` is the array ["example", "https://pristine-ts.com"].
+    const inToken = "https://pristine-ts.com";
+    const notInToken = "https://not-in-token.example";
+
+    // ── option only, config unset ──────────────────────────────────────────────
+    it("validates against the decorator option when no audience is configured (wrong aud throws)", async () => {
+      const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock); // config unset
+      const token = signToken(payload, privateKey);
+      await auth0Authenticator.setContext({options: {expectedAudience: notInToken}});
+      expect(() => auth0Authenticator["getAndVerifyClaims"](token, publicKey1)).toThrow(new Error('Claim audience does not include expected audience'));
+    });
+
+    it("validates against the decorator option when no audience is configured (matching aud passes)", async () => {
+      const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
+      const token = signToken(payload, privateKey);
+      await auth0Authenticator.setContext({options: {expectedAudience: inToken}});
+      expect(auth0Authenticator["getAndVerifyClaims"](token, publicKey1)).toEqual(payload);
+    });
+
+    // ── config only, no option ─────────────────────────────────────────────────
+    it("validates against the configured audience when no option is set (wrong config throws)", async () => {
+      const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock, notInToken);
+      const token = signToken(payload, privateKey);
+      // No setContext() at all: exercises the null-safe context access as well.
+      expect(() => auth0Authenticator["getAndVerifyClaims"](token, publicKey1)).toThrow(new Error('Claim audience does not include expected audience'));
+    });
+
+    it("validates against the configured audience when no option is set (matching config passes)", async () => {
+      const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock, inToken);
+      const token = signToken(payload, privateKey);
+      expect(auth0Authenticator["getAndVerifyClaims"](token, publicKey1)).toEqual(payload);
+    });
+
+    // ── both set → option wins (values chosen so each direction proves precedence) ─
+    it("lets the decorator option override the configured audience (option wins → throws on option mismatch)", async () => {
+      // Config MATCHES the token, option does NOT: because the option wins, this must throw.
+      const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock, inToken);
+      const token = signToken(payload, privateKey);
+      await auth0Authenticator.setContext({options: {expectedAudience: notInToken}});
+      expect(() => auth0Authenticator["getAndVerifyClaims"](token, publicKey1)).toThrow(new Error('Claim audience does not include expected audience'));
+    });
+
+    it("lets the decorator option override the configured audience (option wins → passes on option match)", async () => {
+      // Config does NOT match the token, option does: because the option wins, this must pass.
+      const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock, notInToken);
+      const token = signToken(payload, privateKey);
+      await auth0Authenticator.setContext({options: {expectedAudience: inToken}});
+      expect(auth0Authenticator["getAndVerifyClaims"](token, publicKey1)).toEqual(payload);
+    });
+
+    // ── neither set → skip (backward compatible) ───────────────────────────────
+    it("skips the audience check when neither an option nor configuration is set", async () => {
+      const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock); // config unset, no setContext
+      const token = signToken(payload, privateKey);
+      expect(auth0Authenticator["getAndVerifyClaims"](token, publicKey1)).toEqual(payload);
+    });
+
+    it("skips the audience check when the configured audience is the empty-string sentinel", async () => {
+      // "" is what an unset, non-required config parameter resolves to.
+      const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock, "");
+      const token = signToken(payload, privateKey);
+      await auth0Authenticator.setContext({options: {}});
+      expect(auth0Authenticator["getAndVerifyClaims"](token, publicKey1)).toEqual(payload);
+    });
+
+    // ── aud as a single string vs. an array: exact membership, never substring ──
+    it("matches an exact single-string aud (aud as string)", async () => {
+      payload.aud = inToken; // a string, not an array
+      const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock, inToken);
+      const token = signToken(payload, privateKey);
+      expect(auth0Authenticator["getAndVerifyClaims"](token, publicKey1)).toEqual(payload);
+    });
+
+    it("does NOT substring-match a single-string aud (exact membership only)", async () => {
+      payload.aud = inToken; // "https://pristine-ts.com" as a string
+      // "pristine-ts.com" is a substring of the token's aud but not an exact match: must throw.
+      const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock, "pristine-ts.com");
+      const token = signToken(payload, privateKey);
+      expect(() => auth0Authenticator["getAndVerifyClaims"](token, publicKey1)).toThrow(new Error('Claim audience does not include expected audience'));
+    });
+
+    it("matches when the token's array aud contains the expected audience (aud as array)", async () => {
+      // payload.aud is the default array ["example", "https://pristine-ts.com"].
+      const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock, inToken);
+      const token = signToken(payload, privateKey);
+      expect(auth0Authenticator["getAndVerifyClaims"](token, publicKey1)).toEqual(payload);
+    });
+
+    // ── array of expected audiences (option) → intersection with the token's aud ─
+    it("supports an array of expected audiences via the option (intersection with the token's aud)", async () => {
+      const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
+      const token = signToken(payload, privateKey);
+      await auth0Authenticator.setContext({options: {expectedAudience: ["https://other.example", inToken]}});
+      expect(auth0Authenticator["getAndVerifyClaims"](token, publicKey1)).toEqual(payload);
+    });
+
+    it("throws when none of an array of expected audiences intersects the token's aud", async () => {
+      const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
+      const token = signToken(payload, privateKey);
+      await auth0Authenticator.setContext({options: {expectedAudience: ["https://a.example", "https://b.example"]}});
+      expect(() => auth0Authenticator["getAndVerifyClaims"](token, publicKey1)).toThrow(new Error('Claim audience does not include expected audience'));
+    });
+  });
 });
