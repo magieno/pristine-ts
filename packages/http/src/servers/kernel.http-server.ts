@@ -7,6 +7,7 @@ import {EventIdManager, ExecutionContextKeynameEnum, Kernel, RuntimeServerInterf
 import {moduleScoped, Request, Response, ServiceDefinitionTagEnum, tag} from "@pristine-ts/common";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {HttpModuleKeyname} from "../http.module.keyname";
+import {CorsRequestHandler} from "../cors/cors-request.handler";
 
 /**
  * Per-request override of the start-time bound port/address pair. Both are optional — when
@@ -70,6 +71,7 @@ export class KernelHttpServer implements RuntimeServerInterface {
     @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
     private readonly kernel: Kernel,
     private readonly eventIdManager: EventIdManager,
+    private readonly corsRequestHandler: CorsRequestHandler,
   ) {
   }
 
@@ -169,6 +171,15 @@ export class KernelHttpServer implements RuntimeServerInterface {
   }
 
   /**
+   * The address the underlying server is bound to, or `null` when not listening. For a TCP socket
+   * this is `{address, family, port}` — useful when binding to port `0` (ephemeral port) and the
+   * caller needs to discover the assigned port afterwards.
+   */
+  public getAddress(): import("net").AddressInfo | string | null {
+    return this.server?.address() ?? null;
+  }
+
+  /**
    * Reads the body, builds a Pristine `Request`, dispatches via the kernel, writes the
    * resulting `Response`. All errors are caught and turned into a 500 response so the
    * caller's request always gets an answer.
@@ -177,14 +188,45 @@ export class KernelHttpServer implements RuntimeServerInterface {
   private async handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const requestId = (req.headers["x-pristine-request-id"] as string | undefined) ?? this.eventIdManager.generateEventId();
 
+    // Normalize the raw request into the CORS decision context up-front. When no CORS config is
+    // present every method below is a no-op, so this whole block is transparent to un-configured
+    // servers. `corsResponseHeaders` (ACAO + Vary + ...) is computed once here and applied to
+    // BOTH the success and the error/500 responses below — a browser can only read an error body
+    // if the error response also carries Access-Control-Allow-Origin.
+    const corsContext = this.corsRequestHandler.buildContext(req.method ?? "GET", req.headers);
+    const corsResponseHeaders = this.corsRequestHandler.buildResponseHeaders(corsContext.origin);
+
     try {
+      // 1. Host-header allowlist (loopback DNS-rebinding defense) — reject before routing and
+      // before reading the body, so a rejected caller can't stream a payload at us.
+      if (this.corsRequestHandler.isHostAllowed(corsContext.host) === false) {
+        this.logHandler.warning("KernelHttpServer: rejecting request with disallowed Host header", {
+          extra: {host: corsContext.host, url: req.url, method: req.method, requestId},
+        });
+        res.statusCode = 403;
+        this.applyHeaders(res, corsResponseHeaders);
+        res.setHeader("content-type", "application/json");
+        res.end(JSON.stringify({error: "Forbidden", requestId}));
+        return;
+      }
+
+      // 2. CORS preflight — answered with a 204 and short-circuited BEFORE kernel.handle, since a
+      // preflight never matches a real route in the networking Router.
+      const preflight = this.corsRequestHandler.buildPreflightResponse(corsContext);
+      if (preflight !== undefined) {
+        res.statusCode = preflight.statusCode;
+        this.applyHeaders(res, preflight.headers);
+        res.end();
+        return;
+      }
+
       const request = await this.mapToPristineRequest(req, requestId);
       const result = await this.kernel.handle(request, {
         keyname: ExecutionContextKeynameEnum.Http,
         context: null,
       }) as Response | object;
 
-      this.writeResponse(res, result);
+      this.writeResponse(res, result, corsResponseHeaders);
     } catch (error) {
       this.logHandler.error("KernelHttpServer: unhandled error while processing request", {
         extra: {error, url: req.url, method: req.method, requestId},
@@ -193,6 +235,9 @@ export class KernelHttpServer implements RuntimeServerInterface {
       // can only destroy the socket — but most kernel.handle errors propagate before any write.
       if (res.headersSent === false) {
         res.statusCode = 500;
+        // Echo CORS headers on the error path too — otherwise the browser blocks the response and
+        // the caller never sees the 500 body.
+        this.applyHeaders(res, corsResponseHeaders);
         res.setHeader("content-type", "application/json");
         res.end(JSON.stringify({error: "Internal Server Error", requestId}));
       } else {
@@ -274,9 +319,13 @@ export class KernelHttpServer implements RuntimeServerInterface {
    * Writes a Pristine `Response` (or any object — handlers that return raw JSON serialize as-is)
    * back to the underlying `ServerResponse`. Default status is 200, default content-type is
    * `application/json` when the body is non-string.
+   *
+   * `corsHeaders` (empty when CORS is off or the Origin isn't allow-listed) is applied AFTER the
+   * response's own headers so the `Access-Control-*` set is authoritative and a handler can't
+   * accidentally clobber it.
    * @private
    */
-  private writeResponse(res: ServerResponse, result: Response | any): void {
+  private writeResponse(res: ServerResponse, result: Response | any, corsHeaders: { [k: string]: string } = {}): void {
     const isPristineResponse = result instanceof Response || (
       result !== null && typeof result === "object" && typeof (result as any).status === "number" && "body" in result
     );
@@ -296,6 +345,7 @@ export class KernelHttpServer implements RuntimeServerInterface {
       // Buffer body: write directly without re-encoding. Don't auto-set content-type — the
       // handler that produced a Buffer is presumed to know what it's sending.
       this.applyHeaders(res, headers);
+      this.applyHeaders(res, corsHeaders);
       res.end(body);
       return;
     } else {
@@ -306,6 +356,7 @@ export class KernelHttpServer implements RuntimeServerInterface {
     }
 
     this.applyHeaders(res, headers);
+    this.applyHeaders(res, corsHeaders);
     res.end(serializedBody);
   }
 

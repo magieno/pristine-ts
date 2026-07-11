@@ -11,6 +11,7 @@ import {KernelHttpServer} from "./servers/kernel.http-server";
 export * from "./http.module.keyname";
 export * from "./commands/commands";
 export * from "./clients/clients";
+export * from "./cors/cors";
 export * from "./enums/enums";
 export * from "./errors/errors";
 export * from "./interceptors/interceptors"
@@ -102,6 +103,106 @@ export const HttpModule: ModuleInterface = {
       isRequired: false,
       defaultResolvers: [
         new EnvironmentVariableResolver("PRISTINE_HTTP_KERNEL_SERVER_TLS_CERT_PATH"),
+      ]
+    },
+    /**
+     * CORS — handled by `CorsRequestHandler` inside `KernelHttpServer`'s request path. All keys
+     * carry defaults so `@injectConfig` always resolves; CORS stays INACTIVE until
+     * `cors.allowed-origins` (and/or `cors.allowed-hosts`) is set. List keys accept a
+     * comma-separated string (env/default) or a `string[]` (programmatic config).
+     *
+     * Exact-match origin allowlist. Empty (the default) = CORS disabled: no preflight
+     * short-circuit and no `Access-Control-Allow-Origin` echo. Never wildcarded.
+     */
+    {
+      parameterName: `${HttpModuleKeyname}.cors.allowed-origins`,
+      defaultValue: "",
+      isRequired: false,
+      defaultResolvers: [
+        new EnvironmentVariableResolver("PRISTINE_HTTP_CORS_ALLOWED_ORIGINS"),
+      ]
+    },
+    /**
+     * Methods advertised in the preflight `Access-Control-Allow-Methods` response.
+     */
+    {
+      parameterName: `${HttpModuleKeyname}.cors.allowed-methods`,
+      defaultValue: "GET,POST,PUT,DELETE,PATCH,OPTIONS",
+      isRequired: false,
+      defaultResolvers: [
+        new EnvironmentVariableResolver("PRISTINE_HTTP_CORS_ALLOWED_METHODS"),
+      ]
+    },
+    /**
+     * Request headers advertised in the preflight `Access-Control-Allow-Headers` response.
+     */
+    {
+      parameterName: `${HttpModuleKeyname}.cors.allowed-headers`,
+      defaultValue: "Content-Type",
+      isRequired: false,
+      defaultResolvers: [
+        new EnvironmentVariableResolver("PRISTINE_HTTP_CORS_ALLOWED_HEADERS"),
+      ]
+    },
+    /**
+     * Response headers exposed to the browser via `Access-Control-Expose-Headers` on actual
+     * responses. Empty (the default) omits the header entirely.
+     */
+    {
+      parameterName: `${HttpModuleKeyname}.cors.exposed-headers`,
+      defaultValue: "",
+      isRequired: false,
+      defaultResolvers: [
+        new EnvironmentVariableResolver("PRISTINE_HTTP_CORS_EXPOSED_HEADERS"),
+      ]
+    },
+    /**
+     * Seconds a browser may cache the preflight result (`Access-Control-Max-Age`).
+     */
+    {
+      parameterName: `${HttpModuleKeyname}.cors.max-age`,
+      defaultValue: 600,
+      isRequired: false,
+      defaultResolvers: [
+        new NumberResolver(new EnvironmentVariableResolver("PRISTINE_HTTP_CORS_MAX_AGE")),
+      ]
+    },
+    /**
+     * When true, emit `Access-Control-Allow-Credentials: true` on preflight and actual responses
+     * for allow-listed origins (lets the browser send cookies / `Authorization`).
+     */
+    {
+      parameterName: `${HttpModuleKeyname}.cors.allow-credentials`,
+      defaultValue: false,
+      isRequired: false,
+      defaultResolvers: [
+        new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_HTTP_CORS_ALLOW_CREDENTIALS")),
+      ]
+    },
+    /**
+     * Chrome Private Network Access. When true, answer `Access-Control-Allow-Private-Network: true`
+     * to a preflight that carries `Access-Control-Request-Private-Network: true` — required for a
+     * public/secure site to call a loopback/private-network daemon.
+     */
+    {
+      parameterName: `${HttpModuleKeyname}.cors.allow-private-network`,
+      defaultValue: false,
+      isRequired: false,
+      defaultResolvers: [
+        new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_HTTP_CORS_ALLOW_PRIVATE_NETWORK")),
+      ]
+    },
+    /**
+     * Optional `Host`-header allowlist (loopback DNS-rebinding defense). When set, a request whose
+     * `Host` is not listed is rejected with `403` before routing. Empty (the default) disables the
+     * check. Independent of `allowed-origins`.
+     */
+    {
+      parameterName: `${HttpModuleKeyname}.cors.allowed-hosts`,
+      defaultValue: "",
+      isRequired: false,
+      defaultResolvers: [
+        new EnvironmentVariableResolver("PRISTINE_HTTP_CORS_ALLOWED_HOSTS"),
       ]
     },
   ],

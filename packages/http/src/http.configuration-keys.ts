@@ -17,6 +17,21 @@ export const HttpConfigurationKeys = {
   KernelServerPort: "pristine.http.kernel-server.port",
   KernelServerTlsKeyPath: "pristine.http.kernel-server.tls.key-path",
   KernelServerTlsCertPath: "pristine.http.kernel-server.tls.cert-path",
+
+  /**
+   * CORS keys consumed by `CorsRequestHandler` inside `KernelHttpServer`'s request path.
+   * CORS is inactive unless `cors.allowed-origins` (and/or `cors.allowed-hosts`) is set —
+   * a server with none of these configured behaves exactly as it did before CORS existed.
+   * Each list key accepts a comma-separated string or a `string[]`.
+   */
+  CorsAllowedOrigins: "pristine.http.cors.allowed-origins",
+  CorsAllowedMethods: "pristine.http.cors.allowed-methods",
+  CorsAllowedHeaders: "pristine.http.cors.allowed-headers",
+  CorsExposedHeaders: "pristine.http.cors.exposed-headers",
+  CorsMaxAge: "pristine.http.cors.max-age",
+  CorsAllowCredentials: "pristine.http.cors.allow-credentials",
+  CorsAllowPrivateNetwork: "pristine.http.cors.allow-private-network",
+  CorsAllowedHosts: "pristine.http.cors.allowed-hosts",
 } as const;
 
 /**
@@ -31,6 +46,17 @@ export interface HttpConfigurationValueMap {
   "pristine.http.kernel-server.port": number;
   "pristine.http.kernel-server.tls.key-path": string;
   "pristine.http.kernel-server.tls.cert-path": string;
+  // List keys resolve to a comma-separated string from env/defaults; a consumer may also pass
+  // a `string[]` programmatically via `kernel.start()` config. `CorsRequestHandler` normalizes
+  // both forms, so the map documents the canonical (string) shape.
+  "pristine.http.cors.allowed-origins": string;
+  "pristine.http.cors.allowed-methods": string;
+  "pristine.http.cors.allowed-headers": string;
+  "pristine.http.cors.exposed-headers": string;
+  "pristine.http.cors.max-age": number;
+  "pristine.http.cors.allow-credentials": boolean;
+  "pristine.http.cors.allow-private-network": boolean;
+  "pristine.http.cors.allowed-hosts": string;
 }
 
 
