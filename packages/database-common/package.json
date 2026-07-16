@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/database-common",
-  "version": "4.0.4",
+  "version": "4.0.5",
   "description": "",
   "module": "dist/lib/esm/database-common.js",
   "main": "dist/lib/cjs/database-common.js",
