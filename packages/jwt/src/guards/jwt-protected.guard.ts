@@ -16,15 +16,22 @@ export class JwtProtectedGuard implements GuardInterface {
 
   /**
    * Verifies if the JWT is valid and authorizes access if it is.
+   *
+   * On failure it does NOT swallow the error into a `false`: it propagates the typed error
+   * raised by the `JwtManager` (a `TokenExpiredError` → 401 TOKEN_EXPIRED, an
+   * `InvalidJwtError`/`JwtAuthorizationHeaderError` → 401 UNAUTHORIZED). The
+   * `AuthorizerManager` re-throws those typed auth errors so the client receives the
+   * precise code and can tell "refresh the token" from "log in" — a bare `false` would
+   * collapse every case into an indistinguishable 403.
    * @param request
    * @param identity
    */
   @traced()
   isAuthorized(request: Request, identity?: IdentityInterface): Promise<boolean> {
-    return new Promise<boolean>((resolve) => {
+    return new Promise<boolean>((resolve, reject) => {
       this.jwtManager.validateAndDecode(request)
         .then(value => resolve(true))
-        .catch(reason => resolve(false));
+        .catch(reason => reject(reason));
     });
   }
 

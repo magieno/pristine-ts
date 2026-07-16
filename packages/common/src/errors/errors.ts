@@ -9,6 +9,7 @@ export * from "./pristine-error-code.enum";
 export * from "./pristine-error-kind.enum";
 export * from "./pristine-error-options.interface";
 export * from "./pristine.error";
+export * from "./token-expired.error";
 export * from "./unauthorized.error";
 export * from "./usage.error";
 export * from "./validation.error";

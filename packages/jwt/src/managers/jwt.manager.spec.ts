@@ -1,7 +1,10 @@
 import "reflect-metadata";
 import {JwtManager} from "./jwt.manager";
-import {HttpMethod, Request} from "@pristine-ts/common";
+import {HttpMethod, Request, TokenExpiredError, UnauthorizedError} from "@pristine-ts/common";
 import {JWTKeys} from "../tests/jwt.keys";
+import {InvalidJwtError} from "../errors/invalid-jwt.error";
+import {JwtAuthorizationHeaderError} from "../errors/jwt-authorization-header.error";
+import {sign} from "jsonwebtoken";
 
 describe("JWT Manager", () => {
 
@@ -62,5 +65,59 @@ describe("JWT Manager", () => {
     const request: Request = new Request(HttpMethod.Get, "", "uuid");
 
     return expect(jwtManager.validateAndDecode(request)).rejects.toBeDefined();
+  });
+
+  it("should reject an expired JWT with a TokenExpiredError (401 TOKEN_EXPIRED) so the client can refresh", async () => {
+    const jwtManager = new JwtManager(JWTKeys.RS256.withoutPassphrase.public, "RS256");
+
+    const expiredJwt = sign({sub: "1234567890"}, JWTKeys.RS256.withoutPassphrase.private, {
+      algorithm: "RS256",
+      expiresIn: -60, // Issued expired (exp 60s in the past).
+    });
+
+    const request: Request = new Request(HttpMethod.Get, "", "uuid");
+    request.setHeaders({"Authorization": "Bearer " + expiredJwt});
+
+    await expect(jwtManager.validateAndDecode(request)).rejects.toBeInstanceOf(TokenExpiredError);
+
+    try {
+      await jwtManager.validateAndDecode(request);
+    } catch (error) {
+      expect(error).toBeInstanceOf(TokenExpiredError);
+      expect(error).toBeInstanceOf(UnauthorizedError);
+      expect((error as TokenExpiredError).options.httpStatus).toBe(401);
+      expect((error as TokenExpiredError).options.code).toBe("TOKEN_EXPIRED");
+    }
+  });
+
+  it("should reject an invalid JWT with an InvalidJwtError mapped to 401 (login, not refresh)", async () => {
+    const jwtManager = new JwtManager(JWTKeys.RS256.withoutPassphrase.public, "RS256");
+
+    const request: Request = new Request(HttpMethod.Get, "", "uuid");
+    request.setHeaders({"Authorization": "Bearer this.is.notavalidjwt"});
+
+    try {
+      await jwtManager.validateAndDecode(request);
+      fail("Expected validateAndDecode to reject.");
+    } catch (error) {
+      expect(error).toBeInstanceOf(InvalidJwtError);
+      expect((error as InvalidJwtError).options.httpStatus).toBe(401);
+      expect((error as InvalidJwtError).options.code).toBe("UNAUTHORIZED");
+    }
+  });
+
+  it("should reject a missing Authorization header with a JwtAuthorizationHeaderError mapped to 401", async () => {
+    const jwtManager = new JwtManager(JWTKeys.RS256.withoutPassphrase.public, "RS256");
+
+    const request: Request = new Request(HttpMethod.Get, "", "uuid");
+
+    try {
+      await jwtManager.validateAndDecode(request);
+      fail("Expected validateAndDecode to reject.");
+    } catch (error) {
+      expect(error).toBeInstanceOf(JwtAuthorizationHeaderError);
+      expect((error as JwtAuthorizationHeaderError).options.httpStatus).toBe(401);
+      expect((error as JwtAuthorizationHeaderError).options.code).toBe("UNAUTHORIZED");
+    }
   });
 });

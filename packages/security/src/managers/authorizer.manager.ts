@@ -1,6 +1,6 @@
 import {DependencyContainer, inject, injectable} from "tsyringe";
 import {LogHandlerInterface} from "@pristine-ts/logging";
-import {IdentityInterface, moduleScoped, Request, tag, traced, TracingManagerInterface} from "@pristine-ts/common";
+import {IdentityInterface, moduleScoped, PristineError, Request, tag, traced, TracingManagerInterface} from "@pristine-ts/common";
 import {AuthorizerManagerInterface} from "../interfaces/authorizer-manager.interface";
 import {GuardFactory} from "../factories/guard.factory";
 import {SecurityModuleKeyname} from "../security.module.keyname";
@@ -79,6 +79,17 @@ export class AuthorizerManager implements AuthorizerManagerInterface {
             identity,
           }
         });
+
+        // A guard that raised a *typed* auth error (401 UNAUTHORIZED / 401 TOKEN_EXPIRED /
+        // 403 FORBIDDEN) is telling us precisely *why* it denied — e.g. the JwtProtectedGuard
+        // surfacing an expired token. Propagate it so the router turns it into the exact
+        // status + code and the client can tell "refresh the token" from "log in". Any other
+        // (untyped) failure keeps denying as before: a broken guard must never accidentally
+        // authorize, and an opaque failure has no better signal than 403.
+        if (e instanceof PristineError && (e.options.httpStatus === 401 || e.options.httpStatus === 403)) {
+          throw e;
+        }
+
         isAuthorized = false;
       }
     }

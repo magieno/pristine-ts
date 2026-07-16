@@ -151,7 +151,7 @@ describe("Auth0 authenticator", () => {
         })
     })
 
-    it("should return forbidden if does not have the audience", async () => {
+    it("should return 403 FORBIDDEN if the audience does not match", async () => {
         const payload = {
             "sub": "aaaaaaaa-bbbb-cccc-dddd-example",
             "aud": [
@@ -184,10 +184,10 @@ describe("Auth0 authenticator", () => {
 
         expect(response.status).toBe(403);
         expect(response.body.code).toBe("FORBIDDEN");
-        expect(response.body.message).toBe("You are not allowed to access this.");
+        expect(response.body.message).toBe("Claim audience does not include expected audience");
     })
 
-    it("should return forbidden if does not have the scope", async () => {
+    it("should return 403 FORBIDDEN (insufficient_scope) if it does not have the scope", async () => {
         const payload = {
             "sub": "aaaaaaaa-bbbb-cccc-dddd-example",
             "aud": [
@@ -221,7 +221,7 @@ describe("Auth0 authenticator", () => {
 
         expect(response.status).toBe(403);
         expect(response.body.code).toBe("FORBIDDEN");
-        expect(response.body.message).toBe("You are not allowed to access this.");
+        expect(response.body.message).toBe("Claim does not contain the required scope: 'read:messages'");
     })
 
     it("should return forbidden if does not have the role", async () => {
