@@ -1,7 +1,7 @@
 import "reflect-metadata"
 import {inject, injectable} from "tsyringe";
 import {JwtConfigurationKeys} from "../jwt.configuration-keys";
-import {injectConfig, moduleScoped, Request, tag} from "@pristine-ts/common";
+import {injectConfig, moduleScoped, Request, tag, TokenExpiredError} from "@pristine-ts/common";
 
 import {Algorithm, verify} from "jsonwebtoken"
 import {JwtAuthorizationHeaderError} from "../errors/jwt-authorization-header.error";
@@ -44,6 +44,13 @@ export class JwtManager implements JwtManagerInterface {
           algorithms: [this.algorithm],
         }, (err, decoded) => {
           if (err) {
+            // `jsonwebtoken` names the expiry error `TokenExpiredError`. Surface it as a
+            // `TokenExpiredError` (401 TOKEN_EXPIRED) so a client can attempt a refresh,
+            // versus an invalid token (401 UNAUTHORIZED) which means "log in".
+            if (err.name === "TokenExpiredError") {
+              return reject(new TokenExpiredError("The JWT has expired.", {cause: err, details: {request}}));
+            }
+
             return reject(new InvalidJwtError("The JWT is invalid.", err, request, token, this.algorithm, this.publicKey));
           }
 

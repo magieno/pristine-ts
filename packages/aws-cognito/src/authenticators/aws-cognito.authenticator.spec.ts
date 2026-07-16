@@ -1,6 +1,6 @@
 import "reflect-metadata"
 import {AwsCognitoAuthenticator} from "./aws-cognito.authenticator";
-import {HttpMethod, Request} from "@pristine-ts/common";
+import {HttpMethod, Request, TokenExpiredError, UnauthorizedError} from "@pristine-ts/common";
 import * as jwt from "jsonwebtoken";
 import {HttpClientInterface, HttpRequestInterface, HttpResponseInterface} from "@pristine-ts/http";
 import {LogHandlerInterface} from "@pristine-ts/logging";
@@ -184,18 +184,26 @@ describe("AWS Cognito authenticator ", () => {
     expect(cognitoAuthenticator["getAndVerifyClaims"](token, publicKey1)).toEqual(payload);
   });
 
-  it("should not getAndVerifyClaims if expired", async () => {
+  it("should throw a TokenExpiredError (401 TOKEN_EXPIRED) when the token is expired", async () => {
     const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
     payload.exp = 1500000;
     const token = jwt.sign(payload, privateKey, {algorithm: 'RS256'});
-    expect(() => cognitoAuthenticator["getAndVerifyClaims"](token, publicKey1)).toThrow(new Error("Invalid jwt: jwt expired"));
+    expect(() => cognitoAuthenticator["getAndVerifyClaims"](token, publicKey1)).toThrow(TokenExpiredError);
+
+    try {
+      cognitoAuthenticator["getAndVerifyClaims"](token, publicKey1);
+    } catch (error) {
+      expect(error).toBeInstanceOf(TokenExpiredError);
+      expect((error as TokenExpiredError).options.httpStatus).toBe(401);
+      expect((error as TokenExpiredError).options.code).toBe("TOKEN_EXPIRED");
+    }
   });
 
-  it("should not getAndVerifyClaims if auth time after", async () => {
+  it("should throw an UnauthorizedError when the auth_time is in the future", async () => {
     const cognitoAuthenticator = new AwsCognitoAuthenticator("us-east-1", "poolId", new MockHttpClient(), logHandlerMock);
     payload.auth_time = 1500000000000;
     const token = jwt.sign(payload, privateKey, {algorithm: 'RS256'});
-    expect(() => cognitoAuthenticator["getAndVerifyClaims"](token, publicKey1)).toThrow(new Error('Claim is expired or invalid'));
+    expect(() => cognitoAuthenticator["getAndVerifyClaims"](token, publicKey1)).toThrow(UnauthorizedError);
   });
 
   it("should not getAndVerifyClaims if issuer different", async () => {

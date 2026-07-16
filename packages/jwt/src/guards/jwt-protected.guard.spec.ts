@@ -15,15 +15,16 @@ describe("JWT Protected Guard", () => {
     expect(await jwtProtectedGuard.isAuthorized(request)).toBeTruthy()
   })
 
-  it("should return false when the validateAndDecode rejects", async () => {
+  it("should propagate the error when validateAndDecode rejects, so the AuthorizerManager can surface the precise auth code instead of a generic 403", async () => {
+    const thrownError = new Error("invalid token");
     const jwtProtectedGuard = new JwtProtectedGuard({
       validateAndDecode: (request: Request): Promise<void> => {
-        return Promise.reject(new Error());
+        return Promise.reject(thrownError);
       }
     })
 
     const request = new Request(HttpMethod.Get, "https://url", "uuid")
 
-    expect(await jwtProtectedGuard.isAuthorized(request)).toBeFalsy()
+    await expect(jwtProtectedGuard.isAuthorized(request)).rejects.toBe(thrownError);
   })
 })

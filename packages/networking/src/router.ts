@@ -15,10 +15,12 @@ import {
   MetadataUtil,
   NotFoundError,
   ObjectUtil,
+  PristineError,
   Request,
   Response,
   ServiceDefinitionTagEnum,
   tag,
+  UnauthorizedError,
 } from "@pristine-ts/common";
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {AuthenticationManagerInterface, AuthorizerManagerInterface} from "@pristine-ts/security";
@@ -297,9 +299,14 @@ export class Router implements RouterInterface {
           },
         });
 
-        // Todo: check if the error is an UnauthorizedHttpError, else create one.
-        if (error instanceof ForbiddenError === false) {
-          error = new ForbiddenError("You are not allowed to access this.");
+        // Preserve any auth error the authenticator already typed (401 UNAUTHORIZED /
+        // 401 TOKEN_EXPIRED / 403 FORBIDDEN) so the client can tell "refresh the token"
+        // from "log in" from "you're not allowed". Only wrap untyped/opaque failures,
+        // and default them to 401 — a failure at the *authentication* stage means the
+        // caller isn't authenticated, which is a 401, not a 403.
+        if (error instanceof PristineError === false ||
+          (error.options.httpStatus !== 401 && error.options.httpStatus !== 403)) {
+          error = new UnauthorizedError("You are not authenticated to access this.", {cause: error as Error});
         }
 
         routerRequestExecutionSpan.end();

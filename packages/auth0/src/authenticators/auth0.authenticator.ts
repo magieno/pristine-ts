@@ -1,6 +1,6 @@
 import {inject, injectable, singleton} from "tsyringe";
 import {createPublicKey, verify} from "crypto";
-import {HttpMethod, IdentityInterface, injectConfig, Request, traced} from "@pristine-ts/common";
+import {ForbiddenError, HttpMethod, IdentityInterface, injectConfig, PristineError, Request, traced, TokenExpiredError, UnauthorizedError} from "@pristine-ts/common";
 import {TokenHeaderInterface} from "../interfaces/token-header.interface";
 import {ClaimInterface} from "../interfaces/claim.interface";
 import {Auth0AuthenticatorOptionsInterface} from "../interfaces/auth0-authenticator-options.interface";
@@ -196,17 +196,25 @@ export class Auth0Authenticator implements AuthenticatorInterface {
     try {
       claim = this.verifyTokenAndDecode(token, key);
     } catch (err) {
-      throw new Error("Invalid jwt: " + (err as Error).message);
+      // Preserve the typed auth errors (TokenExpiredError → refresh, UnauthorizedError →
+      // login) that verifyTokenAndDecode already raised; only opaque failures get wrapped.
+      if (err instanceof PristineError) {
+        throw err;
+      }
+      throw new UnauthorizedError("Invalid jwt: " + (err as Error).message, {cause: err as Error});
     }
 
     // Verify if the token is expired or was auth_time is invalid
     const currentSeconds = Math.floor((new Date()).valueOf() / 1000);
-    if (currentSeconds > claim.exp || currentSeconds < claim.auth_time) {
-      throw new Error('Claim is expired or invalid');
+    if (currentSeconds > claim.exp) {
+      throw new TokenExpiredError("The token has expired.");
+    }
+    if (currentSeconds < claim.auth_time) {
+      throw new UnauthorizedError("The token auth_time is invalid.");
     }
     // Verify if issuer is the auth0 issuer.
     if (claim.iss !== this.auth0Issuer) {
-      throw new Error('Claim issuer is invalid');
+      throw new UnauthorizedError('Claim issuer is invalid');
     }
 
     const options = this.getOptions();
@@ -233,7 +241,11 @@ export class Auth0Authenticator implements AuthenticatorInterface {
       const tokenAudiences: string[] = Array.isArray(audClaim) ? audClaim : [audClaim];
 
       if (expectedAudiences.some((audience) => tokenAudiences.includes(audience)) === false) {
-        throw new Error('Claim audience does not include expected audience');
+        // A token minted for a different audience is a valid credential that simply isn't
+        // meant for this resource server → authorization failure (403), consistent with the
+        // module's configured-audience behavior. (Contrast: a wrong *issuer* is an untrusted
+        // signer → 401.)
+        throw new ForbiddenError('Claim audience does not include expected audience');
       }
     }
 
@@ -244,7 +256,10 @@ export class Auth0Authenticator implements AuthenticatorInterface {
       const expectedScopes = Array.isArray(expectedScopesOption) ? expectedScopesOption : [expectedScopesOption];
       for (const scope of expectedScopes) {
         if (providedScopes.includes(scope) === false) {
-          throw new Error("Claim does not contain the required scope: '" + scope + "'");
+          // Insufficient scope is an *authorization* failure (the token is valid, the caller
+          // is authenticated, but this grant is missing) → 403, per RFC 6750
+          // `insufficient_scope`. Distinct from the invalid-token cases above which are 401.
+          throw new ForbiddenError("Claim does not contain the required scope: '" + scope + "'");
         }
       }
     }
@@ -268,7 +283,7 @@ export class Auth0Authenticator implements AuthenticatorInterface {
   private verifyTokenAndDecode(token: string, key: string): ClaimInterface {
     const tokenSections = (token || "").split(".");
     if (tokenSections.length !== 3) {
-      throw new Error("jwt malformed");
+      throw new UnauthorizedError("jwt malformed");
     }
 
     const signingInput = tokenSections[0] + "." + tokenSections[1];
@@ -277,13 +292,16 @@ export class Auth0Authenticator implements AuthenticatorInterface {
     // Auth0 signs its tokens with RS256; pinning the algorithm also guards against
     // algorithm-substitution attacks.
     if (verify("RSA-SHA256", Buffer.from(signingInput), key, signature) === false) {
-      throw new Error("invalid signature");
+      throw new UnauthorizedError("invalid signature");
     }
 
     const claim = JSON.parse(Buffer.from(tokenSections[1], "base64url").toString("utf8")) as ClaimInterface;
 
+    // An expired token is a `TokenExpiredError` (401 TOKEN_EXPIRED) so a client can try a
+    // refresh, distinct from the malformed/invalid-signature cases above (401 UNAUTHORIZED
+    // → login).
     if (claim.exp !== undefined && Math.floor(Date.now() / 1000) >= claim.exp) {
-      throw new Error("jwt expired");
+      throw new TokenExpiredError("The token has expired.");
     }
 
     return claim;

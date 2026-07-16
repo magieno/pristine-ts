@@ -1,6 +1,6 @@
 import "reflect-metadata"
 import {Auth0Authenticator} from "./auth0.authenticator";
-import {HttpMethod, Request} from "@pristine-ts/common";
+import {HttpMethod, Request, TokenExpiredError, UnauthorizedError} from "@pristine-ts/common";
 import {sign} from "crypto";
 import {HttpClientInterface, HttpRequestInterface, HttpResponseInterface} from "@pristine-ts/http";
 import {LogHandlerInterface} from "@pristine-ts/logging";
@@ -232,18 +232,26 @@ describe("Auth0 authenticator ", () => {
     expect(() => auth0Authenticator["getAndVerifyClaims"](token, publicKey1)).toThrow(new Error("Claim does not contain the required scope: 'read:users'"));
   });
 
-  it("should not getAndVerifyClaims if expired", async () => {
+  it("should throw a TokenExpiredError (401 TOKEN_EXPIRED) when the token is expired", async () => {
     const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
     payload.exp = 1500000;
     const token = signToken(payload, privateKey);
-    expect(() => auth0Authenticator["getAndVerifyClaims"](token, publicKey1)).toThrow(new Error("Invalid jwt: jwt expired"));
+    expect(() => auth0Authenticator["getAndVerifyClaims"](token, publicKey1)).toThrow(TokenExpiredError);
+
+    try {
+      auth0Authenticator["getAndVerifyClaims"](token, publicKey1);
+    } catch (error) {
+      expect(error).toBeInstanceOf(TokenExpiredError);
+      expect((error as TokenExpiredError).options.httpStatus).toBe(401);
+      expect((error as TokenExpiredError).options.code).toBe("TOKEN_EXPIRED");
+    }
   });
 
-  it("should not getAndVerifyClaims if auth time after", async () => {
+  it("should throw an UnauthorizedError when the auth_time is in the future", async () => {
     const auth0Authenticator = new Auth0Authenticator("auth0.com", new MockHttpClient(), logHandlerMock);
     payload.auth_time = 1500000000000;
     const token = signToken(payload, privateKey);
-    expect(() => auth0Authenticator["getAndVerifyClaims"](token, publicKey1)).toThrow(new Error('Claim is expired or invalid'));
+    expect(() => auth0Authenticator["getAndVerifyClaims"](token, publicKey1)).toThrow(UnauthorizedError);
   });
 
   it("should not getAndVerifyClaims if issuer different", async () => {

@@ -22,6 +22,7 @@
 export enum PristineErrorCode {
   BadRequest        = "BAD_REQUEST",
   Unauthorized      = "UNAUTHORIZED",
+  TokenExpired      = "TOKEN_EXPIRED",
   Forbidden         = "FORBIDDEN",
   NotFound          = "NOT_FOUND",
   Conflict          = "CONFLICT",

@@ -7,6 +7,7 @@ import {JWTKeys} from "./jwt.keys";
 import {AppModuleInterface, HttpMethod, Request, Response} from "@pristine-ts/common";
 import {guard} from "@pristine-ts/security";
 import {ConfigurationValidationError} from "@pristine-ts/configuration";
+import {sign} from "jsonwebtoken";
 
 describe("JWT Module instantiation in the Kernel", () => {
 
@@ -70,7 +71,7 @@ describe("JWT Module instantiation in the Kernel", () => {
         })).rejects.toThrow(new ConfigurationValidationError(["The Configuration with key: 'pristine.jwt.publicKey' is required and must be defined."]));
     })
 
-    it("should return a forbidden exception when the JWT is invalid", async () => {
+    const startJwtKernel = async () => {
         const kernel = new Kernel();
         await kernel.start({
             keyname: "jwt.test",
@@ -84,6 +85,11 @@ describe("JWT Module instantiation in the Kernel", () => {
             "pristine.jwt.publicKey": JWTKeys.RS256.withoutPassphrase.public,
             "pristine.logging.consoleLoggerActivated": false,
         });
+        return kernel;
+    };
+
+    it("should return a 401 UNAUTHORIZED (login, not refresh) when the JWT is invalid", async () => {
+        const kernel = await startJwtKernel();
 
         const request: Request = new Request(HttpMethod.Get, "http://localhost:8080/api/2.0/jwt/services", "uuid");
         request.setHeaders({
@@ -93,6 +99,39 @@ describe("JWT Module instantiation in the Kernel", () => {
         const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
 
         expect(response instanceof Response).toBeTruthy()
-        expect(response.status).toBe(403);
+        expect(response.status).toBe(401);
+        expect((response.body as any).code).toBe("UNAUTHORIZED");
+    })
+
+    it("should return a 401 TOKEN_EXPIRED (so the client can refresh) when the JWT is expired", async () => {
+        const kernel = await startJwtKernel();
+
+        const expiredJwt = sign({sub: "1234567890"}, JWTKeys.RS256.withoutPassphrase.private, {
+            algorithm: "RS256",
+            expiresIn: -60, // Issued already expired.
+        });
+
+        const request: Request = new Request(HttpMethod.Get, "http://localhost:8080/api/2.0/jwt/services", "uuid");
+        request.setHeaders({
+            "Authorization": "Bearer " + expiredJwt,
+        });
+
+        const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
+
+        expect(response instanceof Response).toBeTruthy()
+        expect(response.status).toBe(401);
+        expect((response.body as any).code).toBe("TOKEN_EXPIRED");
+    })
+
+    it("should return a 401 UNAUTHORIZED when the Authorization header is missing", async () => {
+        const kernel = await startJwtKernel();
+
+        const request: Request = new Request(HttpMethod.Get, "http://localhost:8080/api/2.0/jwt/services", "uuid");
+
+        const response = await kernel.handle(request, {keyname: ExecutionContextKeynameEnum.Jest, context: {}}) as Response;
+
+        expect(response instanceof Response).toBeTruthy()
+        expect(response.status).toBe(401);
+        expect((response.body as any).code).toBe("UNAUTHORIZED");
     })
 })

@@ -1,6 +1,6 @@
 import {inject, injectable, singleton} from "tsyringe";
 import * as jwt from "jsonwebtoken";
-import {HttpMethod, IdentityInterface, Request, traced} from "@pristine-ts/common";
+import {HttpMethod, IdentityInterface, Request, traced, TokenExpiredError, UnauthorizedError} from "@pristine-ts/common";
 import {AuthenticatorInterface} from "@pristine-ts/security";
 import {HttpClientInterface, ResponseTypeEnum} from "@pristine-ts/http";
 import {LogHandlerInterface} from "@pristine-ts/logging";
@@ -109,19 +109,28 @@ export class IdentityPlatformAuthenticator implements AuthenticatorInterface {
     try {
       claim = jwt.verify(token, cert, {algorithms: ["RS256"]}) as ClaimInterface;
     } catch (err) {
-      throw new Error("Invalid jwt: " + (err as Error).message);
+      // `jsonwebtoken` names the expiry error `TokenExpiredError`. Surface it as a
+      // `TokenExpiredError` (401 TOKEN_EXPIRED → refresh) distinct from any other invalid
+      // token (401 UNAUTHORIZED → login).
+      if ((err as Error)?.name === "TokenExpiredError") {
+        throw new TokenExpiredError("The token has expired.", {cause: err as Error});
+      }
+      throw new UnauthorizedError("Invalid jwt: " + (err as Error).message, {cause: err as Error});
     }
 
     const currentSeconds = Math.floor(Date.now() / 1000);
-    if (currentSeconds > claim.exp || currentSeconds < claim.auth_time) {
-      throw new Error("Claim is expired or invalid");
+    if (currentSeconds > claim.exp) {
+      throw new TokenExpiredError("The token has expired.");
+    }
+    if (currentSeconds < claim.auth_time) {
+      throw new UnauthorizedError("The token auth_time is invalid.");
     }
     const expectedIssuer = `https://securetoken.google.com/${this.projectId}`;
     if (claim.iss !== expectedIssuer) {
-      throw new Error("Claim issuer is invalid");
+      throw new UnauthorizedError("Claim issuer is invalid");
     }
     if (claim.aud !== this.projectId) {
-      throw new Error("Claim audience is invalid");
+      throw new UnauthorizedError("Claim audience is invalid");
     }
     return claim;
   }
