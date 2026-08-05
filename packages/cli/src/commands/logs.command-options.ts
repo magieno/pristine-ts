@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import {IsArray, IsBoolean, IsOptional, IsString} from "@pristine-ts/class-validator";
+import {IsArray, IsBoolean, IsInt, IsOptional, IsString, Min} from "@pristine-ts/class-validator";
 
 /**
  * Flags + positional for `pristine logs [<id>] [--event-id <x>] [--trace-id <x>] [--request-id <x>] [--follow|-f]`.
@@ -40,6 +40,16 @@ export class LogsCommandOptions {
   f?: boolean;
 
   /**
+   * `--limit <n>`: how many entries to render, counted from the newest. Defaults to
+   * {@link LogsCommandOptions.DEFAULT_LIMIT} so the command stays cheap on a store that
+   * holds hundreds of thousands of entries; `--limit 0` renders everything.
+   */
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  limit?: number;
+
+  /**
    * Bare positional tokens. A positional id is tried against all three correlation
    * fields by `LogStore.read(id)` / `LogStore.tail(id, ...)`. Decorators are required
    * for `AutoDataMappingBuilder` to round-trip the field.
@@ -60,4 +70,19 @@ export class LogsCommandOptions {
   get isFollowing(): boolean {
     return this.follow === true || this.f === true;
   }
+
+  /**
+   * The number of entries to read, or `undefined` for "all of them" (`--limit 0`).
+   */
+  get resolvedLimit(): number | undefined {
+    const limit = this.limit ?? LogsCommandOptions.DEFAULT_LIMIT;
+    return limit <= 0 ? undefined : limit;
+  }
+
+  /**
+   * Rendering an unbounded store to a terminal is neither useful nor cheap — the store
+   * is capped in bytes, not in entries, so "everything" can be hundreds of thousands of
+   * lines. Newest-first truncation keeps the default fast and predictable.
+   */
+  static readonly DEFAULT_LIMIT = 1000;
 }

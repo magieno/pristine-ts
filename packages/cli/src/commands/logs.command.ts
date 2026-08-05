@@ -20,7 +20,7 @@ import {LogsCommandOptions} from "./logs.command-options";
 export class LogsCommand implements CommandInterface<LogsCommandOptions> {
   optionsType = LogsCommandOptions;
   name = "p:logs";
-  description = "Show captured logs, optionally filtered by event/trace/request id, optionally following live.";
+  description = "Show captured logs, optionally filtered by event/trace/request id, optionally following live. Capped to the newest entries (--limit).";
 
   constructor(
     private readonly cliOutput: CliOutput,
@@ -30,13 +30,18 @@ export class LogsCommand implements CommandInterface<LogsCommandOptions> {
 
   async run(args: LogsCommandOptions): Promise<ExitCode | number> {
     const filterId = args.filterId;
-    const entries = this.logStore.read(filterId);
+    const limit = args.resolvedLimit;
+    const entries = this.logStore.read(filterId, {limit});
 
     if (entries.length === 0 && args.isFollowing === false) {
       this.cliOutput.writeLine(filterId === undefined
         ? "No captured observability data found. Run your app first."
         : `No logs found matching '${filterId}'.`);
       return ExitCode.Success;
+    }
+
+    if (limit !== undefined && entries.length === limit) {
+      this.cliOutput.writeLine(`Showing the ${limit} most recent entries — pass --limit <n> (or --limit 0 for all) to change that.`);
     }
 
     for (const entry of entries) {
