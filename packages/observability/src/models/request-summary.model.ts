@@ -57,6 +57,13 @@ export class RequestSummary {
    */
   httpStatus?: number;
 
+  /**
+   * Set when the trace tree was too large to persist (`maxTraceFileSize`) and only this
+   * summary was written. `pristine requests` still lists the request; `pristine trace
+   * <id>` will not find a tree for it.
+   */
+  traceOmitted?: boolean;
+
   constructor(eventId: string, startedAt: number, durationMs: number, rootKeyname: string) {
     this.eventId = eventId;
     this.startedAt = startedAt;

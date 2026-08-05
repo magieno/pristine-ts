@@ -9,10 +9,11 @@ import {LogStore} from "../store/log-store";
  * A `Logger` transport that forwards every log entry to `LogStore`. Thin adapter — all
  * file I/O, serialization, retention, and per-process partitioning live in `LogStore`.
  *
- * Unlike the framework's `ConsoleLogger`/`FileLogger`, this transport does **not** extend
- * `BaseLogger`: the store captures *every* log at full fidelity — no severity threshold,
- * no stacking, no depth truncation beyond a safety bound. Filtering happens at query
- * time, not write time.
+ * Unlike the framework's `ConsoleLogger`, this transport does **not** extend `BaseLogger`
+ * — no stacking, no console formatting. It is not unfiltered, though: `LogStore` applies
+ * its own `pristine.observability.logSeverityLevelConfiguration` threshold and its own
+ * entry-size bound at write time, independently of what the console is configured to
+ * show. Everything that survives those is kept verbatim for query time.
  */
 @moduleScoped(ObservabilityModuleKeyname)
 @singleton()

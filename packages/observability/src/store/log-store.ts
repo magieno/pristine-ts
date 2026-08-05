@@ -1,11 +1,17 @@
 import * as fs from "fs";
-import {inject, injectable, singleton} from "tsyringe";
-import {injectConfig, InternalContainerParameterEnum, moduleScoped} from "@pristine-ts/common";
+import {injectable, singleton} from "tsyringe";
+import {injectConfig, moduleScoped} from "@pristine-ts/common";
 import {LogModel} from "@pristine-ts/logging";
 import {ObservabilityModuleKeyname} from "../observability.module.keyname";
 import {ObservabilityConfigurationKeys} from "../observability.configuration-keys";
 import {ObservabilityPaths} from "../paths/observability-paths";
 import {LogTailer} from "../tailers/log-tailer";
+import {SafeStringifier} from "../utils/safe-stringifier";
+import {JsonlReader} from "../utils/jsonl-reader";
+import {LogStoreReadOptions} from "../options/log-store-read-options";
+import {PartitionIndex} from "./partition-index";
+import {RotatingJsonlWriter} from "./rotating-jsonl-writer";
+import {StoreBudgetEnforcer} from "./store-budget-enforcer";
 
 /**
  * The read/write layer for captured logs. The `ObservabilityLogger` (a `Logger`-tagged
@@ -17,6 +23,17 @@ import {LogTailer} from "../tailers/log-tailer";
  * That partition is invisible to callers: `read` walks every directory newest-first and
  * concatenates; `tail` follows the most-recently-written directory.
  *
+ * **Disk is bounded on three axes**, because a long-running process would otherwise
+ * append to one `logs.jsonl` for its entire lifetime — instance-directory retention only
+ * ever prunes *other* processes' directories:
+ *
+ * - per entry — anything past `maxEntrySize` is rewritten without its `extra` payload;
+ * - per file — `RotatingJsonlWriter` rolls over at `maxLogFileSize`, keeping `maxLogFiles`;
+ * - per store — `StoreBudgetEnforcer` holds the whole directory under `maxStoreSize`.
+ *
+ * Entries below `logSeverityLevelConfiguration` are dropped at write time, so debug
+ * traffic the console already hides does not quietly fill the disk.
+ *
  * Singleton so both the writer (logger) and any reader resolved during the same
  * process see the same in-memory state.
  */
@@ -25,16 +42,27 @@ import {LogTailer} from "../tailers/log-tailer";
 @injectable()
 export class LogStore {
   private readonly paths: ObservabilityPaths;
+  private readonly stringifier: SafeStringifier;
+  private readonly writer: RotatingJsonlWriter;
   private directoryEnsured = false;
-  private pruned = false;
 
   constructor(
     @injectConfig(ObservabilityConfigurationKeys.Enabled) private readonly enabled: boolean,
-    @injectConfig(ObservabilityConfigurationKeys.Directory) directory: string,
-    @injectConfig(ObservabilityConfigurationKeys.RetainedInstances) private readonly retainedInstances: number,
-    @inject(InternalContainerParameterEnum.KernelInstantiationId) private readonly partitionId: string,
+    @injectConfig(ObservabilityConfigurationKeys.MaxEntrySize) private readonly maxEntrySize: number,
+    @injectConfig(ObservabilityConfigurationKeys.MaxLogFileSize) maxLogFileSize: number,
+    @injectConfig(ObservabilityConfigurationKeys.MaxLogFiles) private readonly maxLogFiles: number,
+    @injectConfig(ObservabilityConfigurationKeys.LogSeverityLevelConfiguration) private readonly logSeverityLevelConfiguration: number,
+    private readonly partitions: PartitionIndex,
+    private readonly budget: StoreBudgetEnforcer,
   ) {
-    this.paths = new ObservabilityPaths(directory);
+    this.paths = partitions.paths;
+    this.stringifier = new SafeStringifier();
+    this.writer = new RotatingJsonlWriter(
+      this.paths.logsFile(partitions.currentPartitionId),
+      maxLogFileSize,
+      maxLogFiles,
+      (bytes, rotated) => this.budget.recordBytes(bytes, rotated),
+    );
   }
 
   /**
@@ -47,38 +75,64 @@ export class LogStore {
 
   /**
    * Appends one log entry to the current process's `logs.jsonl`. No-op when
-   * observability is disabled.
+   * observability is disabled or when the entry is below the configured severity
+   * threshold.
    *
    * The on-disk shape is the JSON-serialized `LogModel` itself — `severity` stays a
    * numeric `SeverityEnum`, `date` becomes an ISO string — so the `logs` command can
-   * round-trip through `PrettyLogFormatter`. Stringification is cycle-safe because
-   * `log.extra` routinely holds `Span`/`Trace` objects whose `parentSpan` ↔ `children`
-   * back-references would otherwise blow up a naive serializer.
+   * round-trip through `PrettyLogFormatter`. Serialization goes through
+   * `SafeStringifier`: `log.extra` routinely holds `Span`/`Trace` objects whose
+   * `parentSpan` ↔ `children` back-references would blow up a naive serializer, and
+   * whose expanded tree can dwarf the entry it decorates.
    */
   append(log: LogModel): void {
-    if (this.enabled === false) {
+    if (this.enabled === false || this.isBelowThreshold(log)) {
       return;
     }
     this.ensurePartitionDirectory();
-    const line = LogStore.safeStringify(log) + "\n";
-    fs.appendFileSync(this.paths.logsFile(this.partitionId), line);
+    this.writer.append(this.serialize(log));
   }
 
   /**
    * Every captured log entry across every partition, in write order within each
-   * partition and partitions concatenated newest-first. When `id` is provided, only
-   * entries whose `traceId` / `eventId` / `requestId` match are returned — useful for
-   * `pristine logs <id>`.
+   * partition (rotated generations included, oldest first) and partitions concatenated
+   * newest-first. When `id` is provided, only entries whose `traceId` / `eventId` /
+   * `requestId` match are returned — useful for `pristine logs <id>`.
+   *
+   * `options.limit` caps how many entries are collected and reads from the newest end,
+   * so `pristine logs --limit 100` against a multi-megabyte store touches only the tail
+   * of one file. Without a limit the whole store is materialized — the caller's choice.
    */
-  read(id?: string): Record<string, any>[] {
+  read(id?: string, options: LogStoreReadOptions = {}): Record<string, any>[] {
+    const limit = options.limit;
     const entries: Record<string, any>[] = [];
-    for (const partition of this.partitionsNewestFirst()) {
-      for (const entry of this.readJsonl(this.paths.logsFile(partition))) {
-        if (id === undefined || LogStore.entryMatchesId(entry, id)) {
-          entries.push(entry);
+
+    for (const partition of this.partitions.newestFirst()) {
+      const files = RotatingJsonlWriter.existingFiles(this.paths.logsFile(partition), this.maxLogFiles);
+      const partitionEntries: Record<string, any>[] = [];
+
+      // Newest file first, newest line first within it, so a limit keeps the most recent
+      // entries. The partition's entries are flipped back into write order below.
+      for (let index = files.length - 1; index >= 0; index--) {
+        if (limit !== undefined && entries.length + partitionEntries.length >= limit) {
+          break;
         }
+        JsonlReader.forEachLineReverse(files[index], line => {
+          const entry = LogStore.parseLine(line);
+          if (entry === undefined || (id !== undefined && LogStore.entryMatchesId(entry, id) === false)) {
+            return;
+          }
+          partitionEntries.push(entry);
+          return limit === undefined || entries.length + partitionEntries.length < limit;
+        });
+      }
+
+      entries.push(...partitionEntries.reverse());
+      if (limit !== undefined && entries.length >= limit) {
+        break;
       }
     }
+
     return entries;
   }
 
@@ -87,9 +141,12 @@ export class LogStore {
    * appended line until the returned handle's `stop()` is called. When `id` is
    * provided, only matching entries surface. Returns a no-op handle when the store
    * has no partitions yet.
+   *
+   * A rollover is transparent: `LogTailer` resets to the new end when the file it
+   * follows shrinks, so following resumes on the fresh generation.
    */
   tail(id: string | undefined, onLine: (line: string) => void): { stop(): void } {
-    const partition = this.latestPartition();
+    const partition = this.partitions.newestFirst()[0];
     if (partition === undefined) {
       return {stop: () => undefined};
     }
@@ -99,78 +156,67 @@ export class LogStore {
         onLine(line);
         return;
       }
-      try {
-        if (LogStore.entryMatchesId(JSON.parse(line), id)) {
-          onLine(line);
-        }
-      } catch {
-        // Skip malformed lines rather than aborting the follow.
+      const entry = LogStore.parseLine(line);
+      if (entry !== undefined && LogStore.entryMatchesId(entry, id)) {
+        onLine(line);
       }
     });
     return {stop: () => tailer.stop()};
+  }
+
+  /**
+   * Serializes the entry within `maxEntrySize`. An entry that busts the ceiling is
+   * rewritten **without** its `extra` payload and flagged with `extraOmitted` — that
+   * payload is the only unbounded part of a log, and dropping it preserves every
+   * correlation field (`eventId` / `traceId` / `severity` / `message`) so the entry still
+   * surfaces in a filtered query.
+   */
+  private serialize(log: LogModel): string {
+    const line = this.stringifier.stringify(log);
+    if (this.maxEntrySize <= 0 || Buffer.byteLength(line) <= this.maxEntrySize) {
+      return line;
+    }
+
+    const {extra, ...rest} = log as unknown as Record<string, unknown>;
+    const withoutExtra = this.stringifier.stringify({...rest, extraOmitted: true});
+    if (Buffer.byteLength(withoutExtra) <= this.maxEntrySize) {
+      return withoutExtra;
+    }
+
+    // Still too large without `extra` — a pathological `message` or `highlights`. Keep
+    // only what a query needs.
+    return this.stringifier.stringify({
+      severity: log.severity,
+      date: log.date,
+      eventId: log.eventId,
+      traceId: log.traceId,
+      kernelInstantiationId: log.kernelInstantiationId,
+      message: typeof log.message === "string" ? log.message.slice(0, 1024) : log.message,
+      extraOmitted: true,
+      truncated: true,
+    });
+  }
+
+  private isBelowThreshold(log: LogModel): boolean {
+    return typeof log.severity === "number" && log.severity < this.logSeverityLevelConfiguration;
   }
 
   private ensurePartitionDirectory(): void {
     if (this.directoryEnsured) {
       return;
     }
-    fs.mkdirSync(this.paths.instanceDirectory(this.partitionId), {recursive: true});
+    fs.mkdirSync(this.paths.instanceDirectory(this.partitions.currentPartitionId), {recursive: true});
     this.directoryEnsured = true;
-    this.pruneOldPartitions();
+    this.partitions.claim();
+    this.budget.enforce();
   }
 
-  /**
-   * Drops partition directories beyond the retained limit, ordered by `mtime`. Once
-   * per process — additional appends are zero-cost. Best-effort: a failure to prune
-   * never blocks a write.
-   */
-  private pruneOldPartitions(): void {
-    if (this.pruned) {
-      return;
-    }
-    this.pruned = true;
+  private static parseLine(line: string): Record<string, any> | undefined {
     try {
-      const ordered = this.partitionsNewestFirst();
-      for (const stale of ordered.slice(Math.max(this.retainedInstances, 1))) {
-        fs.rmSync(this.paths.instanceDirectory(stale), {recursive: true, force: true});
-      }
+      return JSON.parse(line) as Record<string, any>;
     } catch {
-      // Best-effort.
-    }
-  }
-
-  private partitionsNewestFirst(): string[] {
-    try {
-      return fs.readdirSync(this.paths.root, {withFileTypes: true})
-        .filter(entry => entry.isDirectory())
-        .map(entry => ({name: entry.name, mtime: this.directoryMtime(entry.name)}))
-        .sort((a, b) => b.mtime - a.mtime)
-        .map(entry => entry.name);
-    } catch {
-      return [];
-    }
-  }
-
-  private latestPartition(): string | undefined {
-    return this.partitionsNewestFirst()[0];
-  }
-
-  private directoryMtime(name: string): number {
-    try {
-      return fs.statSync(this.paths.instanceDirectory(name)).mtimeMs;
-    } catch {
-      return 0;
-    }
-  }
-
-  private readJsonl(filePath: string): Record<string, any>[] {
-    try {
-      return fs.readFileSync(filePath, "utf8")
-        .split("\n")
-        .filter(line => line.trim().length > 0)
-        .map(line => JSON.parse(line) as Record<string, any>);
-    } catch {
-      return [];
+      // Skip malformed lines rather than aborting the read.
+      return undefined;
     }
   }
 
@@ -182,23 +228,5 @@ export class LogStore {
    */
   private static entryMatchesId(entry: Record<string, any>, id: string): boolean {
     return entry.traceId === id || entry.eventId === id || entry.requestId === id;
-  }
-
-  /**
-   * `JSON.stringify` with a cycle guard — an object seen earlier in the walk is rendered
-   * as `"[Circular]"` rather than recursed into. Faithful at any depth, and immune to the
-   * `Span.parentSpan` ↔ `Span.children` cycles common in `log.extra`.
-   */
-  private static safeStringify(value: unknown): string {
-    const seen = new WeakSet<object>();
-    return JSON.stringify(value, (_key, val) => {
-      if (typeof val === "object" && val !== null) {
-        if (seen.has(val)) {
-          return "[Circular]";
-        }
-        seen.add(val);
-      }
-      return val;
-    });
   }
 }
