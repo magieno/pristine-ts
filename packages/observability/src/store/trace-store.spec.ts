@@ -4,6 +4,8 @@ import * as os from "os";
 import * as path from "path";
 import {Span, Trace} from "@pristine-ts/common";
 import {TraceStore} from "./trace-store";
+import {PartitionIndex} from "./partition-index";
+import {StoreBudgetEnforcer} from "./store-budget-enforcer";
 import {ObservabilityPaths} from "../paths/observability-paths";
 
 function makeTempDir(): string {
@@ -13,14 +15,31 @@ function makeTempDir(): string {
 interface BuildOptions {
   enabled?: boolean;
   retainedInstances?: number;
+  maxTraceFiles?: number;
+  maxTraceFileSize?: number;
+  maxLogFileSize?: number;
+  maxLogFiles?: number;
+  maxStoreSize?: number;
+  maxRetentionAge?: number;
 }
 
 function buildTraceStore(directory: string, partitionId: string, options: BuildOptions = {}): TraceStore {
+  const partitions = new PartitionIndex(directory, partitionId);
+  const budget = new StoreBudgetEnforcer(
+    options.maxStoreSize ?? 100 * 1024 * 1024,
+    options.maxRetentionAge ?? 0,
+    options.retainedInstances ?? 10,
+    options.maxLogFiles ?? 3,
+    partitions,
+  );
   return new TraceStore(
     options.enabled ?? true,
-    directory,
-    options.retainedInstances ?? 10,
-    partitionId,
+    options.maxTraceFiles ?? 500,
+    options.maxTraceFileSize ?? 1024 * 1024,
+    options.maxLogFileSize ?? 10 * 1024 * 1024,
+    options.maxLogFiles ?? 3,
+    partitions,
+    budget,
   );
 }
 
@@ -218,5 +237,82 @@ describe("TraceStore", () => {
 
     const remaining = fs.readdirSync(directory).sort();
     expect(remaining).toEqual(["t-c", "t-new"]);
+  });
+
+  describe("retention", () => {
+    it("keeps at most maxTraceFiles trace files per partition, evicting the oldest", () => {
+      const directory = makeTempDir();
+      const store = buildTraceStore(directory, "t-cap", {maxTraceFiles: 3});
+      const tracesDirectory = new ObservabilityPaths(directory).tracesDirectory("t-cap");
+
+      for (let index = 0; index < 10; index++) {
+        store.append(makeTrace(`event-${index}`));
+      }
+
+      const files = fs.readdirSync(tracesDirectory).sort();
+      expect(files).toEqual(["event-7.json", "event-8.json", "event-9.json"]);
+      // The summary index is untouched by trace-file eviction: every request is still listed.
+      expect(store.recentRequests()).toHaveLength(10);
+      expect(store.find("event-0")).toBeUndefined();
+      expect(store.find("event-9")).toBeDefined();
+    });
+
+    it("skips a trace tree larger than maxTraceFileSize but still indexes the request", () => {
+      const directory = makeTempDir();
+      const store = buildTraceStore(directory, "t-oversized", {maxTraceFileSize: 64});
+
+      store.append(makeTrace("event-oversized"));
+
+      const paths = new ObservabilityPaths(directory);
+      expect(fs.existsSync(paths.traceFile("t-oversized", "event-oversized"))).toBe(false);
+
+      const summary = store.recentRequests()[0];
+      expect(summary.eventId).toBe("event-oversized");
+      expect(summary.traceOmitted).toBe(true);
+    });
+
+    it("rotates requests.jsonl and still reads summaries across generations", () => {
+      const directory = makeTempDir();
+      const store = buildTraceStore(directory, "t-rotate", {maxLogFileSize: 300, maxLogFiles: 3});
+      const requestsFile = new ObservabilityPaths(directory).requestsFile("t-rotate");
+
+      for (let index = 0; index < 12; index++) {
+        const trace = makeTrace(`event-${index}`);
+        trace.startDate = 1000 + index;
+        trace.endDate = trace.startDate + 5;
+        store.append(trace);
+      }
+
+      expect(fs.existsSync(ObservabilityPaths.rotated(requestsFile, 1))).toBe(true);
+
+      const summaries = store.recentRequests();
+      expect(summaries.length).toBeGreaterThan(1);
+      expect(summaries[0].eventId).toBe("event-11");
+      // Newest first, with no duplicates across generations.
+      expect(new Set(summaries.map(summary => summary.eventId)).size).toBe(summaries.length);
+    });
+
+    it("finds a trace whose summary lives in a rotated generation", () => {
+      const directory = makeTempDir();
+      const store = buildTraceStore(directory, "t-rotate-find", {maxLogFileSize: 300, maxLogFiles: 3});
+      const requestsFile = new ObservabilityPaths(directory).requestsFile("t-rotate-find");
+
+      for (let index = 0; index < 12; index++) {
+        const trace = makeTrace(`event-${index}`, {"request.id": `client-${index}`});
+        trace.startDate = 1000 + index;
+        trace.endDate = trace.startDate + 5;
+        store.append(trace);
+      }
+
+      // The oldest summary that survived rotation is, by construction, not in the live
+      // file — resolving it proves the index lookup spans generations.
+      const summaries = store.recentRequests();
+      const oldest = summaries[summaries.length - 1];
+      expect(fs.readFileSync(requestsFile, "utf8")).not.toContain(oldest.eventId);
+
+      const found = store.find(oldest.requestId!);
+      expect(found).toBeDefined();
+      expect(found!.eventId).toBe(oldest.eventId);
+    });
   });
 });
