@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/local-scheduling",
-  "version": "4.0.11",
+  "version": "4.0.12",
   "description": "In-process cron scheduling for long-running Pristine applications.",
   "module": "dist/lib/esm/local-scheduling.module.js",
   "main": "dist/lib/cjs/local-scheduling.module.js",
