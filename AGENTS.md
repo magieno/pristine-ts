@@ -95,8 +95,17 @@ Releases are automated: a push to `master` runs **only** the `publish` job in
 `.github/workflows/build.yml`. The `build` job (tests/lint/e2e/perf) is gated to
 non-`master` refs, so **tests do not run on master** — a red master means a *publish*
 failure, not a broken build. The job runs `lerna version patch` (commits + tags + pushes)
-then `lerna publish from-git`, authenticating to npm via **OIDC trusted publishing**
+then `lerna publish from-package`, authenticating to npm via **OIDC trusted publishing**
 (`id-token: write`; there is intentionally no NPM token or `.npmrc`).
+
+**Re-running a failed publish works.** The job checks out the *tip* of `master` (not the
+triggering commit), skips the version bump when `HEAD` already carries a `v*` tag, and
+`from-package` publishes only the versions missing from npm. So if a release dies half-way
+(e.g. a transient Sigstore/npm error after some packages went out), just re-run the job: it
+finishes the same version. Before this, a re-run was a silent no-op — the checkout was one
+commit behind the version commit, `lerna version` bailed with `EBEHIND` (exit 0) and
+`from-git` found no tag on `HEAD` — so the run went green while most packages stayed
+unpublished (this bit `v4.0.8` in Sept 2026).
 
 **The catch:** OIDC can publish new *versions* of existing packages, but cannot *create* a
 brand-new package. The first time a new `@pristine-ts/*` package would be published, npm
