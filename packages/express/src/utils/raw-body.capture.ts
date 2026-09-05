@@ -2,11 +2,12 @@ import {Request as ExpressRequest, Response as ExpressResponse} from "express";
 import {ExpressRequestWithRawBody} from "../interfaces/express-request-with-raw-body.interface";
 
 /**
- * Captures the exact request bytes from body-parser's `verify` hook so `RequestMapper` can put
- * them on `Request.rawBody`, whatever parser the app mounted.
+ * Owns the raw bytes of an Express request: how they are captured, and how `RequestMapper`
+ * resolves them into `Request.rawBody`.
  *
- * Mount every body parser with `verify: RawBodyCapture.verify`. For bodies no JSON/text parser
- * accepts (audio, images, octet-stream), add a catch-all `express.raw()` after them so the
+ * Express does not keep the bytes once a body parser has run, so capture them with body-parser's
+ * `verify` hook. Mount every parser with `verify: RawBodyCapture.verify`. For bodies no JSON/text
+ * parser accepts (audio, images, octet-stream), add a catch-all `express.raw()` after them so the
  * bytes are read at all:
  *
  * ```ts
@@ -14,8 +15,8 @@ import {ExpressRequestWithRawBody} from "../interfaces/express-request-with-raw-
  * app.use(express.raw({type: () => true, verify: RawBodyCapture.verify}));
  * ```
  *
- * body-parser calls `verify` with the un-decoded `Buffer` before it parses, and a parser skips
- * a request another parser already consumed, so each request is captured exactly once.
+ * body-parser calls `verify` with the un-decoded `Buffer` before it parses, and a parser skips a
+ * request another parser already consumed, so each request is captured exactly once.
  */
 export class RawBodyCapture {
   /**
@@ -26,11 +27,24 @@ export class RawBodyCapture {
   }
 
   /**
-   * Returns the bytes captured for this request, or `undefined` when no parser ran with the
-   * `verify` hook.
+   * The raw bytes for this request, and never the parsed object:
+   *
+   * 1. the `Buffer` stored by `verify`;
+   * 2. otherwise the body itself when a parser left it as a `Buffer` (`express.raw()`) or a
+   *    `string` (`express.text()`);
+   * 3. otherwise `undefined`.
    */
-  public static get(request: ExpressRequest): Buffer | undefined {
-    const rawBody = (request as ExpressRequestWithRawBody).rawBody;
-    return Buffer.isBuffer(rawBody) ? rawBody : undefined;
+  public static resolve(request: ExpressRequest): Buffer | string | undefined {
+    const captured = (request as ExpressRequestWithRawBody).rawBody;
+    if (Buffer.isBuffer(captured)) {
+      return captured;
+    }
+
+    const body: unknown = request.body;
+    if (Buffer.isBuffer(body) || typeof body === "string") {
+      return body;
+    }
+
+    return undefined;
   }
 }

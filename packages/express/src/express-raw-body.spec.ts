@@ -164,43 +164,26 @@ describe("Express raw request bodies (live app)", () => {
   });
 });
 
-describe("RequestMapper.rawBody", () => {
-  const mapperFor = async (): Promise<RequestMapper> => {
+describe("RequestMapper", () => {
+  it("keeps the parsed body on `body` and delegates `rawBody` to RawBodyCapture.resolve", async () => {
     const kernel = new Kernel();
     await kernel.start(appModule(), {"pristine.logging.consoleLoggerActivated": false});
-    return kernel.container.resolve(RequestMapper);
-  };
+    const mapper = kernel.container.resolve(RequestMapper);
 
-  const fakeExpressRequest = (body: unknown, rawBody?: Buffer): any => ({
-    method: "POST",
-    url: "/mapped",
-    headers: {"content-type": "application/json"},
-    header: (): undefined => undefined,
-    body,
-    rawBody,
-  });
-
-  it("prefers the captured Buffer over the parsed body", async () => {
-    const mapper = await mapperFor();
     const bytes = Buffer.from('{"a":1}');
+    const expressRequest: any = {
+      method: "POST",
+      url: "/mapped",
+      headers: {"content-type": "application/json"},
+      header: (): undefined => undefined,
+      body: {a: 1},
+      rawBody: bytes,
+    };
 
-    const mapped = mapper.map(fakeExpressRequest({a: 1}, bytes));
+    const mapped = mapper.map(expressRequest);
 
     expect(mapped.body).toEqual({a: 1});
+    expect(mapped.rawBody).toBe(RawBodyCapture.resolve(expressRequest));
     expect(mapped.rawBody).toBe(bytes);
-  });
-
-  it("uses a Buffer or string body as the raw body when nothing was captured", async () => {
-    const mapper = await mapperFor();
-    const bytes = Buffer.from([0xff, 0xf1, 0x00]);
-
-    expect(mapper.map(fakeExpressRequest(bytes)).rawBody).toBe(bytes);
-    expect(mapper.map(fakeExpressRequest("text body")).rawBody).toBe("text body");
-  });
-
-  it("leaves rawBody undefined for a parsed object with no capture", async () => {
-    const mapper = await mapperFor();
-
-    expect(mapper.map(fakeExpressRequest({a: 1})).rawBody).toBeUndefined();
   });
 });

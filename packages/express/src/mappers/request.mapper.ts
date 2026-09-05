@@ -17,12 +17,7 @@ export class RequestMapper {
    * Maps an http expressRequest from express to a Pristine expressRequest.
    *
    * `body` is whatever the app's body parser produced. `rawBody` is the exact bytes when they are
-   * available, and never the parsed object:
-   *
-   * 1. the `Buffer` captured by `RawBodyCapture.verify` (mount parsers with that `verify` hook);
-   * 2. otherwise the body itself when a parser left it as a `Buffer` (`express.raw()`) or a
-   *    `string` (`express.text()`);
-   * 3. otherwise `undefined`.
+   * available and never the parsed object; `RawBodyCapture.resolve` owns that rule.
    *
    * @param expressRequest The http expressRequest from express.
    */
@@ -34,22 +29,8 @@ export class RequestMapper {
     request.groupId = requestGroupId;
     request.setHeaders(this.httpHeadersMapper.map(expressRequest.headers));
     request.body = expressRequest.body;
-    request.rawBody = this.mapRawBody(expressRequest);
+    request.rawBody = RawBodyCapture.resolve(expressRequest);
 
     return request;
-  }
-
-  private mapRawBody(expressRequest: ExpressRequest): Buffer | string | undefined {
-    const captured = RawBodyCapture.get(expressRequest);
-    if (captured !== undefined) {
-      return captured;
-    }
-
-    const body: unknown = expressRequest.body;
-    if (Buffer.isBuffer(body) || typeof body === "string") {
-      return body;
-    }
-
-    return undefined;
   }
 }
