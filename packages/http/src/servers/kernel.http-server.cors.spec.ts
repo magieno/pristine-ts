@@ -199,7 +199,7 @@ describe("KernelHttpServer CORS error path", () => {
     const kernel = {handle: jest.fn().mockRejectedValue(new Error("boom"))} as any;
     const eventIdManager = {generateEventId: () => "req-1"} as any;
 
-    const server = new KernelHttpServer("127.0.0.1", 0, "", "", logHandler, kernel, eventIdManager, corsRequestHandler);
+    const server = new KernelHttpServer("127.0.0.1", 0, "", "", 104857600, logHandler, kernel, eventIdManager, corsRequestHandler);
 
     const req = {
       method: "GET",
@@ -224,7 +224,7 @@ describe("KernelHttpServer CORS error path", () => {
     const kernel = {handle: jest.fn().mockRejectedValue(new Error("boom"))} as any;
     const eventIdManager = {generateEventId: () => "req-2"} as any;
 
-    const server = new KernelHttpServer("127.0.0.1", 0, "", "", logHandler, kernel, eventIdManager, corsRequestHandler);
+    const server = new KernelHttpServer("127.0.0.1", 0, "", "", 104857600, logHandler, kernel, eventIdManager, corsRequestHandler);
 
     const req = {
       method: "GET",

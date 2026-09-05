@@ -54,8 +54,16 @@ export class StripeClient implements StripeClientInterface {
 
     const stripeSignature = request.headers['stripe-signature'];
 
+    // The signature is computed over the exact bytes Stripe sent. `rawBody` is a Buffer from
+    // adapters that have the bytes and a string from platforms that only hand over text;
+    // `getRawBodyBuffer()` gives Stripe the bytes in both cases.
+    const rawBody = request.getRawBodyBuffer();
+    if (rawBody === undefined) {
+      throw new StripeAuthenticationError(400, 'Missing raw body for stripe signature');
+    }
+
     try {
-      return this.getStripeClient().webhooks.constructEvent(request.rawBody, stripeSignature, stripeSigningEndpointSecret);
+      return this.getStripeClient().webhooks.constructEvent(rawBody, stripeSignature, stripeSigningEndpointSecret);
     } catch (error: any) {
       this.logHandler.error("StripeClient: Error with stripe signature.", {
         highlights: {

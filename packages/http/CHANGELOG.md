@@ -1,5 +1,34 @@
 # Changelog — @pristine-ts/http
 
+## 4.0.12
+
+- **`KernelHttpServer` is binary-safe for request bodies.** The body is read as bytes and never
+  re-encoded. Before, `readBody()` decoded everything as UTF-8, so any byte sequence that was not
+  valid UTF-8 (audio, images, `application/octet-stream`) reached the handler corrupted, and HMAC
+  verification over `rawBody` broke for non-UTF-8 payloads.
+
+  What lands on `request.body` now depends on the `Content-Type` (see `RequestBodyDecoder`):
+  - `application/json` and `+json` types: the parsed value, as before. Malformed JSON still leaves
+    the text on `body`.
+  - Text types (`text/*`, `application/x-www-form-urlencoded`, `application/xml`,
+    `application/javascript`, or any type whose parameters name a `charset`): the string, decoded
+    with that charset when given and UTF-8 otherwise.
+  - Everything else (`audio/*`, `image/*`, `video/*`, `application/octet-stream`, unknown or no
+    `Content-Type`): the untouched `Buffer`.
+
+  `request.rawBody` is now always the `Buffer` (it was the decoded string).
+  `rawBody.toString("utf8")` is the old value. GET/HEAD and zero-length bodies set neither `body`
+  nor `rawBody`; a zero-length body used to set both to `""`.
+
+- **Configurable maximum body size.** New key `pristine.http.kernel-server.max-body-size`
+  (`HttpConfigurationKeys.KernelServerMaxBodySize`, env `PRISTINE_HTTP_KERNEL_SERVER_MAX_BODY_SIZE`,
+  default 100 MB). A `Content-Length` over the limit is answered `413 Payload Too Large` before a
+  byte is read; a chunked body is cut off as soon as it passes the limit. The handler is never
+  called. `readBody` was unbounded before.
+
+- `writeResponse()` already served a `Buffer` body through unchanged, with the handler's own
+  `Content-Type`. That is now covered by a live test.
+
 ## 4.0.3
 
 - **Config-driven CORS + preflight support in `KernelHttpServer`.** A browser-facing Pristine

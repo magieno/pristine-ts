@@ -8,6 +8,8 @@ import {moduleScoped, Request, Response, ServiceDefinitionTagEnum, tag} from "@p
 import {LogHandlerInterface} from "@pristine-ts/logging";
 import {HttpModuleKeyname} from "../http.module.keyname";
 import {CorsRequestHandler} from "../cors/cors-request.handler";
+import {PayloadTooLargeError} from "../errors/payload-too-large.error";
+import {RequestBodyDecoder} from "../utils/request-body.decoder";
 
 /**
  * Per-request override of the start-time bound port/address pair. Both are optional — when
@@ -68,6 +70,7 @@ export class KernelHttpServer implements RuntimeServerInterface {
     @inject(`%${HttpModuleKeyname}.kernel-server.port%`) private readonly defaultPort: number,
     @inject(`%${HttpModuleKeyname}.kernel-server.tls.key-path%`) private readonly defaultTlsKeyPath: string,
     @inject(`%${HttpModuleKeyname}.kernel-server.tls.cert-path%`) private readonly defaultTlsCertPath: string,
+    @inject(`%${HttpModuleKeyname}.kernel-server.max-body-size%`) private readonly maxBodySize: number,
     @inject("LogHandlerInterface") private readonly logHandler: LogHandlerInterface,
     private readonly kernel: Kernel,
     private readonly eventIdManager: EventIdManager,
@@ -228,6 +231,24 @@ export class KernelHttpServer implements RuntimeServerInterface {
 
       this.writeResponse(res, result, corsResponseHeaders);
     } catch (error) {
+      if (error instanceof PayloadTooLargeError) {
+        // Over the configured body limit. Answer 413 and close the connection: the client may
+        // still be streaming, and we are not going to read the rest.
+        this.logHandler.warning("KernelHttpServer: request body over the configured limit", {
+          extra: {maxBodySize: this.maxBodySize, receivedBytes: error.receivedBytes, url: req.url, method: req.method, requestId},
+        });
+        if (res.headersSent === false) {
+          res.statusCode = 413;
+          this.applyHeaders(res, corsResponseHeaders);
+          res.setHeader("content-type", "application/json");
+          res.setHeader("connection", "close");
+          res.end(JSON.stringify({error: "Payload Too Large", requestId}), () => req.socket.destroy());
+        } else {
+          res.destroy();
+        }
+        return;
+      }
+
       this.logHandler.error("KernelHttpServer: unhandled error while processing request", {
         extra: {error, url: req.url, method: req.method, requestId},
       });
@@ -247,10 +268,17 @@ export class KernelHttpServer implements RuntimeServerInterface {
   }
 
   /**
-   * Reads the request body to completion and constructs a Pristine `Request`. The body is read
-   * as a UTF-8 string and JSON-parsed when the content-type is JSON-flavored; otherwise the
-   * raw string is kept on `body`. `rawBody` always carries the unparsed string so handlers can
-   * re-parse if needed (e.g. signature verification).
+   * Reads the request body to completion and constructs a Pristine `Request`.
+   *
+   * The body is read as bytes and never re-encoded. `request.rawBody` always carries the
+   * unparsed `Buffer` so handlers can re-parse or verify it (HMAC signatures, uploads);
+   * `rawBody.toString("utf8")` is the string this method used to expose. What lands on
+   * `request.body` depends on the `Content-Type`, see `RequestBodyDecoder`: parsed JSON for
+   * JSON types (malformed JSON leaves the text on `body`), a decoded string for text types,
+   * and the same untouched `Buffer` for everything else (`audio/*`, `image/*`,
+   * `application/octet-stream`, unknown or absent `Content-Type`).
+   *
+   * GET/HEAD requests and zero-length bodies set neither `body` nor `rawBody`.
    * @private
    */
   private async mapToPristineRequest(req: IncomingMessage, requestId: string): Promise<Request> {
@@ -282,18 +310,10 @@ export class KernelHttpServer implements RuntimeServerInterface {
 
     if (method !== "GET" && method !== "HEAD") {
       const rawBody = await this.readBody(req);
-      request.rawBody = rawBody;
 
-      const contentType = (req.headers["content-type"] ?? "").toLowerCase();
-      if (rawBody.length > 0 && contentType.includes("application/json")) {
-        try {
-          request.body = JSON.parse(rawBody);
-        } catch {
-          // Malformed JSON — keep the raw string on `body` so handlers can decide how to react.
-          request.body = rawBody;
-        }
-      } else {
-        request.body = rawBody;
+      if (rawBody.length > 0) {
+        request.rawBody = rawBody;
+        request.body = RequestBodyDecoder.decode(req.headers["content-type"], rawBody);
       }
     }
 
@@ -301,17 +321,56 @@ export class KernelHttpServer implements RuntimeServerInterface {
   }
 
   /**
-   * Drains `req` into a UTF-8 string. Bounded by Node's default request size — the `http`
-   * module already enforces `maxHeaderSize` and the consumer can layer on body-size checks
-   * via the networking package's interceptors if needed.
+   * Drains `req` into a `Buffer`, bounded by `pristine.http.kernel-server.max-body-size`.
+   *
+   * A `Content-Length` over the limit is rejected before a single byte is read. A chunked (or
+   * lying) body is rejected as soon as the bytes received pass the limit, and reading stops
+   * there. Both reject with `PayloadTooLargeError`, which `handleRequest` turns into a `413`.
    * @private
    */
-  private readBody(req: IncomingMessage): Promise<string> {
-    return new Promise<string>((resolve, reject) => {
+  private readBody(req: IncomingMessage): Promise<Buffer> {
+    const declaredLength = Number(req.headers["content-length"]);
+    if (Number.isFinite(declaredLength) && declaredLength > this.maxBodySize) {
+      return Promise.reject(new PayloadTooLargeError(
+        `KernelHttpServer: Content-Length ${declaredLength} exceeds the maximum body size of ${this.maxBodySize} bytes.`,
+        this.maxBodySize,
+        declaredLength,
+      ));
+    }
+
+    return new Promise<Buffer>((resolve, reject) => {
       const chunks: Buffer[] = [];
-      req.on("data", (chunk: Buffer) => chunks.push(chunk));
-      req.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
-      req.on("error", reject);
+      let received = 0;
+      let settled = false;
+
+      const onData = (chunk: Buffer) => {
+        received += chunk.length;
+        if (received > this.maxBodySize) {
+          settled = true;
+          req.removeListener("data", onData);
+          req.pause();
+          reject(new PayloadTooLargeError(
+            `KernelHttpServer: request body exceeds the maximum body size of ${this.maxBodySize} bytes.`,
+            this.maxBodySize,
+            received,
+          ));
+          return;
+        }
+        chunks.push(chunk);
+      };
+
+      req.on("data", onData);
+      req.on("end", () => {
+        if (settled === false) {
+          resolve(Buffer.concat(chunks));
+        }
+      });
+      req.on("error", (error) => {
+        if (settled === false) {
+          settled = true;
+          reject(error);
+        }
+      });
     });
   }
 
