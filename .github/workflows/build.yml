@@ -115,6 +115,23 @@ jobs:
           scope: '@pristine-ts'
           cache: 'npm'
       - run: npm ci --no-audit --no-fund
+      # Work around sigstore/sigstore-js#1708 (fix proposed in sigstore-js#1709, not yet
+      # released). Provenance signing posts an entry to the Rekor transparency log with a
+      # 5 s timeout and 2 retries. When Rekor commits the entry but answers slowly, the
+      # retry is rejected with "(409) an equivalent entry already exists" and sigstore
+      # treats that as fatal, killing the whole `lerna publish` (v4.0.8 and v4.0.9 both
+      # died this way). sigstore already knows how to recover (fetch the existing entry)
+      # but hardcodes `fetchOnConflict: false`. Flip it. If the pattern is gone, the
+      # installed sigstore ships the fix and there is nothing to do.
+      - name: Patch sigstore to recover from Rekor 409 duplicate entries
+        run: |
+          f=node_modules/sigstore/dist/config.js
+          if grep -q 'fetchOnConflict: false' "$f"; then
+            sed -i 's/fetchOnConflict: false/fetchOnConflict: true/' "$f"
+            echo "Patched $f: a Rekor 409 now fetches the existing entry instead of failing."
+          else
+            echo "No 'fetchOnConflict: false' in $f; sigstore likely ships the fix. Nothing patched."
+          fi
       - run: git config --global user.name 'ima-bot'
       - run: git config --global user.email 'ima-bot@ima-tech.ca'
       # Bump only when HEAD is not already a tagged release. On a re-run after a partial
@@ -128,6 +145,13 @@ jobs:
             exit 0
           fi
           npm run bump-patch
+      # Build every package, in dependency order, before publishing. `lerna publish` only
+      # runs the `prepublish` build of the packages it is about to publish. After a partial
+      # release, the already-published dependencies (common, core, ...) are skipped, so a
+      # fresh checkout has no `dist` for them and the remaining packages fail to compile
+      # (`prepublish` errored ... exiting 2). Building everything up front makes the publish
+      # set irrelevant.
+      - run: npm run build
       # `lerna publish from-package` publishes every package whose package.json version is
       # missing from npm. On a fresh release that is all of them; after a partial failure it
       # is only the ones the previous attempt did not get to.
