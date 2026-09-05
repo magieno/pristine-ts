@@ -5,6 +5,8 @@ import {NetworkingModule} from "@pristine-ts/networking";
 
 // Mappers
 export * from "./mappers/mappers";
+export * from "./interfaces/interfaces";
+export * from "./utils/utils";
 
 export * from "./express.module.keyname";
 

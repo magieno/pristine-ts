@@ -4,7 +4,7 @@ import {CachedRouterRoute} from "./cached.router-route";
 
 describe("Request Util", () => {
   it("should hash the same request twice", () => {
-    const rawBody = {};
+    const rawBody = "{}";
 
     const request: Request = new Request(HttpMethod.Get, "http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink", "uuid");
     request.rawBody = rawBody;
@@ -29,7 +29,7 @@ describe("Request Util", () => {
   })
 
   it("should not hash different requests to the same value", () => {
-    const rawBody = {};
+    const rawBody = "{}";
 
     const request: Request = new Request(HttpMethod.Get, "http://www.subdomain.ima-tech.ca/api/1.0/dogs/caniche-royal?query=searchTerm&sort=ASC#anchorLink", "uuid");
     request.rawBody = rawBody;

@@ -4,6 +4,7 @@ import {HttpHeadersMapper} from "./http-headers.mapper";
 import {MethodMapper} from "./method.mapper";
 import {Request} from "@pristine-ts/common";
 import {EventIdManager} from "@pristine-ts/core";
+import {RawBodyCapture} from "../utils/raw-body.capture";
 
 @injectable()
 export class RequestMapper {
@@ -14,6 +15,10 @@ export class RequestMapper {
 
   /**
    * Maps an http expressRequest from express to a Pristine expressRequest.
+   *
+   * `body` is whatever the app's body parser produced. `rawBody` is the exact bytes when they are
+   * available and never the parsed object; `RawBodyCapture.resolve` owns that rule.
+   *
    * @param expressRequest The http expressRequest from express.
    */
   map(expressRequest: ExpressRequest): Request {
@@ -24,7 +29,7 @@ export class RequestMapper {
     request.groupId = requestGroupId;
     request.setHeaders(this.httpHeadersMapper.map(expressRequest.headers));
     request.body = expressRequest.body;
-    request.rawBody = expressRequest.body;
+    request.rawBody = RawBodyCapture.resolve(expressRequest);
 
     return request;
   }

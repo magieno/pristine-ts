@@ -28,9 +28,17 @@ export class Request {
    */
   body: any = {};
   /**
-   * The raw body of the request.
+   * The raw body of the request, exactly as it was received and before any parsing.
+   *
+   * - A `Buffer` when the adapter had the bytes (`KernelHttpServer` in `@pristine-ts/http`, the
+   *   Express mapper when a body-parser `verify` hook captured them).
+   * - A `string` when the platform only hands over text (API Gateway, Cloud Functions).
+   * - `undefined` when there was no body, or the adapter could not capture it.
+   *
+   * It is never the parsed object. Use `getRawBodyBuffer()` when you need bytes regardless of
+   * which form the adapter produced (signature verification, hashing, binary uploads).
    */
-  rawBody?: any;
+  rawBody?: Buffer | string;
   /**
    * The host of the request.
    */
@@ -95,6 +103,23 @@ export class Request {
    */
   public getHeader(name: string): string | undefined {
     return this.headers[name.toLowerCase()];
+  }
+
+  /**
+   * Returns the raw body as bytes: a `Buffer` as is, a `string` encoded as UTF-8, and
+   * `undefined` when there is no raw body. This is the accessor to use for anything that must
+   * see the exact bytes on the wire (HMAC signature verification, binary uploads).
+   */
+  public getRawBodyBuffer(): Buffer | undefined {
+    if (this.rawBody === undefined) {
+      return undefined;
+    }
+
+    if (Buffer.isBuffer(this.rawBody)) {
+      return this.rawBody;
+    }
+
+    return Buffer.from(this.rawBody, "utf8");
   }
 
   /**

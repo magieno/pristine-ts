@@ -106,6 +106,19 @@ export const HttpModule: ModuleInterface = {
       ]
     },
     /**
+     * Largest request body, in bytes, the kernel server buffers before answering
+     * `413 Payload Too Large`. Checked against `Content-Length` before any byte is read, and
+     * again while streaming a chunked body. Default 100 MB.
+     */
+    {
+      parameterName: `${HttpModuleKeyname}.kernel-server.max-body-size`,
+      defaultValue: 104857600,
+      isRequired: false,
+      defaultResolvers: [
+        new NumberResolver(new EnvironmentVariableResolver("PRISTINE_HTTP_KERNEL_SERVER_MAX_BODY_SIZE")),
+      ]
+    },
+    /**
      * CORS — handled by `CorsRequestHandler` inside `KernelHttpServer`'s request path. All keys
      * carry defaults so `@injectConfig` always resolves; CORS stays INACTIVE until
      * `cors.allowed-origins` (and/or `cors.allowed-hosts`) is set. List keys accept a

@@ -17,6 +17,11 @@ export const HttpConfigurationKeys = {
   KernelServerPort: "pristine.http.kernel-server.port",
   KernelServerTlsKeyPath: "pristine.http.kernel-server.tls.key-path",
   KernelServerTlsCertPath: "pristine.http.kernel-server.tls.cert-path",
+  /**
+   * Largest request body, in bytes, `KernelHttpServer` buffers before answering
+   * `413 Payload Too Large`. Default 100 MB.
+   */
+  KernelServerMaxBodySize: "pristine.http.kernel-server.max-body-size",
 
   /**
    * CORS keys consumed by `CorsRequestHandler` inside `KernelHttpServer`'s request path.
@@ -46,6 +51,7 @@ export interface HttpConfigurationValueMap {
   "pristine.http.kernel-server.port": number;
   "pristine.http.kernel-server.tls.key-path": string;
   "pristine.http.kernel-server.tls.cert-path": string;
+  "pristine.http.kernel-server.max-body-size": number;
   // List keys resolve to a comma-separated string from env/defaults; a consumer may also pass
   // a `string[]` programmatically via `kernel.start()` config. `CorsRequestHandler` normalizes
   // both forms, so the map documents the canonical (string) shape.
