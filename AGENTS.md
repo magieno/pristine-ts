@@ -107,6 +107,21 @@ commit behind the version commit, `lerna version` bailed with `EBEHIND` (exit 0)
 `from-git` found no tag on `HEAD` — so the run went green while most packages stayed
 unpublished (this bit `v4.0.8` in Sept 2026).
 
+**The publish job builds everything first.** `lerna publish` only runs the `prepublish`
+build of the packages it is about to publish. After a partial release the already-published
+dependencies are skipped, a fresh checkout has no `dist` for them, and the leftovers fail
+to compile (`lifecycle "prepublish" errored ... exiting 2`; this broke the `v4.0.10` re-run).
+So the job runs `npm run build` (topological, all packages) before `publish-ci`. Keep it.
+
+**Known flake: Rekor 409 during provenance signing.** `lerna publish` can die with
+`TLOG_CREATE_ENTRY_ERROR ... (409) an equivalent entry already exists in the transparency log`.
+That is sigstore/sigstore-js#1708: the Rekor call has a 5 s timeout + 2 retries, a slow
+Rekor commit gets retried, and the duplicate is treated as fatal even though sigstore can
+recover by fetching the existing entry. The publish job patches the installed sigstore to
+`fetchOnConflict: true` (the fix proposed upstream in sigstore-js#1709) right after
+`npm ci`; the step is a no-op once a sigstore release includes the fix. Remove the step
+when that happens. This killed both `v4.0.8` and `v4.0.9` in Sept 2026.
+
 **The catch:** OIDC can publish new *versions* of existing packages, but cannot *create* a
 brand-new package. The first time a new `@pristine-ts/*` package would be published, npm
 returns `E404 Not found`, `lerna publish` aborts, and master fails on **every** merge until
