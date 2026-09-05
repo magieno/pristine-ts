@@ -91,8 +91,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
+    # One release at a time. A second push while a release is in flight waits for it instead
+    # of racing the version commit.
+    concurrency:
+      group: publish-master
+      cancel-in-progress: false
+
     steps:
+      # Check out the *tip* of master rather than the commit that triggered the run. The
+      # version step below pushes a "vX.Y.Z" commit + tag to master, so on a re-run the
+      # triggering commit is already one behind. Checking out the tip lets a re-run see the
+      # version commit and finish a partially-published release. Tags are needed for the
+      # "already tagged" check.
       - uses: actions/checkout@v6
+        with:
+          ref: master
+          fetch-tags: true
       - name: Use Node.js 24.x
         uses: actions/setup-node@v6
         with:
@@ -103,5 +117,18 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - run: git config --global user.name 'ima-bot'
       - run: git config --global user.email 'ima-bot@ima-tech.ca'
-      - run: npm run bump-patch
+      # Bump only when HEAD is not already a tagged release. On a re-run after a partial
+      # publish, HEAD is the "vX.Y.Z" commit from the first attempt: keep that version and
+      # go straight to publishing what is still missing from npm.
+      - name: Bump version (skipped when HEAD is already a tagged release)
+        run: |
+          existing_tag="$(git tag --points-at HEAD 'v*')"
+          if [ -n "$existing_tag" ]; then
+            echo "HEAD is already tagged ($existing_tag); skipping the version bump."
+            exit 0
+          fi
+          npm run bump-patch
+      # `lerna publish from-package` publishes every package whose package.json version is
+      # missing from npm. On a fresh release that is all of them; after a partial failure it
+      # is only the ones the previous attempt did not get to.
       - run: npm run publish-ci
