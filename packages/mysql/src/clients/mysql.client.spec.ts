@@ -360,4 +360,29 @@ describe('MySQL Client', () => {
     expect(users[0].extraFields).toBeUndefined()
     expect(users[0].extra_fields).toBeUndefined()
   })
+
+  it("should ask the DataMapper to log mapping errors by default, and stay silent only when logMappingErrors is false", async () => {
+    const logHandler = {
+      critical(message: string, extra?: any, module?: string): void {
+      }, debug(message: string, extra?: any, module?: string): void {
+      }, error(message: string, extra?: any, module?: string): void {
+      }, info(message: string, extra?: any, module?: string): void {
+      }, success(message: string, extra?: any, module?: string): void {
+      }, notice(message: string, extra?: any, module?: string): void {
+      }, terminate(): void {
+      }, warning(message: string, extra?: any, module?: string): void {
+      }
+    };
+    const dataMapper = new DataMapper(new AutoDataMappingBuilder(), [new DateNormalizer(), new StringNormalizer(), new NumberNormalizer()], []);
+    const autoMapSpy = jest.spyOn(dataMapper, "autoMap");
+
+    const mysqlClient = new MysqlClient([], logHandler, dataMapper);
+    const rows = [{"unique_id": "1", "first_name": "John", "last_name": "Smith", "extra_fields": '{"a": 1}'}];
+
+    await mysqlClient.mapResults(User, rows);
+    expect(autoMapSpy).toHaveBeenLastCalledWith(expect.anything(), User, expect.objectContaining({logErrors: true}));
+
+    await mysqlClient.mapResults(User, rows, {logMappingErrors: false});
+    expect(autoMapSpy).toHaveBeenLastCalledWith(expect.anything(), User, expect.objectContaining({logErrors: false}));
+  })
 });

@@ -337,10 +337,13 @@ export class MysqlClient implements MysqlClientInterface {
       });
     }
 
+    // On a mapping error the DataMapper returns the raw rows instead of instances. Left silent,
+    // that surfaces two layers up as a confusing "The class Object does not have a primary key"
+    // on the next update. Log by default; a caller can still opt out with `logMappingErrors: false`.
     return this.dataMapper.autoMap(results, classType, {
       isOptionalDefaultValue: true,
       excludeExtraneousValues: false,
-      logErrors: options?.logMappingErrors ?? false
+      logErrors: options?.logMappingErrors ?? true
     });
   }
 

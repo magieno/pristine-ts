@@ -84,6 +84,10 @@ export interface MysqlClientInterface {
 
   /**
    * This method maps the results to a given class type.
+   *
+   * When the mapping fails, the rows are returned as plain objects instead of instances of
+   * `classType`. The error is logged through the DataMapper unless `logMappingErrors` is set
+   * to `false` (default: `true`).
    * @param classType
    * @param results
    */

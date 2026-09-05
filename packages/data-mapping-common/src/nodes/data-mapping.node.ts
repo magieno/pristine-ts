@@ -143,6 +143,14 @@ export class DataMappingNode extends BaseDataMappingNode {
       return;
     }
 
+    // `null` is not `undefined`: the source says the property exists and is empty (SQL NULL,
+    // JSON null, DynamoDB NULL). Write it through so a cleared value is not mistaken for a
+    // never-set one. There is no object to instantiate, no keys to copy and no sub-nodes to run.
+    if (sourceElement === null) {
+      destination[this.destinationProperty] = null;
+      return;
+    }
+
     // Whether source-keyed properties should be carried through to the destination.
     // When `excludeExtraneousValues === true`, only renamed destination keys (written by
     // sub-nodes below) end up on the destination — source keys are dropped.
@@ -171,6 +179,13 @@ export class DataMappingNode extends BaseDataMappingNode {
       // sub-nodes overlay their renamed keys, then push.
       for (let index = 0; index < sourceArray.length; index++) {
         const element = sourceArray[index];
+
+        // Same rule as above: a null element is a present, empty value. Keep its position.
+        if (element === null) {
+          destinationElement.push(null);
+          continue;
+        }
+
         const dest = this.buildArrayMemberDestination(source, element, index, includeSourceKeys);
 
         await this.runSubNodes(element, dest, normalizersMap, options);
