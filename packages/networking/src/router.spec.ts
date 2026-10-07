@@ -15,7 +15,7 @@ import {QueryParameterDecoratorResolver} from "./resolvers/query-parameter-decor
 import {QueryParametersDecoratorResolver} from "./resolvers/query-parameters-decorator.resolver";
 import {RouteParameterDecoratorResolver} from "./resolvers/route-parameter-decorator.resolver";
 import {BodyParameterDecoratorInterface} from "./interfaces/body-parameter-decorator.interface";
-import {HttpMethod, IdentityInterface, Request} from "@pristine-ts/common";
+import {HttpMethod, IdentityInterface, NotFoundError, Request} from "@pristine-ts/common";
 import {Span, TracingManagerInterface} from "@pristine-ts/telemetry";
 import {container, DependencyContainer} from "tsyringe";
 import {LogHandlerInterface} from "@pristine-ts/logging";
@@ -141,7 +141,11 @@ describe("Router.spec", () => {
   };
 
   // Force the node as the root node
-  const getRouter = (activateCache: boolean) => {
+  const getRouter = (activateCache: boolean, overrides: {
+    logHandler?: LogHandlerInterface,
+    authenticate?: () => Promise<IdentityInterface | undefined>,
+    isAuthorized?: () => Promise<boolean>,
+  } = {}) => {
     // Create the MockContainer
     mockContainer = container.createChildContainer();
     mockContainer.resolve = (token: any) => {
@@ -152,28 +156,18 @@ describe("Router.spec", () => {
       return mockController;
     }
 
-    const router = new Router({
-      critical(message: string, extra?: any): void {
-      }, debug(message: string, extra?: any): void {
-      }, error(message: string, extra?: any): void {
-      }, info(message: string, extra?: any): void {
-      }, success(message: string, extra?: any): void {
-      }, notice(message: string, extra?: any): void {
-      }, warning(message: string, extra?: any): void {
-      }, terminate() {
-      }
-    }, new ControllerMethodParameterDecoratorResolver([
+    const router = new Router(overrides.logHandler ?? loghandlerMock, new ControllerMethodParameterDecoratorResolver([
       new BodyParameterDecoratorResolver(),
       new QueryParameterDecoratorResolver(loghandlerMock),
       new QueryParametersDecoratorResolver(loghandlerMock),
       new RouteParameterDecoratorResolver(),
     ]), {
       isAuthorized(requestInterface: Request, routeContext: any, container, identity?: IdentityInterface): Promise<boolean> {
-        return Promise.resolve(true);
+        return overrides.isAuthorized?.() ?? Promise.resolve(true);
       }
     }, {
       authenticate(request: Request, routeContext: any, container): Promise<IdentityInterface | undefined> {
-        return Promise.resolve(undefined);
+        return overrides.authenticate?.() ?? Promise.resolve(undefined);
       }
     }, new RouterCache(activateCache), new RequestContextManager(), new HttpErrorResponder(new EnvironmentManager("prod")));
 
@@ -471,5 +465,127 @@ describe("Router.spec", () => {
     }, request.body);
   })
 
+  /**
+   * What the router logs when a request does not succeed. A caller's mistake is a
+   * warning; only what the application did not expect is an error. Every such log
+   * names the method and the path as plain strings.
+   */
+  describe("logs of requests that fail", () => {
+    const dogUrl = "https://ima-tech.ca/api/1.0/dogs/caniche-royal";
 
+    const getRecordingLogHandler = () => {
+      const logHandler = {...loghandlerMock};
+
+      return {
+        logHandler,
+        warning: jest.spyOn(logHandler, "warning"),
+        error: jest.spyOn(logHandler, "error"),
+      };
+    };
+
+    const getRequest = (url: string) => {
+      const request = new Request(HttpMethod.Put, "", "uuid");
+      request.url = url;
+
+      return request;
+    };
+
+    it("logs an unknown route as a warning that names the method and the path, without the route tree", async () => {
+      const {logHandler, warning, error} = getRecordingLogHandler();
+      const router = getRouter(false, {logHandler});
+
+      const response = await router.execute(getRequest("https://ima-tech.ca/.env?probe=1"), mockContainer);
+
+      expect(response.status).toBe(404);
+      expect(error).not.toHaveBeenCalled();
+      expect(warning).toHaveBeenCalledTimes(1);
+
+      const [message, data] = warning.mock.calls[0] as [string, any];
+      expect(message).toBe("No route found for PUT /.env");
+      expect(data.highlights).toEqual({method: HttpMethod.Put, path: "/.env"});
+      expect(data.extra.request.url).toBe("https://ima-tech.ca/.env?probe=1");
+      expect(data.extra.rootNode).toBeUndefined();
+    });
+
+    it("logs a failed authentication as a warning, without the container", async () => {
+      const {logHandler, warning, error} = getRecordingLogHandler();
+      const router = getRouter(false, {
+        logHandler,
+        authenticate: () => Promise.reject(new Error("The Authorization header wasn't found in the Request.")),
+      });
+
+      const response = await router.execute(getRequest(dogUrl), mockContainer);
+
+      expect(response.status).toBe(401);
+      expect(error).not.toHaveBeenCalled();
+
+      const [message, data] = warning.mock.calls[0] as [string, any];
+      expect(message).toBe("Authentication error");
+      expect(data.highlights).toEqual({
+        method: HttpMethod.Put,
+        path: "/api/1.0/dogs/caniche-royal",
+        errorMessage: "The Authorization header wasn't found in the Request.",
+      });
+      expect(data.extra.container).toBeUndefined();
+    });
+
+    it("logs a denied authorization as a warning, without the container", async () => {
+      const {logHandler, warning, error} = getRecordingLogHandler();
+      const router = getRouter(false, {
+        logHandler,
+        authenticate: () => Promise.resolve({id: "user-1", claims: {}}),
+        isAuthorized: () => Promise.resolve(false),
+      });
+
+      const response = await router.execute(getRequest(dogUrl), mockContainer);
+
+      expect(response.status).toBe(403);
+      expect(error).not.toHaveBeenCalled();
+
+      const [message, data] = warning.mock.calls[0] as [string, any];
+      expect(message).toBe("User not authorized to access this url.");
+      expect(data.highlights).toEqual({method: HttpMethod.Put, path: "/api/1.0/dogs/caniche-royal", identityId: "user-1"});
+      expect(data.extra.container).toBeUndefined();
+    });
+
+    it("logs a user error thrown by a controller as a warning", async () => {
+      const {logHandler, warning, error} = getRecordingLogHandler();
+      const router = getRouter(false, {logHandler});
+      spyMethodController.mockImplementationOnce(() => {
+        throw new NotFoundError("The dog 'caniche-royal' doesn't exist.");
+      });
+
+      const response = await router.execute(getRequest(dogUrl), mockContainer);
+
+      expect(response.status).toBe(404);
+      expect(error).not.toHaveBeenCalled();
+
+      const [message, data] = warning.mock.calls[0] as [string, any];
+      expect(message).toBe("Router - The request was answered with a user error");
+      expect(data.highlights).toEqual({
+        method: HttpMethod.Put,
+        path: "/api/1.0/dogs/caniche-royal",
+        errorMessage: "The dog 'caniche-royal' doesn't exist.",
+      });
+    });
+
+    it("still logs an unexpected exception from a controller as an error", async () => {
+      const {logHandler, warning, error} = getRecordingLogHandler();
+      const router = getRouter(false, {logHandler});
+      const thrown = new Error("The property connectToken does not have the @column decorator.");
+      spyMethodController.mockImplementationOnce(() => {
+        throw thrown;
+      });
+
+      const response = await router.execute(getRequest(dogUrl), mockContainer);
+
+      expect(response.status).toBe(500);
+      expect(warning).not.toHaveBeenCalled();
+
+      const [message, data] = error.mock.calls[0] as [string, any];
+      expect(message).toBe("Router - There was an error trying to execute the request in the router");
+      expect(data.highlights).toEqual({method: HttpMethod.Put, path: "/api/1.0/dogs/caniche-royal", errorMessage: thrown.message});
+      expect(data.extra.error).toBe(thrown);
+    });
+  });
 });

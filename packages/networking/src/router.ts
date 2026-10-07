@@ -16,6 +16,7 @@ import {
   NotFoundError,
   ObjectUtil,
   PristineError,
+  PristineErrorKind,
   Request,
   Response,
   ServiceDefinitionTagEnum,
@@ -153,6 +154,25 @@ export class Router implements RouterInterface {
   //  * @private
 
   /**
+   * The two values that tell a reader which route a log is about. Plain strings: a `URL`
+   * object keeps its parts behind getters and prints as `{}` in every logger.
+   */
+  private getRequestHighlights(request: Request, url: URL): { method: string, path: string } {
+    return {
+      method: request.httpMethod,
+      path: url.pathname,
+    };
+  }
+
+  /**
+   * Whether a thrown value is an error the application meant for the caller. Anything
+   * that is not a `PristineError` is unexpected by definition.
+   */
+  private isUserError(error: unknown): boolean {
+    return error instanceof PristineError && error.options.kind === PristineErrorKind.UserError;
+  }
+
+  /**
    * This method receives a Request object, identifies the "path" its trying to hit, navigates the internally
    * maintained Route Tree, identifies the method in the controller that represents this "path", and calls the
    * method with the specified parameters.
@@ -212,12 +232,16 @@ export class Router implements RouterInterface {
 
       // If node doesn't exist, throw a 404 error
       if (methodNode === null) {
-        this.loghandler.error("Cannot find the path", {
-          highlights: {
-            url,
-          },
+        // A request for a route that does not exist is the caller's mistake, not a fault
+        // of the application: it is a warning. Public APIs receive these all day from
+        // scanners, and at error severity they buried the real errors.
+        //
+        // The message and the highlights name the method and the path, because that is
+        // the whole of what a reader needs. The route tree is not attached: it is the
+        // same on every 404 and it is large.
+        this.loghandler.warning(`No route found for ${request.httpMethod} ${url.pathname}`, {
+          highlights: this.getRequestHighlights(request, url),
           extra: {
-            rootNode: this.root,
             request,
           },
         });
@@ -287,15 +311,18 @@ export class Router implements RouterInterface {
           },
         });
       } catch (error: any) {
-        this.loghandler.error("Authentication error", {
+        // A caller that fails to authenticate is answered with a 401 or a 403. Nothing
+        // is broken, so this is a warning. An authenticator that is itself misconfigured
+        // logs its own error where it fails.
+        this.loghandler.warning("Authentication error", {
           highlights: {
-            errorMessage: error.message ?? "Unknown error"
+            ...this.getRequestHighlights(request, url),
+            errorMessage: error.message ?? "Unknown error",
           },
           extra: {
             error,
             request,
             context: methodNode.route.context,
-            container
           },
         });
 
@@ -317,11 +344,16 @@ export class Router implements RouterInterface {
       try {
         // Verify that the identity making the request is authorized to make such a request
         if (await this.authorizerManager.isAuthorized(request, methodNode.route.context, container, identity) === false) {
-          this.loghandler.error("User not authorized to access this url.", {
-            request,
-            context: methodNode.route.context,
-            container,
-            identity
+          this.loghandler.warning("User not authorized to access this url.", {
+            highlights: {
+              ...this.getRequestHighlights(request, url),
+              identityId: identity?.id ?? "None",
+            },
+            extra: {
+              request,
+              context: methodNode.route.context,
+              identity,
+            },
           });
 
           routerRequestExecutionSpan.end();
@@ -418,14 +450,23 @@ export class Router implements RouterInterface {
         routerRequestExecutionSpan.end();
         return resolve(interceptedResponse);
       } catch (error: any) {
-        this.loghandler.error("Router - There was an error trying to execute the request in the router", {
+        const data = {
           highlights: {
+            ...this.getRequestHighlights(request, url),
             errorMessage: error.message ?? "Unknown error",
           },
           extra: {
             error,
           },
-        })
+        };
+
+        // A UserError is the application answering the caller on purpose: not found,
+        // bad request, conflict. Only what the application did not expect is an error.
+        if (this.isUserError(error)) {
+          this.loghandler.warning("Router - The request was answered with a user error", data);
+        } else {
+          this.loghandler.error("Router - There was an error trying to execute the request in the router", data);
+        }
 
         // Execute router interceptors for the error response;
 
