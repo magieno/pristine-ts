@@ -230,4 +230,94 @@ describe('SQLite Client', () => {
     expect(pagedResult.numberOfResultsReturned).toBe(1);
     expect(pagedResult.page).toBe(2);
   })
+
+  describe("JSON blob columns", () => {
+    const createClient = () => {
+      const warning = jest.fn();
+      const logHandler = {
+        critical(): void {
+        }, debug(): void {
+        }, error(): void {
+        }, info(): void {
+        }, success(): void {
+        }, notice(): void {
+        }, terminate(): void {
+        }, warning,
+      };
+      const client = new SqliteClient([], logHandler, new DataMapper(new AutoDataMappingBuilder(), [new DateNormalizer(), new StringNormalizer(), new NumberNormalizer()], []));
+
+      return {client, warning};
+    };
+
+    it("should return as is a value that the driver already parsed, without a warning", async () => {
+      // mysql2 parses a column of the MySQL type JSON itself. JSON.parse on the array converted
+      // it to the text `412efa25-...` and failed with "Exponent part is missing a number".
+      const {client, warning} = createClient();
+      const ids = ["412efa25-0b6f-4c4e-9d55-6a1b3c1d2e3f"];
+
+      const users = await client.mapResults(User, [
+        {"unique_id": "1", "first_name": "John", "last_name": "Smith", "extra_fields": ids},
+        {"unique_id": "2", "first_name": "Rick", "last_name": "Sanchez", "extra_fields": {"a": 1}},
+        {"unique_id": "3", "first_name": "Peter", "last_name": "Ricardo", "extra_fields": [1]},
+        {"unique_id": "4", "first_name": "Morty", "last_name": "Smith", "extra_fields": []},
+        {"unique_id": "5", "first_name": "Beth", "last_name": "Smith", "extra_fields": null},
+      ]);
+
+      expect(users[0].extraFields).toEqual(ids);
+      expect(users[1].extraFields).toEqual({a: 1});
+      // JSON.parse([1]) returned the number 1.
+      expect(users[2].extraFields).toEqual([1]);
+      expect(users[3].extraFields).toEqual([]);
+      expect(users[4].extraFields).toBeNull();
+      expect(warning).not.toHaveBeenCalled();
+    })
+
+    it("should parse a JSON blob that the driver returns as bytes", async () => {
+      const {client, warning} = createClient();
+
+      const users = await client.mapResults(User, [
+        {"unique_id": "1", "first_name": "John", "last_name": "Smith", "extra_fields": Buffer.from('{"a": 1}', "utf8")},
+      ]);
+
+      expect(users[0].extraFields).toEqual({a: 1});
+      expect(warning).not.toHaveBeenCalled();
+    })
+
+    it("should not fail on an invalid text, and log a warning without the row", async () => {
+      const {client, warning} = createClient();
+
+      const users = await client.mapResults(User, [
+        {"unique_id": "1", "first_name": "John", "last_name": "Smith", "extra_fields": '{"a": '},
+      ], {eventId: "event-1"});
+
+      expect(users[0]).toBeInstanceOf(User);
+      expect(users[0].uniqueId).toBe("1");
+      expect(warning).toHaveBeenCalledTimes(1);
+
+      const [message, extra] = warning.mock.calls[0];
+      expect(message).toContain("Could not parse the JSON blob");
+      expect(extra.eventId).toBe("event-1");
+      expect(extra.highlights.className).toBe("User");
+      expect(extra.highlights.key).toBe("extra_fields");
+      expect(extra.highlights.newKey).toBe("extraFields");
+      expect(typeof extra.highlights.errorMessage).toBe("string");
+      expect(extra.highlights.result).toBeUndefined();
+      expect(JSON.stringify(extra)).not.toContain("Smith");
+    })
+
+    it("should pass through a column that the model does not declare", async () => {
+      const {client, warning} = createClient();
+
+      const users = await client.mapResults(User, [
+        {"unique_id": "1", "first_name": "John", "last_name": "Smith", "extra_fields": '{"a": 1}', "added_by_a_migration": "x", "total": 3},
+      ]);
+
+      expect(users[0]).toBeInstanceOf(User);
+      expect(users[0].uniqueId).toBe("1");
+      expect(users[0].extraFields).toEqual({a: 1});
+      expect((users[0] as any).addedByAMigration).toBe("x");
+      expect((users[0] as any).total).toBe(3);
+      expect(warning).not.toHaveBeenCalled();
+    })
+  })
 });

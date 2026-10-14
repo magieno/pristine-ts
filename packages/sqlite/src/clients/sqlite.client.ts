@@ -6,6 +6,7 @@ import {
   ColumnDecoratorMetadataInterface,
   DecoratorMetadataKeynameEnum,
   FilteringOperatorEnum,
+  JsonBlobUtils,
   SearchQuery,
   SearchResult,
   TableDecoratorMetadataInterface
@@ -338,19 +339,22 @@ export class SqliteClient implements SqliteClientInterface {
             continue;
           }
 
-          const columnMetadata = this.getColumnMetadata(classType, newKey);
+          // A column that the model does not declare (an alias, or a column added to the table
+          // before the model) is passed through. It must not make the whole read fail.
+          const columnMetadata: ColumnDecoratorMetadataInterface | undefined = PropertyMetadata.getMetadata(classType.prototype, newKey, DecoratorMetadataKeynameEnum.Column);
 
-          if (columnMetadata.isJsonBlob) {
+          if (columnMetadata?.isJsonBlob) {
             try {
-              result[newKey] = JSON.parse(result[key]);
+              result[newKey] = JsonBlobUtils.parse(result[key]);
             } catch (e) {
+              // Neither the row nor the value is logged: both can hold personal data and can be large.
               this.logHandler.warning("SqliteClient: Could not parse the JSON blob. It will be returned as is.", {
                 eventId: options?.eventId, eventGroupId: options?.eventGroupId,
                 highlights: {
-                  error: e,
+                  className: classType.name,
                   key,
                   newKey,
-                  result
+                  errorMessage: (e as Error)?.message,
                 }
               });
 
