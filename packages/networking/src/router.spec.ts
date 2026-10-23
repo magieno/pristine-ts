@@ -39,6 +39,7 @@ describe("Router.spec", () => {
       return new Span("root");
     }, startTracing(spanRootKeyname?: string, traceId?: string, context?: { [p: string]: string }): Span {
       return new Span("root");
+    }, continueTrace(traceId: string): void {
     }, addMarkerToCurrentSpan(message: string, attributes?: { [p: string]: string }): void {
     }, getCurrentTrail() {
       return [];
@@ -75,6 +76,8 @@ describe("Router.spec", () => {
       },
       startTracing(spanRootKeyname?: string, traceId?: string, context?: { [p: string]: string }): Span {
         return new Span("root");
+      },
+      continueTrace(traceId: string): void {
       },
       addMarkerToCurrentSpan(message: string, attributes?: { [p: string]: string }): void {
       },

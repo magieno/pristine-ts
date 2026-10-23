@@ -155,6 +155,32 @@ export class TracingManager implements TracingManagerInterface {
   }
 
   /**
+   * Makes the active trace part of a trace a caller started (for example, from an incoming
+   * `traceparent` header): the active trace takes `traceId`, and so do the logs written
+   * after this call. A no-op when there is no active trace.
+   *
+   * The trace keeps its spans and start date; only its id changes. Tracers that act on
+   * `traceEndedStream` read the caller's id. Logs written before this call keep the old id.
+   * @param traceId The caller's trace id.
+   */
+  public continueTrace(traceId: string): void {
+    const trace = this.getActiveTrace();
+    if (trace === undefined) {
+      return;
+    }
+
+    trace.id = traceId;
+
+    // Same dual write as `startTracing`: `LogHandler` reads the EventContext first and
+    // falls back to the legacy `TracingContext`.
+    this.tracingContext.traceId = traceId;
+    const eventContext = EventContextManager.current();
+    if (eventContext !== undefined) {
+      eventContext.traceId = traceId;
+    }
+  }
+
+  /**
    * This method starts a new span.
    * @param keyname The keyname for this new span.
    * @param parentKeyname The keyname of the parent span.

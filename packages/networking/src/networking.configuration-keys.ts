@@ -15,6 +15,7 @@ export const NetworkingConfigurationKeys = {
   DefaultContentTypeResponseHeader: "pristine.networking.defaultContentTypeResponseHeader",
   RouterCacheIsActive: "pristine.networking.routerCache.isActive",
   ErrorResponseSanitizerIsActive: "pristine.networking.error_response_sanitizer.is_active",
+  TracePropagationIsActive: "pristine.networking.tracePropagation.isActive",
 } as const;
 
 /**
@@ -27,6 +28,7 @@ export interface NetworkingConfigurationValueMap {
   "pristine.networking.defaultContentTypeResponseHeader": string;
   "pristine.networking.routerCache.isActive": boolean;
   "pristine.networking.error_response_sanitizer.is_active": boolean;
+  "pristine.networking.tracePropagation.isActive": boolean;
 }
 
 

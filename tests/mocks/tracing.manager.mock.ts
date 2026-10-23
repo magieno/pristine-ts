@@ -26,6 +26,9 @@ export class TracingManagerMock implements TracingManagerInterface {
         return new Span("");
     }
 
+    continueTrace(traceId: string): void {
+    }
+
     addMarkerToCurrentSpan(message: string, attributes?: { [p: string]: string }): void {
     }
 

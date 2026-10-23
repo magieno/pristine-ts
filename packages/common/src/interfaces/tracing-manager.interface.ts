@@ -24,6 +24,14 @@ export interface TracingManagerInterface {
   startTracing(spanRootKeyname?: string, traceId?: string, context?: { [key: string]: string }): Span;
 
   /**
+   * Makes the active trace part of a trace a caller started (for example, from an incoming
+   * `traceparent` header): the active trace takes `traceId`, and so do the logs written
+   * after this call. A no-op when there is no active trace.
+   * @param traceId The caller's trace id.
+   */
+  continueTrace(traceId: string): void;
+
+  /**
    * This method ends the trace entirely.
    */
   endTrace(): void;

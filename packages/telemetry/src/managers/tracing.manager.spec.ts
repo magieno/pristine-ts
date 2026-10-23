@@ -537,4 +537,61 @@ describe("Tracing Manager", () => {
       });
     });
   });
+
+  describe("continueTrace", () => {
+    it("gives the active trace the caller's id and keeps its spans", () => {
+      const tracingContext = new TracingContext();
+      const tracingManager = new TracingManager([], logHandlerMock, true, false, tracingContext);
+
+      const rootSpan = tracingManager.startTracing();
+      tracingManager.continueTrace("4bf92f35-77b3-4da6-a3ce-929d0e0e4736");
+
+      expect(tracingManager.trace!.id).toBe("4bf92f35-77b3-4da6-a3ce-929d0e0e4736");
+      expect(tracingManager.trace!.rootSpan).toBe(rootSpan);
+      expect(tracingContext.traceId).toBe("4bf92f35-77b3-4da6-a3ce-929d0e0e4736");
+    });
+
+    it("sets the trace id on the EventContext, where LogHandler reads it", async () => {
+      const {EventContext, EventContextManager} = require("@pristine-ts/common");
+      const ecm = new EventContextManager();
+      const ctx = new EventContext();
+
+      await ecm.run(ctx, async () => {
+        const tracingManager = new TracingManager([], logHandlerMock, true, false, new TracingContext());
+        tracingManager.startTracing();
+        tracingManager.continueTrace("4bf92f35-77b3-4da6-a3ce-929d0e0e4736");
+
+        expect(ctx.trace.id).toBe("4bf92f35-77b3-4da6-a3ce-929d0e0e4736");
+        expect(ctx.traceId).toBe("4bf92f35-77b3-4da6-a3ce-929d0e0e4736");
+      });
+    });
+
+    it("sends the caller's id to the tracers when the trace ends", () => {
+      const tracer = new TracerMock();
+      const endedTraceIds: string[] = [];
+      tracer.traceEnded = (trace: Trace) => {
+        endedTraceIds.push(trace.id);
+      };
+      const tracingManager = new TracingManager([tracer], logHandlerMock, true, false, new TracingContext());
+
+      tracingManager.startTracing();
+      tracingManager.continueTrace("4bf92f35-77b3-4da6-a3ce-929d0e0e4736");
+      tracingManager.endTrace();
+
+      return new Promise<void>(resolve => setImmediate(() => {
+        expect(endedTraceIds).toEqual(["4bf92f35-77b3-4da6-a3ce-929d0e0e4736"]);
+        resolve();
+      }));
+    });
+
+    it("does nothing when no trace is active", () => {
+      const tracingContext = new TracingContext();
+      const tracingManager = new TracingManager([], logHandlerMock, true, false, tracingContext);
+
+      tracingManager.continueTrace("4bf92f35-77b3-4da6-a3ce-929d0e0e4736");
+
+      expect(tracingManager.trace).toBeUndefined();
+      expect(tracingContext.traceId).toBeUndefined();
+    });
+  });
 });

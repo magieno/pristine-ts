@@ -11,7 +11,7 @@ import {EventsExecutionOptionsInterface} from "../interfaces/events-execution-op
 import {EventInterceptorInterface} from "../interfaces/event-interceptor.interface";
 import {Event} from "../models/event";
 import {TracingManagerMock} from "../../../../tests/mocks/tracing.manager.mock";
-import {EventContextManager} from "@pristine-ts/common";
+import {EventContextManager, Trace} from "@pristine-ts/common";
 
 describe("Event Pipeline", () => {
   const dependencyContainerMock = new DependencyContainerMock();
@@ -937,6 +937,38 @@ describe("Event Pipeline", () => {
     };
 
     return expect(eventPipeline.execute(event, executionContext, dependencyContainerMock)).rejects.toThrow("There was an error mapping the event into an Event object");
+  })
+
+  it("should put the active trace id on the EventContext of each event", async () => {
+    const tracingManager = new TracingManagerMock();
+    tracingManager.trace = new Trace("4bf92f35-77b3-4da6-a3ce-929d0e0e4736");
+
+    const eventPipeline = new EventPipeline([], [], logHandlerMock, tracingManager, eventContextManager);
+
+    let traceIdSeenByTheEvent: string | undefined;
+
+    // @ts-ignore
+    dependencyContainerMock.resolve = (token) => {
+      if (token === "EventDispatcherInterface") {
+        const eventDispatcher = new EventDispatcherMock(new EventResponse<any, any>(new Event<any>("", {}, "uuid"), {}));
+
+        eventDispatcher.dispatch = (event: Event<any>): Promise<EventResponse<any, any>> => {
+          traceIdSeenByTheEvent = EventContextManager.traceId();
+          return Promise.resolve(new EventResponse<any, any>(event, {}));
+        }
+
+        return eventDispatcher;
+      }
+    }
+
+    const executionContext = {
+      keyname: ExecutionContextKeynameEnum.AwsLambda,
+      context: {},
+    };
+
+    await eventPipeline.execute(new Event<any>("event", {}, "uuid"), executionContext, dependencyContainerMock);
+
+    expect(traceIdSeenByTheEvent).toBe("4bf92f35-77b3-4da6-a3ce-929d0e0e4736");
   })
 
 })
