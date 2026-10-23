@@ -42,6 +42,9 @@ export class EventPipeline {
     // `this.trace` fallback, but per-event code reads from EventContext.trace and
     // finds nothing — addMarkerToCurrentSpan would warn "outside any active trace."
     ctx.trace = this.tracingManager.trace;
+    // `LogHandler` reads the trace id from here first. Left unset, it falls back to the
+    // root `TracingContext`, which every concurrent `kernel.handle()` call overwrites.
+    ctx.traceId = ctx.trace?.id;
     // Stash the kernel's TracingManager on the context so `@traced` uses the manager
     // that owns the trace, not a fresh ContainerScoped instance the child container
     // would build on first resolve.

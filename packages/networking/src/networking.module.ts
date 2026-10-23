@@ -83,5 +83,17 @@ export const NetworkingModule: ModuleInterface = {
       ],
     },
 
+    /**
+     * Whether or not a request continues the trace named in its W3C `traceparent` header.
+     */
+    {
+      parameterName: NetworkingModuleKeyname + ".tracePropagation.isActive",
+      isRequired: false,
+      defaultValue: true,
+      defaultResolvers: [
+        new BooleanResolver(new EnvironmentVariableResolver("PRISTINE_NETWORKING_TRACE_PROPAGATION_IS_ACTIVE")),
+      ],
+    },
+
   ],
 }

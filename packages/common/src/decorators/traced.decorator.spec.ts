@@ -11,6 +11,7 @@ function buildStubTracingManager(): {tm: TracingManagerInterface; spans: Span[];
   const tm: TracingManagerInterface = {
     trace: undefined,
     startTracing: jest.fn(),
+    continueTrace: jest.fn(),
     endTrace: jest.fn(),
     addSpan: jest.fn((s: Span) => s),
     endSpanKeyname: jest.fn(),
