@@ -55,6 +55,12 @@ The monorepo contains several packages under `packages/`. Key packages include:
 *   Interactive prompting is gated by the `pristine.cli.interactiveParameters` configuration (default `true`) and is skipped automatically when stdin is not a TTY, so CI fails validation instead of hanging on a prompt.
 *   Argument errors render cleanly (exit 64, `ExitCode.Usage`) rather than as a constraint dump: a **missing required** value prints the command's generated `Usage:` synopsis (`CommandUsageRenderer`), and a **supplied-but-invalid** value prints `Invalid <flag> '<value>'. <reason>` (`CommandArgumentErrorFormatter`). `valueHint` sets the `<…>` placeholder in the synopsis; `errorMessage` overrides the whole invalid line (verbatim, `%value%`/`%flag%` filled). Both throw a `plain` `UsageError` that `CliErrorReporter` prints without the `✗ CODE:` envelope. The synopsis program name comes from `ProgramNameResolver` (config `pristine.cli.binName` → `basename(argv[1])` → `pristine`).
 
+### MCP server (`@pristine-ts/mcp`)
+*   **No MCP SDK.** The package implements the protocol itself (tools only). Do not add `@modelcontextprotocol/sdk`, `zod` or `ajv`: the SDK pulls `express`, and input schemas already come from `@pristine-ts/class-validator`.
+*   `JsonSchemaGenerator` turns validator metadata into JSON Schema (`instanceof` on the fork's validator classes + `getConstraints()`); a property is required unless it has `@IsOptional()`/`@ValidateIf()`. Extend it there when a validator gains a JSON Schema equivalent. `IsISO8601Validator` is not exported by the fork (2.0.4), so it is not mapped.
+*   `McpDispatcher` is dual-era and stateless: `_meta["io.modelcontextprotocol/protocolVersion"]` naming 2026-07-28 → modern (`resultType`, `serverInfo`, 400/404 errors); `initialize`, no version, or a legacy version → legacy (errors in a 200). Never emit a `null` JSON-RPC id; omit it.
+*   Transports never own a server: `McpHttpTransport.handle(request, identity)` is called from an app controller, `McpStdioTransport.listen()` from an app command. Both inject `CurrentChildContainer`, so resolve them inside an event.
+
 ### Documentation (`docs/`)
 *   Structure mirrors the framework's modularity.
 *   `getting-started/` contains the primary learning path.

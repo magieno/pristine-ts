@@ -5,4 +5,5 @@ export const McpConfigurationKeys = {
   ServerName: "pristine.mcp.server.name",
   ServerVersion: "pristine.mcp.server.version",
   ServerInstructions: "pristine.mcp.server.instructions",
+  HttpAllowedOrigins: "pristine.mcp.http.allowedOrigins",
 } as const;

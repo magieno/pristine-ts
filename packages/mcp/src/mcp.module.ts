@@ -14,6 +14,7 @@ export * from "./interfaces/interfaces";
 export * from "./managers/managers";
 export * from "./models/models";
 export * from "./schemas/schemas";
+export * from "./transports/transports";
 
 export * from "./mcp.configuration-keys";
 export * from "./mcp.module.keyname";
@@ -73,6 +74,20 @@ export const McpModule: ModuleInterface = {
       defaultValue: "",
       defaultResolvers: [
         new EnvironmentVariableResolver("PRISTINE_MCP_SERVER_INSTRUCTIONS"),
+      ],
+    },
+    /**
+     * The browser origins allowed to call the Streamable HTTP endpoint, as a comma-separated
+     * string or a `string[]`. A request with any other `Origin` header gets a 403, which blocks
+     * DNS-rebinding attacks on a local server. Empty (the default) refuses every request that
+     * carries an `Origin`; MCP clients that are not browsers send none.
+     */
+    {
+      parameterName: McpConfigurationKeys.HttpAllowedOrigins,
+      isRequired: false,
+      defaultValue: "",
+      defaultResolvers: [
+        new EnvironmentVariableResolver("PRISTINE_MCP_HTTP_ALLOWED_ORIGINS"),
       ],
     },
   ],
