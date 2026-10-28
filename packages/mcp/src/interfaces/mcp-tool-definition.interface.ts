@@ -1,4 +1,4 @@
-import {JsonSchemaInterface} from "./json-schema.interface";
+import {JsonSchemaInterface} from "@pristine-ts/class-validator";
 import {McpToolAnnotationsInterface} from "./mcp-tool-annotations.interface";
 
 /**

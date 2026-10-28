@@ -2,18 +2,17 @@ import "reflect-metadata";
 import {injectable} from "tsyringe";
 import {AppModuleInterface} from "@pristine-ts/common";
 import {Kernel} from "@pristine-ts/core";
-import {IsOptional, IsString, MaxLength} from "@pristine-ts/class-validator";
+import {IsOptional, IsString, jsonSchema, MaxLength} from "@pristine-ts/class-validator";
 import {McpModule} from "../mcp.module";
 import {McpDispatcher} from "./mcp.dispatcher";
 import {mcpTool} from "../decorators/mcp-tool.decorator";
-import {mcpToolParameter} from "../decorators/mcp-tool-parameter.decorator";
 import {McpToolError} from "../errors/mcp-tool.error";
 import {McpToolResult} from "../models/mcp-tool-result.model";
 import {McpToolContextInterface} from "../interfaces/mcp-tool-context.interface";
 import {McpDispatchOptionsInterface} from "../interfaces/mcp-dispatch-options.interface";
 
 class AddNoteInput {
-  @mcpToolParameter({description: "The title."})
+  @jsonSchema({description: "The title."})
   @IsString()
   @MaxLength(10)
   title: string;

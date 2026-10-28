@@ -1,13 +1,18 @@
 import "reflect-metadata";
-import {IsString} from "@pristine-ts/class-validator";
+import {IsOptional, IsString, JsonSchemaGenerator, ValidateNested} from "@pristine-ts/class-validator";
 import {McpToolCatalog} from "./mcp-tool.catalog";
-import {JsonSchemaGenerator} from "../schemas/json-schema.generator";
 import {mcpTool, mcpToolRegistry} from "../decorators/mcp-tool.decorator";
 import {McpToolDeclarationError} from "../errors/mcp-tool-declaration.error";
 
 class EchoInput {
   @IsString()
   text: string;
+}
+
+class RecursiveInput {
+  @IsOptional()
+  @ValidateNested()
+  child?: RecursiveInput;
 }
 
 class EchoTools {
@@ -72,6 +77,12 @@ describe("McpToolCatalog", () => {
 
   it("should refuse an invalid tool name", () => {
     mcpToolRegistry.push({classConstructor: EchoTools, methodKeyname: "echo", options: {name: "has space", description: ""}});
+
+    expect(() => new McpToolCatalog(new JsonSchemaGenerator()).list()).toThrow(McpToolDeclarationError);
+  });
+
+  it("should refuse an input class that cannot become a JSON Schema", () => {
+    mcpToolRegistry.push({classConstructor: EchoTools, methodKeyname: "now", options: {name: "recursive", description: "", inputType: RecursiveInput}});
 
     expect(() => new McpToolCatalog(new JsonSchemaGenerator()).list()).toThrow(McpToolDeclarationError);
   });

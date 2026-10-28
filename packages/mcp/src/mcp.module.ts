@@ -2,7 +2,7 @@ import {CommonModule, ModuleInterface} from "@pristine-ts/common";
 import {EnvironmentVariableResolver} from "@pristine-ts/configuration";
 import {DataMappingModule} from "@pristine-ts/data-mapping";
 import {LoggingModule} from "@pristine-ts/logging";
-import {Validator} from "@pristine-ts/class-validator";
+import {JsonSchemaGenerator, Validator} from "@pristine-ts/class-validator";
 import {McpModuleKeyname} from "./mcp.module.keyname";
 import {McpConfigurationKeys} from "./mcp.configuration-keys";
 
@@ -13,7 +13,6 @@ export * from "./errors/errors";
 export * from "./interfaces/interfaces";
 export * from "./managers/managers";
 export * from "./models/models";
-export * from "./schemas/schemas";
 
 export * from "./mcp.configuration-keys";
 export * from "./mcp.module.keyname";
@@ -25,7 +24,7 @@ export * from "./mcp.protocol-versions";
  *
  * The package implements the Model Context Protocol itself and adds no third-party dependency:
  * the tool input schemas come from the `@pristine-ts/class-validator` decorators you already use
- * for validation, and `McpDispatcher` speaks both the stateless 2026-07-28 revision and the
+ * for validation (through its `JsonSchemaGenerator`), and `McpDispatcher` speaks both the stateless 2026-07-28 revision and the
  * `initialize`-based revisions before it.
  */
 export const McpModule: ModuleInterface = {
@@ -36,6 +35,10 @@ export const McpModule: ModuleInterface = {
     LoggingModule,
   ],
   providerRegistrations: [
+    {
+      token: JsonSchemaGenerator,
+      useValue: new JsonSchemaGenerator(),
+    },
     {
       token: Validator,
       useValue: new Validator(),
