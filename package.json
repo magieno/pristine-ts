@@ -69,6 +69,7 @@
     "@pristine-ts/jwt": "file:packages/jwt",
     "@pristine-ts/local-scheduling": "file:packages/local-scheduling",
     "@pristine-ts/logging": "file:packages/logging",
+    "@pristine-ts/mcp": "file:packages/mcp",
     "@pristine-ts/mysql": "file:packages/mysql",
     "@pristine-ts/networking": "file:packages/networking",
     "@pristine-ts/observability": "file:packages/observability",
