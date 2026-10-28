@@ -23,7 +23,7 @@
     "node": ">=24.0.0"
   },
   "dependencies": {
-    "@pristine-ts/class-validator": "^2.0.4",
+    "@pristine-ts/class-validator": "^2.0.5",
     "@pristine-ts/common": "file:../common",
     "@pristine-ts/core": "file:../core",
     "@pristine-ts/data-mapping": "file:../data-mapping",

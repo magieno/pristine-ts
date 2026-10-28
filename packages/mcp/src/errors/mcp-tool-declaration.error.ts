@@ -6,10 +6,11 @@ import {ConfigError} from "@pristine-ts/common";
  * surfaces when the catalog is first built, not on a tool call.
  */
 export class McpToolDeclarationError extends ConfigError {
-  public constructor(message: string, details?: Record<string, unknown>) {
+  public constructor(message: string, details?: Record<string, unknown>, cause?: Error) {
     super(message, {
       code: "MCP_TOOL_DECLARATION_INVALID",
       details,
+      cause,
     });
   }
 }

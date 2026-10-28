@@ -2,7 +2,7 @@ import {injectable} from "tsyringe";
 import {moduleScoped} from "@pristine-ts/common";
 import {McpModuleKeyname} from "../mcp.module.keyname";
 import {mcpToolRegistry} from "../decorators/mcp-tool.decorator";
-import {JsonSchemaGenerator} from "../schemas/json-schema.generator";
+import {JsonSchemaGenerator, JsonSchemaInterface} from "@pristine-ts/class-validator";
 import {McpToolDefinitionInterface} from "../interfaces/mcp-tool-definition.interface";
 import {McpToolRegistrationInterface} from "../interfaces/mcp-tool-registration.interface";
 import {McpToolDeclarationError} from "../errors/mcp-tool-declaration.error";
@@ -70,9 +70,7 @@ export class McpToolCatalog {
       const definition: McpToolDefinitionInterface = {
         name: options.name,
         description: options.description,
-        inputSchema: options.inputType === undefined ?
-          {type: "object", additionalProperties: false} :
-          this.schemaGenerator.generateObjectSchema(options.inputType),
+        inputSchema: this.inputSchema(registration),
       };
 
       if (options.title !== undefined) {
@@ -88,5 +86,22 @@ export class McpToolCatalog {
     this.entries = entries;
 
     return entries;
+  }
+
+  private inputSchema(registration: McpToolRegistrationInterface): JsonSchemaInterface {
+    const inputType = registration.options.inputType;
+
+    if (inputType === undefined) {
+      return {type: "object", additionalProperties: false};
+    }
+
+    try {
+      return this.schemaGenerator.generate(inputType);
+    } catch (error) {
+      throw new McpToolDeclarationError(`The input of the tool '${registration.options.name}' cannot become a JSON Schema: ${(error as Error).message}`, {
+        name: registration.options.name,
+        inputType: inputType.name,
+      }, error as Error);
+    }
   }
 }

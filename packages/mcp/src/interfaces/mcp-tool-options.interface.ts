@@ -22,7 +22,8 @@ export interface McpToolOptionsInterface {
 
   /**
    * The class that describes the arguments. Its `@pristine-ts/class-validator` decorators become
-   * the tool's `inputSchema` and validate every call. Omit it for a tool without arguments.
+   * the tool's `inputSchema` (through `JsonSchemaGenerator`) and validate every call. Document its
+   * properties with `@jsonSchema({description})`. Omit it for a tool without arguments.
    */
   inputType?: ClassConstructor<any>;
 
