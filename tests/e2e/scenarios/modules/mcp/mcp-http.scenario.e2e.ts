@@ -3,11 +3,11 @@ import {injectable} from "tsyringe";
 import {AppModuleInterface, HttpMethod, IdentityInterface, Request, Response} from "@pristine-ts/common";
 import {CoreModule, ExecutionContextKeynameEnum, Kernel} from "@pristine-ts/core";
 import {controller, identity, NetworkingModule, request, route} from "@pristine-ts/networking";
-import {IsString, MaxLength} from "@pristine-ts/class-validator";
-import {McpHttpTransport, McpModule, mcpTool, mcpToolParameter} from "@pristine-ts/mcp";
+import {IsString, jsonSchema, MaxLength} from "@pristine-ts/class-validator";
+import {McpHttpTransport, McpModule, mcpTool} from "@pristine-ts/mcp";
 
 class CreateTodoInput {
-    @mcpToolParameter({description: "The title of the to-do."})
+    @jsonSchema({description: "The title of the to-do."})
     @IsString()
     @MaxLength(50)
     title: string;

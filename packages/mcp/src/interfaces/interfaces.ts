@@ -1,7 +1,6 @@
 export * from "./json-rpc-error.interface";
 export * from "./json-rpc-message.interface";
 export * from "./json-rpc-response.interface";
-export * from "./json-schema.interface";
 export * from "./mcp-content.interface";
 export * from "./mcp-dispatch-options.interface";
 export * from "./mcp-dispatch-result.interface";
@@ -10,5 +9,4 @@ export * from "./mcp-tool-annotations.interface";
 export * from "./mcp-tool-context.interface";
 export * from "./mcp-tool-definition.interface";
 export * from "./mcp-tool-options.interface";
-export * from "./mcp-tool-parameter-options.interface";
 export * from "./mcp-tool-registration.interface";

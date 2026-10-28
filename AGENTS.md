@@ -57,7 +57,7 @@ The monorepo contains several packages under `packages/`. Key packages include:
 
 ### MCP server (`@pristine-ts/mcp`)
 *   **No MCP SDK.** The package implements the protocol itself (tools only). Do not add `@modelcontextprotocol/sdk`, `zod` or `ajv`: the SDK pulls `express`, and input schemas already come from `@pristine-ts/class-validator`.
-*   `JsonSchemaGenerator` turns validator metadata into JSON Schema (`instanceof` on the fork's validator classes + `getConstraints()`); a property is required unless it has `@IsOptional()`/`@ValidateIf()`. Extend it there when a validator gains a JSON Schema equivalent. `IsISO8601Validator` is not exported by the fork (2.0.4), so it is not mapped.
+*   Tool input schemas come from `JsonSchemaGenerator` in `@pristine-ts/class-validator` (>= 2.0.5, repo `magieno/pristine-validator`), where each validator implements `getJsonSchema()`. A missing JSON Schema mapping is fixed in that repo, never in `mcp`; document properties with `@jsonSchema({description})`.
 *   `McpDispatcher` is dual-era and stateless: `_meta["io.modelcontextprotocol/protocolVersion"]` naming 2026-07-28 → modern (`resultType`, `serverInfo`, 400/404 errors); `initialize`, no version, or a legacy version → legacy (errors in a 200). Never emit a `null` JSON-RPC id; omit it.
 *   Transports never own a server: `McpHttpTransport.handle(request, identity)` is called from an app controller, `McpStdioTransport.listen()` from an app command. Both inject `CurrentChildContainer`, so resolve them inside an event.
 
