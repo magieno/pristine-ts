@@ -14,3 +14,7 @@ export * from "./sns.model";
 export * from "./sns-message-attribute.model";
 export * from "./sqs-attributes.model";
 export * from "./sqs-message-sent-confirmation.model";
+export * from "./ses-account.model";
+export * from "./ses-email-identity.model";
+export * from "./ses-message-sent-confirmation.model";
+export * from "./ses-raw-email.model";

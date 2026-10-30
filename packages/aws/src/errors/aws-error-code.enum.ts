@@ -7,6 +7,7 @@
  */
 export enum AwsErrorCode {
   SesSendFailed         = "SES_SEND_FAILED",
+  SesV2RequestFailed    = "SES_V2_REQUEST_FAILED",
   SqsSendFailed         = "SQS_SEND_FAILED",
   EventBridgeSendFailed = "EVENT_BRIDGE_SEND_FAILED",
 }
