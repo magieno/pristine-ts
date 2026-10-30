@@ -42,6 +42,16 @@ export class McpToolCatalog {
     return this.build().get(name)?.registration;
   }
 
+  /**
+   * Returns the definition of a tool, as `tools/list` sends it, or `undefined` when no tool has
+   * this name.
+   *
+   * @param name The name of the tool.
+   */
+  public definition(name: string): McpToolDefinitionInterface | undefined {
+    return this.build().get(name)?.definition;
+  }
+
   private build(): Map<string, { registration: McpToolRegistrationInterface, definition: McpToolDefinitionInterface }> {
     if (this.entries !== undefined) {
       return this.entries;

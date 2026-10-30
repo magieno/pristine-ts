@@ -65,6 +65,27 @@ self-reported `clientInfo`.
 | throws `McpToolError` or any `PristineError` of kind `UserError` | a tool execution error with its message |
 | throws anything else | a generic tool execution error; the error is logged, never sent |
 
+## Choose which tools a caller gets
+
+A tool policy hides tools, for example from a setting the user controls. Tag a class with
+`ServiceDefinitionTagEnum.McpToolPolicy` and implement `McpToolPolicyInterface`:
+
+```ts
+@tag(ServiceDefinitionTagEnum.McpToolPolicy)
+@injectable()
+export class SettingsToolPolicy implements McpToolPolicyInterface {
+  constructor(private readonly settings: SettingsService) {}
+
+  isToolAllowed(tool: McpToolDefinitionInterface, context: McpToolPolicyContextInterface): boolean {
+    return this.settings.disabledTools.includes(tool.name) === false;
+  }
+}
+```
+
+A tool is served only when every policy allows it. A refused tool is not in `tools/list`, and
+`tools/call` answers it as an unknown tool. The policy gets the caller's `identity` and the
+self-reported `clientInfo`; never base a security decision on `clientInfo`.
+
 ## Serve it
 
 ### Streamable HTTP
