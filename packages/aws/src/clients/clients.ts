@@ -5,4 +5,5 @@ export * from "./event-bridge.client";
 export * from "./s3.client";
 export * from "./secrets-manager.client";
 export * from "./ses.client";
+export * from "./ses-v2.client";
 export * from "./sqs.client";

@@ -6,4 +6,5 @@ export * from "./event-bridge-client.interface";
 export * from "./s3-client.interface";
 export * from "./secrets-manager-client.interface";
 export * from "./ses-client.interface";
+export * from "./ses-v2-client.interface";
 export * from "./sqs-client.interface";
