@@ -1,6 +1,6 @@
 {
   "name": "@pristine-ts/mcp",
-  "version": "4.0.17",
+  "version": "4.0.18",
   "description": "Expose Pristine services as Model Context Protocol (MCP) tools, with no third-party MCP dependency.",
   "module": "dist/lib/esm/mcp.module.js",
   "main": "dist/lib/cjs/mcp.module.js",
