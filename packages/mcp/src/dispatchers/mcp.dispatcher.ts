@@ -1,5 +1,5 @@
-import {injectable} from "tsyringe";
-import {injectConfig, moduleScoped} from "@pristine-ts/common";
+import {injectable, injectAll} from "tsyringe";
+import {injectConfig, moduleScoped, ServiceDefinitionTagEnum} from "@pristine-ts/common";
 import {McpModuleKeyname} from "../mcp.module.keyname";
 import {McpConfigurationKeys} from "../mcp.configuration-keys";
 import {McpProtocolVersions} from "../mcp.protocol-versions";
@@ -17,6 +17,9 @@ import {JsonRpcResponseInterface} from "../interfaces/json-rpc-response.interfac
 import {McpDispatchOptionsInterface} from "../interfaces/mcp-dispatch-options.interface";
 import {McpDispatchResultInterface} from "../interfaces/mcp-dispatch-result.interface";
 import {McpImplementationInterface} from "../interfaces/mcp-implementation.interface";
+import {McpToolDefinitionInterface} from "../interfaces/mcp-tool-definition.interface";
+import {McpToolPolicyInterface} from "../interfaces/mcp-tool-policy.interface";
+import {McpToolPolicyContextInterface} from "../interfaces/mcp-tool-policy-context.interface";
 
 /**
  * The protocol core: takes one parsed JSON-RPC message, whatever the transport, and returns the
@@ -30,6 +33,9 @@ import {McpImplementationInterface} from "../interfaces/mcp-implementation.inter
  *
  * Only tools are implemented: `server/discover`, `initialize`, `ping`, `tools/list` and
  * `tools/call`. Any other method is "method not found".
+ *
+ * Every service tagged `ServiceDefinitionTagEnum.McpToolPolicy` filters the tools: a tool that one
+ * policy refuses is not listed, and a call to it is answered as an unknown tool.
  */
 @moduleScoped(McpModuleKeyname)
 @injectable()
@@ -38,7 +44,8 @@ export class McpDispatcher {
                      private readonly invoker: McpToolInvoker,
                      @injectConfig(McpConfigurationKeys.ServerName) private readonly serverName: string,
                      @injectConfig(McpConfigurationKeys.ServerVersion) private readonly serverVersion: string,
-                     @injectConfig(McpConfigurationKeys.ServerInstructions) private readonly serverInstructions: string) {
+                     @injectConfig(McpConfigurationKeys.ServerInstructions) private readonly serverInstructions: string,
+                     @injectAll(ServiceDefinitionTagEnum.McpToolPolicy, {isOptional: true}) private readonly policies: McpToolPolicyInterface[] = []) {
   }
 
   /**
@@ -93,7 +100,7 @@ export class McpDispatcher {
         result = {};
         break;
       case McpMethodEnum.ToolsList:
-        result = {tools: this.catalog.list()};
+        result = {tools: await this.allowedTools(message, options)};
         break;
       case McpMethodEnum.ToolsCall:
         result = this.serializeToolResult(await this.callTool(message, protocolVersion, options), era, protocolVersion);
@@ -169,7 +176,7 @@ export class McpDispatcher {
 
     const registration = this.catalog.find(name);
 
-    if (registration === undefined) {
+    if (registration === undefined || await this.isAllowed(this.catalog.definition(name)!, this.policyContext(message, options)) === false) {
       throw new McpProtocolError(JsonRpcErrorCodeEnum.InvalidParams, `Unknown tool: '${name}'.`);
     }
 
@@ -179,6 +186,36 @@ export class McpDispatcher {
       protocolVersion,
       clientInfo: message.params?._meta?.[McpMetaKeyEnum.ClientInfo],
     }, options.container);
+  }
+
+  private async allowedTools(message: JsonRpcMessageInterface, options: McpDispatchOptionsInterface): Promise<McpToolDefinitionInterface[]> {
+    const tools = this.catalog.list();
+
+    if (this.policies.length === 0) {
+      return tools;
+    }
+
+    const context = this.policyContext(message, options);
+    const allowed = await Promise.all(tools.map(tool => this.isAllowed(tool, context)));
+
+    return tools.filter((tool, index) => allowed[index]);
+  }
+
+  private async isAllowed(tool: McpToolDefinitionInterface, context: McpToolPolicyContextInterface): Promise<boolean> {
+    for (const policy of this.policies) {
+      if (await policy.isToolAllowed(tool, context) === false) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private policyContext(message: JsonRpcMessageInterface, options: McpDispatchOptionsInterface): McpToolPolicyContextInterface {
+    return {
+      identity: options.identity,
+      clientInfo: message.params?._meta?.[McpMetaKeyEnum.ClientInfo],
+    };
   }
 
   private serializeToolResult(toolResult: McpToolResult, era: McpProtocolEraEnum, protocolVersion: string): { [key: string]: unknown } {

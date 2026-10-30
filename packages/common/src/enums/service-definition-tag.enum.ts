@@ -18,6 +18,12 @@ export enum ServiceDefinitionTagEnum {
   IdentityProvider = "IdentityProviderInterface",
   InstantiationTest = "InstantiationTestInterface",
   Logger = "LoggerInterface",
+  /**
+   * A policy that decides which `@mcpTool` tools a caller may see and call. Implementations live in
+   * the application; `@pristine-ts/mcp` (`McpToolPolicyInterface`) resolves the collection, and a
+   * tool is served only when every policy allows it.
+   */
+  McpToolPolicy = "McpToolPolicyInterface",
   MethodParameterDecoratorResolver = "METHOD_PARAMETER_DECORATOR_RESOLVER",
   MysqlConfig = "MysqlConfig",
   RequestInterceptor = "RequestInterceptorInterface",
