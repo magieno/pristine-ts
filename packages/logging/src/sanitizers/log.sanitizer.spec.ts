@@ -94,7 +94,7 @@ describe("LogSanitizer", () => {
     });
 
     it("should add the keys of the application to the defaults", () => {
-      const sanitizer = new LogSanitizer(true, LogSanitizerDefaults.sensitiveKeys, "pairingCode, X-Hub-Signature");
+      const sanitizer = new LogSanitizer(true, LogSanitizerDefaults.sensitiveKeys, ["pairingCode", "X-Hub-Signature"]);
       const entry = log("m", {pairingCode: "11564104", "x-hub-signature": "sha256=abcdef", authorization: "Bearer abcdefgh"});
 
       sanitizer.sanitize(entry);
@@ -114,7 +114,7 @@ describe("LogSanitizer", () => {
 
   describe("allowed keys", () => {
     it("should never redact an allowed key, and the allow-list wins over the block-list", () => {
-      const sanitizer = new LogSanitizer(true, undefined, "nextPageToken", undefined, undefined, undefined, undefined, undefined, "nextPageToken, token_type");
+      const sanitizer = new LogSanitizer(true, undefined, ["nextPageToken"], undefined, undefined, undefined, undefined, undefined, ["nextPageToken", "token_type"]);
       const entry = log("m", {nextPageToken: "page-2", token_type: "bearer", TokenType: "bearer", access_token: "at_123"});
 
       sanitizer.sanitize(entry);
@@ -132,7 +132,7 @@ describe("LogSanitizer", () => {
     });
 
     it("should still replace a secret that sits in the value of an allowed key", () => {
-      const sanitizer = new LogSanitizer(true, undefined, undefined, undefined, undefined, undefined, undefined, undefined, "debugToken");
+      const sanitizer = new LogSanitizer(true, undefined, undefined, undefined, undefined, undefined, undefined, undefined, ["debugToken"]);
       const entry = log("m", {debugToken: `prefix ${JWT}`, other: "kept"});
 
       sanitizer.sanitize(entry);
@@ -143,8 +143,6 @@ describe("LogSanitizer", () => {
     it("should allow the dependency-injection token of the router by default, and let the application replace that list", () => {
       expect(new LogSanitizer().isSensitiveKey("controllerInstantiationToken")).toBe(false);
       expect(new LogSanitizer(true, undefined, undefined, undefined, undefined, undefined, undefined, []).isSensitiveKey("controllerInstantiationToken")).toBe(true);
-      // The module gives the defaults as a comma-separated string.
-      expect(new LogSanitizer(true, undefined, undefined, undefined, undefined, undefined, undefined, LogSanitizerDefaults.allowedKeys.join(","), "").isSensitiveKey("controllerInstantiationToken")).toBe(false);
     });
   });
 
@@ -171,18 +169,13 @@ describe("LogSanitizer", () => {
       expect(entry.highlights).toEqual({note: "Bearer", short: "Bearer abc"});
     });
 
-    it("should add the patterns of the application, as a list or as the JSON array an environment variable holds", () => {
-      const fromList = new LogSanitizer(true, undefined, undefined, undefined, ["lhb_[A-Za-z0-9_-]{10,}"]);
-      const fromJson = new LogSanitizer(true, undefined, undefined, undefined, '["lhb_[A-Za-z0-9_-]{10,}", "sk_live_[a-z0-9]{4,8}"]');
+    it("should add the patterns of the application to the defaults", () => {
+      const sanitizer = new LogSanitizer(true, undefined, undefined, undefined, ["lhb_[A-Za-z0-9_-]{10,}", "sk_live_[a-z0-9]{4,8}"]);
+      const entry = log("hub lhb_abcdefghij_KLMNOP-123 called with key sk_live_ab12cd and Bearer abcdefgh1234", {});
 
-      for (const sanitizer of [fromList, fromJson]) {
-        const entry = log("hub lhb_abcdefghij_KLMNOP-123 called", {});
-        sanitizer.sanitize(entry);
-        expect(entry.message).toBe("hub [REDACTED] called");
-      }
-      const entry = log("key sk_live_ab12cd", {});
-      fromJson.sanitize(entry);
-      expect(entry.message).toBe("key [REDACTED]");
+      sanitizer.sanitize(entry);
+
+      expect(entry.message).toBe("hub [REDACTED] called with key [REDACTED] and [REDACTED]");
     });
 
     it("should ignore a pattern that is not a regular expression, say so, and keep the others", () => {
@@ -390,29 +383,15 @@ describe("LogSanitizer", () => {
       expect(entry.highlights).toBe(highlights);
     });
 
-    it("should read a list from an array, a comma-separated string or a JSON array, and say so when it cannot", () => {
-      expect(LogSanitizer.parseList(["a", " b "])).toEqual(["a", "b"]);
-      expect(LogSanitizer.parseList("a, b ,,c,")).toEqual(["a", "b", "c"]);
-      expect(LogSanitizer.parseList('["a{1,3}", "b"]')).toEqual(["a{1,3}", "b"]);
-      expect(LogSanitizer.parseList("")).toEqual([]);
-      expect(LogSanitizer.parseList(undefined)).toEqual([]);
-      expect(stderrSpy).not.toHaveBeenCalled();
+    it("should accept the frozen lists that the configuration gives", () => {
+      // The ConfigurationManager registers frozen lists; the sanitizer must only read them.
+      const sanitizer = new LogSanitizer(true, Object.freeze(["ssn"]), Object.freeze(["pairingCode"]), Object.freeze(["sk_live_[a-z0-9]+"]), Object.freeze([]), "[REDACTED]", 12, Object.freeze(["ssn"]), Object.freeze([]));
+      const entry = log("key sk_live_ab12cd", {ssn: "allowed, so kept", pairingCode: "11564104"});
 
-      expect(LogSanitizer.parseList('["a", ')).toEqual([]);
-      expect(LogSanitizer.parseList('["a", 1]')).toEqual([]);
-      expect(stderrSpy).toHaveBeenCalledTimes(2);
-    });
+      sanitizer.sanitize(entry);
 
-    it("should keep the defaults of the module in step with the defaults of the class", () => {
-      // The module gives the lists as strings (the convention for list configurations); a sanitizer
-      // built from those strings must behave as one built with no argument.
-      const fromModule = new LogSanitizer(true, LogSanitizerDefaults.sensitiveKeys.join(","), "", JSON.stringify(LogSanitizerDefaults.sensitiveValuePatterns), "");
-      const entry = log(`Bearer abcdefgh1234 ${JWT}`, {authorization: "x", apiKey: "y", name: "z"});
-
-      fromModule.sanitize(entry);
-
-      expect(entry.message).toBe("[REDACTED] [REDACTED]");
-      expect(entry.highlights).toEqual({authorization: "[REDACTED]", apiKey: "[REDACTED]", name: "z"});
+      expect(entry.message).toBe("key [REDACTED]");
+      expect(entry.highlights).toEqual({ssn: "allowed, so kept", pairingCode: "[REDACTED]"});
     });
   });
 });

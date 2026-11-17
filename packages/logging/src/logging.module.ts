@@ -5,7 +5,8 @@ import {
   ConfigurationModule,
   EnumResolver,
   EnvironmentVariableResolver,
-  NumberResolver
+  NumberResolver,
+  StringListResolver
 } from "@pristine-ts/configuration";
 import {LogSanitizerDefaults} from "./sanitizers/log-sanitizer.defaults";
 import {OutputModeEnum} from "./enums/output-mode.enum";
@@ -275,9 +276,9 @@ export const LoggingModule: ModuleInterface = {
       ]
     },
     /**
-     * The list keys of the sanitizer are strings: comma-separated, or a JSON array of strings (use
-     * it when an entry has a comma, as a regular expression often has). A configuration value
-     * cannot be an array.
+     * The list keys of the sanitizer are lists of strings. In an environment variable, a list is a
+     * comma-separated string or a JSON array of strings (`StringListResolver`); use the JSON array
+     * when an entry has a comma, as a regular expression often has.
      *
      * The keys whose value is replaced whole. A key matches without its case and without the
      * characters that are not letters or digits, when it is one of these or ends with one of
@@ -285,10 +286,10 @@ export const LoggingModule: ModuleInterface = {
      */
     {
       parameterName: LoggingModuleKeyname + ".sanitizer.sensitiveKeys",
-      defaultValue: LogSanitizerDefaults.sensitiveKeys.join(","),
+      defaultValue: LogSanitizerDefaults.sensitiveKeys,
       isRequired: false,
       defaultResolvers: [
-        new EnvironmentVariableResolver("PRISTINE_LOGGING_SANITIZER_SENSITIVE_KEYS"),
+        new StringListResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_SANITIZER_SENSITIVE_KEYS")),
       ]
     },
     /**
@@ -297,10 +298,10 @@ export const LoggingModule: ModuleInterface = {
      */
     {
       parameterName: LoggingModuleKeyname + ".sanitizer.additionalSensitiveKeys",
-      defaultValue: "",
+      defaultValue: [],
       isRequired: false,
       defaultResolvers: [
-        new EnvironmentVariableResolver("PRISTINE_LOGGING_SANITIZER_ADDITIONAL_SENSITIVE_KEYS"),
+        new StringListResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_SANITIZER_ADDITIONAL_SENSITIVE_KEYS")),
       ]
     },
     /**
@@ -312,10 +313,10 @@ export const LoggingModule: ModuleInterface = {
      */
     {
       parameterName: LoggingModuleKeyname + ".sanitizer.allowedKeys",
-      defaultValue: LogSanitizerDefaults.allowedKeys.join(","),
+      defaultValue: LogSanitizerDefaults.allowedKeys,
       isRequired: false,
       defaultResolvers: [
-        new EnvironmentVariableResolver("PRISTINE_LOGGING_SANITIZER_ALLOWED_KEYS"),
+        new StringListResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_SANITIZER_ALLOWED_KEYS")),
       ]
     },
     /**
@@ -324,10 +325,10 @@ export const LoggingModule: ModuleInterface = {
      */
     {
       parameterName: LoggingModuleKeyname + ".sanitizer.additionalAllowedKeys",
-      defaultValue: "",
+      defaultValue: [],
       isRequired: false,
       defaultResolvers: [
-        new EnvironmentVariableResolver("PRISTINE_LOGGING_SANITIZER_ADDITIONAL_ALLOWED_KEYS"),
+        new StringListResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_SANITIZER_ADDITIONAL_ALLOWED_KEYS")),
       ]
     },
     /**
@@ -338,10 +339,10 @@ export const LoggingModule: ModuleInterface = {
      */
     {
       parameterName: LoggingModuleKeyname + ".sanitizer.sensitiveValuePatterns",
-      defaultValue: JSON.stringify(LogSanitizerDefaults.sensitiveValuePatterns),
+      defaultValue: LogSanitizerDefaults.sensitiveValuePatterns,
       isRequired: false,
       defaultResolvers: [
-        new EnvironmentVariableResolver("PRISTINE_LOGGING_SANITIZER_SENSITIVE_VALUE_PATTERNS"),
+        new StringListResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_SANITIZER_SENSITIVE_VALUE_PATTERNS")),
       ]
     },
     /**
@@ -350,10 +351,10 @@ export const LoggingModule: ModuleInterface = {
      */
     {
       parameterName: LoggingModuleKeyname + ".sanitizer.additionalSensitiveValuePatterns",
-      defaultValue: "",
+      defaultValue: [],
       isRequired: false,
       defaultResolvers: [
-        new EnvironmentVariableResolver("PRISTINE_LOGGING_SANITIZER_ADDITIONAL_SENSITIVE_VALUE_PATTERNS"),
+        new StringListResolver(new EnvironmentVariableResolver("PRISTINE_LOGGING_SANITIZER_ADDITIONAL_SENSITIVE_VALUE_PATTERNS")),
       ]
     },
     /**

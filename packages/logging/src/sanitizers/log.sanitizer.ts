@@ -64,24 +64,24 @@ export class LogSanitizer {
    * @param additionalAllowedKeys Keys added to `allowedKeys`.
    */
   public constructor(@injectConfig(LoggingConfigurationKeys.SanitizerIsActive) private readonly isActive: boolean = true,
-                     @injectConfig(LoggingConfigurationKeys.SanitizerSensitiveKeys) sensitiveKeys: string | readonly string[] = LogSanitizerDefaults.sensitiveKeys,
-                     @injectConfig(LoggingConfigurationKeys.SanitizerAdditionalSensitiveKeys) additionalSensitiveKeys: string | readonly string[] = [],
-                     @injectConfig(LoggingConfigurationKeys.SanitizerSensitiveValuePatterns) sensitiveValuePatterns: string | readonly string[] = LogSanitizerDefaults.sensitiveValuePatterns,
-                     @injectConfig(LoggingConfigurationKeys.SanitizerAdditionalSensitiveValuePatterns) additionalSensitiveValuePatterns: string | readonly string[] = [],
+                     @injectConfig(LoggingConfigurationKeys.SanitizerSensitiveKeys) sensitiveKeys: readonly string[] = LogSanitizerDefaults.sensitiveKeys,
+                     @injectConfig(LoggingConfigurationKeys.SanitizerAdditionalSensitiveKeys) additionalSensitiveKeys: readonly string[] = [],
+                     @injectConfig(LoggingConfigurationKeys.SanitizerSensitiveValuePatterns) sensitiveValuePatterns: readonly string[] = LogSanitizerDefaults.sensitiveValuePatterns,
+                     @injectConfig(LoggingConfigurationKeys.SanitizerAdditionalSensitiveValuePatterns) additionalSensitiveValuePatterns: readonly string[] = [],
                      @injectConfig(LoggingConfigurationKeys.SanitizerReplacement) private readonly replacement: string = LogSanitizerDefaults.replacement,
                      @injectConfig(LoggingConfigurationKeys.SanitizerMaximumDepth) private readonly maximumDepth: number = LogSanitizerDefaults.maximumDepth,
-                     @injectConfig(LoggingConfigurationKeys.SanitizerAllowedKeys) allowedKeys: string | readonly string[] = LogSanitizerDefaults.allowedKeys,
-                     @injectConfig(LoggingConfigurationKeys.SanitizerAdditionalAllowedKeys) additionalAllowedKeys: string | readonly string[] = []) {
-    this.allowedKeys = new Set([...LogSanitizer.parseList(allowedKeys), ...LogSanitizer.parseList(additionalAllowedKeys)]
+                     @injectConfig(LoggingConfigurationKeys.SanitizerAllowedKeys) allowedKeys: readonly string[] = LogSanitizerDefaults.allowedKeys,
+                     @injectConfig(LoggingConfigurationKeys.SanitizerAdditionalAllowedKeys) additionalAllowedKeys: readonly string[] = []) {
+    this.allowedKeys = new Set([...allowedKeys, ...additionalAllowedKeys]
       .map(key => LogSanitizer.normalizeKey(key))
       .filter(key => key !== ""));
 
-    this.sensitiveKeys = [...LogSanitizer.parseList(sensitiveKeys), ...LogSanitizer.parseList(additionalSensitiveKeys)]
+    this.sensitiveKeys = [...sensitiveKeys, ...additionalSensitiveKeys]
       .map(key => LogSanitizer.normalizeKey(key))
       .filter(key => key !== "");
 
     this.sensitiveValuePatterns = [];
-    for (const source of [...LogSanitizer.parseList(sensitiveValuePatterns), ...LogSanitizer.parseList(additionalSensitiveValuePatterns)]) {
+    for (const source of [...sensitiveValuePatterns, ...additionalSensitiveValuePatterns]) {
       try {
         this.sensitiveValuePatterns.push(new RegExp(source, "g"));
       } catch (error) {
@@ -90,40 +90,6 @@ export class LogSanitizer {
         process.stderr.write(`[pristine][log-sanitizer] the sensitive value pattern '${source}' is not a valid regular expression and is ignored.\n`);
       }
     }
-  }
-
-  /**
-   * Reads a list configuration. The configuration gives a string: a JSON array of strings (use it
-   * when an entry has a comma, as a regular expression often has) or a comma-separated string. A
-   * `string[]` is accepted too, for a sanitizer that is built by hand. Entries are trimmed and
-   * the empty ones are dropped. What cannot be read gives an empty list and one line on stderr: a
-   * configuration mistake must not stop the application, and must not go unseen.
-   */
-  public static parseList(value: string | readonly string[] | undefined | null): string[] {
-    if (value === undefined || value === null) {
-      return [];
-    }
-
-    let entries: unknown = value;
-    if (typeof value === "string") {
-      const trimmed = value.trim();
-      if (trimmed.startsWith("[")) {
-        try {
-          entries = JSON.parse(trimmed);
-        } catch (error) {
-          entries = undefined;
-        }
-      } else {
-        entries = trimmed.split(",");
-      }
-    }
-
-    if (Array.isArray(entries) === false || (entries as unknown[]).some(entry => typeof entry !== "string")) {
-      process.stderr.write("[pristine][log-sanitizer] a list configuration is neither a list of strings, a JSON array of strings nor a comma-separated string, and is ignored.\n");
-      return [];
-    }
-
-    return (entries as string[]).map(entry => entry.trim()).filter(entry => entry !== "");
   }
 
   /**

@@ -71,12 +71,12 @@ export interface LoggingConfigurationValueMap {
   "pristine.logging.activateDiagnostics": boolean;
   "pristine.logging.maximumLogsPerSecond": number;
   "pristine.logging.sanitizer.isActive": boolean;
-  "pristine.logging.sanitizer.sensitiveKeys": string;
-  "pristine.logging.sanitizer.additionalSensitiveKeys": string;
-  "pristine.logging.sanitizer.allowedKeys": string;
-  "pristine.logging.sanitizer.additionalAllowedKeys": string;
-  "pristine.logging.sanitizer.sensitiveValuePatterns": string;
-  "pristine.logging.sanitizer.additionalSensitiveValuePatterns": string;
+  "pristine.logging.sanitizer.sensitiveKeys": readonly string[];
+  "pristine.logging.sanitizer.additionalSensitiveKeys": readonly string[];
+  "pristine.logging.sanitizer.allowedKeys": readonly string[];
+  "pristine.logging.sanitizer.additionalAllowedKeys": readonly string[];
+  "pristine.logging.sanitizer.sensitiveValuePatterns": readonly string[];
+  "pristine.logging.sanitizer.additionalSensitiveValuePatterns": readonly string[];
   "pristine.logging.sanitizer.replacement": string;
   "pristine.logging.sanitizer.maximumDepth": number;
 }
