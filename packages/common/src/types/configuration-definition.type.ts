@@ -1,5 +1,6 @@
 import {DynamicConfigurationResolverInterface} from "../interfaces/dynamic-configuration-resolver.interface";
 import {ResolverInterface} from "../interfaces/resolver.interface";
+import {ConfigurationValue} from "./configuration-value.type";
 
 /**
  * This type defines what a ConfigurationDefinition needs.
@@ -18,7 +19,7 @@ export type ConfigurationDefinition = {
   /**
    * Default resolvers that can be provided in the module to prevent having to define a new one everytime.
    */
-  defaultResolvers?: (string | boolean | number | DynamicConfigurationResolverInterface<any> | Promise<string | boolean | number> | ResolverInterface<string | boolean | number | any>)[];
+  defaultResolvers?: (ConfigurationValue | DynamicConfigurationResolverInterface<any> | Promise<ConfigurationValue> | ResolverInterface<ConfigurationValue | any>)[];
 } | {
   /**
    * The name of the configuration parameter.
@@ -31,12 +32,13 @@ export type ConfigurationDefinition = {
   isRequired: false;
 
   /**
-   * The default value if no other value is provided for that parameter.
+   * The default value if no other value is provided for that parameter. A scalar, or a list of
+   * scalars (`["a", "b"]`).
    */
-  defaultValue: string | boolean | number | DynamicConfigurationResolverInterface<any>;
+  defaultValue: ConfigurationValue | DynamicConfigurationResolverInterface<any>;
 
   /**
    * Default resolvers that can be provided in the module to prevent having to define a new one everytime.
    */
-  defaultResolvers?: (string | boolean | number | DynamicConfigurationResolverInterface<any> | Promise<string | boolean | number> | ResolverInterface<string | boolean | number | any>)[];
+  defaultResolvers?: (ConfigurationValue | DynamicConfigurationResolverInterface<any> | Promise<ConfigurationValue> | ResolverInterface<ConfigurationValue | any>)[];
 }
