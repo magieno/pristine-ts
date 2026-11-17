@@ -23,6 +23,18 @@ export const LogSanitizerDefaults = {
   ] as readonly string[],
 
   /**
+   * The keys that are never treated as a secret, though they match a sensitive key. An allowed key
+   * is compared the same way (no case, letters and digits only) but must match EXACTLY: an
+   * exception is precise, it does not spread to the keys that end with it.
+   *
+   * `controllerInstantiationToken` is a dependency-injection token of the router, in its debug
+   * logs. It is the name of a class, not a secret.
+   */
+  allowedKeys: [
+    "controllerInstantiationToken",
+  ] as readonly string[],
+
+  /**
    * Regular expressions (their source, flags `g`) for a secret that sits INSIDE a string, whatever
    * the key: in a message, in a URL, in an array of raw headers.
    *

@@ -17,7 +17,8 @@ import {LogSanitizerDefaults} from "./log-sanitizer.defaults";
  *
  * Two rules, both from the configuration:
  *
- * 1. **By key.** The value under a sensitive key is replaced whole, whatever its type.
+ * 1. **By key.** The value under a sensitive key (the block-list) is replaced whole, whatever its
+ *    type; unless the key is an allowed key (the allow-list), which wins.
  * 2. **By value.** In every string (the message too), what matches a sensitive pattern is replaced.
  *
  * It never changes the objects it is given: a log often holds the live request, and the
@@ -48,6 +49,7 @@ export class LogSanitizer {
   public static readonly MaximumValues = 20000;
 
   private readonly sensitiveKeys: string[];
+  private readonly allowedKeys: Set<string>;
   private readonly sensitiveValuePatterns: RegExp[];
 
   /**
@@ -58,6 +60,8 @@ export class LogSanitizer {
    * @param additionalSensitiveValuePatterns Patterns added to `sensitiveValuePatterns`.
    * @param replacement What replaces a secret.
    * @param maximumDepth How deep the sanitizer goes into an object.
+   * @param allowedKeys The keys that are never a secret, though they match a sensitive key. Exact match.
+   * @param additionalAllowedKeys Keys added to `allowedKeys`.
    */
   public constructor(@injectConfig(LoggingConfigurationKeys.SanitizerIsActive) private readonly isActive: boolean = true,
                      @injectConfig(LoggingConfigurationKeys.SanitizerSensitiveKeys) sensitiveKeys: string | readonly string[] = LogSanitizerDefaults.sensitiveKeys,
@@ -65,7 +69,13 @@ export class LogSanitizer {
                      @injectConfig(LoggingConfigurationKeys.SanitizerSensitiveValuePatterns) sensitiveValuePatterns: string | readonly string[] = LogSanitizerDefaults.sensitiveValuePatterns,
                      @injectConfig(LoggingConfigurationKeys.SanitizerAdditionalSensitiveValuePatterns) additionalSensitiveValuePatterns: string | readonly string[] = [],
                      @injectConfig(LoggingConfigurationKeys.SanitizerReplacement) private readonly replacement: string = LogSanitizerDefaults.replacement,
-                     @injectConfig(LoggingConfigurationKeys.SanitizerMaximumDepth) private readonly maximumDepth: number = LogSanitizerDefaults.maximumDepth) {
+                     @injectConfig(LoggingConfigurationKeys.SanitizerMaximumDepth) private readonly maximumDepth: number = LogSanitizerDefaults.maximumDepth,
+                     @injectConfig(LoggingConfigurationKeys.SanitizerAllowedKeys) allowedKeys: string | readonly string[] = LogSanitizerDefaults.allowedKeys,
+                     @injectConfig(LoggingConfigurationKeys.SanitizerAdditionalAllowedKeys) additionalAllowedKeys: string | readonly string[] = []) {
+    this.allowedKeys = new Set([...LogSanitizer.parseList(allowedKeys), ...LogSanitizer.parseList(additionalAllowedKeys)]
+      .map(key => LogSanitizer.normalizeKey(key))
+      .filter(key => key !== ""));
+
     this.sensitiveKeys = [...LogSanitizer.parseList(sensitiveKeys), ...LogSanitizer.parseList(additionalSensitiveKeys)]
       .map(key => LogSanitizer.normalizeKey(key))
       .filter(key => key !== "");
@@ -83,8 +93,9 @@ export class LogSanitizer {
   }
 
   /**
-   * Reads a list configuration: a `string[]`, a JSON array of strings (use it when an entry has a
-   * comma, as a regular expression often has), or a comma-separated string. Entries are trimmed and
+   * Reads a list configuration. The configuration gives a string: a JSON array of strings (use it
+   * when an entry has a comma, as a regular expression often has) or a comma-separated string. A
+   * `string[]` is accepted too, for a sanitizer that is built by hand. Entries are trimmed and
    * the empty ones are dropped. What cannot be read gives an empty list and one line on stderr: a
    * configuration mistake must not stop the application, and must not go unseen.
    */
@@ -196,11 +207,12 @@ export class LogSanitizer {
   }
 
   /**
-   * Whether the value under this key is a secret.
+   * Whether the value under this key is a secret: the key is on the block-list (it is a sensitive
+   * key or ends with one) and not on the allow-list (which matches exactly, and wins).
    */
   public isSensitiveKey(key: string): boolean {
     const normalized = LogSanitizer.normalizeKey(key);
-    if (normalized === "") {
+    if (normalized === "" || this.allowedKeys.has(normalized)) {
       return false;
     }
 

@@ -112,6 +112,42 @@ describe("LogSanitizer", () => {
     });
   });
 
+  describe("allowed keys", () => {
+    it("should never redact an allowed key, and the allow-list wins over the block-list", () => {
+      const sanitizer = new LogSanitizer(true, undefined, "nextPageToken", undefined, undefined, undefined, undefined, undefined, "nextPageToken, token_type");
+      const entry = log("m", {nextPageToken: "page-2", token_type: "bearer", TokenType: "bearer", access_token: "at_123"});
+
+      sanitizer.sanitize(entry);
+
+      expect(entry.highlights).toEqual({nextPageToken: "page-2", token_type: "bearer", TokenType: "bearer", access_token: "[REDACTED]"});
+    });
+
+    it("should match an allowed key exactly: the keys that end with it are still secrets", () => {
+      const sanitizer = new LogSanitizer(true, undefined, undefined, undefined, undefined, undefined, undefined, ["token"]);
+
+      expect(sanitizer.isSensitiveKey("token")).toBe(false);
+      expect(sanitizer.isSensitiveKey("Token")).toBe(false);
+      expect(sanitizer.isSensitiveKey("accessToken")).toBe(true);
+      expect(sanitizer.isSensitiveKey("x-auth-token")).toBe(true);
+    });
+
+    it("should still replace a secret that sits in the value of an allowed key", () => {
+      const sanitizer = new LogSanitizer(true, undefined, undefined, undefined, undefined, undefined, undefined, undefined, "debugToken");
+      const entry = log("m", {debugToken: `prefix ${JWT}`, other: "kept"});
+
+      sanitizer.sanitize(entry);
+
+      expect(entry.highlights).toEqual({debugToken: "prefix [REDACTED]", other: "kept"});
+    });
+
+    it("should allow the dependency-injection token of the router by default, and let the application replace that list", () => {
+      expect(new LogSanitizer().isSensitiveKey("controllerInstantiationToken")).toBe(false);
+      expect(new LogSanitizer(true, undefined, undefined, undefined, undefined, undefined, undefined, []).isSensitiveKey("controllerInstantiationToken")).toBe(true);
+      // The module gives the defaults as a comma-separated string.
+      expect(new LogSanitizer(true, undefined, undefined, undefined, undefined, undefined, undefined, LogSanitizerDefaults.allowedKeys.join(","), "").isSensitiveKey("controllerInstantiationToken")).toBe(false);
+    });
+  });
+
   describe("sensitive values", () => {
     it("should replace a bearer credential and a JWT inside any string, the message included", () => {
       const entry = log(`Call failed with header "Authorization: Bearer abcdef123456" and token ${JWT}`, {

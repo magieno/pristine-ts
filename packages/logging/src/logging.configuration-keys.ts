@@ -33,6 +33,8 @@ export const LoggingConfigurationKeys = {
   SanitizerIsActive: "pristine.logging.sanitizer.isActive",
   SanitizerSensitiveKeys: "pristine.logging.sanitizer.sensitiveKeys",
   SanitizerAdditionalSensitiveKeys: "pristine.logging.sanitizer.additionalSensitiveKeys",
+  SanitizerAllowedKeys: "pristine.logging.sanitizer.allowedKeys",
+  SanitizerAdditionalAllowedKeys: "pristine.logging.sanitizer.additionalAllowedKeys",
   SanitizerSensitiveValuePatterns: "pristine.logging.sanitizer.sensitiveValuePatterns",
   SanitizerAdditionalSensitiveValuePatterns: "pristine.logging.sanitizer.additionalSensitiveValuePatterns",
   SanitizerReplacement: "pristine.logging.sanitizer.replacement",
@@ -69,10 +71,12 @@ export interface LoggingConfigurationValueMap {
   "pristine.logging.activateDiagnostics": boolean;
   "pristine.logging.maximumLogsPerSecond": number;
   "pristine.logging.sanitizer.isActive": boolean;
-  "pristine.logging.sanitizer.sensitiveKeys": string | readonly string[];
-  "pristine.logging.sanitizer.additionalSensitiveKeys": string | readonly string[];
-  "pristine.logging.sanitizer.sensitiveValuePatterns": string | readonly string[];
-  "pristine.logging.sanitizer.additionalSensitiveValuePatterns": string | readonly string[];
+  "pristine.logging.sanitizer.sensitiveKeys": string;
+  "pristine.logging.sanitizer.additionalSensitiveKeys": string;
+  "pristine.logging.sanitizer.allowedKeys": string;
+  "pristine.logging.sanitizer.additionalAllowedKeys": string;
+  "pristine.logging.sanitizer.sensitiveValuePatterns": string;
+  "pristine.logging.sanitizer.additionalSensitiveValuePatterns": string;
   "pristine.logging.sanitizer.replacement": string;
   "pristine.logging.sanitizer.maximumDepth": number;
 }

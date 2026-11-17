@@ -97,6 +97,16 @@ describe("Logging - the sanitizer keeps the secrets of a request out of the logs
         expect(withKey.output).not.toContain("hunter2-is-the-password");
     });
 
+    it("should write the value of a key that the application allows, and still hide the others", async () => {
+        const {output} = await send({"pristine.logging.sanitizer.additionalAllowedKeys": "X-Api-Key"});
+
+        expect(output).toContain("[INBOUND RESPONSE COMPLETED]");
+        expect(output).toContain("k3y-0f-th3-cl13nt");
+        expect(output).not.toContain("hunter2-is-the-password");
+        expect(output).not.toContain(JWT);
+        expect(output).not.toContain("s3ss10n-c00k13");
+    });
+
     it("should write the secrets when the application turns the sanitizer off", async () => {
         const {output} = await send({"pristine.logging.sanitizer.isActive": false});
 

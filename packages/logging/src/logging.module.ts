@@ -275,8 +275,9 @@ export const LoggingModule: ModuleInterface = {
       ]
     },
     /**
-     * The list keys of the sanitizer accept a comma-separated string or a JSON array of strings
-     * (environment variable or default), or a `string[]` (programmatic configuration).
+     * The list keys of the sanitizer are strings: comma-separated, or a JSON array of strings (use
+     * it when an entry has a comma, as a regular expression often has). A configuration value
+     * cannot be an array.
      *
      * The keys whose value is replaced whole. A key matches without its case and without the
      * characters that are not letters or digits, when it is one of these or ends with one of
@@ -300,6 +301,33 @@ export const LoggingModule: ModuleInterface = {
       isRequired: false,
       defaultResolvers: [
         new EnvironmentVariableResolver("PRISTINE_LOGGING_SANITIZER_ADDITIONAL_SENSITIVE_KEYS"),
+      ]
+    },
+    /**
+     * The allow-list: the keys that are never treated as a secret, though they match a sensitive
+     * key. An allowed key must match exactly (without its case and punctuation); it does not cover
+     * the keys that end with it. A value under an allowed key still goes through the value
+     * patterns: a JWT is a JWT under any key. Setting this REPLACES the defaults; to add to them,
+     * use `additionalAllowedKeys`.
+     */
+    {
+      parameterName: LoggingModuleKeyname + ".sanitizer.allowedKeys",
+      defaultValue: LogSanitizerDefaults.allowedKeys.join(","),
+      isRequired: false,
+      defaultResolvers: [
+        new EnvironmentVariableResolver("PRISTINE_LOGGING_SANITIZER_ALLOWED_KEYS"),
+      ]
+    },
+    /**
+     * Keys added to `allowedKeys`. This is where an application says that one of its keys is not
+     * a secret, for example `nextPageToken` or `tokenType`.
+     */
+    {
+      parameterName: LoggingModuleKeyname + ".sanitizer.additionalAllowedKeys",
+      defaultValue: "",
+      isRequired: false,
+      defaultResolvers: [
+        new EnvironmentVariableResolver("PRISTINE_LOGGING_SANITIZER_ADDITIONAL_ALLOWED_KEYS"),
       ]
     },
     /**
