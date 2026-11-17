@@ -30,6 +30,15 @@ export const LoggingConfigurationKeys = {
   ConsoleLoggerCriticalStream: "pristine.logging.consoleLoggerCriticalStream",
   ActivateDiagnostics: "pristine.logging.activateDiagnostics",
   MaximumLogsPerSecond: "pristine.logging.maximumLogsPerSecond",
+  SanitizerIsActive: "pristine.logging.sanitizer.isActive",
+  SanitizerSensitiveKeys: "pristine.logging.sanitizer.sensitiveKeys",
+  SanitizerAdditionalSensitiveKeys: "pristine.logging.sanitizer.additionalSensitiveKeys",
+  SanitizerAllowedKeys: "pristine.logging.sanitizer.allowedKeys",
+  SanitizerAdditionalAllowedKeys: "pristine.logging.sanitizer.additionalAllowedKeys",
+  SanitizerSensitiveValuePatterns: "pristine.logging.sanitizer.sensitiveValuePatterns",
+  SanitizerAdditionalSensitiveValuePatterns: "pristine.logging.sanitizer.additionalSensitiveValuePatterns",
+  SanitizerReplacement: "pristine.logging.sanitizer.replacement",
+  SanitizerMaximumDepth: "pristine.logging.sanitizer.maximumDepth",
 } as const;
 
 import {OutputModeEnum} from "./enums/output-mode.enum";
@@ -61,6 +70,15 @@ export interface LoggingConfigurationValueMap {
   "pristine.logging.consoleLoggerCriticalStream": StreamEnum;
   "pristine.logging.activateDiagnostics": boolean;
   "pristine.logging.maximumLogsPerSecond": number;
+  "pristine.logging.sanitizer.isActive": boolean;
+  "pristine.logging.sanitizer.sensitiveKeys": readonly string[];
+  "pristine.logging.sanitizer.additionalSensitiveKeys": readonly string[];
+  "pristine.logging.sanitizer.allowedKeys": readonly string[];
+  "pristine.logging.sanitizer.additionalAllowedKeys": readonly string[];
+  "pristine.logging.sanitizer.sensitiveValuePatterns": readonly string[];
+  "pristine.logging.sanitizer.additionalSensitiveValuePatterns": readonly string[];
+  "pristine.logging.sanitizer.replacement": string;
+  "pristine.logging.sanitizer.maximumDepth": number;
 }
 
 

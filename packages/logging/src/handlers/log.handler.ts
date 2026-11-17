@@ -9,6 +9,7 @@ import {LogHandlerInterface} from "../interfaces/log-handler.interface";
 import {Utils} from "../utils/utils";
 import {LoggingModuleKeyname} from "../logging.module";
 import {LogData} from "../types/log-data.type";
+import {LogSanitizer} from "../sanitizers/log.sanitizer";
 
 /**
  * The LogHandler emits structured log entries through every registered `LoggerInterface`.
@@ -29,12 +30,15 @@ export class LogHandler implements LogHandlerInterface {
    * @param activateDiagnostics Whether or not the outputted logs should contain the diagnostic part. This is an intensive process and can dramatically reduce the performance of the code.
    * @param kernelInstantiationId The id of instantiation of the kernel.
    * @param tracingContext The context of the tracing.
+   * @param logSanitizer Removes the secrets from every log before a logger gets it. Optional so that a
+   * LogHandler built by hand (a test, an older subclass) keeps working; the container always gives one.
    */
   public constructor(@injectAll(ServiceDefinitionTagEnum.Logger) private readonly loggers: LoggerInterface[],
                      @injectConfig(LoggingConfigurationKeys.LogSeverityLevelConfiguration) private readonly logSeverityLevelConfiguration: number,
                      @injectConfig(LoggingConfigurationKeys.ActivateDiagnostics) private readonly activateDiagnostics: boolean,
                      @inject(InternalContainerParameterEnum.KernelInstantiationId) private readonly kernelInstantiationId: string,
-                     private readonly tracingContext: TracingContext) {
+                     private readonly tracingContext: TracingContext,
+                     private readonly logSanitizer?: LogSanitizer) {
   }
 
   /**
@@ -185,6 +189,20 @@ export class LogHandler implements LogHandlerInterface {
       }
 
       log.extra["__diagnostics"] = diagnostics;
+    }
+
+    // Protect the log ONE time, here, before any logger sees it: the console, the observability
+    // files and every external logger then get the same clean log. It runs after the diagnostics
+    // so they are covered too. The data is sanitized when a logger first reads it, so a log that
+    // every logger drops by its severity costs nothing. A sanitizer that fails must not let the
+    // raw log through: the log then goes out with its message only.
+    if (this.logSanitizer !== undefined && this.loggers.some(logger => logger.isActive() !== false)) {
+      try {
+        this.logSanitizer.protect(log);
+      } catch (error) {
+        log.highlights = {};
+        log.extra = {sanitizerError: "The log sanitizer failed; the data of this log was dropped."};
+      }
     }
 
     // Log in every logger that is activated. Each logger's dispatch is isolated: a
