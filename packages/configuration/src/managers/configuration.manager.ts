@@ -3,7 +3,7 @@ import {ConfigurationDefinitionAlreadyExistsError} from "../errors/configuration
 import {ModuleConfigurationValue} from "../types/module-configuration.value";
 import {ConfigurationParser} from "../parsers/configuration.parser";
 import {ConfigurationValidationError} from "../errors/configuration-validation.error";
-import {ConfigurationDefinition} from "@pristine-ts/common";
+import {ConfigurationDefinition, ConfigurationValue} from "@pristine-ts/common";
 import {PristineConfigFileLoader} from "../loaders/pristine-config-file.loader";
 
 @injectable()
@@ -204,7 +204,7 @@ export class ConfigurationManager {
    * @param value
    * @param container
    */
-  public registerConfigurationValue(configurationKey: string, value: boolean | number | string, container: DependencyContainer) {
+  public registerConfigurationValue(configurationKey: string, value: ConfigurationValue, container: DependencyContainer) {
     // Register the configuration in the container
     container.registerInstance("%" + configurationKey + "%", value);
   }
