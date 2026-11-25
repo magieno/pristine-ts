@@ -43,6 +43,24 @@ export class Request {
    * The host of the request.
    */
   host?: string;
+  /**
+   * The address of the directly connected network peer, as the transport saw it. For example
+   * `127.0.0.1`, `::1` or `::ffff:127.0.0.1` (an IPv4 peer on a dual-stack socket).
+   *
+   * It is never taken from a request header (`X-Forwarded-For`, `Forwarded`, `X-Real-IP`), so the
+   * caller cannot forge it. Behind a reverse proxy or a load balancer it is the address of that
+   * proxy, not of the end user.
+   *
+   * - `KernelHttpServer` in `@pristine-ts/http` and the Express mapper: `socket.remoteAddress`,
+   *   the TCP peer of the Node server.
+   * - API Gateway (REST and HTTP API): the `sourceIp` that API Gateway itself puts in the request
+   *   context, the TCP peer of the API Gateway endpoint.
+   * - `undefined` when the transport does not give one (Cloud Functions / Cloud Run, a `Request`
+   *   built by hand, a socket that is already closed).
+   *
+   * Read-only by convention: the adapter that builds the `Request` sets it once.
+   */
+  remoteAddress?: string;
 
   constructor(httpMethod: HttpMethod | string, url: string, id: string) {
     this.httpMethod = httpMethod;

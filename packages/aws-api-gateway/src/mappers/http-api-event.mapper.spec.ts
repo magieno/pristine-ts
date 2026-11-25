@@ -92,6 +92,7 @@ describe("Http request mapper", () => {
 
     const expectedRequest: Request = new Request(HttpMethod.Post, "/my/path?parameter1=value1&parameter1=value2&parameter2=value", "uuid");
     expectedRequest.body = rawEvent.body;
+    expectedRequest.remoteAddress = "IP";
     expectedRequest.rawBody = rawEvent.body,
       expectedRequest.setHeaders({
         "header1": "value1",
@@ -124,6 +125,38 @@ describe("Http request mapper", () => {
     expect(mappedResponse.body).toStrictEqual('{"allo":true}')
     expect(mappedResponse.isBase64Encoded).toBeFalsy()
 
+  })
+
+  it("should set `remoteAddress` from `requestContext.http.sourceIp` and never from a header", () => {
+    const httpApiEventMapper = new HttpApiEventMapper(new LogHandlerMock(), ApiGatewayEventsHandlingStrategyEnum.Request, fakeEventIdManager);
+
+    const forgedEvent = {
+      ...rawEvent,
+      headers: {...rawEvent.headers, "x-forwarded-for": "127.0.0.1", "forwarded": "for=127.0.0.1", "x-real-ip": "127.0.0.1"},
+      requestContext: {...rawEvent.requestContext, http: {...rawEvent.requestContext.http, sourceIp: "203.0.113.7"}},
+    };
+
+    const request = httpApiEventMapper.map(forgedEvent, executionContext).events[0].payload as Request;
+
+    expect(request.remoteAddress).toBe("203.0.113.7");
+  })
+
+  it("should leave `remoteAddress` undefined when the event has no usable source ip", () => {
+    const httpApiEventMapper = new HttpApiEventMapper(new LogHandlerMock(), ApiGatewayEventsHandlingStrategyEnum.Request, fakeEventIdManager);
+
+    const {sourceIp, ...httpWithoutSourceIp} = rawEvent.requestContext.http;
+    const eventWithoutSourceIp = {
+      ...rawEvent,
+      headers: {...rawEvent.headers, "x-forwarded-for": "127.0.0.1"},
+      requestContext: {...rawEvent.requestContext, http: httpWithoutSourceIp},
+    };
+    const eventWithEmptySourceIp = {
+      ...rawEvent,
+      requestContext: {...rawEvent.requestContext, http: {...rawEvent.requestContext.http, sourceIp: ""}},
+    };
+
+    expect((httpApiEventMapper.map(eventWithoutSourceIp, executionContext).events[0].payload as Request).remoteAddress).toBeUndefined();
+    expect((httpApiEventMapper.map(eventWithEmptySourceIp, executionContext).events[0].payload as Request).remoteAddress).toBeUndefined();
   })
 
   it("should map an http api request properly into an Event Object", () => {

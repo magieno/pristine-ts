@@ -19,6 +19,9 @@ export class RequestMapper {
    * `body` is whatever the app's body parser produced. `rawBody` is the exact bytes when they are
    * available and never the parsed object; `RawBodyCapture.resolve` owns that rule.
    *
+   * `remoteAddress` is `socket.remoteAddress`, the address of the TCP peer. It is never
+   * `expressRequest.ip`, which follows `X-Forwarded-For` when `trust proxy` is on.
+   *
    * @param expressRequest The http expressRequest from express.
    */
   map(expressRequest: ExpressRequest): Request {
@@ -30,6 +33,9 @@ export class RequestMapper {
     request.setHeaders(this.httpHeadersMapper.map(expressRequest.headers));
     request.body = expressRequest.body;
     request.rawBody = RawBodyCapture.resolve(expressRequest);
+    // The TCP peer, not `expressRequest.ip`: with `trust proxy` on, Express derives `ip` from the
+    // `X-Forwarded-For` header, which the caller controls.
+    request.remoteAddress = expressRequest.socket?.remoteAddress;
 
     return request;
   }

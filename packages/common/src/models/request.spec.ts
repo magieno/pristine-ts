@@ -16,6 +16,12 @@ describe("Request", () => {
       expect(request.body).toEqual({});
     });
 
+    it("leaves remoteAddress undefined: only the adapter that builds the request sets it", () => {
+      const request = new Request(HttpMethod.Get, "/products", "req-4");
+      request.setHeaders({"X-Forwarded-For": "127.0.0.1", "Forwarded": "for=127.0.0.1"});
+      expect(request.remoteAddress).toBeUndefined();
+    });
+
     it("accepts a custom http-method string outside the enum", () => {
       const request = new Request("PATCH", "/products/1", "req-3");
       expect(request.httpMethod).toBe("PATCH");

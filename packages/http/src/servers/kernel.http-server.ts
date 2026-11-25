@@ -279,6 +279,8 @@ export class KernelHttpServer implements RuntimeServerInterface {
    * `application/octet-stream`, unknown or absent `Content-Type`).
    *
    * GET/HEAD requests and zero-length bodies set neither `body` nor `rawBody`.
+   *
+   * `request.remoteAddress` is `req.socket.remoteAddress`, the address of the TCP peer.
    * @private
    */
   private async mapToPristineRequest(req: IncomingMessage, requestId: string): Promise<Request> {
@@ -288,6 +290,10 @@ export class KernelHttpServer implements RuntimeServerInterface {
 
     const request = new Request(method, url, requestId);
     request.groupId = groupId;
+
+    // The TCP peer as Node saw it. Never derived from a header (`X-Forwarded-For`, `Forwarded`):
+    // a caller can put anything in those. `undefined` when the socket is already destroyed.
+    request.remoteAddress = req.socket?.remoteAddress;
 
     // The networking Router treats `request.host` as a base URL for `new URL(request.url, host)`,
     // which requires a scheme. Node's `Host` header carries only the authority (host:port), so

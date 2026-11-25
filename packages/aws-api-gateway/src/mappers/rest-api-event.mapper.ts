@@ -71,6 +71,9 @@ export class RestApiEventMapper extends BaseApiEventMapper implements EventMappe
         request.rawBody = rawEvent.body;
         request.id = request.getHeader("x-pristine-request-id") ?? request.id;
         request.groupId = request.getHeader("x-pristine-event-group-id") ?? request.groupId;
+        // `requestContext.identity.sourceIp` is set by API Gateway itself: the source address of
+        // the TCP connection that made the request to the API Gateway endpoint. Not a header.
+        request.remoteAddress = this.mapRemoteAddress(rawEvent.requestContext?.identity?.sourceIp);
 
         return {
           executionOrder: "sequential",
