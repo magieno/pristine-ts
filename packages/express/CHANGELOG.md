@@ -1,5 +1,13 @@
 # Changelog — @pristine-ts/express
 
+## 4.0.21
+
+- **`RequestMapper` sets `Request.remoteAddress`** from `expressRequest.socket.remoteAddress`,
+  the address of the TCP peer. It is deliberately not `expressRequest.ip`: with `trust proxy` on,
+  Express derives `ip` from the `X-Forwarded-For` header, which the caller controls. An app that
+  wants the proxy-aware address still reads `X-Forwarded-For` from `request.headers` and applies
+  its own trust rule.
+
 ## 4.0.12
 
 - **`RequestMapper` carries the raw request bytes.** `Request.rawBody` used to be

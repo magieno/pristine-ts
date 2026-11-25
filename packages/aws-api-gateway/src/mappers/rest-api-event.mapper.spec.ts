@@ -102,6 +102,7 @@ describe("Rest API Event (Api Gateway 1.0)", () => {
 
     const expectedRequest: Request = new Request(HttpMethod.Get, "/my/path", "uuid");
     expectedRequest.body = rawEvent.body;
+    expectedRequest.remoteAddress = "IP";
     expectedRequest.rawBody = rawEvent.body,
       expectedRequest.setHeaders({
         "header1": "value1",
@@ -136,6 +137,34 @@ describe("Rest API Event (Api Gateway 1.0)", () => {
     expect(mappedResponse.isBase64Encoded).toBeFalsy()
   })
 
+
+  it("should set `remoteAddress` from `requestContext.identity.sourceIp` and never from a header", () => {
+    const restApiRequestMapper = new RestApiEventMapper(new LogHandlerMock(), ApiGatewayEventsHandlingStrategyEnum.Request, fakeEventIdManager);
+
+    const forgedEvent = {
+      ...rawEvent,
+      headers: {...rawEvent.headers, "X-Forwarded-For": "127.0.0.1", "Forwarded": "for=127.0.0.1", "X-Real-IP": "127.0.0.1"},
+      requestContext: {...rawEvent.requestContext, identity: {...rawEvent.requestContext.identity, sourceIp: "203.0.113.7"}},
+    };
+
+    const request = restApiRequestMapper.map(forgedEvent, executionContext).events[0].payload as Request;
+
+    expect(request.remoteAddress).toBe("203.0.113.7");
+  })
+
+  it("should leave `remoteAddress` undefined when the event has no usable source ip", () => {
+    const restApiRequestMapper = new RestApiEventMapper(new LogHandlerMock(), ApiGatewayEventsHandlingStrategyEnum.Request, fakeEventIdManager);
+
+    const {requestContext, ...eventWithoutRequestContext} = rawEvent;
+    const eventWithNullSourceIp = {
+      ...rawEvent,
+      headers: {...rawEvent.headers, "X-Forwarded-For": "127.0.0.1"},
+      requestContext: {...rawEvent.requestContext, identity: {...rawEvent.requestContext.identity, sourceIp: null as string | null}},
+    };
+
+    expect((restApiRequestMapper.map(eventWithoutRequestContext, executionContext).events[0].payload as Request).remoteAddress).toBeUndefined();
+    expect((restApiRequestMapper.map(eventWithNullSourceIp, executionContext).events[0].payload as Request).remoteAddress).toBeUndefined();
+  })
 
   it("should map a rest api request properly into an Event Object and should reverse map it properly", () => {
     const restApiRequestMapper = new RestApiEventMapper(new LogHandlerMock(), ApiGatewayEventsHandlingStrategyEnum.Event, fakeEventIdManager);

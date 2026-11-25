@@ -1,5 +1,23 @@
 # Changelog — @pristine-ts/http
 
+## 4.0.21
+
+- **`KernelHttpServer` sets `Request.remoteAddress`** from `req.socket.remoteAddress`, the
+  address of the TCP peer. Controllers, request interceptors, authenticators and guards can now
+  restrict a route to local callers without a listener on the private Node server:
+
+  ```ts
+  const LOOPBACK = ["127.0.0.1", "::1", "::ffff:127.0.0.1"];
+
+  if (request.remoteAddress === undefined || LOOPBACK.includes(request.remoteAddress) === false) {
+    throw new ForbiddenError("This route is only available on this machine.");
+  }
+  ```
+
+  No header is read: a forged `X-Forwarded-For` or `Forwarded` does not change the value. Behind
+  a reverse proxy the value is the address of the proxy, so a proxy on the same host makes every
+  caller look like loopback. Do not use this check behind one.
+
 ## 4.0.12
 
 - **`KernelHttpServer` is binary-safe for request bodies.** The body is read as bytes and never

@@ -30,4 +30,24 @@ export class BaseApiEventMapper {
         return HttpMethod.Get;
     }
   }
+
+  /**
+   * Maps the `sourceIp` of the API Gateway request context to `Request.remoteAddress`.
+   *
+   * API Gateway sets `sourceIp` itself. It is the source address of the TCP connection that made
+   * the request to the API Gateway endpoint, so the caller cannot forge it with a header. When a
+   * CDN or a proxy is in front of API Gateway, it is the address of that CDN or proxy.
+   *
+   * @param sourceIp `requestContext.identity.sourceIp` (REST API) or `requestContext.http.sourceIp` (HTTP API).
+   * @returns The address, or `undefined` when the event does not carry a usable one (for example
+   * an event built by a test tool with no request context).
+   * @protected
+   */
+  protected mapRemoteAddress(sourceIp: unknown): string | undefined {
+    if (typeof sourceIp !== "string" || sourceIp === "") {
+      return undefined;
+    }
+
+    return sourceIp;
+  }
 }

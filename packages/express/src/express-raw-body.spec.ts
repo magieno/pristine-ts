@@ -186,4 +186,39 @@ describe("RequestMapper", () => {
     expect(mapped.rawBody).toBe(RawBodyCapture.resolve(expressRequest));
     expect(mapped.rawBody).toBe(bytes);
   });
+
+  it("sets `remoteAddress` from the socket, never from `ip` or a forwarding header", async () => {
+    const kernel = new Kernel();
+    await kernel.start(appModule(), {"pristine.logging.consoleLoggerActivated": false});
+    const mapper = kernel.container.resolve(RequestMapper);
+
+    const expressRequest: any = {
+      method: "GET",
+      url: "/mapped",
+      headers: {"x-forwarded-for": "127.0.0.1", "forwarded": "for=127.0.0.1"},
+      header: (): undefined => undefined,
+      // What Express reports with `trust proxy` on: the forged header value.
+      ip: "127.0.0.1",
+      ips: ["127.0.0.1"],
+      socket: {remoteAddress: "203.0.113.7"},
+    };
+
+    expect(mapper.map(expressRequest).remoteAddress).toBe("203.0.113.7");
+  });
+
+  it("leaves `remoteAddress` undefined when the request has no socket", async () => {
+    const kernel = new Kernel();
+    await kernel.start(appModule(), {"pristine.logging.consoleLoggerActivated": false});
+    const mapper = kernel.container.resolve(RequestMapper);
+
+    const expressRequest: any = {
+      method: "GET",
+      url: "/mapped",
+      headers: {"x-forwarded-for": "127.0.0.1"},
+      header: (): undefined => undefined,
+      ip: "127.0.0.1",
+    };
+
+    expect(mapper.map(expressRequest).remoteAddress).toBeUndefined();
+  });
 });

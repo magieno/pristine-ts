@@ -36,3 +36,31 @@ env `PRISTINE_HTTP_KERNEL_SERVER_MAX_BODY_SIZE`) caps the request body in bytes.
 A body over the limit is answered `413 Payload Too Large` and the handler is never called: a
 `Content-Length` over the limit is rejected before a byte is read, and a chunked body is cut off
 as soon as it passes the limit.
+
+## `KernelHttpServer` remote address
+
+`KernelHttpServer` sets `request.remoteAddress` to the address of the TCP peer
+(`socket.remoteAddress`): `127.0.0.1`, `::1` or `::ffff:127.0.0.1` for a caller on the same
+machine. It never reads `X-Forwarded-For`, `Forwarded` or any other header, so the caller cannot
+forge it.
+
+Use it to keep a route local to the machine:
+
+```ts
+const LOOPBACK = ["127.0.0.1", "::1", "::ffff:127.0.0.1"];
+
+@route(HttpMethod.Post, "/admin/pair")
+async pair(@request() request: Request): Promise<Response> {
+  if (request.remoteAddress === undefined || LOOPBACK.includes(request.remoteAddress) === false) {
+    throw new ForbiddenError("This route is only available on this machine.");
+  }
+  // ...
+}
+```
+
+Two rules:
+
+- `undefined` means "unknown". Refuse the request; do not treat it as local.
+- Behind a reverse proxy the value is the address of the proxy. A proxy on the same host makes
+  every caller look like loopback, so this check is only valid when clients connect to
+  `KernelHttpServer` directly.
